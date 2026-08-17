@@ -111,25 +111,25 @@ lexème_précédent :: fonc (syntaxeuse: *Syntaxeuse) -> Lexème #enligne
 
 apparie_et_consomme :: fonc (syntaxeuse: *Syntaxeuse, genre: GenreLexème) -> bool
 {
-    si syntaxeuse.fini() {
+    si fini(syntaxeuse) {
         retourne faux;
     }
 
-    si syntaxeuse.lexème_courant().genre != genre {
+    si lexème_courant(syntaxeuse).genre != genre {
         retourne faux;
     }
 
-    syntaxeuse.avance();
+    avance(syntaxeuse);
     retourne vrai;
 }
 
 apparie_et_consomme :: fonc (syntaxeuse: *Syntaxeuse, identifiant: chaine) -> bool
 {
-    si syntaxeuse.fini() {
+    si fini(syntaxeuse) {
         retourne faux;
     }
 
-    lexème := syntaxeuse.lexème_courant();
+    lexème := lexème_courant(syntaxeuse);
 
     si lexème.genre != GenreLexème.IDENTIFIANT {
         retourne faux;
@@ -139,7 +139,7 @@ apparie_et_consomme :: fonc (syntaxeuse: *Syntaxeuse, identifiant: chaine) -> bo
         retourne faux;
     }
 
-    syntaxeuse.avance();
+    avance(syntaxeuse);
     retourne vrai;
 }
 
@@ -162,40 +162,40 @@ crée_instruction :: fonc (syntaxeuse: *Syntaxeuse, $T: type_de_données) -> *T
 
 parse_instruction :: fonc (syntaxeuse: *Syntaxeuse)
 {
-    lexème := syntaxeuse.lexème_courant();
+    lexème := lexème_courant(syntaxeuse);
 
     discr lexème.genre {
         MOT_CLÉ_CRÉE {
-            syntaxeuse.avance();
-            syntaxeuse.parse_instruction_crée();
+            avance(syntaxeuse);
+            parse_instruction_crée(syntaxeuse);
         }
         MOT_CLÉ_INSÈRE {
-            syntaxeuse.avance();
-            syntaxeuse.parse_instruction_insère();
+            avance(syntaxeuse);
+            parse_instruction_insère(syntaxeuse);
         }
         MOT_CLÉ_SÉLECTIONNE {
-            syntaxeuse.avance();
-            syntaxeuse.parse_instruction_sélectionne();
+            avance(syntaxeuse);
+            parse_instruction_sélectionne(syntaxeuse);
         }
         POINT {
-            syntaxeuse.avance();
+            avance(syntaxeuse);
 
-            si syntaxeuse.apparie_et_consomme("sors") {
-                inst := syntaxeuse.crée_instruction(Instruction);
+            si apparie_et_consomme(syntaxeuse, "sors") {
+                inst := crée_instruction(syntaxeuse, Instruction);
                 inst.genre = GenreInstruction.MÉTA_SORS;
                 retourne;
             }
 
-            si syntaxeuse.apparie_et_consomme("tables") {
-                inst := syntaxeuse.crée_instruction(Instruction);
+            si apparie_et_consomme(syntaxeuse, "tables") {
+                inst := crée_instruction(syntaxeuse, Instruction);
                 inst.genre = GenreInstruction.MÉTA_TABLES;
                 retourne;
             }
 
-            syntaxeuse.rapporte_erreur("Méta commande inconnue");
+            rapporte_erreur(syntaxeuse, "Méta commande inconnue");
         }
         sinon {
-            syntaxeuse.rapporte_erreur("Attendu un mot-clé : obtenu %", lexème.genre);
+            rapporte_erreur(syntaxeuse, "Attendu un mot-clé : obtenu %", lexème.genre);
         }
     }
 }
@@ -207,27 +207,27 @@ parse_instruction :: fonc (syntaxeuse: *Syntaxeuse)
 // 5. ;
 parse_instruction_sélectionne :: fonc (syntaxeuse: *Syntaxeuse)
 {
-    inst := syntaxeuse.crée_instruction(InstructionSélection);
+    inst := crée_instruction(syntaxeuse, InstructionSélection);
 
-    saufsi syntaxeuse.parse_expressions(*inst.items) {
-        syntaxeuse.rapporte_erreur("Impossible de parser les expressions");
+    saufsi parse_expressions(syntaxeuse, *inst.items) {
+        rapporte_erreur(syntaxeuse, "Impossible de parser les expressions");
         retourne;
     }
 
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.MOT_CLÉ_DEPUIS) {
-        syntaxeuse.rapporte_erreur("Attendu 'depuis' après 'sélectionne'");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.MOT_CLÉ_DEPUIS) {
+        rapporte_erreur(syntaxeuse, "Attendu 'depuis' après 'sélectionne'");
         retourne;
     }
 
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.IDENTIFIANT) {
-        syntaxeuse.rapporte_erreur("Attendu 'identifiant'");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.IDENTIFIANT) {
+        rapporte_erreur(syntaxeuse, "Attendu 'identifiant'");
         retourne;
     }
 
-    inst.depuis = syntaxeuse.lexème_précédent();
+    inst.depuis = lexème_précédent(syntaxeuse);
 
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.POINT_VIRGULE) {
-        syntaxeuse.rapporte_erreur("Attendu un point virgule à la fin de l'instruction");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.POINT_VIRGULE) {
+        rapporte_erreur(syntaxeuse, "Attendu un point virgule à la fin de l'instruction");
         retourne;
     }
 }
@@ -240,24 +240,24 @@ parse_instruction_sélectionne :: fonc (syntaxeuse: *Syntaxeuse)
 // 6. ;
 parse_instruction_crée :: fonc (syntaxeuse: *Syntaxeuse)
 {
-    inst := syntaxeuse.crée_instruction(InstructionCréationTable);
+    inst := crée_instruction(syntaxeuse, InstructionCréationTable);
 
     // 2. $nom-table
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.IDENTIFIANT) {
-        syntaxeuse.rapporte_erreur("Attendu 'identifiant'");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.IDENTIFIANT) {
+        rapporte_erreur(syntaxeuse, "Attendu 'identifiant'");
         retourne;
     }
 
-    inst.nom = syntaxeuse.lexème_précédent();
+    inst.nom = lexème_précédent(syntaxeuse);
 
     // 3. (
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.PARENTHÈSE_OUVRANTE) {
-        syntaxeuse.rapporte_erreur("Attendu '('");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.PARENTHÈSE_OUVRANTE) {
+        rapporte_erreur(syntaxeuse, "Attendu '('");
         retourne;
     }
 
-    tantque !syntaxeuse.fini() {
-        lexème := syntaxeuse.lexème_courant();
+    tantque !fini(syntaxeuse) {
+        lexème := lexème_courant(syntaxeuse);
 
         si lexème.genre == GenreLexème.PARENTHÈSE_FERMANTE {
             arrête;
@@ -268,39 +268,39 @@ parse_instruction_crée :: fonc (syntaxeuse: *Syntaxeuse)
 
         // nom-colonne
         si lexème.genre != GenreLexème.IDENTIFIANT {
-            syntaxeuse.rapporte_erreur("Attendu 'identifiant'");
+            rapporte_erreur(syntaxeuse, "Attendu 'identifiant'");
             retourne;
         }
 
         desc.nom = lexème;
 
-        syntaxeuse.avance();
-        lexème = syntaxeuse.lexème_courant();
+        avance(syntaxeuse);
+        lexème = lexème_courant(syntaxeuse);
 
         // type-colonne
         si lexème.genre != GenreLexème.MOT_CLÉ_TEXTE && lexème.genre != GenreLexème.MOT_CLÉ_ENTIER {
-            syntaxeuse.rapporte_erreur("Attendu 'entier' ou 'texte'");
+            rapporte_erreur(syntaxeuse, "Attendu 'entier' ou 'texte'");
             retourne;
         }
 
         desc.type_données = lexème;
 
-        syntaxeuse.avance();
+        avance(syntaxeuse);
 
-        saufsi syntaxeuse.apparie_et_consomme(GenreLexème.VIRGULE) {
+        saufsi apparie_et_consomme(syntaxeuse, GenreLexème.VIRGULE) {
             arrête;
         }
     }
 
     // 5. )
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.PARENTHÈSE_FERMANTE) {
-        syntaxeuse.rapporte_erreur("Attendu ')'");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.PARENTHÈSE_FERMANTE) {
+        rapporte_erreur(syntaxeuse, "Attendu ')'");
         retourne;
     }
 
     // 6. ;
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.POINT_VIRGULE) {
-        syntaxeuse.rapporte_erreur("Attendu un point virgule à la fin de l'instruction");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.POINT_VIRGULE) {
+        rapporte_erreur(syntaxeuse, "Attendu un point virgule à la fin de l'instruction");
         retourne;
     }
 }
@@ -315,61 +315,61 @@ parse_instruction_crée :: fonc (syntaxeuse: *Syntaxeuse)
 // 8. ;
 parse_instruction_insère :: fonc (syntaxeuse: *Syntaxeuse)
 {
-    inst := syntaxeuse.crée_instruction(InstructionInsère);
+    inst := crée_instruction(syntaxeuse, InstructionInsère);
 
     // 2. DANS
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.MOT_CLÉ_DANS) {
-        syntaxeuse.rapporte_erreur("Attendu 'dans'");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.MOT_CLÉ_DANS) {
+        rapporte_erreur(syntaxeuse, "Attendu 'dans'");
         retourne;
     }
 
     // 3. $nom-table
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.IDENTIFIANT) {
-        syntaxeuse.rapporte_erreur("Attendu 'identifiant'");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.IDENTIFIANT) {
+        rapporte_erreur(syntaxeuse, "Attendu 'identifiant'");
         retourne;
     }
 
-    inst.table = syntaxeuse.lexème_précédent();
+    inst.table = lexème_précédent(syntaxeuse);
 
     // 4. VALEURS
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.MOT_CLÉ_VALEURS) {
-        syntaxeuse.rapporte_erreur("Attendu 'valeurs'");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.MOT_CLÉ_VALEURS) {
+        rapporte_erreur(syntaxeuse, "Attendu 'valeurs'");
         retourne;
     }
 
     // 5. (
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.PARENTHÈSE_OUVRANTE) {
-        syntaxeuse.rapporte_erreur("Attendu '('");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.PARENTHÈSE_OUVRANTE) {
+        rapporte_erreur(syntaxeuse, "Attendu '('");
         retourne;
     }
 
     // 6. $expression [, ...]
-    saufsi syntaxeuse.parse_expressions(*inst.valeurs) {
-        syntaxeuse.rapporte_erreur("Impossible de parser les expresssions pour INSÈRE !");
+    saufsi parse_expressions(syntaxeuse, *inst.valeurs) {
+        rapporte_erreur(syntaxeuse, "Impossible de parser les expresssions pour INSÈRE !");
         retourne;
     }
 
     // 7. )
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.PARENTHÈSE_FERMANTE) {
-        syntaxeuse.rapporte_erreur("Attendu '('");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.PARENTHÈSE_FERMANTE) {
+        rapporte_erreur(syntaxeuse, "Attendu '('");
         retourne;
     }
 
     // 8. ;
-    saufsi syntaxeuse.apparie_et_consomme(GenreLexème.POINT_VIRGULE) {
-        syntaxeuse.rapporte_erreur("Attendu un point virgule à la fin de l'instruction");
+    saufsi apparie_et_consomme(syntaxeuse, GenreLexème.POINT_VIRGULE) {
+        rapporte_erreur(syntaxeuse, "Attendu un point virgule à la fin de l'instruction");
         retourne;
     }
 }
 
 parse_expressions :: fonc (syntaxeuse: *Syntaxeuse, exprs: *[..]*Expression) -> bool
 {
-    tantque !syntaxeuse.fini() {
-        lexème := syntaxeuse.lexème_courant();
+    tantque !fini(syntaxeuse) {
+        lexème := lexème_courant(syntaxeuse);
         genre := lexème.genre;
 
         si genre != GenreLexème.IDENTIFIANT && genre != GenreLexème.NUMÉRIQUE && genre != GenreLexème.CHAINE {
-            syntaxeuse.rapporte_erreur("Attendu 'identifiant'");
+            rapporte_erreur(syntaxeuse, "Attendu 'identifiant'");
             retourne faux;
         }
 
@@ -379,9 +379,9 @@ parse_expressions :: fonc (syntaxeuse: *Syntaxeuse, exprs: *[..]*Expression) -> 
 
         tableau_ajoute(exprs, expr);
 
-        syntaxeuse.avance();
+        avance(syntaxeuse);
 
-        saufsi syntaxeuse.apparie_et_consomme(GenreLexème.VIRGULE) {
+        saufsi apparie_et_consomme(syntaxeuse, GenreLexème.VIRGULE) {
             arrête;
         }
     }

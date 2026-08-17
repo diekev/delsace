@@ -257,12 +257,12 @@ crée_lexème :: fonc (lexeuse: *Lexeuse, genre: GenreLexème) #enligne
 
 émet_lexème :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
-    saufsi lexeuse.nom_lexème_courant.est_vide() {
+    saufsi est_vide(lexeuse.nom_lexème_courant) {
         lexeuse.lexème_courant.nom = crée_chaine_utf16_unique(*lexeuse.nom_lexème_courant);
         réinitialise(*lexeuse.nom_lexème_courant);
     }
 
-    lexeuse.ajoute_attribut();
+    ajoute_attribut(lexeuse);
 
     si lexeuse.lexème_courant.genre == GenreLexème.DébutTag {
         lexeuse.nom_dernier_tag_début = lexeuse.lexème_courant.nom;
@@ -273,7 +273,7 @@ crée_lexème :: fonc (lexeuse: *Lexeuse, genre: GenreLexème) #enligne
 
 ajoute_attribut :: fonc (lexeuse: *Lexeuse)
 {
-    saufsi lexeuse.nom_attribut_courant.est_vide() && lexeuse.valeur_attribut_courant.est_vide() {
+    saufsi est_vide(lexeuse.nom_attribut_courant) && est_vide(lexeuse.valeur_attribut_courant) {
         nom_attribut := crée_chaine_utf16_unique(*lexeuse.nom_attribut_courant);
         valeur_attribut := crée_chaine_utf16_unique(*lexeuse.valeur_attribut_courant);
         ajoute_attribut(*lexeuse.lexème_courant.attributs, nom_attribut, valeur_attribut);
@@ -325,13 +325,13 @@ imprime_et_détruit_lexème :: fonc (lexème_courant: *Lexème)
 
 émet_lexème_fin_de_fichier :: fonc (lexeuse: *Lexeuse) -> Lexème #enligne
 {
-    lexeuse.crée_lexème(GenreLexème.FinDeFichier);
+    crée_lexème(lexeuse, GenreLexème.FinDeFichier);
     retourne lexeuse.lexème_courant;
 }
 
 émet_lexème_caractère :: fonc (lexeuse: *Lexeuse, point_de_code: n32) -> Lexème #enligne
 {
-    lexeuse.crée_lexème(GenreLexème.Caractère);
+    crée_lexème(lexeuse, GenreLexème.Caractère);
     lexeuse.lexème_courant.point_de_code = point_de_code;
     retourne lexeuse.lexème_courant;
 }
@@ -345,7 +345,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
     // À FAIRE : nous devrions vérifier si la parseuse est en pause, si oui, retourner
 
     boucle {
-        c := lexeuse.point_de_code_suivant();
+        c := point_de_code_suivant(lexeuse);
 
         discr lexeuse.état {
             Data {
@@ -358,13 +358,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
             TagOpen {
@@ -375,21 +375,21 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.EndTagOpen;
                 }
                 sinon si est_lettre_ascii(c) {
-                    lexeuse.crée_lexème(GenreLexème.DébutTag);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.TagName);
+                    crée_lexème(lexeuse, GenreLexème.DébutTag);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.TagName);
                 }
                 sinon si c == POINT_INTERROGATION {
                     // @erreur unexpected-question-mark-instead-of-tag-name parse error
-                    lexeuse.crée_lexème(GenreLexème.Commentaire);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusComment);
+                    crée_lexème(lexeuse, GenreLexème.Commentaire);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusComment);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
                     // @erreur invalid-first-character-of-tag-name parse error
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.Data);
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.Data);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
             }
             TagName {
@@ -401,7 +401,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20);
@@ -411,7 +411,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     chaine_ajoute(*lexeuse.nom_lexème_courant, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c);
@@ -419,8 +419,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             EndTagOpen {
                 si est_lettre_ascii(c) {
-                    lexeuse.crée_lexème(GenreLexème.FinTag);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.TagName);
+                    crée_lexème(lexeuse, GenreLexème.FinTag);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.TagName);
                 }
                 sinon si c == CHEVRON_FERMANT {
                     // @erreur missing-end-tag-name parse error
@@ -428,23 +428,23 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-before-tag-name parse error.
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur invalid-first-character-of-tag-name parse error
-                    lexeuse.crée_lexème(GenreLexème.Commentaire);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusComment);
+                    crée_lexème(lexeuse, GenreLexème.Commentaire);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusComment);
                 }
             }
             BogusComment {
                 si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon si c == NUL {
                     chaine_ajoute(*lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT);
@@ -457,14 +457,14 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 // ne consomme pas
                 lexeuse.curseur -= 1;
 
-                si lexeuse.apparie("DOCTYPE") {
+                si apparie(lexeuse, "DOCTYPE") {
                     lexeuse.curseur += 7;
                     lexeuse.état = ÉtatLexage.DOCTYPE;
                 }
-                sinon si lexeuse.apparie("--") {
+                sinon si apparie(lexeuse, "--") {
                     lexeuse.curseur += 2;
                     lexeuse.état = ÉtatLexage.CommentStart;
-                    lexeuse.crée_lexème(GenreLexème.Commentaire);
+                    crée_lexème(lexeuse, GenreLexème.Commentaire);
                 }
                 sinon {
                     panique("gestion caractère non implémenté");
@@ -475,19 +475,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.BeforeDOCTYPEName;
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BeforeDOCTYPEName);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BeforeDOCTYPEName);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
-                    lexeuse.crée_lexème(GenreLexème.Doctype);
+                    crée_lexème(lexeuse, GenreLexème.Doctype);
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur missing-whitespace-before-doctype-name parse error
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BeforeDOCTYPEName);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BeforeDOCTYPEName);
                 }
             }
             BeforeDOCTYPEName {
@@ -495,32 +495,32 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // ignore
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
-                    lexeuse.crée_lexème(GenreLexème.Doctype);
+                    crée_lexème(lexeuse, GenreLexème.Doctype);
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20);
                     lexeuse.état = ÉtatLexage.DOCTYPEName;
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
-                    lexeuse.crée_lexème(GenreLexème.Doctype);
+                    crée_lexème(lexeuse, GenreLexème.Doctype);
                     chaine_ajoute(*lexeuse.nom_lexème_courant, CARACTÈRE_REMPLACEMENT);
                     lexeuse.état = ÉtatLexage.DOCTYPEName;
                 }
                 sinon si c == CHEVRON_FERMANT {
                     // @erreur missing-doctype-name parse error
-                    lexeuse.crée_lexème(GenreLexème.Doctype);
+                    crée_lexème(lexeuse, GenreLexème.Doctype);
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
-                    lexeuse.crée_lexème(GenreLexème.Doctype);
+                    crée_lexème(lexeuse, GenreLexème.Doctype);
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
-                    lexeuse.crée_lexème(GenreLexème.Doctype);
+                    crée_lexème(lexeuse, GenreLexème.Doctype);
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c);
                     lexeuse.état = ÉtatLexage.DOCTYPEName;
                 }
@@ -533,7 +533,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20);
@@ -544,8 +544,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
@@ -558,23 +558,23 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     lexeuse.curseur -= 1;
 
-                    si lexeuse.apparie("PUBLIC") {
+                    si apparie(lexeuse, "PUBLIC") {
                         lexeuse.curseur += 6;
                         lexeuse.état = ÉtatLexage.AfterDOCTYPEPublicKeyword;
                     }
-                    sinon si lexeuse.apparie("SYSTEM") {
+                    sinon si apparie(lexeuse, "SYSTEM") {
                         lexeuse.curseur += 6;
                         lexeuse.état = ÉtatLexage.AfterDOCTYPESystemKeyword;
                     }
@@ -603,19 +603,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // @erreur missing-doctype-public-identifier
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-public-identifier parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusDOCTYPE);
                 }
             }
             BeforeDOCTYPEPublicIdentifier {
@@ -634,19 +634,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // @erreur missing-doctype-public-identifier
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-public-identifier parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusDOCTYPE);
                 }
             }
             DOCTYPEPublicIdentifierDoubleQuoted {
@@ -661,13 +661,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
@@ -686,13 +686,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
@@ -705,7 +705,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == GUILLEMET {
                     détruit_chaine(*lexeuse.lexème_courant.identifiant_système_doctype);
@@ -718,14 +718,14 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-système-identifier parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusDOCTYPE);
                 }
             }
             BetweenDOCTYPEPublicAndSystemIdentifiers {
@@ -734,7 +734,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == GUILLEMET {
                     détruit_chaine(*lexeuse.lexème_courant.identifiant_système_doctype);
@@ -747,14 +747,14 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-système-identifier parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusDOCTYPE);
                 }
             }
             AfterDOCTYPESystemKeyword {
@@ -775,19 +775,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // @erreur missing-doctype-system-identifier
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-system-identifier parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusDOCTYPE);
                 }
             }
             BeforeDOCTYPESystemIdentifier {
@@ -806,19 +806,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // @erreur missing-doctype-system-identifier
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-system-identifier parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusDOCTYPE);
                 }
             }
             DOCTYPESystemIdentifierDoubleQuoted {
@@ -833,13 +833,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
@@ -858,13 +858,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
@@ -877,32 +877,32 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-system-identifier parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai;
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BogusDOCTYPE);
                 }
             }
             BogusDOCTYPE {
                 si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == NUL {
                     // ignore
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
@@ -915,10 +915,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-cdata parse error
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
             CDATASectionBracket {
@@ -926,21 +926,21 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.CDATASectionEnd;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.CDATASection);
-                    retourne lexeuse.émet_lexème_caractère(CROCHET_FERMANT);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.CDATASection);
+                    retourne émet_lexème_caractère(lexeuse, CROCHET_FERMANT);
                 }
             }
             CDATASectionEnd {
                 si c == CROCHET_FERMANT {
-                    retourne lexeuse.émet_lexème_caractère(CROCHET_FERMANT);
+                    retourne émet_lexème_caractère(lexeuse, CROCHET_FERMANT);
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.CDATASection);
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CROCHET_FERMANT));
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CROCHET_FERMANT));
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.CDATASection);
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CROCHET_FERMANT));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CROCHET_FERMANT));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
             }
@@ -949,23 +949,23 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // ignore
                 }
                 sinon si c == SLASH || c == CHEVRON_FERMANT || c == FIN_DE_FICHIER {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.AfterAttributeName);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.AfterAttributeName);
                 }
                 sinon si c == EGAL {
                     lexeuse.état = ÉtatLexage.AttributeName;
 
-                    lexeuse.ajoute_attribut();
+                    ajoute_attribut(lexeuse);
                     chaine_ajoute(*lexeuse.nom_attribut_courant, c);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeName);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.AttributeName);
 
-                    lexeuse.ajoute_attribut();
+                    ajoute_attribut(lexeuse);
                 }
             }
             AttributeName {
                 si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT || c == FIN_DE_FICHIER {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.AfterAttributeName);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.AfterAttributeName);
                 }
                 sinon si c == EGAL {
                     lexeuse.état = ÉtatLexage.BeforeAttributeValue;
@@ -1001,15 +1001,15 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-tag parse error
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
-                    lexeuse.ajoute_attribut();
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeName);
+                    ajoute_attribut(lexeuse);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.AttributeName);
                 }
             }
             BeforeAttributeValue {
@@ -1025,10 +1025,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == CHEVRON_FERMANT {
                     // @erreur missing-attribute-value parse error
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeValueUnquoted);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.AttributeValueUnquoted);
                 }
             }
             AttributeValueDoubleQuoted {
@@ -1043,7 +1043,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     chaine_ajoute(*lexeuse.valeur_attribut_courant, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
                     chaine_ajoute(*lexeuse.valeur_attribut_courant, c);
@@ -1061,7 +1061,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     chaine_ajoute(*lexeuse.valeur_attribut_courant, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
                     chaine_ajoute(*lexeuse.valeur_attribut_courant, c);
@@ -1077,7 +1077,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
@@ -1085,7 +1085,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-tag parse error
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon si c == APOSTROPHE || c == GUILLEMET || c == ACCENT_GRAVE || c == CHEVRON_OUVRANT || c == EGAL {
                     // @erreur unexpected-character-in-unquoted-attribute-value parse error
@@ -1104,30 +1104,30 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-tag parse error
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
                     // @erreur missing-whitespace-between-attributes parse error, reconsomme
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BeforeAttributeName);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BeforeAttributeName);
                 }
             }
             SelfClosingStartTag {
                 si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.auto_fermant = vrai;
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-tag parse error
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
                     // @erreur unexpected-solidus-in-tag parse error, reconsomme
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.BeforeAttributeName);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.BeforeAttributeName);
                 }
             }
             RCDATA {
@@ -1139,13 +1139,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.RCDATALessThanSign;
                 }
                 sinon si c == NUL {
-                    retourne lexeuse.émet_lexème_caractère(0xFFFD);
+                    retourne émet_lexème_caractère(lexeuse, 0xFFFD);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
             RAWTEXT {
@@ -1153,13 +1153,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.RAWTEXTLessThanSign;
                 }
                 sinon si c == NUL {
-                    retourne lexeuse.émet_lexème_caractère(0xFFFD);
+                    retourne émet_lexème_caractère(lexeuse, 0xFFFD);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
             RCDATALessThanSign {
@@ -1169,19 +1169,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.RCDATAEndTagOpen;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA);
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.RCDATA);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
             }
             RCDATAEndTagOpen {
                 si est_lettre_ascii(c) {
-                    lexeuse.crée_lexème(GenreLexème.FinTag);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATAEndTagName);
+                    crée_lexème(lexeuse, GenreLexème.FinTag);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.RCDATAEndTagName);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA);
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.RCDATA);
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
             }
@@ -1197,7 +1197,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                     sinon si c == CHEVRON_FERMANT {
                         lexeuse.état = ÉtatLexage.Data;
-                        retourne lexeuse.émet_lexème();
+                        retourne émet_lexème(lexeuse);
                     }
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
@@ -1214,11 +1214,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 // Garde la mémoire.
                 réinitialise(*lexeuse.nom_lexème_courant);
 
-                lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA);
+                reconsomme_dans_état(lexeuse, ÉtatLexage.RCDATA);
 
-                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
-                lexeuse.enfile_lexèmes_pour_tampon_temporaire();
+                enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
+                enfile_lexèmes_pour_tampon_temporaire(lexeuse);
                 retourne défile(*lexeuse.file_lexèmes);
             }
             RAWTEXTLessThanSign {
@@ -1228,19 +1228,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.RAWTEXTEndTagOpen;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT);
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.RAWTEXT);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
             }
             RAWTEXTEndTagOpen {
                 si est_lettre_ascii(c) {
-                    lexeuse.crée_lexème(GenreLexème.FinTag);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXTEndTagName);
+                    crée_lexème(lexeuse, GenreLexème.FinTag);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.RAWTEXTEndTagName);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT);
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.RAWTEXT);
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
             }
@@ -1256,7 +1256,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                     sinon si c == CHEVRON_FERMANT {
                         lexeuse.état = ÉtatLexage.Data;
-                        retourne lexeuse.émet_lexème();
+                        retourne émet_lexème(lexeuse);
                     }
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
@@ -1273,11 +1273,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 // Garde la mémoire
                 réinitialise(*lexeuse.nom_lexème_courant);
 
-                lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT);
+                reconsomme_dans_état(lexeuse, ÉtatLexage.RAWTEXT);
 
-                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
-                lexeuse.enfile_lexèmes_pour_tampon_temporaire();
+                enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
+                enfile_lexèmes_pour_tampon_temporaire(lexeuse);
                 retourne défile(*lexeuse.file_lexèmes);
             }
             CommentStart {
@@ -1286,10 +1286,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.Comment);
                 }
             }
             CommentStartDash {
@@ -1298,16 +1298,16 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     chaine_ajoute(*lexeuse.lexème_courant.données, '-');
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.Comment);
                 }
             }
             Comment {
@@ -1322,8 +1322,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     chaine_ajoute(*lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
@@ -1339,7 +1339,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     chaine_ajoute(*lexeuse.lexème_courant.données, c);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.Comment);
                 }
             }
             CommentLessThanSignBang {
@@ -1347,7 +1347,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.CommentLessThanSignBangDash;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.Comment);
                 }
             }
             CommentLessThanSignBangDash {
@@ -1355,16 +1355,16 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.CommentLessThanSignBangDashDash;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.CommentEndDash);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.CommentEndDash);
                 }
             }
             CommentLessThanSignBangDashDash {
                 si c == CHEVRON_FERMANT || c == FIN_DE_FICHIER {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.CommentEnd);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.CommentEnd);
                 }
                 sinon {
                     // @erreur nested-comment parse error
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.CommentEnd);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.CommentEnd);
                 }
             }
             CommentEndDash {
@@ -1372,19 +1372,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.CommentEnd;
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     chaine_ajoute(*lexeuse.lexème_courant.données, '-');
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.Comment);
                 }
             }
             CommentEnd {
                 si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == POINT_EXCLAMATION {
                     lexeuse.état = ÉtatLexage.CommentEndBang;
@@ -1393,13 +1393,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     chaine_ajoute(*lexeuse.lexème_courant.données, '-');
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     chaine_ajoute(*lexeuse.lexème_courant.données, "--");
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.Comment);
                 }
             }
             CommentEndBang {
@@ -1409,16 +1409,16 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.Data;
-                    retourne lexeuse.émet_lexème();
+                    retourne émet_lexème(lexeuse);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème());
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier());
+                    enfile(*lexeuse.file_lexèmes, émet_lexème(lexeuse));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_fin_de_fichier(lexeuse));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
                     chaine_ajoute(*lexeuse.lexème_courant.données, "--!");
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.Comment);
                 }
             }
             CharacterReference {
@@ -1427,14 +1427,14 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 chaine_ajoute(*lexeuse.tampon_temporaire, ESPERLUETTE);
 
                 si est_ascii_alphanumérique(c) {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.NamedCharacterReference);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.NamedCharacterReference);
                 }
                 sinon si c == SIGNE_NOMBRE {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c);
                     lexeuse.état = ÉtatLexage.NumericCharacterReference;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(lexeuse.état_retour);
+                    reconsomme_dans_état(lexeuse, lexeuse.état_retour);
 
                     si flush_points_de_code_référence_caractère(lexeuse) {
                         retourne défile(*lexeuse.file_lexèmes);
@@ -1455,15 +1455,15 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                         chaine_ajoute(*lexeuse.valeur_attribut_courant, c);
                     }
                     sinon {
-                        retourne lexeuse.émet_lexème_caractère(c);
+                        retourne émet_lexème_caractère(lexeuse, c);
                     }
                 }
                 sinon si c == POINT_VIRGULE {
                     // @erreur unknown-named-character-reference parse error
-                    lexeuse.reconsomme_dans_état(lexeuse.état_retour);
+                    reconsomme_dans_état(lexeuse, lexeuse.état_retour);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(lexeuse.état_retour);
+                    reconsomme_dans_état(lexeuse, lexeuse.état_retour);
                 }
             }
             NumericCharacterReference {
@@ -1474,15 +1474,15 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.HexadecimalCharacterReferenceStart;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.DecimalCharacterReferenceStart);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.DecimalCharacterReferenceStart);
                 }
             }
             HexadecimalCharacterReferenceStart {
                 si est_chiffre_hexadecimal_ascii(c) {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.HexadecimalCharacterReference);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.HexadecimalCharacterReference);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(lexeuse.état_retour);
+                    reconsomme_dans_état(lexeuse, lexeuse.état_retour);
 
                     si flush_points_de_code_référence_caractère(lexeuse) {
                         retourne défile(*lexeuse.file_lexèmes);
@@ -1491,10 +1491,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             DecimalCharacterReferenceStart {
                 si est_chiffre_ascii(c) {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.DecimalCharacterReference);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.DecimalCharacterReference);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(lexeuse.état_retour);
+                    reconsomme_dans_état(lexeuse, lexeuse.état_retour);
 
                     si flush_points_de_code_référence_caractère(lexeuse) {
                         retourne défile(*lexeuse.file_lexèmes);
@@ -1518,7 +1518,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.NumericCharacterReferenceEnd;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.NumericCharacterReferenceEnd);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.NumericCharacterReferenceEnd);
                 }
             }
             DecimalCharacterReference {
@@ -1530,7 +1530,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.NumericCharacterReferenceEnd;
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.NumericCharacterReferenceEnd);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.NumericCharacterReferenceEnd);
                 }
             }
             NumericCharacterReferenceEnd {
@@ -1569,13 +1569,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.ScriptDataLessThanSign;
                 }
                 sinon si c == NUL {
-                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT);
+                    retourne émet_lexème_caractère(lexeuse, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
             ScriptDataLessThanSign {
@@ -1586,24 +1586,24 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == POINT_EXCLAMATION {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapeStart;
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(POINT_EXCLAMATION));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, POINT_EXCLAMATION));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData);
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptData);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
             }
             ScriptDataEndTagOpen {
                 si est_lettre_ascii(c) {
-                    lexeuse.crée_lexème(GenreLexème.FinTag);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEndTagName);
+                    crée_lexème(lexeuse, GenreLexème.FinTag);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataEndTagName);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData);
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptData);
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
             }
@@ -1619,7 +1619,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                     sinon si c == CHEVRON_FERMANT {
                         lexeuse.état = ÉtatLexage.Data;
-                        retourne lexeuse.émet_lexème();
+                        retourne émet_lexème(lexeuse);
                     }
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
@@ -1636,88 +1636,88 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 // Garde la mémoire.
                 réinitialise(*lexeuse.nom_lexème_courant);
 
-                lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData);
+                reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptData);
 
-                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
-                lexeuse.enfile_lexèmes_pour_tampon_temporaire();
+                enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
+                enfile_lexèmes_pour_tampon_temporaire(lexeuse);
                 retourne défile(*lexeuse.file_lexèmes);
             }
             ScriptDataEscapeStart {
                 si c == MOINS {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapeStartDash;
-                    retourne lexeuse.émet_lexème_caractère(MOINS);
+                    retourne émet_lexème_caractère(lexeuse, MOINS);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptData);
                 }
             }
             ScriptDataEscapeStartDash {
                 si c == MOINS {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedDashDash;
-                    retourne lexeuse.émet_lexème_caractère(MOINS);
+                    retourne émet_lexème_caractère(lexeuse, MOINS);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptData);
                 }
             }
             ScriptDataEscaped {
                 si c == MOINS {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedDash;
-                    retourne lexeuse.émet_lexème_caractère(MOINS);
+                    retourne émet_lexème_caractère(lexeuse, MOINS);
                 }
                 sinon si c == CHEVRON_OUVRANT {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedLessThanSign;
                 }
                 sinon si c == NUL {
-                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT);
+                    retourne émet_lexème_caractère(lexeuse, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
             ScriptDataEscapedDash {
                 si c == MOINS {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedDashDash;
-                    retourne lexeuse.émet_lexème_caractère(MOINS);
+                    retourne émet_lexème_caractère(lexeuse, MOINS);
                 }
                 sinon si c == CHEVRON_OUVRANT {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedLessThanSign;
                 }
                 sinon si c == NUL {
-                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT);
+                    retourne émet_lexème_caractère(lexeuse, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
                     lexeuse.état = ÉtatLexage.ScriptDataEscaped;
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
             ScriptDataEscapedDashDash {
                 si c == MOINS {
-                    retourne lexeuse.émet_lexème_caractère(MOINS);
+                    retourne émet_lexème_caractère(lexeuse, MOINS);
                 }
                 sinon si c == CHEVRON_OUVRANT {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedLessThanSign;
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.ScriptData;
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_FERMANT);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_FERMANT);
                 }
                 sinon si c == NUL {
-                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT);
+                    retourne émet_lexème_caractère(lexeuse, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
                     lexeuse.état = ÉtatLexage.ScriptDataEscaped;
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
             ScriptDataEscapedLessThanSign {
@@ -1727,23 +1727,23 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si est_lettre_ascii(c) {
                     réinitialise(*lexeuse.tampon_temporaire);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscapeStart);
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataDoubleEscapeStart);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped);
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataEscaped);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
             }
             ScriptDataEscapedEndTagOpen {
                 si est_lettre_ascii(c) {
-                    lexeuse.crée_lexème(GenreLexème.FinTag);
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscapedEndTagName);
+                    crée_lexème(lexeuse, GenreLexème.FinTag);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataEscapedEndTagName);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped);
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataEscaped);
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                    enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
                     retourne défile(*lexeuse.file_lexèmes);
                 }
             }
@@ -1759,7 +1759,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                     sinon si c == CHEVRON_FERMANT {
                         lexeuse.état = ÉtatLexage.Data;
-                        retourne lexeuse.émet_lexème();
+                        retourne émet_lexème(lexeuse);
                     }
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
@@ -1776,11 +1776,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 // Garde la mémoire.
                 réinitialise(*lexeuse.nom_lexème_courant);
 
-                lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped);
+                reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataEscaped);
 
-                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT));
-                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH));
-                lexeuse.enfile_lexèmes_pour_tampon_temporaire();
+                enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT));
+                enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, SLASH));
+                enfile_lexèmes_pour_tampon_temporaire(lexeuse);
                 retourne défile(*lexeuse.file_lexèmes);
             }
             ScriptDataDoubleEscapeStart {
@@ -1790,96 +1790,96 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                     sinon {
                         lexeuse.état = ÉtatLexage.ScriptDataEscaped;
-                        retourne lexeuse.émet_lexème_caractère(c);
+                        retourne émet_lexème_caractère(lexeuse, c);
                     }
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c + 0x20);
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
                 sinon si est_lettre_minuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c);
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataEscaped);
                 }
             }
             ScriptDataDoubleEscaped {
                 si c == MOINS {
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedDash;
-                    retourne lexeuse.émet_lexème_caractère(MOINS);
+                    retourne émet_lexème_caractère(lexeuse, MOINS);
                 }
 
                 si c == CHEVRON_OUVRANT {
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedLessThanSign;
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
 
                 si c == NUL {
-                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT);
+                    retourne émet_lexème_caractère(lexeuse, CARACTÈRE_REMPLACEMENT);
                 }
 
-                retourne lexeuse.émet_lexème_caractère(c);
+                retourne émet_lexème_caractère(lexeuse, c);
             }
             ScriptDataDoubleEscapedDash {
                 si c == MOINS {
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedDashDash;
-                    retourne lexeuse.émet_lexème_caractère(MOINS);
+                    retourne émet_lexème_caractère(lexeuse, MOINS);
                 }
 
                 si c == CHEVRON_OUVRANT {
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedLessThanSign;
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
 
                 si c == NUL {
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped;
-                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT);
+                    retourne émet_lexème_caractère(lexeuse, CARACTÈRE_REMPLACEMENT);
                 }
 
                 si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
 
                 lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped;
-                retourne lexeuse.émet_lexème_caractère(c);
+                retourne émet_lexème_caractère(lexeuse, c);
             }
             ScriptDataDoubleEscapedDashDash {
                 si c == MOINS {
-                    retourne lexeuse.émet_lexème_caractère(MOINS);
+                    retourne émet_lexème_caractère(lexeuse, MOINS);
                 }
 
                 si c == CHEVRON_OUVRANT {
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedLessThanSign;
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
 
                 si c == CHEVRON_FERMANT {
                     lexeuse.état = ÉtatLexage.ScriptData;
-                    retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT);
+                    retourne émet_lexème_caractère(lexeuse, CHEVRON_OUVRANT);
                 }
 
                 si c == NUL {
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped;
-                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT);
+                    retourne émet_lexème_caractère(lexeuse, CARACTÈRE_REMPLACEMENT);
                 }
 
                 si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
 
                 lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped;
-                retourne lexeuse.émet_lexème_caractère(c);
+                retourne émet_lexème_caractère(lexeuse, c);
             }
             ScriptDataDoubleEscapedLessThanSign {
                 si c == SLASH {
                     réinitialise(*lexeuse.tampon_temporaire);
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapeEnd;
-                    retourne lexeuse.émet_lexème_caractère(SLASH);
+                    retourne émet_lexème_caractère(lexeuse, SLASH);
                 }
 
-                lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscaped);
+                reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataDoubleEscaped);
             }
             ScriptDataDoubleEscapeEnd {
                 si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT {
@@ -1888,19 +1888,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                     sinon {
                         lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped;
-                        retourne lexeuse.émet_lexème_caractère(c);
+                        retourne émet_lexème_caractère(lexeuse, c);
                     }
                 }
                 sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c + 0x20);
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
                 sinon si est_lettre_minuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c);
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
                 sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscaped);
+                    reconsomme_dans_état(lexeuse, ÉtatLexage.ScriptDataDoubleEscaped);
                 }
             }
             PLAINTEXT {
@@ -1908,25 +1908,25 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.ScriptDataLessThanSign;
                 }
                 sinon si c == NUL {
-                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT);
+                    retourne émet_lexème_caractère(lexeuse, CARACTÈRE_REMPLACEMENT);
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    retourne lexeuse.émet_lexème_fin_de_fichier();
+                    retourne émet_lexème_fin_de_fichier(lexeuse);
                 }
                 sinon {
-                    retourne lexeuse.émet_lexème_caractère(c);
+                    retourne émet_lexème_caractère(lexeuse, c);
                 }
             }
         }
     }
 
-    retourne lexeuse.émet_lexème_fin_de_fichier();
+    retourne émet_lexème_fin_de_fichier(lexeuse);
 }
 
 enfile_lexèmes_pour_tampon_temporaire :: fonc (lexeuse: *Lexeuse)
 {
     pour lexeuse.tampon_temporaire.unités {
-        enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(it));
+        enfile(*lexeuse.file_lexèmes, émet_lexème_caractère(lexeuse, it));
     }
 }
 
@@ -1941,7 +1941,7 @@ apparie :: fonc (lexeuse: *Lexeuse, chn: chaine) -> bool
     pour chn {
         indice := lexeuse.curseur + indice_it;
 
-        si indice >= lexeuse.document.taille() {
+        si indice >= taille(lexeuse.document) {
             retourne faux;
         }
 
@@ -1975,7 +1975,7 @@ flush_points_de_code_référence_caractère :: fonc (lexeuse: *Lexeuse) -> bool
         retourne faux;
     }
 
-    lexeuse.enfile_lexèmes_pour_tampon_temporaire();
+    enfile_lexèmes_pour_tampon_temporaire(lexeuse);
 
     retourne vrai;
 }
@@ -1996,7 +1996,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
     }
 
     boucle {
-        caractère_suivant := lexeuse.point_de_code_suivant();
+        caractère_suivant := point_de_code_suivant(lexeuse);
 
         chaine_ajoute(*tampon_temporaire, caractère_suivant);
 
@@ -2020,7 +2020,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
     }
 
     si nous_sommes_dans_attribut(lexeuse) && dernier_caractère_apparié != POINT_VIRGULE {
-        caractère_suivant := lexeuse.point_de_code_suivant();
+        caractère_suivant := point_de_code_suivant(lexeuse);
         lexeuse.curseur -= 1;
 
         si caractère_suivant == EGAL || est_ascii_alphanumérique(caractère_suivant) {

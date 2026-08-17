@@ -238,24 +238,24 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, parseuse: *ParseuseCasÀTester)
         retourne;
     }
 
-    si ligne.commence_par("----------") {
+    si commence_par(ligne, "----------") {
         parseuse.cas_courant = tableau_ajoute_élément(*parseuse.cas);
         parseuse.état = ÉtatParsage.INCONNU;
         retourne;
     }
 
-    si ligne.commence_par("+ Cas") {
+    si commence_par(ligne, "+ Cas") {
         parseuse.cas_courant.raison = avance(ligne, "+ Cas : ".taille);
         parseuse.état = ÉtatParsage.DANS_CAS;
         retourne;
     }
 
-    si ligne.commence_par("+ Commandes") {
+    si commence_par(ligne, "+ Commandes") {
         parseuse.état = ÉtatParsage.DANS_COMMANDES;
         retourne;
     }
 
-    si ligne.commence_par("+ Résultat") {
+    si commence_par(ligne, "+ Résultat") {
         parseuse.état = ÉtatParsage.DANS_RÉSULTAT;
         retourne;
     }

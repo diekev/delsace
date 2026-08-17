@@ -156,7 +156,7 @@ initialise_guetteuse_édition_texte :: fonc (guetteuse: *GuetteuseÉditionTexte,
 guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte;
-    éditrice.termine_édition(fin_guettage_fut_causé_par_touche_entrée);
+    termine_édition(éditrice, fin_guettage_fut_causé_par_touche_entrée);
 }
 
 guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
@@ -202,7 +202,7 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -
     résultat := ÉtatÉvènement.CONSOMMÉ;
 
     si clic.action == ActionSouris.PRESSÉE {
-        si rect.contient(clic.état.où) {
+        si contient(rect, clic.état.où) {
             définis_position_curseur_pour_clic(guetteuse, clic.état);
             état = ÉtatGuettageÉditionTexte.EnSélection;
         }
@@ -212,10 +212,10 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -
         }
     }
     sinon si clic.action == ActionSouris.RELACHÉE {
-        si rect.contient(clic.état.où) {
+        si contient(rect, clic.état.où) {
             si état == ÉtatGuettageÉditionTexte.AttenteRelachementClic {
                 état = ÉtatGuettageÉditionTexte.EnÉdition;
-                éditrice.démarre_édition();
+                démarre_édition(éditrice);
                 définis_position_curseur_pour_clic(guetteuse, clic.état);
             }
             sinon si état == ÉtatGuettageÉditionTexte.EnSélection {
@@ -249,7 +249,7 @@ donne_position_curseur_pour_souris :: fonc (empl guetteuse: *GuetteuseÉditionTe
         retourne indice;
     }
 
-    retourne éditrice.texte_à_éditer.taille();
+    retourne taille(éditrice.texte_à_éditer);
 }
 
 /** \} */

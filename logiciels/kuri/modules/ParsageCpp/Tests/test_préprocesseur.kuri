@@ -78,7 +78,7 @@ test_préprocesseur :: fonc () -> bool
 
     imprime("\n");
 
-    fin := début.temps_écoulé_millisecondes();
+    fin := temps_écoulé_millisecondes(début);
 
     si échecs.taille != 0 {
         pour échecs {
@@ -137,7 +137,7 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
 {
     résultat: [..]CheminFichier;
 
-    dossier_parent := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    dossier_parent := chemin_parent(CheminFichier(#chemin_de_ce_fichier));
     diffère détruit_chemin(*dossier_parent);
     dossier := dossier_parent / "fichiers/sources";
 
@@ -145,7 +145,7 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
     {
         saufsi info.est_dossier {
             chemin := CheminFichier(info.chemin);
-            si chemin.extension() == ".c" || chemin.extension() == ".cc" {
+            si extension(chemin) == ".c" || extension(chemin) == ".cc" {
                 tableau_ajoute(fichiers, CheminFichier(copie_chaine(info.chemin)));
             }
         }
@@ -174,7 +174,7 @@ donne_chemin_pour_fichier_sortie :: fonc (chemin: CheminFichier) -> CheminFichie
     dossier := chemin_parent(chemin);
     diffère détruit_chemin(*dossier);
 
-    tmp := dossier / chemin.nom_fichier_avec_extension();
+    tmp := dossier / nom_fichier_avec_extension(chemin);
     diffère détruit_chemin(*tmp);
 
     résultat: CheminFichier;

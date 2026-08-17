@@ -636,10 +636,7 @@ contient :: fonc (rect: RectanglePosDim($T), point: Point2D(T)) -> bool
     retourne contient(rect, point.x, point.y);
 }
 
-/* À FAIRE(langage) : les polymorphes ne font pas partie des fonctions_parsées
- * de la compilatrice. Quand nous représenterons les types dans l'arbre syntaxique
- * il faudra avoir un système pour passer les fonctions/types polymorphiques aux
- * métaprogrammes. */
+/* À FAIRE : permet d'utiliser la fonction polymorphique au dessus dans la génération de l'IPA Python. */
 contient :: fonc (rect: RectanglePosDim(r32), point: Point2D(r32)) -> bool
 {
     retourne contient(rect, point.x, point.y);
@@ -705,7 +702,7 @@ divise_verticalement :: fonc (rect: RectanglePosDim($T), rect_diviseur: Rectangl
  */
 donne_rect_interne_vertical :: fonc (rect: RectanglePosDim($T), position_relative: r32, largeur: T) -> RectanglePosDim(T)
 {
-    point := rect.position_interne(position_relative, 1.0);
+    point := position_interne(rect, position_relative, 1.0);
 
     résultat : RectanglePosDim(T) = ---;
     résultat.x = point.x - largeur / 2;
@@ -827,8 +824,8 @@ donne_intersection :: fonc (rect1: RectanglePosDim($T), rect2: RectanglePosDim(T
     résultat: RectanglePosDim(T);
 
     si intersecte(rect1, rect2) {
-        rect_pur1 := rect1.donne_rectangle_pur();
-        rect_pur2 := rect2.donne_rectangle_pur();
+        rect_pur1 := donne_rectangle_pur(rect1);
+        rect_pur2 := donne_rectangle_pur(rect2);
 
         si rect_pur2.gauche < rect_pur1.gauche {
             rect_pur2.gauche = rect_pur1.gauche;
@@ -843,7 +840,7 @@ donne_intersection :: fonc (rect1: RectanglePosDim($T), rect2: RectanglePosDim(T
             rect_pur2.droite = rect_pur1.droite;
         }
 
-        résultat = rect_pur2.donne_rectangle_pos_dim();
+        résultat = donne_rectangle_pos_dim(rect_pur2);
     }
 
     retourne résultat;
@@ -868,7 +865,6 @@ RectanglePur :: struct ($T: type_de_données) {
     bas: T;
 }
 
-/* À FAIRE(langage) : les fonctions ne sont pas sélectionnées si nous n'avons pas de références. */
 donne_largeur :: fonc (rect: RectanglePur($T)) -> T
 {
     retourne rect.droite - rect.gauche;
@@ -882,11 +878,11 @@ donne_hauteur :: fonc (rect: RectanglePur($T)) -> T
 /* Limite `rect` afin que ses positions ne dépassent pas celles de `bornes`. */
 découpe_selon :: fonc (rect: *RectanglePur($T), bornes: RectanglePur(T))
 {
-    si donne_largeur(mémoire(rect)) > bornes.donne_largeur() {
+    si donne_largeur(mémoire(rect)) > donne_largeur(bornes) {
         rect.gauche = bornes.gauche;
         rect.droite = bornes.droite;
     }
-    si donne_hauteur(mémoire(rect)) > bornes.donne_hauteur() {
+    si donne_hauteur(mémoire(rect)) > donne_hauteur(bornes) {
         rect.bas = bornes.bas;
         rect.haut = bornes.haut;
     }

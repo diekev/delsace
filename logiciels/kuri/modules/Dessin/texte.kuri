@@ -62,7 +62,7 @@ dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *
     rect_glyphe.largeur = glyph.width comme z32;
     rect_glyphe.hauteur = glyph.height comme z32;
 
-    rect_sauf := tampon_de_rendu.donne_rect_sûr(rect_glyphe);
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect_glyphe);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
         retourne;
     }

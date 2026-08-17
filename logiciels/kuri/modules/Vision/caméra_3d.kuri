@@ -213,7 +213,7 @@ initialise_caméra :: fonc (caméra: *Caméra3D, largeur_fenêtre := 0, hauteur_
     caméra.vitesse_chute = 0.5;
     caméra.vitesse_latérale = 0.05;
 
-    caméra.définis_type_projection(type_projection);
+    définis_type_projection(caméra, type_projection);
 
     caméra.drapeaux = DrapeauAjournementCaméra.valeurs_légales;
 }
@@ -427,20 +427,20 @@ zoom :: fonc (caméra: *Caméra3D, delta: r32)
         distance = max(0.0, temp);
     }
 
-    caméra.définis_distance(distance);
-    caméra.ajuste_vitesse();
+    définis_distance(caméra, distance);
+    ajuste_vitesse(caméra);
 }
 
 tourne :: fonc (caméra: *Caméra3D, dx: r32, dy: r32)
 {
-    caméra.définis_tête(caméra.tête + dy * caméra.vitesse_chute);
-    caméra.définis_inclinaison(caméra.inclinaison + dx * caméra.vitesse_chute);
+    définis_tête(caméra, caméra.tête + dy * caméra.vitesse_chute);
+    définis_inclinaison(caméra, caméra.inclinaison + dx * caméra.vitesse_chute);
 }
 
 pan :: fonc (caméra: *Caméra3D, dx: r32, dy: r32)
 {
     cible := (dy * caméra.vecteur_haut - dx * caméra.vecteur_droite) * caméra.vitesse_latérale;
-    caméra.définis_cible(caméra.cible + cible);
+    définis_cible(caméra, caméra.cible + cible);
 }
 
 /*

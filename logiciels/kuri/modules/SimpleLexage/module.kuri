@@ -97,17 +97,17 @@ donne_texte :: fonc (lexème: Lexème) -> chaine
 
 est_symbole :: fonc (lexème: Lexème, texte: chaine) -> bool
 {
-    retourne lexème.type == TypeLexème.Symbole && lexème.donne_texte() == texte;
+    retourne lexème.type == TypeLexème.Symbole && donne_texte(lexème) == texte;
 }
 
 est_mot_clé :: fonc (lexème: Lexème, texte: chaine) -> bool
 {
-    retourne lexème.type == TypeLexème.MotClé && lexème.donne_texte() == texte;
+    retourne lexème.type == TypeLexème.MotClé && donne_texte(lexème) == texte;
 }
 
 est_ponctuation :: fonc (lexème: Lexème, texte: chaine) -> bool
 {
-    retourne lexème.type == TypeLexème.Ponctuation && lexème.donne_texte() == texte;
+    retourne lexème.type == TypeLexème.Ponctuation && donne_texte(lexème) == texte;
 }
 
 /** \} */
@@ -215,7 +215,7 @@ donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
         retourne résultat;
     }
 
-    si lexeuse.fini() {
+    si fini(lexeuse) {
         retourne Lexème(type = TypeLexème.FinDeFichier);
     }
 
@@ -235,7 +235,7 @@ donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
         retourne résultat;
     }
 
-    si lexeuse.fini() {
+    si fini(lexeuse) {
         retourne Lexème(type = TypeLexème.FinDeFichier);
     }
 
@@ -403,7 +403,7 @@ donne_texte_jusque_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse) -> chaine
 {
     // À FAIRE : gère lexèmes extras
     lexeuse.lexèmes_extras.taille = 0;
-    lexeuse.consomme_espace_blanches();
+    consomme_espace_blanches(lexeuse);
     lexeuse.lexèmes_extras.taille = 0;
 
     début := lexeuse.début;
@@ -439,7 +439,7 @@ donne_lexème :: fonc (lexeuse: *SimpleLexeuse, type: TypeLexème) -> Lexème
 donne_lexème :: fonc (lexeuse: *SimpleLexeuse, type: TypeLexème, texte: chaine) -> Lexème
 {
     lexème := donne_lexème_suivant(lexeuse);
-    si lexème.type == type && lexème.donne_texte() == texte {
+    si lexème.type == type && donne_texte(lexème) == texte {
         retourne lexème;
     }
     rapporte_erreur(lexeuse, lexème, texte);
@@ -483,13 +483,13 @@ rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, voulu: chain
 {
     lexeuse.possède_erreur = vrai;
 
-    lexeuse.début = lexème.donne_texte().caractères;
+    lexeuse.début = donne_texte(lexème).caractères;
     ligne := donne_ligne_pour_erreur(lexeuse);
 
     diagnostique: Simple_Diagnostique;
     diagnostique.décalage = lexeuse.début - lexeuse.texte.caractères;
     diagnostique.texte_ligne = ligne.texte;
-    diagnostique.message = imprime_chaine("Attendu '%', obtenu '%'", voulu, lexème.donne_texte());
+    diagnostique.message = imprime_chaine("Attendu '%', obtenu '%'", voulu, donne_texte(lexème));
 
     lexeuse.sur_rapport_diagnostique(lexeuse.données_diagnositique, *diagnostique);
 
@@ -737,9 +737,9 @@ donne_lexème_ponctuation :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
     début_lexème := lexeuse.début;
     fin_lexème := début_lexème + 1;
 
-    lexeuse.avance();
+    avance(lexeuse);
 
-    tantque !lexeuse.fini() {
+    tantque !fini(lexeuse) {
         c := donne_caractère_courant(lexeuse);
         peut_suivre := donne_drapeaux_peut_suivre(lexeuse, c);
 
@@ -747,7 +747,7 @@ donne_lexème_ponctuation :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
             arrête;
         }
 
-        lexeuse.avance();
+        avance(lexeuse);
         fin_lexème += 1;
     }
 
@@ -789,9 +789,9 @@ donne_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, drapeaux: DrapeauxCaract
     tantque peut_suivre.Symbole {
         drapeaux_résultat |= drapeaux;
         fin_lexème += 1;
-        lexeuse.avance();
+        avance(lexeuse);
 
-        si lexeuse.fini() {
+        si fini(lexeuse) {
             arrête;
         }
 
@@ -801,10 +801,10 @@ donne_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, drapeaux: DrapeauxCaract
     }
 
     résultat := Lexème(type = TypeLexème.Symbole, début = début_lexème, fin = fin_lexème);
-    résultat.type = donne_type_lexème_symbole(lexeuse, résultat.donne_texte(), drapeaux_résultat);
+    résultat.type = donne_type_lexème_symbole(lexeuse, donne_texte(résultat), drapeaux_résultat);
     si résultat.type == TypeLexème.Nombre {
         assert(drapeaux_résultat.ChiffreHexadécimal != faux);
-        résultat.nombre.naturel = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable;
+        résultat.nombre.naturel = tente parse_hexadécimal_n64(donne_texte(résultat)) piège nonatteignable;
     }
     retourne résultat;
 }
@@ -834,16 +834,16 @@ donne_type_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine, drap
 
 donne_lexème_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse, début: z8, type: TypeLexème, préfixe: chaine) -> Lexème
 {
-    lexeuse.avance();
+    avance(lexeuse);
 
     début_lexème := lexeuse.début;
     fin_lexème := début_lexème;
 
-    tantque !lexeuse.fini() {
+    tantque !fini(lexeuse) {
         c := donne_caractère_courant(lexeuse);
 
         si c == '\\' {
-            lexeuse.avance(2);
+            avance(lexeuse, 2);
             fin_lexème += 2;
             continue;
         }
@@ -852,11 +852,11 @@ donne_lexème_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse, début: z8, ty
             arrête;
         }
 
-        lexeuse.avance();
+        avance(lexeuse);
         fin_lexème += 1;
     }
 
-    lexeuse.avance();
+    avance(lexeuse);
 
     si lexeuse.options.INCLUS_GUILLEMETS {
         début_lexème -= 1;
@@ -881,9 +881,9 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
     tantque peut_suivre.Nombre {
         fin_lexème += 1;
-        lexeuse.avance();
+        avance(lexeuse);
 
-        si lexeuse.fini() {
+        si fini(lexeuse) {
             arrête;
         }
 
@@ -895,14 +895,14 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
     résultat := Lexème(type = TypeLexème.Nombre, début = début_lexème, fin = fin_lexème);
     si drapeaux_accumulés.DébutePartDécimale {
-        nombre_parsé := tente extrait_r64(résultat.donne_texte()) piège nonatteignable;
+        nombre_parsé := tente extrait_r64(donne_texte(résultat)) piège nonatteignable;
         résultat.nombre.réel = nombre_parsé;
     }
     sinon si drapeaux_accumulés.ChiffreHexadécimal && lexeuse.supporte_nombre_héxadécimaux_sans_préfixe {
-        résultat.nombre.naturel = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable;
+        résultat.nombre.naturel = tente parse_hexadécimal_n64(donne_texte(résultat)) piège nonatteignable;
     }
     sinon {
-        résultat.nombre.naturel = tente extrait_n64(résultat.donne_texte()) piège nonatteignable;
+        résultat.nombre.naturel = tente extrait_n64(donne_texte(résultat)) piège nonatteignable;
     }
 
     début_lexème = lexeuse.début;
@@ -910,7 +910,7 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
     si drapeaux.DébuteSuffixeNombre {
         fin_lexème += 1;
-        lexeuse.avance();
+        avance(lexeuse);
 
         tantque !fini(lexeuse) {
             c := donne_caractère_courant(lexeuse);
@@ -926,7 +926,7 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
             }
 
             fin_lexème += 1;
-            lexeuse.avance();
+            avance(lexeuse);
         }
 
         résultat.suffixe = chaine(début_lexème, fin_lexème - début_lexème);
@@ -947,7 +947,7 @@ est_suffixe :: fonc (lexeuse: *SimpleLexeuse, suffixe_possible: chaine) -> bool
 
 consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
 {
-    tantque !lexeuse.fini() {
+    tantque !fini(lexeuse) {
         c := donne_caractère_courant(lexeuse);
         drapeaux := donne_drapeaux_caractère(lexeuse, c);
 
@@ -959,7 +959,7 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
                 tableau_ajoute(*lexeuse.lexèmes_extras, lexème);
             }
 
-            lexeuse.avance();
+            avance(lexeuse);
             continue;
         }
 
@@ -971,7 +971,7 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
                 si c == '\n' {
                     arrête;
                 }
-                lexeuse.avance();
+                avance(lexeuse);
             }
 
             si lexeuse.options.INCLUS_ESPACE_BLANCHES {
@@ -984,14 +984,14 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
 
         si drapeaux.DébuteCommentaireMultiLignes {
             paire_possible := donne_paire_commentaire_multilignes(lexeuse);
-            saufsi paire_possible.possède_valeur() {
+            saufsi possède_valeur(paire_possible) {
                 arrête;
             }
 
             début_lexème := lexeuse.début;
 
             paire := paire_possible.Quelque;
-            lexeuse.avance(paire[1].taille comme z32);
+            avance(lexeuse, paire[1].taille comme z32);
 
             lexeuse.dans_commentaire = vrai;
             lexeuse.paire_commentaire = paire;
@@ -1010,14 +1010,14 @@ parse_commentaire_multiligne :: fonc (lexeuse: *SimpleLexeuse, début_lexème: *
 
     assert(lexeuse.dans_commentaire == vrai);
 
-    tantque !lexeuse.fini() {
+    tantque !fini(lexeuse) {
         texte := chaine(lexeuse.début, lexeuse.fin - lexeuse.début);
         si commence_par(texte, paire[1]) {
             lexeuse.dans_commentaire = faux;
-            lexeuse.avance(paire[1].taille comme z32);
+            avance(lexeuse, paire[1].taille comme z32);
             arrête;
         }
-        lexeuse.avance(1);
+        avance(lexeuse, 1);
     }
 
     si lexeuse.options.INCLUS_ESPACE_BLANCHES {
@@ -1031,7 +1031,7 @@ est_début_commentaire_ligne_singulière :: fonc (lexeuse: *SimpleLexeuse) -> bo
 {
     texte := chaine(lexeuse.début, lexeuse.fin - lexeuse.début);
     pour lexeuse.commentaires_ligne_singulière {
-        si texte.commence_par(it) {
+        si commence_par(texte, it) {
             retourne vrai;
         }
     }
@@ -1042,7 +1042,7 @@ donne_paire_commentaire_multilignes :: fonc (lexeuse: *SimpleLexeuse) -> Optionn
 {
     texte := chaine(lexeuse.début, lexeuse.fin - lexeuse.début);
     pour lexeuse.commentaires_multi_lignes {
-        si texte.commence_par(it[0]) {
+        si commence_par(texte, it[0]) {
             retourne it;
         }
     }
@@ -1052,7 +1052,7 @@ donne_préfixe_caractère :: fonc (lexeuse: *SimpleLexeuse) -> chaine
 {
     texte := chaine(lexeuse.début, lexeuse.fin - lexeuse.début);
     pour lexeuse.préfixes_constantes_de_caractères {
-        si texte.commence_par(it[0]) {
+        si commence_par(texte, it[0]) {
             retourne it;
         }
     }
@@ -1235,13 +1235,13 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
     si c == '0' {
         fin_lexème += 1;
-        lexeuse.avance();
+        avance(lexeuse);
 
         saufsi fini(lexeuse) {
             c = donne_caractère_courant(lexeuse);
             si c == 'x' || c == 'X' {
                 fin_lexème += 1;
-                lexeuse.avance();
+                avance(lexeuse);
 
                 début_nombre := fin_lexème;
                 fin_nombre := début_nombre;
@@ -1256,7 +1256,7 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
                     fin_lexème += 1;
                     fin_nombre += 1;
-                    lexeuse.avance();
+                    avance(lexeuse);
                 }
 
                 texte_nombre := chaine(début_nombre, fin_nombre - début_nombre);
@@ -1268,7 +1268,7 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
                     nombre_entier += (c - '0') comme n64;
 
                     fin_lexème += 1;
-                    lexeuse.avance();
+                    avance(lexeuse);
                     saufsi fini(lexeuse) {
                         c = donne_caractère_courant(lexeuse);
                     }
@@ -1282,7 +1282,7 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
             nombre_entier += (c - '0') comme n64;
 
             fin_lexème += 1;
-            lexeuse.avance();
+            avance(lexeuse);
             si fini(lexeuse) {
                 arrête;
             }
@@ -1297,7 +1297,7 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
     si c == '.' {
         est_nombre_réel = vrai;
         fin_lexème += 1;
-        lexeuse.avance();
+        avance(lexeuse);
         nombre_réel = nombre_entier comme r64;
 
         diviseur := 10.0;
@@ -1308,7 +1308,7 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
                 arrête;
             }
             fin_lexème += 1;
-            lexeuse.avance();
+            avance(lexeuse);
 
             valeur := (c - '0') comme r64;
             nombre_réel += valeur / diviseur;
@@ -1327,7 +1327,7 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
         est_nombre_réel = vrai;
         possède_exposant = vrai;
         fin_lexème += 1;
-        lexeuse.avance();
+        avance(lexeuse);
 
         signe := '+';
 
@@ -1348,7 +1348,7 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
             exposant *= 10.0;
             exposant += (c - '0') comme r64;
             fin_lexème += 1;
-            lexeuse.avance();
+            avance(lexeuse);
         }
 
         si signe == '-' {
