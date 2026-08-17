@@ -112,7 +112,7 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 donne_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 {
     si arg.info.id == GenreInfoType.CHAINE {
-        retourne arg.comme_chaine();
+        retourne comme_chaine(arg);
     }
 
     enchaineuse: Enchaineuse;

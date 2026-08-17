@@ -22,17 +22,17 @@ découvre_type_fichier :: fonc (chemin: CheminFichier) -> Optionnel(TypeFichier)
 
 fichier_existe :: fonc (chemin: CheminFichier) -> bool
 {
-    retourne découvre_type_fichier(chemin).possède_valeur();
+    retourne possède_valeur(découvre_type_fichier(chemin));
 }
 
 est_un_dossier :: fonc (chemin: CheminFichier) -> bool
 {
-    retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.Dossier);
+    retourne a_valeur(découvre_type_fichier(chemin), TypeFichier.Dossier);
 }
 
 est_un_fichier_régulier :: fonc (chemin: CheminFichier) -> bool
 {
-    retourne découvre_type_fichier(chemin).a_valeur(TypeFichier.Régulier);
+    retourne a_valeur(découvre_type_fichier(chemin), TypeFichier.Régulier);
 }
 
 est_une_prise :: fonc (chemin: CheminFichier) -> bool

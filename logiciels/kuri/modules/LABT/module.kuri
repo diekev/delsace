@@ -127,7 +127,7 @@ possède_erreur :: fonc (parseuse: *ParseuseDocument) -> bool
 rapporte_erreur :: fonc (parseuse: *ParseuseDocument, chn: chaine)
 {
     tableau_ajoute(*parseuse.erreurs, chn);
-    parseuse.avance(1);
+    avance(parseuse, 1);
 }
 
 consomme_espaces_blanches :: fonc (parseuse: *ParseuseDocument)
@@ -212,10 +212,10 @@ parse_noeud :: fonc (parseuse: *ParseuseDocument, document: *Document, parent: *
     }
 
     si consomme(parseuse, "chapitre") {
-        parseuse.parse_chapitre(document, parent);
+        parse_chapitre(parseuse, document, parent);
     }
     sinon si consomme(parseuse, "lien") {
-        parseuse.parse_lien(parent);
+        parse_lien(parseuse, parent);
     }
 
     saufsi consomme(parseuse, '}') {
@@ -225,13 +225,13 @@ parse_noeud :: fonc (parseuse: *ParseuseDocument, document: *Document, parent: *
 
 parse_chapitre :: fonc (parseuse: *ParseuseDocument, document: *Document, parent: *Noeud)
 {
-    parseuse.consomme_espaces_blanches();
+    consomme_espaces_blanches(parseuse);
 
-    chapitre := parent.crée_enfant(Chapitre);
-    parseuse.parse_attributs(chapitre);
+    chapitre := crée_enfant(parent, Chapitre);
+    parse_attributs(parseuse, chapitre);
 
     boucle {
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
 
         si apparie(parseuse, '}') {
             arrête;
@@ -241,7 +241,7 @@ parse_chapitre :: fonc (parseuse: *ParseuseDocument, document: *Document, parent
             parse_noeud(parseuse, document, chapitre);
         }
         sinon {
-            parseuse.parse_texte(document, chapitre);
+            parse_texte(parseuse, document, chapitre);
         }
     }
 }
@@ -250,12 +250,12 @@ parse_texte :: fonc (parseuse: *ParseuseDocument, document: *Document @inutilis�
 {
     position := parseuse.curseur;
 
-    tantque !parseuse.fini() {
-        si parseuse.apparie('{') {
+    tantque !fini(parseuse) {
+        si apparie(parseuse, '{') {
             arrête;
         }
 
-        si parseuse.apparie('}') {
+        si apparie(parseuse, '}') {
             arrête;
         }
 
@@ -264,65 +264,65 @@ parse_texte :: fonc (parseuse: *ParseuseDocument, document: *Document @inutilis�
 
     position_fin := parseuse.curseur;
 
-    parseuse.positionne(position);
+    positionne(parseuse, position);
 
-    texte := parseuse.sous_chaine_jusque_indice(position_fin);
+    texte := sous_chaine_jusque_indice(parseuse, position_fin);
 
-    noeud_texte := parent.crée_enfant(Texte);
+    noeud_texte := crée_enfant(parent, Texte);
     noeud_texte.texte = texte;
 
-    parseuse.positionne(position_fin);
+    positionne(parseuse, position_fin);
 }
 
 parse_lien :: fonc (parseuse: *ParseuseDocument, parent: *Noeud)
 {
-    noeud_lien := parent.crée_enfant(Lien);
-    parseuse.parse_attributs(noeud_lien);
-    parseuse.consomme_espaces_blanches();
+    noeud_lien := crée_enfant(parent, Lien);
+    parse_attributs(parseuse, noeud_lien);
+    consomme_espaces_blanches(parseuse);
 }
 
 parse_attributs :: fonc (parseuse: *ParseuseDocument, noeud: *Noeud)
 {
     boucle {
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
         // nom
-        index_égal := parseuse.trouve_prochain(' ', '=');
+        index_égal := trouve_prochain(parseuse, ' ', '=');
 
         si index_égal < 0 {
             rapporte_erreur(parseuse, "attendu un signe « = » après le nom de l'attribut");
         }
 
-        nom := parseuse.sous_chaine_jusque_indice(index_égal);
-        parseuse.positionne(index_égal);
+        nom := sous_chaine_jusque_indice(parseuse, index_égal);
+        positionne(parseuse, index_égal);
 
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
 
         // =
         si !consomme(parseuse, '=') {
             rapporte_erreur(parseuse, "attendu un signe « = » après le nom de l'attribut");
         }
 
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
 
         // "valeur"
         si !consomme(parseuse, '"') {
             rapporte_erreur(parseuse, "attendu un guillemet après le signe « = »");
         }
 
-        fin_chaine := parseuse.trouve_prochain('"');
+        fin_chaine := trouve_prochain(parseuse, '"');
 
         si fin_chaine < 0 {
             rapporte_erreur(parseuse, "attendu un guillemet fermant pour terminer l'attribut");
             retourne;
         }
 
-        valeur := parseuse.sous_chaine_jusque_indice(fin_chaine);
+        valeur := sous_chaine_jusque_indice(parseuse, fin_chaine);
 
-        parseuse.positionne(fin_chaine + 1);
+        positionne(parseuse, fin_chaine + 1);
 
-        noeud.ajoute_attribut(nom, valeur);
+        ajoute_attribut(noeud, nom, valeur);
 
-        si parseuse.apparie('\n') || parseuse.apparie('}') {
+        si apparie(parseuse, '\n') || apparie(parseuse, '}') {
             arrête;
         }
     }

@@ -619,19 +619,19 @@ détermine_relativité_uri :: fonc (uri: URI) -> RelativitéURI
         retourne RelativitéURI.AUCUNE;
     }
 
-    si uri.chemin.commence_par("./") {
+    si commence_par(uri.chemin, "./") {
         retourne RelativitéURI.RÉPERTOIRE_COURANT;
     }
 
-    si uri.chemin.commence_par("../") {
+    si commence_par(uri.chemin, "../") {
         retourne RelativitéURI.RÉPERTOIRE_PARENT;
     }
 
-    si uri.chemin_complet.commence_par("#") {
+    si commence_par(uri.chemin_complet, "#") {
         retourne RelativitéURI.FRAGMENT_CHEMIN_COURANT;
     }
 
-    si uri.chemin.commence_par("/") {
+    si commence_par(uri.chemin, "/") {
         retourne RelativitéURI.HÔTE;
     }
 
@@ -666,7 +666,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
                 ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it]);
             }
 
-            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin.avance(2));
+            ajoute_au_tampon(*enchaineuse, "/", avance(relatif.chemin, 2));
 
             relatif.schéma = base.schéma;
             relatif.autorité = base.autorité;
@@ -690,7 +690,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
                 ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it]);
             }
 
-            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin.avance(3));
+            ajoute_au_tampon(*enchaineuse, "/", avance(relatif.chemin, 3));
 
             relatif.schéma = base.schéma;
             relatif.autorité = base.autorité;

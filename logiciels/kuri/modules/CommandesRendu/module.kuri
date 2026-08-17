@@ -402,14 +402,14 @@ donne_rectangle_corrigé :: fonc (rect: RectanglePosDim(r32), hauteur_vue: r32, 
 
 dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inverse_origine := vrai)
 {
-    peintre.commence_dessin();
+    commence_dessin(peintre);
 
     // active_gl_debug()
 
     début := commandes.commandes.données;
     fin := début + commandes.commandes.taille;
 
-    hauteur_vue := peintre.donne_taille_canevas().hauteur comme z32 comme r32;
+    hauteur_vue := donne_taille_canevas(peintre).hauteur comme z32 comme r32;
 
     tantque début < fin {
         base := début comme *BaseCommande;
@@ -418,17 +418,17 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inve
             REMPLIS_RECTANGLE {
                 commande := base comme *CommandeRemplisRectangle;
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.remplis_rectangle(rect, commande.couleur);
+                remplis_rectangle(peintre, rect, commande.couleur);
             }
             REMPLIS_RECTANGLE_ARRONDI {
                 commande := base comme *CommandeRemplisRectangleArrondi;
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.remplis_rectangle_arrondi(rect, commande.rayons, commande.couleur);
+                remplis_rectangle_arrondi(peintre, rect, commande.rayons, commande.couleur);
             }
             DESSINE_RECTANGLE {
                 commande := base comme *CommandeDessineRectangle;
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.dessine_rectangle(rect, commande.couleur);
+                dessine_rectangle(peintre, rect, commande.couleur);
             }
             DESSINE_RECTANGLE_ARRONDI {
                 // commande := base comme *CommandeDessineRectangleArrondi
@@ -439,28 +439,28 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inve
                 commande := base comme *CommandeDessineBordure;
                 // À FAIRE : rayon
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.dessine_bordure(rect, commande.largeurs, commande.couleurs);
+                dessine_bordure(peintre, rect, commande.largeurs, commande.couleurs);
             }
             DESSINE_IMAGE {
                 commande := base comme *CommandeDessineImage;
                 rect_image := donne_rectangle_corrigé(commande.rect_image, hauteur_vue, inverse_origine);
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.dessine_image(*commande.image, rect_image, rect, commande.paramètres, commande.teinte);
+                dessine_image(peintre, *commande.image, rect_image, rect, commande.paramètres, commande.teinte);
             }
             DESSINE_TEXTE {
                 commande := base comme *CommandeDessineTexte;
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur, *commande.effets);
+                dessine_texte(peintre, commande.fonte, commande.texte, rect, commande.couleur, *commande.effets);
             }
             DESSINE_TEXTE_UTF16 {
                 commande := base comme *CommandeDessineTexteUTF16;
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur, *commande.effets);
+                dessine_texte(peintre, commande.fonte, commande.texte, rect, commande.couleur, *commande.effets);
             }
             DESSINE_TEXTE_UTF32 {
                 commande := base comme *CommandeDessineTexteUTF32;
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur, *commande.effets);
+                dessine_texte(peintre, commande.fonte, commande.texte, rect, commande.couleur, *commande.effets);
             }
             DESSINE_CERCLE {
                 commande := base comme *CommandeDessineCercle;
@@ -472,7 +472,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inve
                 cercle.centre_y = rect.y + rect.hauteur / 2;
                 cercle.rayon = max(rect.largeur, rect.hauteur) / 2.0;
 
-                peintre.dessine_cercle(cercle, commande.couleur);
+                dessine_cercle(peintre, cercle, commande.couleur);
             }
             REMPLIS_CERCLE {
                 commande := base comme *CommandeRemplisCercle;
@@ -484,7 +484,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inve
                 cercle.centre_y = rect.y + rect.hauteur / 2;
                 cercle.rayon = max(rect.largeur, rect.hauteur) / 2.0;
 
-                peintre.remplis_cercle(cercle, commande.couleur);
+                remplis_cercle(peintre, cercle, commande.couleur);
             }
             DÉBUTE_SOUS_TAMPON {
                 // Fondation.imprimeln("%", base.type)
@@ -498,10 +498,10 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inve
             DÉBUTE_CISELAGE {
                 commande := base comme *CommandeDébuteCiselage;
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine);
-                peintre.définis_ciseau(rect);
+                définis_ciseau(peintre, rect);
             }
             TERMINE_CISELAGE {
-                peintre.restaure_ciseau();
+                restaure_ciseau(peintre);
             }
             DESSINE_PROCÉDURAL {
                 commande := base comme *CommandeDessineProcédural;
@@ -513,7 +513,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inve
         début += base.taille_type;
     }
 
-    peintre.termine_dessin();
+    termine_dessin(peintre);
 }
 
 dessine_commandes_id :: fonc (peintre: *Peintre @inutilisée, commandes: *CommandesDeRendu, tampon_id: TamponImageGrise32Bit)

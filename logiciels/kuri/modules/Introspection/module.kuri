@@ -371,7 +371,7 @@ comme_r64 :: fonc (valeur: eini) -> r64
 
 possède_rubrique :: fonc (valeur: eini, nom: chaine) -> bool
 {
-    saufsi valeur.est_structure() {
+    saufsi est_structure(valeur) {
         retourne faux;
     }
 
@@ -420,7 +420,7 @@ trouve_info_rubrique :: fonc (info: *InfoTypeStructure, nom_rubrique: chaine) ->
 
 trouve_info_rubrique :: fonc (valeur: eini, nom_rubrique: chaine) -> *InfoTypeRubriqueStructure
 {
-    saufsi valeur.est_structure() {
+    saufsi est_structure(valeur) {
         retourne nul;
     }
 
@@ -447,7 +447,7 @@ trouve_valeur_rubrique :: fonc (valeur: eini, nom_rubrique: chaine) -> eini
 {
     résultat: eini;
 
-    si valeur.est_chaine() {
+    si est_chaine(valeur) {
         si nom_rubrique == "taille" {
             résultat.données = valeur.données + 8;
             résultat.info = info_de(z64);
@@ -481,17 +481,17 @@ crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
 {
     itératrice: ItératriceTableau;
 
-    saufsi valeur.est_valide() {
+    saufsi est_valide(valeur) {
         retourne itératrice;
     }
 
-    saufsi valeur.est_tableau() || valeur.est_tableau_fixe() {
+    saufsi est_tableau(valeur) || est_tableau_fixe(valeur) {
         retourne itératrice;
     }
 
     itératrice.valeur = valeur;
 
-    si valeur.est_tableau_fixe() {
+    si est_tableau_fixe(valeur) {
         info_tableau := valeur.info comme *InfoTypeTableauFixe;
 
         itératrice.pointeur = valeur.données;
@@ -517,11 +517,11 @@ crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
 {
     itératrice: ItératriceTableau;
 
-    saufsi valeur.est_valide() {
+    saufsi est_valide(valeur) {
         retourne itératrice;
     }
 
-    saufsi valeur.est_tranche() {
+    saufsi est_tranche(valeur) {
         retourne itératrice;
     }
 
@@ -572,7 +572,7 @@ crée_itératrice_rubrique :: fonc (structure: eini, ignore_rubriques_constantes
 {
     itératrice: ItératriceRubriqueStructure;
 
-    si !structure.est_structure() {
+    si !est_structure(structure) {
         retourne itératrice;
     }
 
@@ -923,7 +923,7 @@ ajoute_module :: fonc (créatrice: *CréatriceTableFonction, nom_module: chaine)
 
 crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: []*NoeudCodeEntêteFonction)
 {
-    saufsi créatrice.créatrice_est_valide() {
+    saufsi créatrice_est_valide(créatrice) {
         retourne;
     }
 
@@ -944,8 +944,8 @@ crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: 
 
     /* Création des imports. */
     diffère déloge(*créatrice.modules_importés);
-    créatrice.ajoute_module("Fondation");
-    créatrice.ajoute_module("Introspection");
+    ajoute_module(créatrice, "Fondation");
+    ajoute_module(créatrice, "Introspection");
 
     pour données_fonctions {
         module := compilatrice_module_pour_code(créatrice.espace, it.fonction);
@@ -954,7 +954,7 @@ crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: 
         }
         nom_module := compilatrice_nom_module(module);
         si nom_module {
-            créatrice.ajoute_module(nom_module);
+            ajoute_module(créatrice, nom_module);
         }
     }
 
@@ -1030,47 +1030,47 @@ parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
 {
     discr valeur_rubrique.info.id {
         ENTIER {
-            si valeur_rubrique.est_n8() {
-                retourne parse_n8(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_n8(valeur_rubrique) {
+                retourne parse_n8(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_n16() {
-                retourne parse_n16(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_n16(valeur_rubrique) {
+                retourne parse_n16(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_n32() {
-                retourne parse_n32(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_n32(valeur_rubrique) {
+                retourne parse_n32(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_n64() {
-                retourne parse_n64(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_n64(valeur_rubrique) {
+                retourne parse_n64(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_z8() {
-                retourne parse_z8(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_z8(valeur_rubrique) {
+                retourne parse_z8(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_z16() {
-                retourne parse_z16(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_z16(valeur_rubrique) {
+                retourne parse_z16(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_z32() {
-                retourne parse_z32(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_z32(valeur_rubrique) {
+                retourne parse_z32(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_z64() {
-                retourne parse_z64(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_z64(valeur_rubrique) {
+                retourne parse_z64(valeur, tampon_pour_eini(valeur_rubrique));
             }
         }
         RÉEL {
-            si valeur_rubrique.est_r16() {
-                retourne parse_r16(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_r16(valeur_rubrique) {
+                retourne parse_r16(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_r32() {
-                retourne parse_r32(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_r32(valeur_rubrique) {
+                retourne parse_r32(valeur, tampon_pour_eini(valeur_rubrique));
             }
-            si valeur_rubrique.est_r64() {
-                retourne parse_r64(valeur, valeur_rubrique.tampon_pour_eini());
+            si est_r64(valeur_rubrique) {
+                retourne parse_r64(valeur, tampon_pour_eini(valeur_rubrique));
             }
         }
         BOOLÉEN {
-            retourne parse_bool(valeur, valeur_rubrique.tampon_pour_eini());
+            retourne parse_bool(valeur, tampon_pour_eini(valeur_rubrique));
         }
         CHAINE {
-            valeur_rubrique.assigne_chaine(valeur);
+            assigne_chaine(valeur_rubrique, valeur);
             retourne vrai;
         }
         OPAQUE,
@@ -1322,11 +1322,11 @@ imprime_corps_fonction_chaine_pour_constantes :: fonc (enchaineuse: *Enchaineuse
             continue;
         }
 
-        saufsi it.texte.commence_par(préfixe) {
+        saufsi commence_par(it.texte, préfixe) {
             continue;
         }
 
-        nom_type := it.texte.avance(préfixe.taille);
+        nom_type := avance(it.texte, préfixe.taille);
 
         ajoute_au_tampon(enchaineuse, "    si ", nom_argument, " == ", it.texte, " { retourne \"", nom_type, "\"; }\n");
     }
