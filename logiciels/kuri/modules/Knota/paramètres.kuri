@@ -85,27 +85,27 @@ Valeur_Défaut_Paramètre :: union {
 valeur_défaut_entier_ex :: fonc (valeur: eini, info_type: *InfoType) -> Valeur_Défaut_Paramètre
 {
     si info_type == info_de(z8) {
-        retourne valeur.comme_z8() comme z64;
+        retourne comme_z8(valeur) comme z64;
     }
     si info_type == info_de(z16) {
-        retourne valeur.comme_z16() comme z64;
+        retourne comme_z16(valeur) comme z64;
     }
     si info_type == info_de(z32) {
-        retourne valeur.comme_z32() comme z64;
+        retourne comme_z32(valeur) comme z64;
     }
     si info_type == info_de(z64) {
-        retourne valeur.comme_z64();
+        retourne comme_z64(valeur);
     }
     si info_type == info_de(n8) {
-        retourne valeur.comme_n8() comme z64;
+        retourne comme_n8(valeur) comme z64;
     }
     si info_type == info_de(n16) {
-        retourne valeur.comme_n16() comme z64;
+        retourne comme_n16(valeur) comme z64;
     }
     si info_type == info_de(n32) {
-        retourne valeur.comme_n32() comme z64;
+        retourne comme_n32(valeur) comme z64;
     }
-    retourne valeur.comme_n64() comme z64;
+    retourne comme_n64(valeur) comme z64;
 }
 
 valeur_défaut_entier :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
@@ -116,9 +116,9 @@ valeur_défaut_entier :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 valeur_défaut_réel :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     si valeur.info == info_de(r32) {
-        retourne valeur.comme_r32() comme r64;
+        retourne comme_r32(valeur) comme r64;
     }
-    retourne valeur.comme_r64();
+    retourne comme_r64(valeur);
 }
 
 valeur_défaut_bool :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
@@ -460,7 +460,7 @@ crée_table_paramètres :: fonc (paramètres: *Paramètres_Noeud, infos: *InfoTy
         }
 
         opt_info_création_paramètre := détermine_type_paramètre_depuis_info_type(it.id);
-        saufsi opt_info_création_paramètre.possède_valeur() {
+        saufsi possède_valeur(opt_info_création_paramètre) {
             continue;
         }
 
@@ -768,28 +768,28 @@ lis_valeur_entier_ex :: fonc (param: *Table_Paramètres.Paramètre, info_type: *
 {
     valeur := param.valeur;
     si info_type == info_de(z8) {
-        retourne valeur.comme_z8() comme z32;
+        retourne comme_z8(valeur) comme z32;
     }
     si info_type == info_de(z16) {
-        retourne valeur.comme_z16() comme z32;
+        retourne comme_z16(valeur) comme z32;
     }
     si info_type == info_de(z32) {
-        retourne valeur.comme_z32();
+        retourne comme_z32(valeur);
     }
     si info_type == info_de(z64) {
-        retourne valeur.comme_z64() comme z32;
+        retourne comme_z64(valeur) comme z32;
     }
     si info_type == info_de(n8) {
-        retourne valeur.comme_n8() comme z32;
+        retourne comme_n8(valeur) comme z32;
     }
     si info_type == info_de(n16) {
-        retourne valeur.comme_n16() comme z32;
+        retourne comme_n16(valeur) comme z32;
     }
     si info_type == info_de(n32) {
-        retourne valeur.comme_n32() comme z32;
+        retourne comme_n32(valeur) comme z32;
     }
 
-    retourne valeur.comme_n64() comme z32;
+    retourne comme_n64(valeur) comme z32;
 }
 
 lis_valeur_entier :: fonc (param: *Table_Paramètres.Paramètre) -> z32
@@ -801,9 +801,9 @@ lis_valeur_réel :: fonc (param: *Table_Paramètres.Paramètre) -> r32
 {
     valeur := param.valeur;
     si valeur.info == info_de(r32) {
-        retourne valeur.comme_r32();
+        retourne comme_r32(valeur);
     }
-    retourne valeur.comme_r64() comme r32;
+    retourne comme_r64(valeur) comme r32;
 }
 
 lis_valeur_bool :: fonc (param: *Table_Paramètres.Paramètre) -> bool
@@ -898,8 +898,8 @@ valeur_défaut_énum :: fonc (param: *Table_Paramètres.Paramètre) -> chaine
 
 marque_param_modifié :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre)
 {
-    param.marque_modifié();
-    noeud.marque_nécessite_exécution();
+    marque_modifié(param);
+    marque_nécessite_exécution(noeud);
 }
 
 /* À FAIRE(langage) : impossible d'avoir un paramètre de sous-type dans un type de fonction polymorphique.
@@ -912,7 +912,7 @@ définis_valeur_param :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramèt
     }
 
     définition_valeur(param, nouvelle_valeur);
-    noeud.marque_param_modifié(param);
+    marque_param_modifié(noeud, param);
 
     saufsi param.est_extra {
         ajourne_état_paramètres(param.struct_paramètres);
@@ -1207,7 +1207,7 @@ parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *Table_Paramètre
 
 détermine_limites_paramètres :: fonc (param: *Table_Paramètres.Paramètre, rubrique: *InfoTypeRubriqueStructure)
 {
-    si param.limites.possède_valeur() {
+    si possède_valeur(param.limites) {
         /* Nous avons déjà renseignés les limites lors du parsage des annotations. */
         retourne;
     }
@@ -1396,7 +1396,7 @@ donne_noeud_pour_chemin :: fonc (racine: *Noeud, chemin: chaine) -> *Noeud
             retourne nul;
         }
 
-        graphe := noeud.donne_sous_graphe();
+        graphe := donne_sous_graphe(noeud);
         saufsi graphe {
             si it == morceaux.taille - 1 {
                 arrête;

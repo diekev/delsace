@@ -206,7 +206,7 @@ donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JS.TasDeMémoire
 
 crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_données) -> *T
 {
-    retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T);
+    retourne crée_platform_object(donne_tas_de_mémoire(référence), référence.realm, T);
 }
 
 crée_platform_object :: fonc (tas_de_mémoire: *JS.TasDeMémoire, realm: *JS.Realm, $T: type_de_données) -> *T
@@ -223,7 +223,7 @@ is_platform_object_same_origin :: fonc (object: *PlatformObject) -> bool
     // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
     current := donne_current_settings_object(object);
     relevant := donne_relevant_settings_object(object);
-    retourne sont_même_domaine_origine(current.donne_origin(), relevant.donne_origin());
+    retourne sont_même_domaine_origine(donne_origin(current), donne_origin(relevant));
 }
 
 /** \} */

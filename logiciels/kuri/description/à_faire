@@ -3,6 +3,10 @@ IPA
 Supprime les tableaux (utilise des tranches, et supprime tableau_statique::capacite)
 Remplace *Module par un ID
 
+// erreur de compilation (variadique après un argument à valeur défaut)
+crée_liste :: fonc (page: *Page, id := "", éléments: ...*Élément) -> *ÉlémentListe
+
+
 // À FAIRE(langage) : compilation infinie si un macro est utilisé en expression de diffère
 diffère { Prof_End() }
 

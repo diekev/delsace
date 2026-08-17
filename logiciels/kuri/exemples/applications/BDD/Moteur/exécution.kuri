@@ -72,7 +72,7 @@ crée_table :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *In
     nom_table := inst.nom.valeur;
 
     si trouve_table(cm, nom_table) != nul {
-        exécutrice.rapporte_erreur("Erreur : redéfinition de la table %", nom_table);
+        rapporte_erreur(exécutrice, "Erreur : redéfinition de la table %", nom_table);
         retourne;
     }
 
@@ -136,12 +136,12 @@ insère :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *Instru
     table := trouve_table(cm, nom_table);
 
     si table == nul {
-        exécutrice.rapporte_erreur("La table % n'existe pas !\n", nom_table);
+        rapporte_erreur(exécutrice, "La table % n'existe pas !\n", nom_table);
         retourne;
     }
 
     si table.nombre_de_lignes >= LIGNES_MAX_TABLE {
-        exécutrice.rapporte_erreur("La table % est pleine.", nom_table);
+        rapporte_erreur(exécutrice, "La table % est pleine.", nom_table);
         retourne;
     }
 
@@ -158,14 +158,14 @@ insère :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *Instru
 
         si expr.littérale.genre == GenreLexème.NUMÉRIQUE {
             si colonne.genre != TypeColonne.ENTIER {
-                exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n");
+                rapporte_erreur(exécutrice, "Le typage de la colonne est invalide.\n");
                 retourne;
             }
 
             entier := extrait_nombre_entier(expr.littérale.valeur) comme z32;
 
             si entier < 0 {
-                exécutrice.rapporte_erreur("L'ID doit être positif.\n");
+                rapporte_erreur(exécutrice, "L'ID doit être positif.\n");
                 retourne;
             }
 
@@ -173,21 +173,21 @@ insère :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *Instru
         }
         sinon si expr.littérale.genre == GenreLexème.CHAINE {
             si colonne.genre != TypeColonne.CHAINE {
-                exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n");
+                rapporte_erreur(exécutrice, "Le typage de la colonne est invalide.\n");
                 retourne;
             }
 
             chn := expr.littérale.valeur;
 
             si chn.taille > 251 {
-                exécutrice.rapporte_erreur("La chaine est trop longue.\n");
+                rapporte_erreur(exécutrice, "La chaine est trop longue.\n");
                 retourne;
             }
 
             sérialise_chaine(tampon_insertion, décalage, chn);
         }
         sinon {
-            exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n");
+            rapporte_erreur(exécutrice, "Le typage de la colonne est invalide.\n");
             retourne;
         }
 
@@ -212,7 +212,7 @@ sélectionne :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *I
     table := trouve_table(cm, nom_table);
 
     si table == nul {
-        exécutrice.rapporte_erreur("La table % n'existe pas !\n", nom_table);
+        rapporte_erreur(exécutrice, "La table % n'existe pas !\n", nom_table);
         retourne nul;
     }
 
@@ -228,7 +228,7 @@ sélectionne :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *I
     // trouve les colonnes dans la table
     pour expr dans inst.items {
         si expr.genre != GenreExpression.LITTÉRALE {
-            exécutrice.rapporte_erreur("Erreur : expression non-littérale rencontrée !\n");
+            rapporte_erreur(exécutrice, "Erreur : expression non-littérale rencontrée !\n");
             retourne nul;
         }
 
@@ -252,7 +252,7 @@ sélectionne :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *I
         }
 
         si !trouvée {
-            exécutrice.rapporte_erreur("Erreur : la colonne %.% n'existe pas !\n", nom_table, lit.valeur);
+            rapporte_erreur(exécutrice, "Erreur : la colonne %.% n'existe pas !\n", nom_table, lit.valeur);
             retourne nul;
         }
     }

@@ -87,22 +87,22 @@ détruit_serveuse :: fonc (serveuse: *ServeuseTCP)
 
 données_utilisateur :: fonc (serveuse: *ServeuseTCP, $T: type_de_données) -> *T
 {
-    retourne serveuse.ctx.données_utilisateur(T);
+    retourne données_utilisateur(serveuse.ctx, T);
 }
 
 lance :: fonc (serveuse: *ServeuseTCP)
 {
-    serveuse.boucle_évènements.lance();
+    lance(serveuse.boucle_évènements);
 }
 
 rappel_quand_ouverture :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise, est_client: bool))
 {
-    serveuse.ctx.mute_quand_ouverture(rappel);
+    mute_quand_ouverture(serveuse.ctx, rappel);
 }
 
 rappel_quand_données_reçues :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise, données: []octet))
 {
-    serveuse.ctx.mute_quand_données_reçues(rappel);
+    mute_quand_données_reçues(serveuse.ctx, rappel);
 }
 
 rappel_quand_écriture :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
@@ -112,7 +112,7 @@ rappel_quand_écriture :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Pr
 
 rappel_quand_fermeture :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
 {
-    serveuse.ctx.mute_quand_fermeture(rappel);
+    mute_quand_fermeture(serveuse.ctx, rappel);
 }
 
 rappel_quand_timeout :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))

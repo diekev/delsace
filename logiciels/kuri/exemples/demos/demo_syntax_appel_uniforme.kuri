@@ -10,7 +10,7 @@ principale :: fonc ()
     x := 1;
     y := 2;
 
-    z := ajoute(x, y).ajoute(x);
+    z := ajoute(ajoute(x, y), x);
 
     imprime("%\n", z);
 }

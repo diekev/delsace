@@ -115,9 +115,9 @@ clic :: fonc (empl sélection: *ÉtatSélection, position: Point2D(r32))
     assert(géométrie != nul);
     détruit_données_chemin(*chemin);
 
-    géométrie.grandis_chemin(*chemin, position);
+    grandis_chemin(géométrie, *chemin, position);
 
-    domaine := géométrie.donne_domaine_sélection(*chemin);
+    domaine := donne_domaine_sélection(géométrie, *chemin);
 
     ajourne_état_sélection_éléments(sélection, domaine);
     
@@ -134,9 +134,9 @@ clic_majuscule :: fonc (empl sélection: *ÉtatSélection, position: Point2D(r32
 {
     assert(sélection.géométrie != nul);
 
-    géométrie.grandis_chemin(*chemin, position);
+    grandis_chemin(géométrie, *chemin, position);
 
-    domaine := géométrie.donne_domaine_sélection(*chemin);
+    domaine := donne_domaine_sélection(géométrie, *chemin);
 
     ajourne_état_sélection_éléments(sélection, domaine);
     
@@ -194,10 +194,10 @@ est_sur_sélectionné :: fonc (sélection: *ÉtatSélection, point: Point2D(r32)
     chemin: CheminSélection;
     diffère détruit_données_chemin(*chemin);
 
-    géométrie := sélection.donne_géométrie();
-    géométrie.grandis_chemin(*chemin, point);
+    géométrie := donne_géométrie(sélection);
+    grandis_chemin(géométrie, *chemin, point);
 
-    domaine := géométrie.donne_domaine_sélection(*chemin);
+    domaine := donne_domaine_sélection(géométrie, *chemin);
     diffère déloge(*domaine);
 
     retourne domaine.taille == 1 && est_sélectionné(sélection, domaine[0]);
@@ -285,7 +285,7 @@ crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *G
             chemin.points[1] = point;
         }
         sinon {
-            chemin.ajoute(point);
+            ajoute(chemin, point);
         }
     }
 
@@ -296,13 +296,13 @@ crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *G
 
         résultat: [..]z32;
 
-        opt_a := chemin.donne_ancre();
-        saufsi opt_a.possède_valeur() {
+        opt_a := donne_ancre(chemin);
+        saufsi possède_valeur(opt_a) {
             retourne résultat;
         }
 
-        opt_b := chemin.donne_fin_active();
-        saufsi opt_b.possède_valeur() {
+        opt_b := donne_fin_active(chemin);
+        saufsi possède_valeur(opt_b) {
             retourne résultat;
         }
 
@@ -321,7 +321,7 @@ crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *G
 
             rect := adaptrice.donne_rectangle(adaptrice, indice_it);
 
-            si rect_chemin.intersecte(rect) {
+            si intersecte(rect_chemin, rect) {
                 ensemble_ajoute(*résultat, indice_it comme z32);
             }
         }

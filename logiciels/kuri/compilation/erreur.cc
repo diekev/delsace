@@ -96,7 +96,7 @@ void lance_erreur_transtypage_impossible(const Type *type_cible,
                          Genre::TYPE_ARGUMENT)
         .ajoute_message("Le type de l'expression '",
                         chaine_expression(espace, site_expression),
-                        "' ne peut être transformer vers le type cible !\n")
+                        "' ne peut être transformé vers le type cible !\n")
         .ajoute_message("Type cible           : ", chaine_type(type_cible), "\n")
         .ajoute_message("Type de l'expression : ", chaine_type(type_expression), "\n\n");
 }

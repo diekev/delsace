@@ -99,7 +99,7 @@ génére_image_noire :: fonc () -> Image
         retourne;
     }
 
-    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
+    imprime("Temps d'écriture = %s\n", temps_écoulé_secondes(debut));
 }
 
 écris_pnm :: fonc (image: Image, chemin: CheminFichier) -> rien
@@ -140,7 +140,7 @@ génére_image_noire :: fonc () -> Image
     saufsi écris_fichier_entier(chemin, *enchaineuse) {
         retourne;
     }
-    imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
+    imprime("Temps d'écriture = %s\n", temps_écoulé_secondes(debut));
 }
 
 /* ------------------------------------------------------------------------- */
