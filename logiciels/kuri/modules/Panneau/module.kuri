@@ -166,7 +166,7 @@ sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: État
 trouve_panneau_survolé :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris) -> *Panneau
 {
     pour diviseurs {
-        si it.rect.contient(état.où) {
+        si contient(it.rect, état.où) {
             retourne it;
         }
     }
@@ -187,7 +187,7 @@ trouve_panneau_survolé_récursif :: fonc (panneau_racine: *Panneau, état: Éta
         }
     }
 
-    si panneau_racine.rect.contient(état.où) {
+    si contient(panneau_racine.rect, état.où) {
         retourne panneau_racine;
     }
 
@@ -310,9 +310,9 @@ sur_dessin_récursif :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
 {
     si panneau.sur_dessin {
         peintre := ctx.peintre;
-        peintre.définis_ciseau(panneau.rect);
+        définis_ciseau(peintre, panneau.rect);
         panneau.sur_dessin(panneau, ctx);
-        peintre.restaure_ciseau();
+        restaure_ciseau(peintre);
     }
 
     pour panneau.enfants {
@@ -415,7 +415,7 @@ crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(
         calcule_rect_interne(panneau_interface);
     }
 
-    résultat := ctx.crée_panneau(PanneauInterface);
+    résultat := crée_panneau(ctx, PanneauInterface);
     résultat.élément_central = élément_central;
     ajoute_enfant(résultat, élément_central);
 
@@ -424,7 +424,7 @@ crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(
     résultat.sur_dessin = sur_dessin;
     résultat.sur_redimension = sur_redimension;
 
-    résultat.redimensionne_panneau(rect);
+    redimensionne_panneau(résultat, rect);
 
     retourne résultat;
 }

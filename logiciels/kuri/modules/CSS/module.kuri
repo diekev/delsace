@@ -152,11 +152,11 @@ apparie_simple_selector :: fonc (simple: *SimpleSelector, élément: *HTML.Eleme
     discr simple.type {
         Attrib {
             attribut := HTML.donne_attribut(élément, simple.ident);
-            saufsi attribut.possède_valeur() {
+            saufsi possède_valeur(attribut) {
                 retourne faux;
             }
 
-            saufsi simple.matcher.possède_valeur() {
+            saufsi possède_valeur(simple.matcher) {
                 /* Nous avons un sélecteur de type [attr], nous pouvons retourner vrai ici. */
                 retourne vrai;
             }
@@ -185,21 +185,21 @@ apparie_simple_selector :: fonc (simple: *SimpleSelector, élément: *HTML.Eleme
                         retourne vrai;
                     }
 
-                    chn_attribut := attribut.Quelque.donne_chaine_utf16();
-                    chn_selector := simple.attribute_value.donne_chaine_utf16();
+                    chn_attribut := donne_chaine_utf16(attribut.Quelque);
+                    chn_selector := donne_chaine_utf16(simple.attribute_value);
 
                     saufsi est_préfixe_de(chn_selector, chn_attribut) {
                         retourne faux;
                     }
 
-                    retourne chn_attribut.unités[chn_selector.taille()] == ('-' comme n32);
+                    retourne chn_attribut.unités[taille(chn_selector)] == ('-' comme n32);
                 }
                 PREFIXMATCH {
                     si simple.attribute_value == attribut.Quelque {
                         retourne vrai;
                     }
-                    chn_attribut := attribut.Quelque.donne_chaine_utf16();
-                    chn_selector := simple.attribute_value.donne_chaine_utf16();
+                    chn_attribut := donne_chaine_utf16(attribut.Quelque);
+                    chn_selector := donne_chaine_utf16(simple.attribute_value);
                     retourne est_préfixe_de(chn_selector, chn_attribut);
                 }
                 SUFFIXMATCH {
@@ -207,17 +207,17 @@ apparie_simple_selector :: fonc (simple: *SimpleSelector, élément: *HTML.Eleme
                         retourne vrai;
                     }
 
-                    chn_attribut := attribut.Quelque.donne_chaine_utf16();
-                    chn_selector := simple.attribute_value.donne_chaine_utf16();
+                    chn_attribut := donne_chaine_utf16(attribut.Quelque);
+                    chn_selector := donne_chaine_utf16(simple.attribute_value);
 
-                    si chn_selector.taille() > chn_attribut.taille() {
+                    si taille(chn_selector) > taille(chn_attribut) {
                         retourne faux;
                     }
 
-                    diff := chn_attribut.taille() - chn_selector.taille();
+                    diff := taille(chn_attribut) - taille(chn_selector);
 
                     sous_chaine_attribut := chn_attribut;
-                    sous_chaine_attribut.unités.taille = chn_selector.taille();
+                    sous_chaine_attribut.unités.taille = taille(chn_selector);
                     sous_chaine_attribut.unités.données += diff;
 
                     retourne chn_selector == sous_chaine_attribut;
@@ -227,18 +227,18 @@ apparie_simple_selector :: fonc (simple: *SimpleSelector, élément: *HTML.Eleme
                         retourne vrai;
                     }
 
-                    chn_attribut := attribut.Quelque.donne_chaine_utf16();
-                    chn_selector := simple.attribute_value.donne_chaine_utf16();
+                    chn_attribut := donne_chaine_utf16(attribut.Quelque);
+                    chn_selector := donne_chaine_utf16(simple.attribute_value);
 
-                    si chn_selector.taille() > chn_attribut.taille() {
+                    si taille(chn_selector) > taille(chn_attribut) {
                         retourne faux;
                     }
 
                     i := 0;
-                    fin := chn_attribut.taille() - chn_selector.taille() + 1;
+                    fin := taille(chn_attribut) - taille(chn_selector) + 1;
 
                     sous_chaine_attribut := chn_attribut;
-                    sous_chaine_attribut.unités.taille = chn_selector.taille();
+                    sous_chaine_attribut.unités.taille = taille(chn_selector);
 
                     tantque i < fin {
                         si chn_selector == sous_chaine_attribut {
@@ -1147,13 +1147,13 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
     // ajoute_au_tampon(enchaineuse, selector.type, " : ")
     discr selector.type {
         Type {
-            saufsi selector.namespace_prefix.est_vide() {
+            saufsi est_vide(selector.namespace_prefix) {
                 ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|");
             }
             ajoute_au_tampon(enchaineuse, selector.ident);
         }
         Universal {
-            saufsi selector.namespace_prefix.est_vide() {
+            saufsi est_vide(selector.namespace_prefix) {
                 ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|");
             }
             ajoute_au_tampon(enchaineuse, "*");
@@ -1204,7 +1204,7 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
         Attrib {
             ajoute_au_tampon(enchaineuse, "[", selector.ident);
 
-            si selector.matcher.possède_valeur() {
+            si possède_valeur(selector.matcher) {
                 matcher := selector.matcher.Quelque;
 
                 discr matcher {
@@ -1230,7 +1230,7 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
 
                 ajoute_au_tampon(enchaineuse, selector.attribute_value);
 
-                si selector.attribute_modifier.possède_valeur() {
+                si possède_valeur(selector.attribute_modifier) {
                     modifier := selector.attribute_modifier.Quelque;
 
                     si modifier == SimpleSelector.AttributeModifier.I {

@@ -36,10 +36,10 @@ ErrorPrototype :: struct {
 
 crée_error_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *ErrorPrototype
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(ErrorPrototype);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, ErrorPrototype);
     résultat.prototype = prototype;
-    résultat.ajoute_fonction_native(STR_toString, error_prototype_to_string);
+    ajoute_fonction_native(résultat, STR_toString, error_prototype_to_string);
     initialise_error_object(realm, résultat, STR_Error, "");
     retourne résultat;
 }
@@ -58,10 +58,10 @@ initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString
     }
 
     desc: PropertyDescriptor;
-    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), nom)), Configurable);
+    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(donne_tas_de_mémoire(object), nom)), Configurable);
     define_property_or_throw(object, STR_name, *desc);
 
-    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro);
+    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(donne_tas_de_mémoire(object), crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro);
     define_property_or_throw(object, STR_message, *desc);
 }
 
@@ -69,7 +69,7 @@ initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString
 
 imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
 {
-    mv := realm.donne_mv();
+    mv := donne_mv(realm);
 
     pour > mv.execution_contexts {
         si it.noeud_exécuté_courant {
@@ -85,7 +85,7 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
         }
 
         si it.function {
-            ajoute_au_tampon(enchaineuse, "    at ", it.function.donne_nom(), "\n");
+            ajoute_au_tampon(enchaineuse, "    at ", donne_nom(it.function), "\n");
         }
         sinon si it.script_or_module {
             ajoute_au_tampon(enchaineuse, "    at script\n");
@@ -145,51 +145,51 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Valeu
     O := this_value;
 
     // 2. If O is not an Object, throw a TypeError exception.
-    saufsi O.est_object() {
+    saufsi est_object(O) {
         retourne lance_type_error(interpréteuse, "not an Object");
     }
 
     // 3. Let name be ? Get(O, "name").
-    name := get(O.donne_objet(), STR_name);
-    si interpréteuse.possède_exception() {
+    name := get(donne_objet(O), STR_name);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
-    si name.est_undefined() {
-        name = crée_chaine(interpréteuse.donne_realm(), STR_Error);
+    si est_undefined(name) {
+        name = crée_chaine(donne_realm(interpréteuse), STR_Error);
     }
     sinon {
         name = to_string(interpréteuse, name);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
     }
 
     // 5. Let msg be ? Get(O, "message").
-    msg := get(O.donne_objet(), STR_message);
-    si interpréteuse.possède_exception() {
+    msg := get(donne_objet(O), STR_message);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
-    si msg.est_undefined() {
-        msg = crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique_vide());
+    si est_undefined(msg) {
+        msg = crée_chaine(donne_realm(interpréteuse), crée_chaine_utf16_unique_vide());
     }
     sinon {
         msg = to_string(interpréteuse, msg);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
     }
 
     // 7. If name is the empty String, return msg.
-    si name.String.texte.est_vide() {
+    si est_vide(name.String.texte) {
         retourne msg;
     }
 
     // 8. If msg is the empty String, return name.
-    si msg.String.texte.est_vide() {
+    si est_vide(msg.String.texte) {
         retourne name;
     }
 
@@ -198,31 +198,31 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Valeu
     chn_msg := msg.String.texte;
     chn_résultat := imprime_chaine("%: %", chn_name, chn_msg);
 
-    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(chn_résultat));
+    retourne crée_chaine(donne_realm(interpréteuse), crée_chaine_utf16_unique(chn_résultat));
 }
 
 error_constructor_sur_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct, native_error_prototype: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> Valeur
 {
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
     // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
-    si new_target.est_undefined() {
+    si est_undefined(new_target) {
         new_target.Object = donne_active_function_object(interpréteuse);
     }
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
-    new_target_object := new_target.donne_objet().vérifie_comme(Function);
+    new_target_object := vérifie_comme(donne_objet(new_target), Function);
     O := ordinary_create_from_constructor(realm, new_target_object, native_error_prototype, rappel_allocation_objet);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 3. If message is not undefined, then
-    message := params.donne_argument(0);
-    saufsi message.est_undefined() {
+    message := donne_argument(params, 0);
+    saufsi est_undefined(message) {
         // a. Let msg be ? ToString(message).
         msg := to_string(interpréteuse, message);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -275,8 +275,8 @@ SyntaxError :: struct {
 
 crée_erreur_de_parsage :: fonc (realm: *Realm, message: chaine) -> *SyntaxError
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(SyntaxError);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, SyntaxError);
     résultat.prototype = realm.intrinsics.syntax_error_prototype;
     résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message));
     initialise_error_object(nul, résultat, STR_SyntaxError, message);
@@ -328,23 +328,23 @@ table_virtuelle_\\(1)_prototype := TableVirtuelleObject(classe = \\(0)Prototype)
 
 lance_\\(1) :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> Valeur
 {
-    retourne lance_\\(1)(interpréteuse.donne_realm(), message);
+    retourne lance_\\(1)(donne_realm(interpréteuse), message);
 }
 
 lance_\\(1) :: fonc (realm: *Realm, message: chaine) -> Valeur
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(\\(0));
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, \\(0));
     résultat.prototype = realm.intrinsics.\\(1)_prototype;
     résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message));
     initialise_error_object(realm, résultat, STR_\\(0), message);
-    tas_de_mémoire.mv.définis_exception(résultat);
+    définis_exception(tas_de_mémoire.mv, résultat);
     retourne js_undefined;
 }
 
 lance_\\(1) :: fonc (cellule: *Cellule, message: chaine) -> Valeur
 {
-    mv := cellule.donne_tas_de_mémoire().mv;
+    mv := donne_tas_de_mémoire(cellule).mv;
     running_execution_context := donne_running_execution_context(mv);
     realm := running_execution_context.realm;
     retourne lance_\\(1)(realm, message);
@@ -357,7 +357,7 @@ lance_\\(1) :: fonc (cellule: *Cellule, message: chaine) -> Valeur
 
 crée_\\(1)_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *\\(0)Prototype
 {
-    résultat := tas_de_mémoire.alloue(\\(0)Prototype);
+    résultat := alloue(tas_de_mémoire, \\(0)Prototype);
     résultat.prototype = prototype;
     retourne résultat;
 }
@@ -373,13 +373,13 @@ crée_\\(1)_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Erro
 crée_\\(1)_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, prototype: *Object) -> *\\(0)Constructor
 {
     assert(prototype == realm.intrinsics.\\(1)_prototype);
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(\\(0)Constructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, \\(0)Constructor);
     create_builtin_function(résultat, 1, STR_\\(0), realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = prototype), DrapeauxPropriété.zéro);
 
-    prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }
@@ -390,12 +390,12 @@ table_virtuelle_\\(1)_constructor := TableVirtuelleBuiltinFunction(classe = \\(0
 
 crée_\\(1)_instance :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(\\(0));
+    retourne alloue(donne_tas_de_mémoire(realm), \\(0));
 }
 
 \\(1)_call_or_construct :: fonc (params: *ParamètresCallOrConstruct) -> Valeur
 {
-    realm := params.interpréteuse.donne_realm();
+    realm := donne_realm(params.interpréteuse);
     retourne error_constructor_sur_call_or_construct(params, realm.intrinsics.\\(1)_prototype, crée_\\(1)_instance);
 }
 »;

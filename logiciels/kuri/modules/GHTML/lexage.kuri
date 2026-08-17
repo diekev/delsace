@@ -110,19 +110,19 @@ détruit_lexeuse :: fonc (lexeuse: *Lexeuse) -> rien
 
 ajoute_lexème_script :: fonc (lexeuse: *Lexeuse, type_lexème: TypeLexème) #enligne
 {
-    lexeuse.ajoute_lexème_potentiel();
+    ajoute_lexème_potentiel(lexeuse);
 
-    lexeuse.enregistre_position_mot();
-    lexeuse.pousse_caractère();
-    lexeuse.pousse_caractère();
-    lexeuse.pousse_mot(type_lexème);
-    lexeuse.avance(2);
+    enregistre_position_mot(lexeuse);
+    pousse_caractère(lexeuse);
+    pousse_caractère(lexeuse);
+    pousse_mot(lexeuse, type_lexème);
+    avance(lexeuse, 2);
 }
 
 ajoute_lexème_potentiel :: fonc (lexeuse: *Lexeuse) #enligne
 {
     si lexeuse.taille_mot_courant != 0 {
-        lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()));
+        pousse_mot(lexeuse, id_identifiant(mot_courant(lexeuse)));
     }
 }
 
@@ -133,47 +133,47 @@ performe_lexage :: fonc (lexeuse: *Lexeuse) -> rien
 
     état := ÉTAT_HTML;
 
-    tantque !lexeuse.fini() {
-        si lexeuse.caractère_courant() == '{' {
-            si lexeuse.caractère_voisin(1) == '{' {
+    tantque !fini(lexeuse) {
+        si caractère_courant(lexeuse) == '{' {
+            si caractère_voisin(lexeuse, 1) == '{' {
                 état = ÉTAT_CONTROLE;
-                lexeuse.ajoute_lexème_script(TypeLexème.DÉBUT_VARIABLE);
+                ajoute_lexème_script(lexeuse, TypeLexème.DÉBUT_VARIABLE);
             }
-            sinon si lexeuse.caractère_voisin(1) == '%' {
+            sinon si caractère_voisin(lexeuse, 1) == '%' {
                 état = ÉTAT_CONTROLE;
-                lexeuse.ajoute_lexème_script(TypeLexème.DÉBUT_CONTROLE);
+                ajoute_lexème_script(lexeuse, TypeLexème.DÉBUT_CONTROLE);
             }
             sinon {
-                lexeuse.pousse_caractère();
-                lexeuse.avance(1);
+                pousse_caractère(lexeuse);
+                avance(lexeuse, 1);
             }
         }
-        sinon si lexeuse.caractère_courant() == '}' && lexeuse.caractère_voisin(1) == '}' {
+        sinon si caractère_courant(lexeuse) == '}' && caractère_voisin(lexeuse, 1) == '}' {
             état = ÉTAT_HTML;
-            lexeuse.ajoute_lexème_script(TypeLexème.FIN_VARIABLE);
+            ajoute_lexème_script(lexeuse, TypeLexème.FIN_VARIABLE);
         }
-        sinon si lexeuse.caractère_courant() == '%' && lexeuse.caractère_voisin(1) == '}' {
+        sinon si caractère_courant(lexeuse) == '%' && caractère_voisin(lexeuse, 1) == '}' {
             état = ÉTAT_HTML;
-            lexeuse.ajoute_lexème_script(TypeLexème.FIN_CONTROLE);
+            ajoute_lexème_script(lexeuse, TypeLexème.FIN_CONTROLE);
         }
         sinon {
             si état == ÉTAT_HTML {
                 si lexeuse.taille_mot_courant == 0 {
-                    lexeuse.enregistre_position_mot();
+                    enregistre_position_mot(lexeuse);
                 }
 
-                lexeuse.pousse_caractère();
+                pousse_caractère(lexeuse);
             }
             sinon {
-                lexeuse.analyse_caractère_simple();
+                analyse_caractère_simple(lexeuse);
             }
 
-            lexeuse.avance(1);
+            avance(lexeuse, 1);
         }
     }
 
     si lexeuse.taille_mot_courant != 0 {
-        lexeuse.pousse_mot(TypeLexème.CHAINE_CARACTÈRE);
+        pousse_mot(lexeuse, TypeLexème.CHAINE_CARACTÈRE);
     }
 }
 
@@ -185,7 +185,7 @@ fini :: fonc (lexeuse: *Lexeuse) -> bool
 avance :: fonc (lexeuse: *Lexeuse, n: z32) -> rien
 {
     pour n {
-        si lexeuse.caractère_courant() == '\n' {
+        si caractère_courant(lexeuse) == '\n' {
             lexeuse.compte_ligne += 1;
             lexeuse.position_ligne = 0;
         }
@@ -214,26 +214,26 @@ mot_courant :: fonc (lexeuse: *Lexeuse) -> chaine
 
 analyse_caractère_simple :: fonc (lexeuse: *Lexeuse) -> rien
 {
-    si est_espace_blanche(lexeuse.caractère_courant()) {
+    si est_espace_blanche(caractère_courant(lexeuse)) {
         si lexeuse.taille_mot_courant != 0 {
-            lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()));
+            pousse_mot(lexeuse, id_identifiant(mot_courant(lexeuse)));
         }
     }
-    sinon si lexeuse.caractère_courant() == '.' {
+    sinon si caractère_courant(lexeuse) == '.' {
         si lexeuse.taille_mot_courant != 0 {
-            lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()));
+            pousse_mot(lexeuse, id_identifiant(mot_courant(lexeuse)));
         }
 
-        lexeuse.enregistre_position_mot();
-        lexeuse.pousse_caractère();
-        lexeuse.pousse_mot(TypeLexème.POINT);
+        enregistre_position_mot(lexeuse);
+        pousse_caractère(lexeuse);
+        pousse_mot(lexeuse, TypeLexème.POINT);
     }
     sinon {
         si lexeuse.taille_mot_courant == 0 {
-            lexeuse.enregistre_position_mot();
+            enregistre_position_mot(lexeuse);
         }
 
-        lexeuse.pousse_caractère();
+        pousse_caractère(lexeuse);
     }
 }
 
@@ -246,7 +246,7 @@ pousse_mot :: fonc (lexeuse: *Lexeuse, type_lexème: TypeLexème) -> rien
 {
     données: Lexème;
     données.type_lexème = type_lexème;
-    données.chn = lexeuse.mot_courant();
+    données.chn = mot_courant(lexeuse);
     données.ligne = lexeuse.compte_ligne + 1;
     données.colonne = lexeuse.pos_mot;
 

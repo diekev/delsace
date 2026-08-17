@@ -87,18 +87,18 @@ initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
     {
     }
 
-    ctx.mute_quand_ouverture(rappel_vide_quand_ouverture);
-    ctx.mute_quand_données_reçues(rappel_vide_quand_données_reçues);
-    ctx.mute_quand_écriture(rappel_vide_quand_écriture);
-    ctx.mute_quand_fermeture(rappel_vide_quand_fermeture);
-    ctx.mute_quand_timeout(rappel_vide_quand_timeout);
-    ctx.mute_quand_fin(rappel_vide_quand_fin);
-    ctx.mute_quand_erreur_connexion(rappel_vide_quand_erreur_connexion);
+    mute_quand_ouverture(ctx, rappel_vide_quand_ouverture);
+    mute_quand_données_reçues(ctx, rappel_vide_quand_données_reçues);
+    mute_quand_écriture(ctx, rappel_vide_quand_écriture);
+    mute_quand_fermeture(ctx, rappel_vide_quand_fermeture);
+    mute_quand_timeout(ctx, rappel_vide_quand_timeout);
+    mute_quand_fin(ctx, rappel_vide_quand_fin);
+    mute_quand_erreur_connexion(ctx, rappel_vide_quand_erreur_connexion);
 }
 
 détruit_contexte :: fonc (ctx: *Contexte)
 {
-    si ctx.est_ssl() {
+    si est_ssl(ctx) {
         détruit_contexte_ssl(ctx comme *ContextePriseSSL);
         retourne;
     }
@@ -136,7 +136,7 @@ données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_donn�
         retourne nul;
     }
 
-    si contexte_.est_ssl() {
+    si est_ssl(contexte_) {
         retourne ((contexte_ comme *ContextePriseSSL) + 1) comme *TypeDonnées;
     }
 
@@ -165,7 +165,7 @@ crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4,
     prise.type = TypePrise.SEMI_PRISE;
 
     si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
-        prise.ferme();
+        ferme(prise);
         retourne nul;
     }
 
@@ -203,12 +203,12 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, hôte: chaine, port: n16, $
             }
         }
 
-        prise.ferme_connexion_en_cours();
+        ferme_connexion_en_cours(prise);
         retourne prise;
     };
 
     si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLOUT) {
-        prise.ferme();
+        ferme(prise);
         retourne prise;
     }
 
@@ -275,7 +275,7 @@ crée_prise_évènements :: fonc (ctx: *Contexte, rappel: *Fonction_De_Rappel) -
 
 mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, est_client: bool))
 {
-    ctx.quand_ouverture_ = si ctx.est_ssl() {
+    ctx.quand_ouverture_ = si est_ssl(ctx) {
         contexte_ssl_parasite_quand_ouverture(ctx comme *ContextePriseSSL, rappel);
     }
     sinon {
@@ -285,7 +285,7 @@ mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, est_c
 
 mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, données: []octet))
 {
-    ctx.quand_données_reçues_ = si ctx.est_ssl() {
+    ctx.quand_données_reçues_ = si est_ssl(ctx) {
         contexte_ssl_parasite_quand_données_reçues(ctx comme *ContextePriseSSL, rappel);
     }
     sinon {
@@ -295,7 +295,7 @@ mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise
 
 mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
 {
-    ctx.quand_écriture_ = si ctx.est_ssl() {
+    ctx.quand_écriture_ = si est_ssl(ctx) {
         contexte_ssl_parasite_quand_écriture(ctx comme *ContextePriseSSL, rappel);
     }
     sinon {
@@ -305,7 +305,7 @@ mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
 
 mute_quand_fermeture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
 {
-    ctx.quand_fermeture_ = si ctx.est_ssl() {
+    ctx.quand_fermeture_ = si est_ssl(ctx) {
         contexte_ssl_parasite_quand_fermeture(ctx comme *ContextePriseSSL, rappel);
     }
     sinon {
@@ -315,7 +315,7 @@ mute_quand_fermeture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
 
 mute_quand_timeout :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
 {
-    ctx.quand_timeout_ = si ctx.est_ssl() {
+    ctx.quand_timeout_ = si est_ssl(ctx) {
         contexte_ssl_parasite_quand_timeout(ctx comme *ContextePriseSSL, rappel);
     }
     sinon {
@@ -325,7 +325,7 @@ mute_quand_timeout :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
 
 mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
 {
-    ctx.quand_fin_ = si ctx.est_ssl() {
+    ctx.quand_fin_ = si est_ssl(ctx) {
         contexte_ssl_parasite_quand_fin(ctx comme *ContextePriseSSL, rappel);
     }
     sinon {
@@ -335,7 +335,7 @@ mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
 
 mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, type: Type_Erreur_Connexion, détail: chaine))
 {
-    ctx.quand_erreur_connexion_ = si ctx.est_ssl() {
+    ctx.quand_erreur_connexion_ = si est_ssl(ctx) {
         contexte_ssl_parasite_quand_erreur_connexion(ctx comme *ContextePriseSSL, rappel);
     }
     sinon {
@@ -385,7 +385,7 @@ crée_prise_impl :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_
 
 crée_prise_interne :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType) -> *Prise
 {
-    si contexte_.est_ssl() {
+    si est_ssl(contexte_) {
         prise := crée_prise_impl(contexte_, fichier, info_données_externes, PriseSSL);
         prise.est_ssl_ = vrai;
         retourne prise;
@@ -399,7 +399,7 @@ crée_prise_pour_rappel :: fonc (ctx: *Contexte, fd: z32, rappel: *Fonction_De_R
     fichier := Fichier(TypePoignéeFichier(fd));
     prise := crée_prise_interne(ctx, fichier, info_de(*Fonction_De_Rappel));
     prise.type = TypePrise.RAPPEL;
-    ptr_fonc := prise.données_utilisateur(*Fonction_De_Rappel);
+    ptr_fonc := données_utilisateur(prise, *Fonction_De_Rappel);
     mémoire(ptr_fonc) = rappel;
 
     si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {

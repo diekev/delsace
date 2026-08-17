@@ -1656,18 +1656,6 @@ static CodeRetourValidation trouve_candidates_pour_appel(
     if (appelée->genre == GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE) {
         auto accès = appelée->comme_référence_rubrique();
 
-        if (accès->aide_génération_code == PEUT_ÊTRE_APPEL_UNIFORME) {
-            auto référence = NoeudExpression();
-            référence.lexème = accès->lexème;
-            référence.bloc_parent = accès->bloc_parent;
-            référence.ident = accès->ident;
-            trouve_candidates_pour_expression(
-                sémanticienne, espace, &référence, fichier, candidates);
-            accès->accédée->genre_valeur = GenreValeur::TRANSCENDANTALE;
-            args.ajoute_au_début({nullptr, nullptr, accès->accédée});
-            return CodeRetourValidation::OK;
-        }
-
         if (accès->déclaration_référée) {
             auto accédée = accès->accédée->comme_référence_déclaration();
             auto déclaration_module = accédée->déclaration_référée->comme_déclaration_module();
