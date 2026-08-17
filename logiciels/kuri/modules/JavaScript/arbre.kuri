@@ -23,7 +23,7 @@ exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *InterprèteArb
     ancien_noeud_courant := mémoire(interpréteuse.noeud_exécuté_courant);
     diffère mémoire(interpréteuse.noeud_exécuté_courant) = ancien_noeud_courant;
 
-    running_execution_context := interpréteuse.donne_running_execution_context();
+    running_execution_context := donne_running_execution_context(interpréteuse);
     assert(interpréteuse.noeud_exécuté_courant == *running_execution_context.noeud_exécuté_courant);
 
     mémoire(interpréteuse.noeud_exécuté_courant) = noeud;
@@ -128,8 +128,8 @@ named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxiq
         // 1. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments undefined and name.
         class_binding: Optionnel(ECMAString);
         value := class_definition_evaluation(interprète, class_expression.héritage, class_expression.body, class_binding, name);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         // 2. Set value.[[SourceText]] to the source text matched by ClassExpression.
@@ -183,7 +183,7 @@ sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpr�
 {
     /* Si nous appartenons à fonction notre point d'entrée doit être interpréteuse_arbre. */
     assert(!noeud.appartient_à_fonction);
-    retourne interpréteuse.exécute(noeud comme *NoeudScope);
+    retourne exécute(interpréteuse, noeud comme *NoeudScope);
 }
 
 /** \} */
@@ -203,7 +203,7 @@ NoeudScript :: struct {
 exécute :: fonc (script: *NoeudScript, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     si script.script_body {
-        retourne interpréteuse.exécute(script.script_body);
+        retourne exécute(interpréteuse, script.script_body);
     }
 
     retourne normal_completion(js_undefined);
@@ -211,7 +211,7 @@ exécute :: fonc (script: *NoeudScript, interpréteuse: *InterprèteArbre) -> Co
 
 crée_script :: fonc (parseuse: *Parseuse, script_body: *ScriptBody) -> *NoeudScript
 {
-    résultat := parseuse.crée_noeud(nul, NoeudScript);
+    résultat := crée_noeud(parseuse, nul, NoeudScript);
     résultat.script_body = script_body;
     résultat.sur_génération_code_binaire = noeud_script_sur_code_binaire;
     retourne résultat;
@@ -232,7 +232,7 @@ ScriptBody :: struct {
 
 crée_script_body :: fonc (parseuse: *Parseuse, expressions: [..]*Statement) -> *ScriptBody
 {
-    résultat := parseuse.crée_noeud(nul, ScriptBody);
+    résultat := crée_noeud(parseuse, nul, ScriptBody);
     résultat.enfants = expressions;
     résultat.sur_génération_code_binaire = noeud_script_body_sur_code_binaire;
     retourne résultat;
@@ -276,7 +276,7 @@ ParenthesizedExpression :: struct {
 
 crée_parenthesized_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ParenthesizedExpression
 {
-    résultat := parseuse.crée_noeud(lexème, ParenthesizedExpression);
+    résultat := crée_noeud(parseuse, lexème, ParenthesizedExpression);
     résultat.sur_génération_code_binaire = parenthesized_expression_sur_code_binaire;
     résultat.expression = expression;
     retourne résultat;
@@ -312,7 +312,7 @@ ExpressionStatement :: struct {
 
 crée_expression_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ExpressionStatement
 {
-    résultat := parseuse.crée_noeud(lexème, ExpressionStatement);
+    résultat := crée_noeud(parseuse, lexème, ExpressionStatement);
     résultat.expression = expression;
     résultat.sur_génération_code_binaire = expression_statement_sur_code_binaire;
     retourne résultat;
@@ -325,15 +325,15 @@ sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréte
 
     // 1. Let exprRef be ? Evaluation of Expression.
     completion := exécute_noeud(statement.expression, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr_ref := completion.valeur;
 
     // 2. Return ? GetValue(exprRef).
     valeur := get_value(interpréteuse, expr_ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(valeur);
 }
@@ -353,7 +353,7 @@ EmptyStatement :: struct {
 
 crée_empty_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *EmptyStatement
 {
-    retourne parseuse.crée_noeud(lexème, EmptyStatement);
+    retourne crée_noeud(parseuse, lexème, EmptyStatement);
 }
 
 sur_exécution_empty_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
@@ -384,7 +384,7 @@ FunctionDeclaration :: struct {
 
 crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool, generator: bool) -> *FunctionDeclaration
 {
-    résultat := parseuse.crée_noeud(lexème, FunctionDeclaration);
+    résultat := crée_noeud(parseuse, lexème, FunctionDeclaration);
     résultat.sur_génération_code_binaire = function_declaration_sur_code_binaire;
     résultat.id = id;
     résultat.corps = corps;
@@ -423,7 +423,7 @@ FunctionExpression :: struct {
 
 crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool, generator: bool) -> *FunctionExpression
 {
-    résultat := parseuse.crée_noeud(lexème, FunctionExpression);
+    résultat := crée_noeud(parseuse, lexème, FunctionExpression);
     résultat.sur_génération_code_binaire = function_expression_sur_code_binaire;
     résultat.id = id;
     résultat.corps = corps;
@@ -460,7 +460,7 @@ FunctionBody :: struct {
 
 crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement, async: bool, generator: bool) -> *FunctionBody
 {
-    résultat := parseuse.crée_noeud(nul, FunctionBody);
+    résultat := crée_noeud(parseuse, nul, FunctionBody);
     résultat.statement = statement;
     résultat.async = async;
     résultat.generator = generator;
@@ -485,7 +485,7 @@ ArrowFunction :: struct {
 
 crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody, async: bool) -> *ArrowFunction
 {
-    résultat := parseuse.crée_noeud(lexème, ArrowFunction);
+    résultat := crée_noeud(parseuse, lexème, ArrowFunction);
     résultat.sur_génération_code_binaire = arrow_function_sur_code_binaire;
     résultat.corps = corps;
     résultat.params = params;
@@ -521,7 +521,7 @@ ConciseBody :: struct {
 
 crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement, async: bool) -> *ConciseBody
 {
-    résultat := parseuse.crée_noeud(nul, ConciseBody);
+    résultat := crée_noeud(parseuse, nul, ConciseBody);
     résultat.sur_génération_code_binaire = concise_body_sur_code_binaire;
     résultat.statement = statement;
     résultat.async = async;
@@ -535,21 +535,21 @@ sur_exécution_concise_body :: fonc (base: *NoeudSyntaxique, interpréteuse: *In
 
     // ExpressionBody : FunctionBody
     si concise_body.statement.type == BlockStatement {
-        retourne interpréteuse.exécute(concise_body.statement);
+        retourne exécute(interpréteuse, concise_body.statement);
     }
 
     // ExpressionBody : AssignmentExpression
     // 1. Let exprRef be ? Evaluation of AssignmentExpression.
     completion := exécute_noeud(concise_body.statement, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr_ref := completion.valeur;
 
     // 2. Let exprValue be ? GetValue(exprRef).
     expr_value := get_value(interpréteuse, expr_ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Return ReturnCompletion(exprValue).
@@ -570,7 +570,7 @@ ThisExpression :: struct {
 
 crée_this_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ThisExpression
 {
-    résultat := parseuse.crée_noeud(lexème, ThisExpression);
+    résultat := crée_noeud(parseuse, lexème, ThisExpression);
     résultat.sur_génération_code_binaire = this_expression_sur_code_binaire;
     retourne résultat;
 }
@@ -579,8 +579,8 @@ crée_this_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ThisE
 sur_exécution_this_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     résultat := resolve_this_binding(interpréteuse);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(résultat);
 }
@@ -612,7 +612,7 @@ crée_identifier_pour_html :: fonc (nom: ECMAString) -> *Identifier
 
 crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: ECMAString) -> *Identifier
 {
-    résultat := parseuse.crée_noeud(lexème, Identifier);
+    résultat := crée_noeud(parseuse, lexème, Identifier);
     résultat.sur_génération_code_binaire = identifier_sur_code_binaire;
     résultat.nom = nom;
     retourne résultat;
@@ -628,10 +628,10 @@ sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
 {
     noeud := base comme *Identifier;
 
-    si noeud.coordonnée.possède_valeur() {
+    si possède_valeur(noeud.coordonnée) {
         coordonnée := noeud.coordonnée.Quelque;
 
-        environment := interpréteuse.donne_lexical_environement();
+        environment := donne_lexical_environement(interpréteuse);
         tantque coordonnée.sauts != 0 {
             environment = environment.outer_environment;
             coordonnée.sauts -= 1;
@@ -641,15 +641,15 @@ sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
 
         reference: ReferenceRecord;
         reference.base = environment;
-        reference.referenced_name = Valeur(String = noeud.donne_chaine_primitive(interpréteuse.donne_realm()));
+        reference.referenced_name = Valeur(String = donne_chaine_primitive(noeud, donne_realm(interpréteuse)));
         reference.strict = is_strict(noeud);
         reference.coordonnée = noeud.coordonnée;
         retourne normal_completion(reference);
     }
 
-    référence := resolve_binding(interpréteuse, noeud.donne_chaine_primitive(interpréteuse.donne_realm()));
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    référence := resolve_binding(interpréteuse, donne_chaine_primitive(noeud, donne_realm(interpréteuse)));
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     
     noeud.coordonnée = référence.coordonnée;
@@ -666,7 +666,7 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
             }
         }
 
-        résultat := realm.crée_chaine(identifier.nom);
+        résultat := crée_chaine(realm, identifier.nom);
         identifier.indice_chaine_en_cache = realm.chaines.taille comme z32 - 1;
         retourne résultat;
     }
@@ -689,7 +689,7 @@ PrivateIdentifier :: struct {
 
 crée_private_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *PrivateIdentifier
 {
-    résultat := parseuse.crée_noeud(lexème, PrivateIdentifier);
+    résultat := crée_noeud(parseuse, lexème, PrivateIdentifier);
     résultat.nom = crée_chaine_utf16_unique(lexème.texte);
     retourne résultat;
 }
@@ -709,7 +709,7 @@ ComputedPropertyName :: struct {
 
 crée_computed_property_name :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ComputedPropertyName
 {
-    résultat := parseuse.crée_noeud(lexème, ComputedPropertyName);
+    résultat := crée_noeud(parseuse, lexème, ComputedPropertyName);
     résultat.expression = expression;
     retourne résultat;
 }
@@ -730,7 +730,7 @@ BlockStatement :: struct {
 
 crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*Statement) -> *BlockStatement
 {
-    résultat := parseuse.crée_noeud(lexème, BlockStatement);
+    résultat := crée_noeud(parseuse, lexème, BlockStatement);
     résultat.sur_génération_code_binaire = block_statement_sur_code_binaire;
     résultat.enfants = expressions;
     retourne résultat;
@@ -747,13 +747,13 @@ sur_exécution_block_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     }
 
     mv := interpréteuse.mv;
-    running_execution_context := mv.donne_running_execution_context();
+    running_execution_context := donne_running_execution_context(mv);
 
     // 1. Let oldEnv be the running execution context's LexicalEnvironment.
     old_env := running_execution_context.lexical_environment;
 
     // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env);
+    block_env := new_declarative_environment(donne_tas_de_mémoire(old_env), old_env);
 
     // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
     block_declaration_instantiation(interpréteuse, block, block_env);
@@ -765,7 +765,7 @@ sur_exécution_block_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     block_value: CompletionRecord = ---;
     pour block.enfants {
         block_value = exécute_noeud(it, interpréteuse);
-        saufsi block_value.est_normal() {
+        saufsi est_normal(block_value) {
             arrête;
         }
     }
@@ -793,7 +793,7 @@ block_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, code: 
     // running_execution_context := mv.donne_running_execution_context()
     // private_env := running_execution_context.private_environment
 
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
     // 3. For each element d of declarations, do
     bound_names: [..]ECMAString;
@@ -806,12 +806,12 @@ block_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, code: 
             // i. If IsConstantDeclaration of d is true, then
             si is_constant_declaration(d) {
                 // 1. Perform ! env.CreateImmutableBinding(dn, true).
-                _ := env.create_immutable_binding(realm, dn, vrai);
+                _ := create_immutable_binding(env, realm, dn, vrai);
             }
             // ii. Else,
             sinon {
                 // 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
-                env.create_mutable_binding(realm, dn, faux);
+                create_mutable_binding(env, realm, dn, faux);
             }
         }
         // À FAIRE b. If d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
@@ -839,7 +839,7 @@ ReturnStatement :: struct {
 
 crée_return_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *ReturnStatement
 {
-    résultat := parseuse.crée_noeud(lexème, ReturnStatement);
+    résultat := crée_noeud(parseuse, lexème, ReturnStatement);
     résultat.sur_génération_code_binaire = return_statement_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -858,14 +858,14 @@ sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpr�
     si noeud.argument {
         // 1. Let exprRef be ? Evaluation of Expression.
         completion := exécute_noeud(noeud.argument, interpréteuse);
-        saufsi completion.est_normal() {
+        saufsi est_normal(completion) {
             retourne completion;
         }
         expr_ref := completion.valeur;
         // 2. Let exprValue be ? GetValue(exprRef).
         expr_value := get_value(interpréteuse, expr_ref);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         // À FAIRE : 3. If GetGeneratorKind() is ASYNC, set exprValue to ? Await(exprValue).
@@ -893,7 +893,7 @@ UnaryPlusOperator :: struct {
 
 crée_unary_plus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *UnaryPlusOperator
 {
-    résultat := parseuse.crée_noeud(lexème, UnaryPlusOperator);
+    résultat := crée_noeud(parseuse, lexème, UnaryPlusOperator);
     résultat.sur_génération_code_binaire = unary_plus_operator_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -907,15 +907,15 @@ sur_exécution_unary_plus_operator :: fonc (base: *NoeudSyntaxique, interpréteu
 
     // 1. Let expr be ? Evaluation of UnaryExpression.
     completion := exécute_noeud(unary_expression, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr := completion.valeur;
 
     // 2. Return ? ToNumber(? GetValue(expr)).
     valeur := get_value(interpréteuse, expr);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     retourne normal_completion(to_number(interpréteuse, valeur));
@@ -937,7 +937,7 @@ UnaryMinusOperator :: struct {
 
 crée_unary_minus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *UnaryMinusOperator
 {
-    résultat := parseuse.crée_noeud(lexème, UnaryMinusOperator);
+    résultat := crée_noeud(parseuse, lexème, UnaryMinusOperator);
     résultat.sur_génération_code_binaire = unary_minus_operator_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -951,29 +951,29 @@ sur_exécution_unary_minus_operator :: fonc (base: *NoeudSyntaxique, interpréte
 
     // 1. Let expr be ? Evaluation of UnaryExpression.
     completion := exécute_noeud(unary_expression, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr := completion.valeur;
 
     // 2. Let oldValue be ? ToNumeric(? GetValue(expr)).
     valeur := get_value(interpréteuse, expr);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     old_value := to_numeric(interpréteuse, valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If oldValue is a Number, then
-    si old_value.est_nombre() {
+    si est_nombre(old_value) {
         // a. Return Number::unaryMinus(oldValue).
         retourne normal_completion(number_unary_minus(old_value));
     }
     // 4. Else,
     // a. Assert: oldValue is a BigInt.
-    assert(old_value.est_big_int());
+    assert(est_big_int(old_value));
     // b. Return BigInt::unaryMinus(oldValue).
     retourne normal_completion(bigint_unary_minus(old_value));
 }
@@ -999,7 +999,7 @@ BinaryNot :: struct {
 
 crée_binary_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *BinaryNot
 {
-    résultat := parseuse.crée_noeud(lexème, BinaryNot);
+    résultat := crée_noeud(parseuse, lexème, BinaryNot);
     résultat.sur_génération_code_binaire = binary_not_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -1011,31 +1011,31 @@ sur_exécution_binary_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
 
     // 1. Let expr be ? Evaluation of UnaryExpression.
     completion := exécute_noeud(noeud.argument, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr := completion.valeur;
 
     // 2. Let oldValue be ? ToNumeric(? GetValue(expr)).
     valeur := get_value(interpréteuse, expr);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     old_value := to_numeric(interpréteuse, valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If oldValue is a Number, then
-    si old_value.est_nombre() {
+    si est_nombre(old_value) {
         // a. Return Number::bitwiseNOT(oldValue).
         retourne normal_completion(number_bitwise_not(old_value));
     }
 
     // 4. Else,
     //    a. Assert: oldValue is a BigInt.
-    assert(old_value.est_big_int());
+    assert(est_big_int(old_value));
 
     //    b. Return BigInt::bitwiseNOT(oldValue).
     retourne normal_completion(big_int_bitwise_not(old_value));
@@ -1057,7 +1057,7 @@ LogicalNot :: struct {
 
 crée_logical_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *LogicalNot
 {
-    résultat := parseuse.crée_noeud(lexème, LogicalNot);
+    résultat := crée_noeud(parseuse, lexème, LogicalNot);
     résultat.sur_génération_code_binaire = logical_not_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -1071,15 +1071,15 @@ sur_exécution_logical_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *Int
 
     // 1. Let expr be ? Evaluation of UnaryExpression.
     completion := exécute_noeud(unary_expression, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr := completion.valeur;
 
     // 2. Let oldValue be ToBoolean(? GetValue(expr)).
     valeur := get_value(interpréteuse, expr);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     old_value := to_boolean(valeur);
 
@@ -1109,7 +1109,7 @@ LogicalAnd :: struct {
 
 crée_logical_and :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *LogicalAnd
 {
-    résultat := parseuse.crée_noeud(lexème, LogicalAnd);
+    résultat := crée_noeud(parseuse, lexème, LogicalAnd);
     résultat.sur_génération_code_binaire = logical_and_sur_code_binaire;
     résultat.left = left;
     résultat.right = right;
@@ -1123,15 +1123,15 @@ sur_exécution_logical_and :: fonc (base: *NoeudSyntaxique, interpréteuse: *Int
 
     // 1. Let lRef be ? Evaluation of LogicalANDExpression.
     completion := exécute_noeud(noeud.left, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     lref := completion.valeur;
 
     // 2. Let lVal be ? GetValue(lRef).
     lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If ToBoolean(lVal) is false, return lVal.
@@ -1141,15 +1141,15 @@ sur_exécution_logical_and :: fonc (base: *NoeudSyntaxique, interpréteuse: *Int
 
     // 4. Let rRef be ? Evaluation of BitwiseORExpression.
     completion = exécute_noeud(noeud.right, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     rref := completion.valeur;
 
     // 5. Return ? GetValue(rRef).
     résultat := get_value(interpréteuse, rref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(résultat);
 }
@@ -1171,7 +1171,7 @@ LogicalOr :: struct {
 
 crée_logical_or :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *LogicalOr
 {
-    résultat := parseuse.crée_noeud(lexème, LogicalOr);
+    résultat := crée_noeud(parseuse, lexème, LogicalOr);
     résultat.sur_génération_code_binaire = logical_or_sur_code_binaire;
     résultat.left = left;
     résultat.right = right;
@@ -1185,33 +1185,33 @@ sur_exécution_logical_or :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
 
     // 1. Let lRef be ? Evaluation of LogicalORExpression.
     completion := exécute_noeud(noeud.left, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     lref := completion.valeur;
 
     // 2. Let lVal be ? GetValue(lRef).
     lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If ToBoolean(lVal) is true, return lVal.
-    si to_boolean(lval).est_true() {
+    si est_true(to_boolean(lval)) {
         retourne normal_completion(lval);
     }
 
     // 4. Let rRef be ? Evaluation of LogicalANDExpression.
     completion = exécute_noeud(noeud.right, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     rref := completion.valeur;
 
     // 5. Return ? GetValue(rRef).
     résultat := get_value(interpréteuse, rref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(résultat);
 }
@@ -1233,7 +1233,7 @@ Coalesce :: struct {
 
 crée_coalesce :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *Coalesce
 {
-    résultat := parseuse.crée_noeud(lexème, Coalesce);
+    résultat := crée_noeud(parseuse, lexème, Coalesce);
     résultat.sur_génération_code_binaire = coalesce_sur_code_binaire;
     résultat.left = left;
     résultat.right = right;
@@ -1247,29 +1247,29 @@ sur_exécution_coalesce :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interp
 
     // 1. Let lRef be ? Evaluation of CoalesceExpressionHead.
     completion := exécute_noeud(noeud.left, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     lref := completion.valeur;
     // 2. Let lVal be ? GetValue(lRef).
     lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If lVal is either undefined or null, then
-    si lval.est_nulle() || lval.est_undefined() {
+    si est_nulle(lval) || est_undefined(lval) {
         // a. Let rRef be ? Evaluation of BitwiseORExpression.
         completion = exécute_noeud(noeud.right, interpréteuse);
-        saufsi completion.est_normal() {
+        saufsi est_normal(completion) {
             retourne completion;
         }
         rref := completion.valeur;
 
         // b. Return ? GetValue(rRef).
         résultat := get_value(interpréteuse, rref);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
         retourne normal_completion(résultat);
     }
@@ -1312,7 +1312,7 @@ BinaryExpression :: struct {
 
 crée_binary_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: BinaryOperation, gauche: *Expression, droite: *Expression) -> *BinaryExpression
 {
-    résultat := parseuse.crée_noeud(lexème, BinaryExpression);
+    résultat := crée_noeud(parseuse, lexème, BinaryExpression);
     résultat.sur_génération_code_binaire = binary_expression_sur_code_binaire;
     résultat.opération = opération;
     résultat.gauche = gauche;
@@ -1325,20 +1325,20 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 {
     noeud := base comme *BinaryExpression;
     completion_gauche := exécute_noeud(noeud.gauche, interpréteuse);
-    saufsi completion_gauche.est_normal() {
+    saufsi est_normal(completion_gauche) {
         retourne completion_gauche;
     }
     completion_droite := exécute_noeud(noeud.droite, interpréteuse);
-    saufsi completion_droite.est_normal() {
+    saufsi est_normal(completion_droite) {
         retourne completion_droite;
     }
     gauche := get_value(interpréteuse, completion_gauche.valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     droite := get_value(interpréteuse, completion_droite.valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne apply_string_or_numeric_binary_operator(interpréteuse, noeud.opération, gauche, droite);
 }
@@ -1350,28 +1350,28 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
     si opération == BinaryOperation.Plus {
         // a. Let lprim be ? ToPrimitive(lval).
         lprim := to_primitive(interpréteuse, gauche);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
         // b. Let rprim be ? ToPrimitive(rval).
         rprim := to_primitive(interpréteuse, droite);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
         // c. If lprim is a String or rprim is a String, then
-        si lprim.est_chaine() || rprim.est_chaine() {
+        si est_chaine(lprim) || est_chaine(rprim) {
             // i. Let lstr be ? ToString(lprim).
             lstr := to_string(interpréteuse, gauche);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
             // ii. Let rstr be ? ToString(rprim).
             rstr := to_string(interpréteuse, droite);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
             // iii. Return the string-concatenation of lstr and rstr.
-            retourne normal_completion(Valeur(String = concatène(interpréteuse.donne_realm(), lstr, rstr)));
+            retourne normal_completion(Valeur(String = concatène(donne_realm(interpréteuse), lstr, rstr)));
         }
     
         // d. Set lval to lprim.
@@ -1384,20 +1384,20 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
 
     // 3. Let lnum be ? ToNumeric(lval).
     gauche = to_numeric(interpréteuse, gauche);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 4. Let rnum be ? ToNumeric(rval).
     droite = to_numeric(interpréteuse, droite);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 5. If Type(lnum) is not Type(rnum), throw a TypeError exception.
     si donne_type(gauche) != donne_type(droite) {
         _ := lance_type_error(interpréteuse, "Incompatible types for binary expression");
-        retourne throw_completion(interpréteuse.donne_exception());
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 6. If lnum is a BigInt, then
@@ -1481,7 +1481,7 @@ EqualityExpression :: struct {
 
 crée_equality_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: EqualityOperation, gauche: *Expression, droite: *Expression) -> *EqualityExpression
 {
-    résultat := parseuse.crée_noeud(lexème, EqualityExpression);
+    résultat := crée_noeud(parseuse, lexème, EqualityExpression);
     résultat.sur_génération_code_binaire = equality_expression_sur_code_binaire;
     résultat.opération = opération;
     résultat.gauche = gauche;
@@ -1494,34 +1494,34 @@ sur_exécution_equality_expression :: fonc (base: *NoeudSyntaxique, interpréteu
 {
     noeud := base comme *EqualityExpression;
     completion_gauche := exécute_noeud(noeud.gauche, interpréteuse);
-    saufsi completion_gauche.est_normal() {
+    saufsi est_normal(completion_gauche) {
         retourne completion_gauche;
     }
     completion_droite := exécute_noeud(noeud.droite, interpréteuse);
-    saufsi completion_droite.est_normal() {
+    saufsi est_normal(completion_droite) {
         retourne completion_droite;
     }
     gauche := get_value(interpréteuse, completion_gauche.valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     droite := get_value(interpréteuse, completion_droite.valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     
     discr noeud.opération {
         Égal {
             résultat := is_loosely_equal(interpréteuse, gauche, droite);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
             retourne normal_completion(résultat);
         }
         Inégal {
             résultat := is_loosely_equal(interpréteuse, gauche, droite);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
             si résultat {
                 retourne normal_completion(Valeur(Boolean = faux));
@@ -1533,7 +1533,7 @@ sur_exécution_equality_expression :: fonc (base: *NoeudSyntaxique, interpréteu
         }
         InégalStrict {
             résultat := is_strictly_equal(gauche, droite);
-            si résultat.est_true() {
+            si est_true(résultat) {
                 retourne normal_completion(Valeur(Boolean = faux));
             }
             retourne normal_completion(Valeur(Boolean = vrai));
@@ -1571,7 +1571,7 @@ RelationalExpression :: struct {
 
 crée_relational_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: RelationalOperation, gauche: *Expression, droite: *Expression) -> *RelationalExpression
 {
-    résultat := parseuse.crée_noeud(lexème, RelationalExpression);
+    résultat := crée_noeud(parseuse, lexème, RelationalExpression);
     résultat.sur_génération_code_binaire = relational_expression_sur_code_binaire;
     résultat.opération = opération;
     résultat.gauche = gauche;
@@ -1586,28 +1586,28 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
 
     // 1. Let lref be ? Evaluation of RelationalExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse);
-    saufsi completion_lref.est_normal() {
+    saufsi est_normal(completion_lref) {
         retourne completion_lref;
     }
     lref := completion_lref.valeur;
 
     // 2. Let lval be ? GetValue(lref).
     lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Let rref be ? Evaluation of ShiftExpression.
     completion_rref := exécute_noeud(noeud.droite, interpréteuse);
-    saufsi completion_rref.est_normal() {
+    saufsi est_normal(completion_rref) {
         retourne completion_rref;
     }
     rref := completion_rref.valeur;
 
     // 4. Let rval be ? GetValue(rref).
     rval := get_value(interpréteuse, rref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     r: Valeur;
@@ -1616,36 +1616,36 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
         Inférieur {
             // 5. Let r be ? IsLessThan(lval, rval, true).
             r = is_less_than(interpréteuse, lval, rval, vrai);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 6. If r is undefined, return false. Otherwise, return r.
-            si r.est_undefined() {
+            si est_undefined(r) {
                 r = Valeur(Boolean = faux);
             }
         }
         Supérieur {
             // 5. Let r be ? IsLessThan(rval, lval, false).
             r = is_less_than(interpréteuse, rval, lval, faux);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 6. If r is undefined, return false. Otherwise, return r.
-            si r.est_undefined() {
+            si est_undefined(r) {
                 r = Valeur(Boolean = faux);
             }
         }
         InférieurÉgal {
             // 5. Let r be ? IsLessThan(rval, lval, false).
             r = is_less_than(interpréteuse, rval, lval, faux);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 6. If r is either true or undefined, return false. Otherwise, return true.
-            si r.est_true() || r.est_undefined() {
+            si est_true(r) || est_undefined(r) {
                 r = Valeur(Boolean = faux);
             }
             sinon {
@@ -1655,12 +1655,12 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
         SupérieurÉgal {
             // 5. Let r be ? IsLessThan(lval, rval, true).
             r = is_less_than(interpréteuse, lval, rval, vrai);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 6. If r is either true or undefined, return false. Otherwise, return true.
-            si r.est_true() || r.est_undefined() {
+            si est_true(r) || est_undefined(r) {
                 r = Valeur(Boolean = faux);
             }
             sinon {
@@ -1672,21 +1672,21 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
         }
         In {
             // 5. If rVal is not an Object, throw a TypeError exception.
-            saufsi rval.est_object() {
+            saufsi est_object(rval) {
                 message := imprime_chaine("'%' is not an Object", rval);
             _ := lance_type_error(interpréteuse, message);
-            retourne throw_completion(interpréteuse.donne_exception());
+            retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 6. Return ? HasProperty(rVal, ? ToPropertyKey(lVal)).
             P := to_property_key(interpréteuse, lval);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
-            résultat := has_property(rval.donne_objet(), P.String);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            résultat := has_property(donne_objet(rval), P.String);
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
             retourne normal_completion(résultat);
         }
@@ -1700,9 +1700,9 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
 instanceof_operator :: fonc (interpréteuse: *Interpréteuse, V: Valeur, target: Valeur) -> CompletionRecord
 {
     // 1. If target is not an Object, throw a TypeError exception.
-    saufsi target.est_object() {
+    saufsi est_object(target) {
         _ := lance_type_error(interpréteuse, "target is not an Object");
-        retourne throw_completion(interpréteuse.donne_exception());
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // À FAIRE : 2. Let instOfHandler be ? GetMethod(target, %Symbol.hasInstance%).
@@ -1710,15 +1710,15 @@ instanceof_operator :: fonc (interpréteuse: *Interpréteuse, V: Valeur, target:
     //    a. Return ToBoolean(? Call(instOfHandler, target, « V »)).
 
     // 4. If IsCallable(target) is false, throw a TypeError exception.
-    si is_callable(target).est_false() {
+    si est_false(is_callable(target)) {
         _ := lance_type_error(interpréteuse, "target is not callable");
-        retourne throw_completion(interpréteuse.donne_exception());
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 5. Return ? OrdinaryHasInstance(target, V).
     résultat := ordinary_has_instance(interpréteuse, target, V);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(Valeur(Boolean = résultat));
 }
@@ -1740,7 +1740,7 @@ NumericLiteral :: struct {
 
 crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: r64) -> *NumericLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, NumericLiteral);
+    résultat := crée_noeud(parseuse, lexème, NumericLiteral);
     résultat.sur_génération_code_binaire = numeric_literal_sur_code_binaire;
     résultat.valeur = valeur;
     retourne résultat;
@@ -1768,7 +1768,7 @@ BooleanLiteral :: struct {
 
 crée_boolean_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: bool) -> *BooleanLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, BooleanLiteral);
+    résultat := crée_noeud(parseuse, lexème, BooleanLiteral);
     résultat.sur_génération_code_binaire = boolean_literal_sur_code_binaire;
     résultat.valeur = valeur;
     retourne résultat;
@@ -1794,7 +1794,7 @@ NullLiteral :: struct {
 
 crée_null_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NullLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, NullLiteral);
+    résultat := crée_noeud(parseuse, lexème, NullLiteral);
     résultat.sur_génération_code_binaire = null_literal_sur_code_binaire;
     retourne résultat;
 }
@@ -1821,7 +1821,7 @@ StringLiteral :: struct {
 
 crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: ECMAString) -> *StringLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, StringLiteral);
+    résultat := crée_noeud(parseuse, lexème, StringLiteral);
     résultat.sur_génération_code_binaire = string_literal_sur_code_binaire;
     résultat.valeur = valeur;
     retourne résultat;
@@ -1836,7 +1836,7 @@ sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *
 {
     noeud := base comme *StringLiteral;
 
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
     chn: *PrimitiveChaine;
     si noeud.indice_chaine == -1 {
@@ -1868,7 +1868,7 @@ CallExpression :: struct {
 
 crée_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, appelé: *Expression, arguments: [..]*Expression) -> *CallExpression
 {
-    résultat := parseuse.crée_noeud(lexème, CallExpression);
+    résultat := crée_noeud(parseuse, lexème, CallExpression);
     résultat.sur_génération_code_binaire = call_expression_sur_code_binaire;
     résultat.appelé = appelé;
     résultat.arguments = arguments;
@@ -1894,29 +1894,29 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
         // 4. Let ref be ? Evaluation of memberExpr.
         completion_ref := exécute_noeud(member_expr, interpréteuse);
-        saufsi completion_ref.est_normal() {
+        saufsi est_normal(completion_ref) {
             retourne completion_ref;
         }
         ref := completion_ref.valeur;
 
         // 5. Let func be ? GetValue(ref).
         func := get_value(interpréteuse, ref);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
         
         // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
-        si ref.est_reference_record() && is_property_reference(ref) == faux && ref.R.referenced_name.valeur.String.texte == STR_eval {
-            realm := interpréteuse.donne_realm();
+        si est_reference_record(ref) && is_property_reference(ref) == faux && ref.R.referenced_name.valeur.String.texte == STR_eval {
+            realm := donne_realm(interpréteuse);
 
             // a. If SameValue(func, %eval%) is true, then
-            saufsi same_value(func, Valeur(Object = realm.intrinsics.eval)).est_false() {
+            saufsi est_false(same_value(func, Valeur(Object = realm.intrinsics.eval))) {
                 //  i. Let argList be ? ArgumentListEvaluation of arguments.
                 arg_list: [..]Valeur;
                 diffère déloge(*arg_list);
 
                 completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list);
-                saufsi completion_arg_list.est_normal() {
+                saufsi est_normal(completion_arg_list) {
                     retourne completion_arg_list;
                 }
 
@@ -1933,8 +1933,8 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
                 //  v. Return ? PerformEval(evalArg, strictCaller, true).
                 résultat := perform_eval(interpréteuse, eval_arg, strict_caller, vrai);
-                si interpréteuse.possède_exception() {
-                    retourne throw_completion(interpréteuse.donne_exception());
+                si possède_exception(interpréteuse) {
+                    retourne throw_completion(donne_exception(interpréteuse));
                 }
                 retourne normal_completion(résultat);
             }
@@ -1954,7 +1954,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // 1. Let ref be ? Evaluation of CallExpression.
     completion_ref := exécute_noeud(noeud.appelé, interpréteuse);
-    saufsi completion_ref.est_normal() {
+    saufsi est_normal(completion_ref) {
         retourne completion_ref;
     }
 
@@ -1962,8 +1962,8 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // 2. Let func be ? GetValue(ref).
     func := get_value(interpréteuse, ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Let thisCall be this CallExpression.
@@ -1994,7 +1994,7 @@ evaluate_call :: fonc (interpréteuse: *InterprèteArbre, func: Valeur, ref: Val
             ref_env := ref.R.base.E;
             // ii. Assert: refEnv is an Environment Record.
             // iii. Let thisValue be refEnv.WithBaseObject().
-            this_value = ref_env.with_base_object();
+            this_value = with_base_object(ref_env);
         }
     }
     // 2. Else,
@@ -2008,22 +2008,22 @@ evaluate_call :: fonc (interpréteuse: *InterprèteArbre, func: Valeur, ref: Val
     diffère déloge(*arg_list);
 
     completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list);
-    saufsi completion_arg_list.est_normal() {
+    saufsi est_normal(completion_arg_list) {
         retourne completion_arg_list;
     }
 
     // 4. If func is not an Object, throw a TypeError exception.
-    saufsi func.est_object() {
+    saufsi est_object(func) {
         message := imprime_chaine("'%' is not an Object", func);
         _ := lance_type_error(interpréteuse, message);
-        retourne throw_completion(interpréteuse.donne_exception());
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     
     // 5. If IsCallable(func) is false, throw a TypeError exception.
-    saufsi func.is_callable() {
+    saufsi is_callable(func) {
         message := imprime_chaine("'%' is not callable", func);
         _ := lance_type_error(interpréteuse, message);
-        retourne throw_completion(interpréteuse.donne_exception());
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 6. If tailPosition is true, perform PrepareForTailCall().
@@ -2033,8 +2033,8 @@ evaluate_call :: fonc (interpréteuse: *InterprèteArbre, func: Valeur, ref: Val
 
     // 7. Return ? Call(func, thisValue, argList).
     résultat := call(interpréteuse, func, this_value, arg_list);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(résultat);
 }
@@ -2050,21 +2050,21 @@ argument_list_evaluation :: fonc (interpréteuse: *InterprèteArbre, arguments: 
             // 1. Let list be a new empty List.
             // 2. Let spreadRef be ? Evaluation of AssignmentExpression.
             completion := exécute_noeud(spread.argument, interpréteuse);
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
             spread_ref := completion.valeur;
 
             // 3. Let spreadObj be ? GetValue(spreadRef).
             spread_obj := get_value(interpréteuse, spread_ref);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 4. Let iteratorRecord be ? GetIterator(spreadObj, sync).
             iterator_record := get_iterator(interpréteuse, spread_obj, IteratorKind.SYNC);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 5. Repeat,
@@ -2085,12 +2085,12 @@ argument_list_evaluation :: fonc (interpréteuse: *InterprèteArbre, arguments: 
         }
 
         complétion_arg := exécute_noeud(it, interpréteuse);
-        saufsi complétion_arg.est_normal() {
+        saufsi est_normal(complétion_arg) {
             retourne complétion_arg;
         }
         valeur_arg := get_value(interpréteuse, complétion_arg.valeur);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
         tableau_ajoute(résultat, valeur_arg);
     }
@@ -2135,7 +2135,7 @@ AssignmentExpression :: struct {
 
 crée_assignment_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: AssignmentOperation, gauche: *Expression, droite: *Expression) -> *AssignmentExpression
 {
-    résultat := parseuse.crée_noeud(lexème, AssignmentExpression);
+    résultat := crée_noeud(parseuse, lexème, AssignmentExpression);
     résultat.sur_génération_code_binaire = assignment_expression_sur_code_binaire;
     résultat.opération = opération;
     résultat.gauche = gauche;
@@ -2168,7 +2168,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     si noeud.gauche.type != ObjectLiteral && noeud.gauche.type != ArrayLiteral {
         // a. Let lref be ? Evaluation of LeftHandSideExpression.
         completion_lref := exécute_noeud(noeud.gauche, interpréteuse);
-        saufsi completion_lref.est_normal() {
+        saufsi est_normal(completion_lref) {
             retourne completion_lref;
         }
         lref := completion_lref.valeur;
@@ -2181,7 +2181,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
             // ii. Let rval be ? NamedEvaluation of AssignmentExpression with argument lhs.
             completion_rval := named_evaluation(interpréteuse, noeud.droite, lhs);
-            saufsi completion_rval.est_normal() {
+            saufsi est_normal(completion_rval) {
                 retourne completion_rval;
             }
 
@@ -2191,22 +2191,22 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         sinon {
             // i. Let rref be ? Evaluation of AssignmentExpression.
             completion_rref := exécute_noeud(noeud.droite, interpréteuse);
-            saufsi completion_rref.est_normal() {
+            saufsi est_normal(completion_rref) {
                 retourne completion_rref;
             }
             rref := completion_rref.valeur;
 
             // ii. Let rval be ? GetValue(rref).
             rval = get_value(interpréteuse, rref);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
         }
 
         // d. Perform ? PutValue(lref, rval).
         _ := put_value(interpréteuse, lref, rval);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         // e. Return rval.
@@ -2225,28 +2225,28 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 {
     // 1. Let lref be ? Evaluation of LeftHandSideExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse);
-    saufsi completion_lref.est_normal() {
+    saufsi est_normal(completion_lref) {
         retourne completion_lref;
     }
     lref := completion_lref.valeur;
 
     // 2. Let lval be ? GetValue(lref).
     lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Let rref be ? Evaluation of AssignmentExpression.
     completion_rref := exécute_noeud(noeud.droite, interpréteuse);
-    saufsi completion_rref.est_normal() {
+    saufsi est_normal(completion_rref) {
         retourne completion_rref;
     }
     rref := completion_rref.valeur;
 
     // 4. Let rval be ? GetValue(rref).
     rval := get_value(interpréteuse, rref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 5. Let assignmentOpText be the source text matched by AssignmentOperator.
@@ -2305,15 +2305,15 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
     // 7. Let r be ? ApplyStringOrNumericBinaryOperator(lval, opText, rval).
     completion := apply_string_or_numeric_binary_operator(interpréteuse, opérateur_binaire, lval, rval);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     r := completion.valeur.V;
 
     // 8. Perform ? PutValue(lref, r).
     _ := put_value(interpréteuse, lref, r);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 9. Return r.
@@ -2324,19 +2324,19 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 {
     // 1. Let lRef be ? Evaluation of LeftHandSideExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse);
-    saufsi completion_lref.est_normal() {
+    saufsi est_normal(completion_lref) {
         retourne completion_lref;
     }
     lref := completion_lref.valeur;
 
     // 2. Let lVal be ? GetValue(lRef).
     lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If lVal is neither undefined nor null, return lVal.
-    saufsi lval.est_nulle() || lval.est_undefined() {
+    saufsi est_nulle(lval) || est_undefined(lval) {
         retourne normal_completion(lval);
     }
 
@@ -2348,7 +2348,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
         // ii. Let rval be ? NamedEvaluation of AssignmentExpression with argument lhs.
         completion_rval := named_evaluation(interpréteuse, noeud.droite, lhs);
-        saufsi completion_rval.est_normal() {
+        saufsi est_normal(completion_rval) {
             retourne completion_rval;
         }
 
@@ -2358,22 +2358,22 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     sinon {
         // a. Let rRef be ? Evaluation of AssignmentExpression.
         completion_rref := exécute_noeud(noeud.droite, interpréteuse);
-        saufsi completion_rref.est_normal() {
+        saufsi est_normal(completion_rref) {
             retourne completion_rref;
         }
         rref := completion_rref.valeur;
 
         // b. Let rVal be ? GetValue(rRef).
         rval = get_value(interpréteuse, rref);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
     }
 
     // 6. Perform ? PutValue(lRef, rVal).
     _ := put_value(interpréteuse, lref, rval);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 7. Return rVal.
@@ -2384,19 +2384,19 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 {
     // 1. Let lRef be ? Evaluation of LeftHandSideExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse);
-    saufsi completion_lref.est_normal() {
+    saufsi est_normal(completion_lref) {
         retourne completion_lref;
     }
     lref := completion_lref.valeur;
 
     // 2. Let lVal be ? GetValue(lRef).
     lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If ToBoolean(lVal) is true, return lVal.
-    si to_boolean(lval).est_true() {
+    si est_true(to_boolean(lval)) {
         retourne normal_completion(lval);
     }
 
@@ -2408,7 +2408,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
         // b. Let rVal be ? NamedEvaluation of AssignmentExpression with argument lhs.
         completion_rval := named_evaluation(interpréteuse, noeud.droite, lhs);
-        saufsi completion_rval.est_normal() {
+        saufsi est_normal(completion_rval) {
             retourne completion_rval;
         }
 
@@ -2418,22 +2418,22 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     sinon {
         // a. Let rRef be ? Evaluation of AssignmentExpression.
         completion_rref := exécute_noeud(noeud.droite, interpréteuse);
-        saufsi completion_rref.est_normal() {
+        saufsi est_normal(completion_rref) {
             retourne completion_rref;
         }
         rref := completion_rref.valeur;
 
         // b. Let rVal be ? GetValue(rRef).
         rval = get_value(interpréteuse, rref);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
     }
 
     // 6. Perform ? PutValue(lRef, rVal).
     _ := put_value(interpréteuse, lref, rval);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 7. Return rVal.
@@ -2444,19 +2444,19 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 {
     // 1. Let lRef be ? Evaluation of LeftHandSideExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse);
-    saufsi completion_lref.est_normal() {
+    saufsi est_normal(completion_lref) {
         retourne completion_lref;
     }
     lref := completion_lref.valeur;
 
     // 2. Let lVal be ? GetValue(lRef).
     lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If ToBoolean(lVal) is false, return lVal.
-    si to_boolean(lval).est_false() {
+    si est_false(to_boolean(lval)) {
         retourne normal_completion(lval);
     }
 
@@ -2468,7 +2468,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
         // b. Let rVal be ? NamedEvaluation of AssignmentExpression with argument lhs.
         completion_rval := named_evaluation(interpréteuse, noeud.droite, lhs);
-        saufsi completion_rval.est_normal() {
+        saufsi est_normal(completion_rval) {
             retourne completion_rval;
         }
 
@@ -2478,22 +2478,22 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     sinon {
         // a. Let rRef be ? Evaluation of AssignmentExpression.
         completion_rref := exécute_noeud(noeud.droite, interpréteuse);
-        saufsi completion_rref.est_normal() {
+        saufsi est_normal(completion_rref) {
             retourne completion_rref;
         }
         rref := completion_rref.valeur;
 
         // b. Let rVal be ? GetValue(rRef).
         rval = get_value(interpréteuse, rref);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
     }
 
     // 6. Perform ? PutValue(lRef, rVal).
     _ := put_value(interpréteuse, lref, rval);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 7. Return rVal.
@@ -2523,7 +2523,7 @@ VariableDeclaration :: struct {
 
 crée_variable_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, nature: VariableDeclarationKind, declarators: [..]*VariableDeclarator) -> *VariableDeclaration
 {
-    résultat := parseuse.crée_noeud(lexème, VariableDeclaration);
+    résultat := crée_noeud(parseuse, lexème, VariableDeclaration);
     résultat.sur_génération_code_binaire = variable_declaration_sur_code_binaire;
     résultat.nature = nature;
     résultat.expressions = declarators;
@@ -2566,7 +2566,7 @@ VariableDeclarator :: struct {
 
 crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Expression, init: *Expression) -> *VariableDeclarator
 {
-    résultat := parseuse.crée_noeud(lexème, VariableDeclarator);
+    résultat := crée_noeud(parseuse, lexème, VariableDeclarator);
     résultat.id = id;
     résultat.init = init;
     retourne résultat;
@@ -2584,12 +2584,12 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
     }
 
     // 1. Let bindingId be the StringValue of BindingIdentifier.
-    binding_id := identifier.donne_chaine_primitive(interpréteuse.donne_realm());
+    binding_id := donne_chaine_primitive(identifier, donne_realm(interpréteuse));
 
     // 2. Let lhs be ? ResolveBinding(bindingId).
-    lhs := interpréteuse.resolve_binding(binding_id);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    lhs := resolve_binding(interpréteuse, binding_id);
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     valeur := js_undefined;
@@ -2597,7 +2597,7 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
     si is_anonymous_function_definition(noeud.init) {
         // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
         completion_valeur := named_evaluation(interpréteuse, noeud.init, binding_id.texte);
-        saufsi completion_valeur.est_normal() {
+        saufsi est_normal(completion_valeur) {
             retourne completion_valeur;
         }
 
@@ -2607,20 +2607,20 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
     sinon {
         // a. Let rhs be ? Evaluation of Initializer.
         completion_valeur := exécute_noeud(noeud.init, interpréteuse);
-        saufsi completion_valeur.est_normal() {
+        saufsi est_normal(completion_valeur) {
             retourne completion_valeur;
         }
         // b. Let value be ? GetValue(rhs).
         valeur = get_value(interpréteuse, completion_valeur.valeur);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
     }
 
     // 5. Perform ? PutValue(lhs, value).
     _ := put_value(interpréteuse, lhs, valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 6. Return EMPTY.
@@ -2634,7 +2634,7 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
 
     saufsi noeud.init {
         // 1. Let lhs be ! ResolveBinding(StringValue of BindingIdentifier).
-        lhs := resolve_binding(interpréteuse, binding_identifier.donne_chaine_primitive(interpréteuse.donne_realm()));
+        lhs := resolve_binding(interpréteuse, donne_chaine_primitive(binding_identifier, donne_realm(interpréteuse)));
 
         // 2. Perform ! InitializeReferencedBinding(lhs, undefined).
         initialize_reference_binding(lhs, js_undefined);
@@ -2644,17 +2644,17 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
     }
 
     // 1. Let bindingId be the StringValue of BindingIdentifier.
-    binding_id := binding_identifier.donne_chaine_primitive(interpréteuse.donne_realm());
+    binding_id := donne_chaine_primitive(binding_identifier, donne_realm(interpréteuse));
 
     // 2. Let lhs be ! ResolveBinding(bindingId).
-    lhs := resolve_binding(interpréteuse, binding_identifier.donne_chaine_primitive(interpréteuse.donne_realm()));
+    lhs := resolve_binding(interpréteuse, donne_chaine_primitive(binding_identifier, donne_realm(interpréteuse)));
 
     valeur := js_undefined;
     // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
     si is_anonymous_function_definition(noeud.init) {
         // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
         completion_valeur := named_evaluation(interpréteuse, noeud.init, binding_id.texte);
-        saufsi completion_valeur.est_normal() {
+        saufsi est_normal(completion_valeur) {
             retourne completion_valeur;
         }
 
@@ -2664,13 +2664,13 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
     sinon {
         // a. Let rhs be ? Evaluation of Initializer.
         completion_valeur := exécute_noeud(noeud.init, interpréteuse);
-        saufsi completion_valeur.est_normal() {
+        saufsi est_normal(completion_valeur) {
             retourne completion_valeur;
         }
         // b. Let value be ? GetValue(rhs).
         valeur = get_value(interpréteuse, completion_valeur.valeur);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
     }
 
@@ -2697,7 +2697,7 @@ PropertyDefinition :: struct {
 
 crée_property_definition :: fonc (parseuse: *Parseuse, lexème: *Lexème, property_name: *Expression, expression: *Expression) -> *PropertyDefinition
 {
-    résultat := parseuse.crée_noeud(lexème, PropertyDefinition);
+    résultat := crée_noeud(parseuse, lexème, PropertyDefinition);
     résultat.property_name = property_name;
     résultat.expression = expression;
     retourne résultat;
@@ -2719,7 +2719,7 @@ ObjectLiteral :: struct {
 
 crée_object_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*Expression) -> *ObjectLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, ObjectLiteral);
+    résultat := crée_noeud(parseuse, lexème, ObjectLiteral);
     résultat.sur_génération_code_binaire = object_expression_sur_code_binaire;
     résultat.properties = properties;
     retourne résultat;
@@ -2731,12 +2731,12 @@ sur_exécution_object_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *
     noeud := base comme *ObjectLiteral;
 
     // 1. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
     objet := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée);
 
     // 2. Perform ? PropertyDefinitionEvaluation of PropertyDefinitionList with argument obj.
     completion := property_definition_evaluation(interpréteuse, noeud.properties, objet);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
 
@@ -2753,15 +2753,15 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
 
             // 1. Let exprValue be ? Evaluation of AssignmentExpression.
             completion := exécute_noeud(spread.argument, interpréteuse);
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
             expr_value := completion.valeur;
 
             // 2. Let fromValue be ? GetValue(exprValue).
             from_value := get_value(interpréteuse, expr_value);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 3. Let excludedNames be a new empty List.
@@ -2769,8 +2769,8 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
 
             // 4. Perform ? CopyDataProperties(object, fromValue, excludedNames).
             copy_data_properties(interpréteuse, object, from_value, excluded_names);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 5. Return unused.
@@ -2785,15 +2785,15 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
 
             // 2. Let exprValue be ? Evaluation of IdentifierReference.
             completion := exécute_noeud(identifier_reference, interpréteuse);
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
             expr_value := completion.valeur;
 
             // 3. Let propValue be ? GetValue(exprValue).
             prop_value := get_value(interpréteuse, expr_value);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
             
             // 4. Assert: object is an ordinary, extensible object with no non-configurable properties.
@@ -2808,8 +2808,8 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         si it.type == ObjectMethod {
             // 1. Perform ? MethodDefinitionEvaluation of MethodDefinition with arguments object and true.
             _ := method_definition_evaluation(interpréteuse, it comme *ObjectMethod, object, vrai);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 2. Return unused.
@@ -2821,8 +2821,8 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
 
         // 1. Let propKey be ? Evaluation of PropertyName.
         prop_key := évalue_property_name(interpréteuse, property_definition.property_name);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         // À FAIRE : complète
@@ -2838,7 +2838,7 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         si is_anonymous_function_definition(property_definition.expression) && is_proto_setter == faux {
             // a. Let propValue be ? NamedEvaluation of AssignmentExpression with argument propKey.
             completion := named_evaluation(interpréteuse, property_definition.expression, donne_field_name(prop_key));
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
 
@@ -2848,14 +2848,14 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         sinon {
             // a. Let exprValueRef be ? Evaluation of AssignmentExpression.
             completion := exécute_noeud(property_definition.expression, interpréteuse);
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
             expr_value_ref := completion.valeur;
             // b. Let propValue be ? GetValue(exprValueRef).
             prop_value = get_value(interpréteuse, expr_value_ref);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
         }
         // 7. If isProtoSetter is true, then
@@ -2882,7 +2882,7 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
     si expression.type == NumericLiteral {
         number := expression comme *NumericLiteral;
         valeur := Valeur(Number = number.valeur);
-        realm := interpréteuse.donne_realm();
+        realm := donne_realm(interpréteuse);
         retourne to_string(realm, valeur).texte;
     }
 
@@ -2892,8 +2892,8 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         // 1. Let exprValue be ? Evaluation of AssignmentExpression.
         assert(interpréteuse.type == InterprèteArbre);
         completion := exécute_noeud(computed_property_name.expression, interpréteuse comme *InterprèteArbre);
-        saufsi completion.est_normal() {
-            interpréteuse.définis_exception(completion);
+        saufsi est_normal(completion) {
+            définis_exception(interpréteuse, completion);
             résultat: PropertyKey;
             retourne résultat;
         }
@@ -2901,7 +2901,7 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
 
         // 2. Let propName be ? GetValue(exprValue).
         prop_name := get_value(interpréteuse, expr_value);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             résultat: PropertyKey;
             retourne résultat;
         }
@@ -2931,7 +2931,7 @@ ArrayLiteral :: struct {
 
 crée_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [..]*Expression) -> *ArrayLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, ArrayLiteral);
+    résultat := crée_noeud(parseuse, lexème, ArrayLiteral);
     résultat.sur_génération_code_binaire = array_literal_sur_code_binaire;
     résultat.éléments = éléments;
     retourne résultat;
@@ -2943,9 +2943,9 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
     /* À FAIRE : standardise. */
     noeud := base comme *ArrayLiteral;
 
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
-    résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0);
+    résultat := crée_array(donne_tas_de_mémoire(realm), realm.intrinsics.array_prototype, 0);
 
     next_index: z64;
 
@@ -2963,21 +2963,21 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
             // 1. Let spreadRef be ? Evaluation of AssignmentExpression.
             completion := exécute_noeud(spread.argument, interpréteuse);
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
             spread_ref := completion.valeur;
 
             // 2. Let spreadObj be ? GetValue(spreadRef).
             spread_obj := get_value(interpréteuse, spread_ref);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 3. Let iteratorRecord be ? GetIterator(spreadObj, sync).
             iterator_record := get_iterator(interpréteuse, spread_obj, IteratorKind.SYNC);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // 4. Repeat,
@@ -3002,12 +3002,12 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
         }
 
         completion := exécute_noeud(it, interpréteuse);
-        saufsi completion.est_normal() {
+        saufsi est_normal(completion) {
             retourne completion;
         }
         valeur := get_value(interpréteuse, completion.valeur);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         nom_propriété := to_string(interpréteuse, Valeur(Number = next_index comme r64)).texte;
@@ -3018,8 +3018,8 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
     }
 
     set(résultat, STR_length, Valeur(Number = next_index comme r64), vrai);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     retourne normal_completion(Valeur(Object = résultat));
@@ -3043,7 +3043,7 @@ MemberExpression :: struct {
 
 crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: *Expression, propriété: *Expression, calculé: bool) -> *MemberExpression
 {
-    résultat := parseuse.crée_noeud(lexème, MemberExpression);
+    résultat := crée_noeud(parseuse, lexème, MemberExpression);
     résultat.sur_génération_code_binaire = member_expression_sur_code_binaire;
     résultat.objet = objet;
     résultat.propriété = propriété;
@@ -3061,15 +3061,15 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 
         // 1. Let baseReference be ? Evaluation of MemberExpression.
         completion_base_reference := exécute_noeud(member.objet, interpréteuse);
-        saufsi completion_base_reference.est_normal() {
+        saufsi est_normal(completion_base_reference) {
             retourne completion_base_reference;
         }
         base_reference := completion_base_reference.valeur;
     
         // 2. Let baseValue be ? GetValue(baseReference).
         base_value := get_value(interpréteuse, base_reference);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         // 3. Let fieldNameString be the StringValue of PrivateIdentifier.
@@ -3082,15 +3082,15 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 
     // 1. Let baseReference be ? Evaluation of MemberExpression.
     completion_base_reference := exécute_noeud(member.objet, interpréteuse);
-    saufsi completion_base_reference.est_normal() {
+    saufsi est_normal(completion_base_reference) {
         retourne completion_base_reference;
     }
     base_reference := completion_base_reference.valeur;
 
     // 2. Let baseValue be ? GetValue(baseReference).
     base_value := get_value(interpréteuse, base_reference);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Let strict be IsStrict(this MemberExpression).
@@ -3114,15 +3114,15 @@ evaluate_property_access_with_expression_key :: fonc (interpréteuse: *Interprè
 {
     // 1. Let propertyNameReference be ? Evaluation of expression.
     completion_expression := exécute_noeud(expression, interpréteuse);
-    saufsi completion_expression.est_normal() {
+    saufsi est_normal(completion_expression) {
         retourne completion_expression;
     }
     property_name_reference := completion_expression.valeur;
 
     // 2. Let propertyNameValue be ? GetValue(propertyNameReference).
     property_name_value := get_value(interpréteuse, property_name_reference);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. NOTE: In most cases, ToPropertyKey will be performed on propertyNameValue
@@ -3142,7 +3142,7 @@ evaluate_property_access_with_expression_key :: fonc (interpréteuse: *Interprè
 evaluate_property_access_with_identifier_key :: fonc (interpréteuse: *InterprèteArbre, base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
 {
     // 1. Let propertyNameString be the StringValue of identifierName.
-    property_name_string := crée_chaine(interpréteuse.donne_realm(), identifier_name.nom);
+    property_name_string := crée_chaine(donne_realm(interpréteuse), identifier_name.nom);
 
     // 2. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyNameString, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
     résultat: ReferenceRecord;
@@ -3176,7 +3176,7 @@ UpdateExpression :: struct {
 
 crée_update_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression, operation: UpdateOperation) -> *UpdateExpression
 {
-    résultat := parseuse.crée_noeud(lexème, UpdateExpression);
+    résultat := crée_noeud(parseuse, lexème, UpdateExpression);
     résultat.sur_génération_code_binaire = update_expression_sur_code_binaire;
     résultat.argument = argument;
     résultat.operation = operation;
@@ -3190,20 +3190,20 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 
     // 1. Let lhs be ? Evaluation of LeftHandSideExpression.
     complétion_lhs := exécute_noeud(update.argument, interpréteuse);
-    saufsi complétion_lhs.est_normal() {
+    saufsi est_normal(complétion_lhs) {
         retourne complétion_lhs;
     }
     lhs := complétion_lhs.valeur;
 
     // 2. Let oldValue be ? ToNumeric(? GetValue(lhs)).
     lhs_value := get_value(interpréteuse, lhs);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     old_value := to_numeric(interpréteuse, lhs_value);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     nouvelle_valeur: Valeur;
@@ -3228,8 +3228,8 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 
     // 5. Perform ? PutValue(lhs, newValue).
     _ := put_value(interpréteuse, lhs, nouvelle_valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     si update.operation == UpdateOperation.PrefixIncrement || update.operation == UpdateOperation.PrefixDecrement {
@@ -3256,7 +3256,7 @@ ContinueStatement :: struct {
 
 crée_continue_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *Expression) -> *ContinueStatement
 {
-    résultat := parseuse.crée_noeud(lexème, ContinueStatement);
+    résultat := crée_noeud(parseuse, lexème, ContinueStatement);
     résultat.sur_génération_code_binaire = continue_statement_sur_code_binaire;
     résultat.target = target;
     retourne résultat;
@@ -3298,7 +3298,7 @@ BreakStatement :: struct {
 
 crée_break_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *Expression) -> *BreakStatement
 {
-    résultat := parseuse.crée_noeud(lexème, BreakStatement);
+    résultat := crée_noeud(parseuse, lexème, BreakStatement);
     résultat.sur_génération_code_binaire = break_statement_sur_code_binaire;
     résultat.target = target;
     retourne résultat;
@@ -3343,7 +3343,7 @@ ForStatement :: struct {
 
 crée_for_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, init: *Expression, test: *Expression, update: *Expression, body: *Statement) -> *ForStatement
 {
-    résultat := parseuse.crée_noeud(lexème, ForStatement);
+    résultat := crée_noeud(parseuse, lexème, ForStatement);
     résultat.sur_génération_code_binaire = for_statement_sur_code_binaire;
     résultat.init = init;
     résultat.test = test;
@@ -3359,13 +3359,13 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
     si for_statement_possède_lexical_declaration(for) {
         mv := interpréteuse.mv;
-        running_execution_context := mv.donne_running_execution_context();
+        running_execution_context := donne_running_execution_context(mv);
 
         // 1. Let oldEnv be the running execution context's LexicalEnvironment.
         old_env := running_execution_context.lexical_environment;
 
         // 2. Let loopEnv be NewDeclarativeEnvironment(oldEnv).
-        loop_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env);
+        loop_env := new_declarative_environment(donne_tas_de_mémoire(old_env), old_env);
 
         // 3. Let isConst be IsConstantDeclaration of LexicalDeclaration.
         lexical_declaration := for.init comme *VariableDeclaration;
@@ -3381,12 +3381,12 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
             // a. If isConst is true, then
             si is_const {
                 // i. Perform ! loopEnv.CreateImmutableBinding(dn, true).
-                _ := loop_env.create_immutable_binding(interpréteuse.donne_realm(), it, vrai);
+                _ := create_immutable_binding(loop_env, donne_realm(interpréteuse), it, vrai);
             }
             // b. Else,
             sinon {
                 // i. Perform ! loopEnv.CreateMutableBinding(dn, false).
-                loop_env.create_mutable_binding(interpréteuse.donne_realm(), it, faux);
+                create_mutable_binding(loop_env, donne_realm(interpréteuse), it, faux);
             }
         }
 
@@ -3397,7 +3397,7 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
         completion := exécute_noeud(lexical_declaration, interpréteuse);
 
         // 8. If forDcl is an abrupt completion, then
-        saufsi completion.est_normal() {
+        saufsi est_normal(completion) {
             // a. Set the running execution context's LexicalEnvironment to oldEnv.
             running_execution_context.lexical_environment = old_env;
 
@@ -3430,7 +3430,7 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
     // 1. Perform ? Evaluation of VariableDeclarationList.
     si for.init {
         doit_continuer := exécute_noeud(for.init, interpréteuse);
-        saufsi doit_continuer.est_normal() {
+        saufsi est_normal(doit_continuer) {
             retourne doit_continuer;
         }
     }
@@ -3468,7 +3468,7 @@ for_body_evaluation :: fonc (interpréteuse: *InterprèteArbre, test: *Expressio
 
     // 2. Perform ? CreatePerIterationEnvironment(perIterationBindings).
     completion := create_per_iteration_environment(interpréteuse, per_iteration_bindings);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
 
@@ -3478,14 +3478,14 @@ for_body_evaluation :: fonc (interpréteuse: *InterprèteArbre, test: *Expressio
         si test {
             // i. Let testRef be ? Evaluation of test.
             doit_continuer := exécute_noeud(test, interpréteuse);
-            saufsi doit_continuer.est_normal() {
+            saufsi est_normal(doit_continuer) {
                 retourne doit_continuer;
             }
 
             // ii. Let testValue be ? GetValue(testRef).
             test_value := get_value(interpréteuse, doit_continuer.valeur);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // iii. If ToBoolean(testValue) is false, return V.
@@ -3499,19 +3499,19 @@ for_body_evaluation :: fonc (interpréteuse: *InterprèteArbre, test: *Expressio
         // À FAIRE c. If LoopContinues(result, labelSet) is false, return ? UpdateEmpty(result, V).
         // À FAIRE d. If result.[[Value]] is not empty, set V to result.[[Value]].
         doit_continuer := exécute_noeud(stmt, interpréteuse);
-        si doit_continuer.est_continue() {
+        si est_continue(doit_continuer) {
             // OK.
         }
-        sinon si doit_continuer.est_break() {
+        sinon si est_break(doit_continuer) {
             arrête;
         }
-        sinon saufsi doit_continuer.est_normal() {
+        sinon saufsi est_normal(doit_continuer) {
             retourne doit_continuer;
         }
 
         // e. Perform ? CreatePerIterationEnvironment(perIterationBindings).
         completion = create_per_iteration_environment(interpréteuse, per_iteration_bindings);
-        saufsi completion.est_normal() {
+        saufsi est_normal(completion) {
             retourne completion;
         }
 
@@ -3519,13 +3519,13 @@ for_body_evaluation :: fonc (interpréteuse: *InterprèteArbre, test: *Expressio
         si increment {
             // i. Let incRef be ? Evaluation of increment.
             doit_continuer = exécute_noeud(increment, interpréteuse);
-            saufsi doit_continuer.est_normal() {
+            saufsi est_normal(doit_continuer) {
                 retourne doit_continuer;
             }
             // ii. Perform ? GetValue(incRef).
             _ := get_value(interpréteuse, doit_continuer.valeur);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
         }
     }
@@ -3540,7 +3540,7 @@ create_per_iteration_environment :: fonc (interpréteuse: *Interpréteuse, per_i
     // 1. If perIterationBindings has any elements, then
     si per_iteration_bindings.taille != 0 {
         mv := interpréteuse.mv;
-        running_execution_context := mv.donne_running_execution_context();
+        running_execution_context := donne_running_execution_context(mv);
 
         // a. Let lastIterationEnv be the running execution context's LexicalEnvironment.
         last_iteration_env := running_execution_context.lexical_environment;
@@ -3552,21 +3552,21 @@ create_per_iteration_environment :: fonc (interpréteuse: *Interpréteuse, per_i
         assert(outer != nul);
 
         // d. Let thisIterationEnv be NewDeclarativeEnvironment(outer).
-        this_iteration_env := new_declarative_environment(outer.donne_tas_de_mémoire(), outer);
+        this_iteration_env := new_declarative_environment(donne_tas_de_mémoire(outer), outer);
 
         // e. For each element bn of perIterationBindings, do
         pour per_iteration_bindings {
             // i. Perform ! thisIterationEnv.CreateMutableBinding(bn, false).
-            this_iteration_env.create_mutable_binding(interpréteuse.donne_realm(), it, faux);
+            create_mutable_binding(this_iteration_env, donne_realm(interpréteuse), it, faux);
 
             // ii. Let lastValue be ? lastIterationEnv.GetBindingValue(bn, true).
-            last_value := last_iteration_env.get_binding_value(interpréteuse.donne_realm(), it, vrai);
-            si interpréteuse.possède_exception() {
-                retourne throw_completion(interpréteuse.donne_exception());
+            last_value := get_binding_value(last_iteration_env, donne_realm(interpréteuse), it, vrai);
+            si possède_exception(interpréteuse) {
+                retourne throw_completion(donne_exception(interpréteuse));
             }
 
             // iii. Perform ! thisIterationEnv.InitializeBinding(bn, lastValue).
-            this_iteration_env.initialize_binding(it, last_value);
+            initialize_binding(this_iteration_env, it, last_value);
         }
 
         // f. Set the running execution context's LexicalEnvironment to thisIterationEnv.
@@ -3595,7 +3595,7 @@ ForOfStatement :: struct {
 
 crée_for_of_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression, body: *Statement) -> *ForOfStatement
 {
-    résultat := parseuse.crée_noeud(lexème, ForOfStatement);
+    résultat := crée_noeud(parseuse, lexème, ForOfStatement);
     résultat.left = left;
     résultat.right = right;
     résultat.body = body;
@@ -3625,7 +3625,7 @@ ForInStatement :: struct {
 
 crée_for_in_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression, body: *Statement) -> *ForInStatement
 {
-    résultat := parseuse.crée_noeud(lexème, ForInStatement);
+    résultat := crée_noeud(parseuse, lexème, ForInStatement);
     résultat.left = left;
     résultat.right = right;
     résultat.body = body;
@@ -3654,7 +3654,7 @@ WhileStatement :: struct {
 
 crée_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, body: *Statement) -> *WhileStatement
 {
-    résultat := parseuse.crée_noeud(lexème, WhileStatement);
+    résultat := crée_noeud(parseuse, lexème, WhileStatement);
     résultat.sur_génération_code_binaire = while_statement_sur_code_binaire;
     résultat.test = test;
     résultat.body = body;
@@ -3669,12 +3669,12 @@ sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     boucle {
         doit_continuer := exécute_noeud(while.test, interpréteuse);
-        saufsi doit_continuer.est_normal() {
+        saufsi est_normal(doit_continuer) {
             retourne doit_continuer;
         }
         valeur := get_value(interpréteuse, doit_continuer.valeur);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         saufsi to_boolean(valeur) {
@@ -3682,13 +3682,13 @@ sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
         }
 
         doit_continuer = exécute_noeud(while.body, interpréteuse);
-        si doit_continuer.est_continue() {
+        si est_continue(doit_continuer) {
             // OK.
         }
-        sinon si doit_continuer.est_break() {
+        sinon si est_break(doit_continuer) {
             arrête;
         }
-        sinon saufsi doit_continuer.est_normal() {
+        sinon saufsi est_normal(doit_continuer) {
             retourne doit_continuer;
         }
     }
@@ -3713,7 +3713,7 @@ DoWhileStatement :: struct {
 
 crée_do_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, body: *Statement, test: *Expression) -> *DoWhileStatement
 {
-    résultat := parseuse.crée_noeud(lexème, DoWhileStatement);
+    résultat := crée_noeud(parseuse, lexème, DoWhileStatement);
     résultat.sur_génération_code_binaire = do_while_statement_sur_code_binaire;
     résultat.body = body;
     résultat.test = test;
@@ -3728,23 +3728,23 @@ sur_exécution_do_while_statement :: fonc (base: *NoeudSyntaxique, interpréteus
 
     boucle {
         doit_continuer := exécute_noeud(do_while.body, interpréteuse);
-        si doit_continuer.est_continue() {
+        si est_continue(doit_continuer) {
             // OK.
         }
-        sinon si doit_continuer.est_break() {
+        sinon si est_break(doit_continuer) {
             arrête;
         }
-        sinon saufsi doit_continuer.est_normal() {
+        sinon saufsi est_normal(doit_continuer) {
             retourne doit_continuer;
         }
 
         doit_continuer = exécute_noeud(do_while.test, interpréteuse);
-        saufsi doit_continuer.est_normal() {
+        saufsi est_normal(doit_continuer) {
             retourne doit_continuer;
         }
         valeur := get_value(interpréteuse, doit_continuer.valeur);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         saufsi to_boolean(valeur) {
@@ -3773,7 +3773,7 @@ ConditionalExpression :: struct {
 
 crée_conditional_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Expression, alternate: *Expression) -> *ConditionalExpression
 {
-    résultat := parseuse.crée_noeud(lexème, ConditionalExpression);
+    résultat := crée_noeud(parseuse, lexème, ConditionalExpression);
     résultat.sur_génération_code_binaire = conditional_expression_sur_code_binaire;
     résultat.test = test;
     résultat.consequent = consequent;
@@ -3788,21 +3788,21 @@ sur_exécution_conditional_expression :: fonc (base: *NoeudSyntaxique, interpré
 
     // 1. Let lRef be ? Evaluation of ShortCircuitExpression.
     completion := exécute_noeud(conditional.test, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     lref := completion.valeur;
 
     // 2. Let lVal be ToBoolean(? GetValue(lRef)).
     valeur_lval := get_value(interpréteuse, lref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     lval := to_boolean(valeur_lval);
 
     expr: *NoeudSyntaxique;
     // 3. If lVal is true, then
-    si lval.est_true() {
+    si est_true(lval) {
         // a. Let trueRef be ? Evaluation of the first AssignmentExpression.
         // b. Return ? GetValue(trueRef).
         expr = conditional.consequent;
@@ -3815,13 +3815,13 @@ sur_exécution_conditional_expression :: fonc (base: *NoeudSyntaxique, interpré
     }
 
     completion = exécute_noeud(expr, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     ref := completion.valeur;
     résultat := get_value(interpréteuse, ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(résultat);
 }
@@ -3844,7 +3844,7 @@ IfStatement :: struct {
 
 crée_if_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Statement, alternate: *Statement) -> *IfStatement
 {
-    résultat := parseuse.crée_noeud(lexème, IfStatement);
+    résultat := crée_noeud(parseuse, lexème, IfStatement);
     résultat.sur_génération_code_binaire = if_statement_sur_code_binaire;
     résultat.test = test;
     résultat.consequent = consequent;
@@ -3859,22 +3859,22 @@ sur_exécution_if_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *In
 
     // 1. Let exprRef be ? Evaluation of Expression.
     complétion_expr_ref := exécute_noeud(if.test, interpréteuse);
-    saufsi complétion_expr_ref.est_normal() {
+    saufsi est_normal(complétion_expr_ref) {
         retourne complétion_expr_ref;
     }
     expr_ref := complétion_expr_ref.valeur;
 
     // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
     value_expr_ref := get_value(interpréteuse, expr_ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     expr_value := to_boolean(value_expr_ref);
 
     stmt_completion: CompletionRecord;
 
     // 3. If exprValue is true, then
-    si expr_value.est_true() {
+    si est_true(expr_value) {
         // a. Let stmtCompletion be Completion(Evaluation of the first Statement).
         stmt_completion = exécute_noeud(if.consequent, interpréteuse);
     }
@@ -3909,7 +3909,7 @@ TypeofOperator :: struct {
 
 crée_typeof_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *TypeofOperator
 {
-    résultat := parseuse.crée_noeud(lexème, TypeofOperator);
+    résultat := crée_noeud(parseuse, lexème, TypeofOperator);
     résultat.sur_génération_code_binaire = typeof_operator_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -3922,7 +3922,7 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // 1. Let val be ? Evaluation of UnaryExpression.
     completion_val := exécute_noeud(typeof.argument, interpréteuse);
-    saufsi completion_val.est_normal() {
+    saufsi est_normal(completion_val) {
         retourne completion_val;
     }
     val := completion_val.valeur;
@@ -3937,8 +3937,8 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // 3. Set val to ? GetValue(val).
     valeur := get_value(interpréteuse, val);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     chn := donne_chaine_pour_typeof(valeur);
@@ -3949,46 +3949,46 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 donne_chaine_pour_typeof :: fonc (valeur: Valeur) -> ECMAString
 {
     // 4. If val is undefined, return "undefined".
-    si valeur.est_undefined() {
+    si est_undefined(valeur) {
         retourne STR_undefined;
     }
 
     // 5. If val is null, return "object".
-    si valeur.est_nulle() {
+    si est_nulle(valeur) {
         retourne STR_object;
     }
 
     // 6. If val is a String, return "string".
-    si valeur.est_chaine() {
+    si est_chaine(valeur) {
         retourne STR_string;
     }
 
     // 7. If val is a Symbol, return "symbol".
-    si valeur.est_symbol() {
+    si est_symbol(valeur) {
         retourne STR_symbol;
     }
 
     // 8. If val is a Boolean, return "boolean".
-    si valeur.est_boolean() {
+    si est_boolean(valeur) {
         retourne STR_boolean;
     }
 
     // 9. If val is a Number, return "number".
-    si valeur.est_nombre() {
+    si est_nombre(valeur) {
         retourne STR_number;
     }
 
     // 10. If val is a BigInt, return "bigint".
-    si valeur.est_big_int() {
+    si est_big_int(valeur) {
         retourne STR_bigint;
     }
 
     // 11. Assert: val is an Object.
-    objet := valeur.donne_objet();
+    objet := donne_objet(valeur);
 
     // À FAIRE : 12. NOTE: This step is replaced in section B.3.6.3.
     // 13. If val has a [[Call]] internal slot, return "function".
-    si objet.donne_table().sur_call {
+    si donne_table(objet).sur_call {
         retourne STR_function;
     }
 
@@ -4012,7 +4012,7 @@ VoidOperator :: struct {
 
 crée_void_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *VoidOperator
 {
-    résultat := parseuse.crée_noeud(lexème, VoidOperator);
+    résultat := crée_noeud(parseuse, lexème, VoidOperator);
     résultat.sur_génération_code_binaire = void_operator_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -4025,15 +4025,15 @@ sur_exécution_void_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
     // 1. Let expr be ? Evaluation of UnaryExpression.
     completion := exécute_noeud(void.argument, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr := completion.valeur;
 
     // 2. Perform ? GetValue(expr).
     _ := get_value(interpréteuse, expr);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Return undefined.
@@ -4055,7 +4055,7 @@ DeleteOperator :: struct {
 
 crée_delete_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *DeleteOperator
 {
-    résultat := parseuse.crée_noeud(lexème, DeleteOperator);
+    résultat := crée_noeud(parseuse, lexème, DeleteOperator);
     résultat.argument = argument;
     retourne résultat;
 }
@@ -4082,7 +4082,7 @@ ThrowStatement :: struct {
 
 crée_throw_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *ThrowStatement
 {
-    résultat := parseuse.crée_noeud(lexème, ThrowStatement);
+    résultat := crée_noeud(parseuse, lexème, ThrowStatement);
     résultat.sur_génération_code_binaire = throw_statement_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -4094,15 +4094,15 @@ sur_exécution_throw_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // 1. Let exprRef be ? Evaluation of Expression.
     completion_expr_ref := exécute_noeud(throw.argument, interpréteuse);
-    saufsi completion_expr_ref.est_normal() {
+    saufsi est_normal(completion_expr_ref) {
         retourne completion_expr_ref;
     }
     expr_ref := completion_expr_ref.valeur;
 
     // 2. Let exprValue be ? GetValue(exprRef).
     expr_value := get_value(interpréteuse, expr_ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Return ThrowCompletion(exprValue).
@@ -4128,7 +4128,7 @@ TryStatement :: struct {
 
 crée_try_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, block: *Statement, handler: *CatchClause, finalizer: *Statement) -> *TryStatement
 {
-    résultat := parseuse.crée_noeud(lexème, TryStatement);
+    résultat := crée_noeud(parseuse, lexème, TryStatement);
     résultat.sur_génération_code_binaire = try_statement_sur_code_binaire;
     résultat.block = block;
     résultat.handler = handler;
@@ -4147,7 +4147,7 @@ sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
         // 2. If B is a throw completion, let C be Completion(CatchClauseEvaluation of Catch with argument B.[[Value]]).
         C: CompletionRecord;
-        si B.est_throw() {
+        si est_throw(B) {
             C = catch_clause_evaluation(try.handler, interpréteuse, B.valeur);
         }
         // 3. Else, let C be B.
@@ -4167,7 +4167,7 @@ sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
         F := exécute_noeud(try.finalizer, interpréteuse);
 
         // 3. If F is a normal completion, set F to B.
-        si F.est_normal() {
+        si est_normal(F) {
             F = B;
         }
 
@@ -4180,7 +4180,7 @@ sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
     // 2. If B is a throw completion, let C be Completion(CatchClauseEvaluation of Catch with argument B.[[Value]]).
     C: CompletionRecord;
-    si B.est_throw() {
+    si est_throw(B) {
         C = catch_clause_evaluation(try.handler, interpréteuse, B.valeur);
     }
     // 3. Else, let C be B.
@@ -4192,7 +4192,7 @@ sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
     F := exécute_noeud(try.finalizer, interpréteuse);
 
     // 5. If F is a normal completion, set F to C.
-    si F.est_normal() {
+    si est_normal(F) {
         F = C;
     }
 
@@ -4217,7 +4217,7 @@ CatchClause :: struct {
 
 crée_catch_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, param: *Expression, body: *Statement) -> *CatchClause
 {
-    résultat := parseuse.crée_noeud(lexème, CatchClause);
+    résultat := crée_noeud(parseuse, lexème, CatchClause);
     résultat.param = param;
     résultat.body = body;
     retourne résultat;
@@ -4236,7 +4236,7 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interprè
     arg_name := identifier.nom;
 
     status, old_env := crée_environnement_lexical_pour_catch(interpréteuse, arg_name, thrown_value);
-    si status.est_abrupt() {
+    si est_abrupt(status) {
         retourne status;
     }
     assert(old_env != nul);
@@ -4246,7 +4246,7 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interprè
 
     // 8. Set the running execution context's LexicalEnvironment to oldEnv.
     mv := interpréteuse.mv;
-    running_execution_context := mv.donne_running_execution_context();
+    running_execution_context := donne_running_execution_context(mv);
     running_execution_context.lexical_environment = old_env;
 
     // 9. Return ? B.
@@ -4256,31 +4256,31 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interprè
 crée_environnement_lexical_pour_catch :: fonc (interpréteuse: *Interpréteuse, arg_name: ECMAString, thrown_value: Valeur) -> (CompletionRecord, *Environment)
 {
     mv := interpréteuse.mv;
-    running_execution_context := mv.donne_running_execution_context();
+    running_execution_context := donne_running_execution_context(mv);
 
     // 1. Let oldEnv be the running execution context's LexicalEnvironment.
     old_env := running_execution_context.lexical_environment;
 
     // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
-    catch_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env);
+    catch_env := new_declarative_environment(donne_tas_de_mémoire(old_env), old_env);
 
     // À FAIRE : 3. For each element argName of the BoundNames of CatchParameter, do
     //    a. Perform ! catchEnv.CreateMutableBinding(argName, false).
-    catch_env.create_mutable_binding(interpréteuse.donne_realm(), arg_name, faux);
+    create_mutable_binding(catch_env, donne_realm(interpréteuse), arg_name, faux);
 
     // 4. Set the running execution context's LexicalEnvironment to catchEnv.
     running_execution_context.lexical_environment = catch_env;
 
     // À FAIRE : 5. Let status be Completion(BindingInitialization of CatchParameter with arguments thrownValue and catchEnv).
-    catch_env.initialize_binding(arg_name, thrown_value);
+    initialize_binding(catch_env, arg_name, thrown_value);
 
     // 6. If status is an abrupt completion, then
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         // a. Set the running execution context's LexicalEnvironment to oldEnv.
         running_execution_context.lexical_environment = old_env;
 
         // b. Return ? status.
-        retourne throw_completion(interpréteuse.donne_exception()), nul;
+        retourne throw_completion(donne_exception(interpréteuse)), nul;
     }
 
     retourne normal_completion(js_undefined), old_env;
@@ -4302,7 +4302,7 @@ NewExpression :: struct {
 
 crée_new_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *NewExpression
 {
-    résultat := parseuse.crée_noeud(lexème, NewExpression);
+    résultat := crée_noeud(parseuse, lexème, NewExpression);
     résultat.sur_génération_code_binaire = new_expression_sur_code_binaire;
     résultat.argument = argument;
     retourne résultat;
@@ -4334,15 +4334,15 @@ evaluate_new :: fonc (interpréteuse: *InterprèteArbre, construct_expr: *NoeudS
 {
     // 1. Let ref be ? Evaluation of constructExpr.
     completion_ref := exécute_noeud(construct_expr, interpréteuse);
-    saufsi completion_ref.est_normal() {
+    saufsi est_normal(completion_ref) {
         retourne completion_ref;
     }
     ref := completion_ref.valeur;
 
     // 2. Let constructor be ? GetValue(ref).
     constructor := get_value(interpréteuse, ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     arg_list: [..]Valeur;
@@ -4353,7 +4353,7 @@ evaluate_new :: fonc (interpréteuse: *InterprèteArbre, construct_expr: *NoeudS
     si arguments.taille != 0 {
         // a. Let argList be ? ArgumentListEvaluation of arguments.
         completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list);
-        saufsi completion_arg_list.est_normal() {
+        saufsi est_normal(completion_arg_list) {
             retourne completion_arg_list;
         }
     }
@@ -4361,13 +4361,13 @@ evaluate_new :: fonc (interpréteuse: *InterprèteArbre, construct_expr: *NoeudS
     // 5. If IsConstructor(constructor) is false, throw a TypeError exception.
     saufsi is_constructor(constructor) {
         _ := lance_type_error(interpréteuse, "expression is not a constructor");
-        retourne throw_completion(interpréteuse.donne_exception());
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 6. Return ? Construct(constructor, argList).
     résultat := construct(interpréteuse, constructor, arg_list);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(résultat);
 }
@@ -4390,7 +4390,7 @@ SwitchStatement :: struct {
 
 crée_switch_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, discriminant: *Expression, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
 {
-    résultat := parseuse.crée_noeud(lexème, SwitchStatement);
+    résultat := crée_noeud(parseuse, lexème, SwitchStatement);
     résultat.sur_génération_code_binaire = switch_statement_sur_code_binaire;
     résultat.discriminant = discriminant;
     résultat.cases = cases;
@@ -4405,24 +4405,24 @@ sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse:
 
     // 1. Let exprRef be ? Evaluation of Expression.
     completion := exécute_noeud(switch.discriminant, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr_ref := completion.valeur;
 
     // 2. Let switchValue be ? GetValue(exprRef).
     switch_value := get_value(interpréteuse, expr_ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Let oldEnv be the running execution context's LexicalEnvironment.
     mv := interpréteuse.mv;
-    running_execution_context := mv.donne_running_execution_context();
+    running_execution_context := donne_running_execution_context(mv);
     old_env := running_execution_context.lexical_environment;
 
     // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env);
+    block_env := new_declarative_environment(donne_tas_de_mémoire(old_env), old_env);
 
     // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
     block_declaration_instantiation(interpréteuse, switch, block_env);
@@ -4438,7 +4438,7 @@ sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse:
 
     // À FAIRE : ceci n'est pas spécifié, mais une complétion de BREAK est
     // propagée car abrupte et fait échouer les programmes.
-    si R.est_break() {
+    si est_break(R) {
         R.type = CompletionRecord.Type.NORMAL;
     }
 
@@ -4470,11 +4470,11 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
             saufsi found {
                 // i. Set found to ? CaseClauseIsSelected(C, input).
                 completion := case_clause_is_selected(interpréteuse, it, input);
-                saufsi completion.est_normal() {
+                saufsi est_normal(completion) {
                     retourne completion;
                 }
 
-                found = completion.valeur.V.est_true();
+                found = est_true(completion.valeur.V);
             }
             // b. If found is true, then
             si found {
@@ -4482,12 +4482,12 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
                 R := exécute_noeud(it, interpréteuse);
 
                 // ii. If R.[[Value]] is not empty, set V to R.[[Value]].
-                saufsi R.valeur.est_empty() {
+                saufsi est_empty(R.valeur) {
                     V = R.valeur.V;
                 }
 
                 // iii. If R is an abrupt completion, return ? UpdateEmpty(R, V).
-                si R.est_abrupt() {
+                si est_abrupt(R) {
                     retourne update_empty(R, V);
                 }
             }
@@ -4515,11 +4515,11 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
         saufsi found {
             // i. Set found to ? CaseClauseIsSelected(C, input).
             completion := case_clause_is_selected(interpréteuse, it, input);
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
 
-            found = completion.valeur.V.est_true();
+            found = est_true(completion.valeur.V);
         }
         // b. If found is true, then
         si found {
@@ -4527,12 +4527,12 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
             R := exécute_noeud(it, interpréteuse);
 
             // ii. If R.[[Value]] is not empty, set V to R.[[Value]].
-            saufsi R.valeur.est_empty() {
+            saufsi est_empty(R.valeur) {
                 V = R.valeur.V;
             }
 
             // iii. If R is an abrupt completion, return ? UpdateEmpty(R, V).
-            si R.est_abrupt() {
+            si est_abrupt(R) {
                 retourne update_empty(R, V);
             }
         }
@@ -4555,11 +4555,11 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
             saufsi found_in_b {
                 // 1. Set foundInB to ? CaseClauseIsSelected(C, input).
                 completion := case_clause_is_selected(interpréteuse, it, input);
-                saufsi completion.est_normal() {
+                saufsi est_normal(completion) {
                     retourne completion;
                 }
 
-                found_in_b = completion.valeur.V.est_true();
+                found_in_b = est_true(completion.valeur.V);
             }
             // ii. If foundInB is true, then
             si found_in_b {
@@ -4567,12 +4567,12 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
                 R := exécute_noeud(it, interpréteuse);
 
                 // 2. If R.[[Value]] is not empty, set V to R.[[Value]].
-                saufsi R.valeur.est_empty() {
+                saufsi est_empty(R.valeur) {
                     V = R.valeur.V;
                 }
 
                 // 3. If R is an abrupt completion, return ? UpdateEmpty(R, V).
-                si R.est_abrupt() {
+                si est_abrupt(R) {
                     retourne update_empty(R, V);
                 }
             }
@@ -4586,17 +4586,17 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
 
     // 11. Let defaultR be Completion(Evaluation of DefaultClause).
     default_r := exécute_noeud(switch.cases[switch.index_default_clause], interpréteuse);
-    saufsi default_r.est_normal() {
+    saufsi est_normal(default_r) {
         retourne default_r;
     }
 
     // 12. If defaultR.[[Value]] is not empty, set V to defaultR.[[Value]].
-    saufsi default_r.valeur.est_empty() {
+    saufsi est_empty(default_r.valeur) {
         V = default_r.valeur.V;
     }
 
     // 13. If defaultR is an abrupt completion, return ? UpdateEmpty(defaultR, V).
-    si default_r.est_abrupt() {
+    si est_abrupt(default_r) {
         retourne update_empty(default_r, V);
     }
 
@@ -4607,12 +4607,12 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
         R := exécute_noeud(it, interpréteuse);
 
         // b. If R.[[Value]] is not empty, set V to R.[[Value]].
-        saufsi R.valeur.est_empty() {
+        saufsi est_empty(R.valeur) {
             V = R.valeur.V;
         }
 
         // c. If R is an abrupt completion, return ? UpdateEmpty(R, V).
-        si R.est_abrupt() {
+        si est_abrupt(R) {
             retourne update_empty(R, V);
         }
     }
@@ -4630,15 +4630,15 @@ case_clause_is_selected :: fonc (interpréteuse: *InterprèteArbre, clause: *Cas
 
     // 2. Let exprRef be ? Evaluation of the Expression of C.
     completion := exécute_noeud(clause.test, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     expr_ref := completion.valeur;
 
     // 3. Let clauseSelector be ? GetValue(exprRef).
     clause_selector := get_value(interpréteuse, expr_ref);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 4. Return IsStrictlyEqual(input, clauseSelector).
@@ -4662,7 +4662,7 @@ CaseClause :: struct {
 
 crée_case_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Statement) -> *CaseClause
 {
-    résultat := parseuse.crée_noeud(lexème, CaseClause);
+    résultat := crée_noeud(parseuse, lexème, CaseClause);
     résultat.test = test;
     résultat.consequent = consequent;
     retourne résultat;
@@ -4693,7 +4693,7 @@ DefaultClause :: struct {
 
 crée_default_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, consequent: *Statement) -> *DefaultClause
 {
-    résultat := parseuse.crée_noeud(lexème, DefaultClause);
+    résultat := crée_noeud(parseuse, lexème, DefaultClause);
     résultat.consequent = consequent;
     retourne résultat;
 }
@@ -4715,7 +4715,7 @@ CommaExpression :: struct {
 
 crée_comma_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *CommaExpression
 {
-    résultat := parseuse.crée_noeud(lexème, CommaExpression);
+    résultat := crée_noeud(parseuse, lexème, CommaExpression);
     résultat.sur_génération_code_binaire = comma_statement_sur_code_binaire;
     résultat.left = left;
     résultat.right = right;
@@ -4729,26 +4729,26 @@ sur_exécution_comma_expression :: fonc (base: *NoeudSyntaxique, interpréteuse:
 
     // 1. Let lRef be ? Evaluation of Expression.
     completion := exécute_noeud(comma.left, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
 
     // 2. Perform ? GetValue(lRef).
     _ := get_value(interpréteuse, completion.valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Let rRef be ? Evaluation of AssignmentExpression.
     completion = exécute_noeud(comma.right, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
 
     // 4. Return ? GetValue(rRef).
     résultat := get_value(interpréteuse, completion.valeur);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     retourne normal_completion(résultat);
 }
@@ -4770,7 +4770,7 @@ LabelledStatement :: struct {
 
 crée_labelled_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, identifier: ECMAString, statement: *Statement) -> *LabelledStatement
 {
-    résultat := parseuse.crée_noeud(lexème, LabelledStatement);
+    résultat := crée_noeud(parseuse, lexème, LabelledStatement);
     résultat.identifier = identifier;
     résultat.statement = statement;
     retourne résultat;
@@ -4796,7 +4796,7 @@ DebuggerStatement :: struct {
 
 crée_debugger_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *DebuggerStatement
 {
-    résultat := parseuse.crée_noeud(lexème, DebuggerStatement);
+    résultat := crée_noeud(parseuse, lexème, DebuggerStatement);
     retourne résultat;
 }
 
@@ -4824,7 +4824,7 @@ TemplateLiteral :: struct {
 
 crée_template_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, quasis: [..]*TemplateElement) -> *TemplateLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, TemplateLiteral);
+    résultat := crée_noeud(parseuse, lexème, TemplateLiteral);
     résultat.quasis = quasis;
     retourne résultat;
 }
@@ -4849,7 +4849,7 @@ sur_exécution_template_literal :: fonc (base: *NoeudSyntaxique, interpréteuse:
     chaines: [..]*PrimitiveChaine;
     diffère déloge(*chaines);
 
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
     tableau_ajoute(*chaines, crée_chaine(realm, quasi.value));
 
     indice_expression := 0;
@@ -4859,16 +4859,16 @@ sur_exécution_template_literal :: fonc (base: *NoeudSyntaxique, interpréteuse:
         indice_expression += 1;
 
         completion := exécute_noeud(expression, interpréteuse);
-        saufsi completion.est_normal() {
+        saufsi est_normal(completion) {
             retourne completion;
         }
         valeur := get_value(interpréteuse, completion.valeur);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
         str := to_string(interpréteuse, valeur);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
         tableau_ajoute(*chaines, str);
 
@@ -4902,7 +4902,7 @@ TemplateElement :: struct {
 
 crée_template_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, value: ECMAString, tail: bool) -> *TemplateElement
 {
-    résultat := parseuse.crée_noeud(lexème, TemplateElement);
+    résultat := crée_noeud(parseuse, lexème, TemplateElement);
     résultat.value = value;
     résultat.tail = tail;
     retourne résultat;
@@ -4923,7 +4923,7 @@ SpreadElement :: struct {
 
 crée_spread_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *SpreadElement
 {
-    résultat := parseuse.crée_noeud(lexème, SpreadElement);
+    résultat := crée_noeud(parseuse, lexème, SpreadElement);
     résultat.argument = argument;
     retourne résultat;
 }
@@ -4957,7 +4957,7 @@ ObjectMethod :: struct {
 
 crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind, async: bool, generator: bool) -> *ObjectMethod
 {
-    résultat := parseuse.crée_noeud(lexème, ObjectMethod);
+    résultat := crée_noeud(parseuse, lexème, ObjectMethod);
     résultat.class_element_name = class_element_name;
     résultat.paramètres = paramètres;
     résultat.body = body;
@@ -4977,14 +4977,14 @@ MethodDefinitionInfo :: struct {
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-definemethod */
 define_method :: fonc (interpréteuse: *InterprèteArbre, method_definition: *ObjectMethod, object: *Object, function_prototype : *Object = nul) -> MethodDefinitionInfo
 {
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
     // 1. Let propKey be ? Evaluation of ClassElementName.
     prop_key := évalue_classe_element_name(interpréteuse, method_definition.class_element_name);
 
     // 2. Let env be the running execution context's LexicalEnvironment.
     mv := interpréteuse.mv;
-    running_execution_context := mv.donne_running_execution_context();
+    running_execution_context := donne_running_execution_context(mv);
     env := running_execution_context.lexical_environment;
 
     // 3. Let privateEnv be the running execution context's PrivateEnvironment.
@@ -5021,12 +5021,12 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
     si method_definition.kind == MethodKind.Method {
         // 1. Let methodDef be ? DefineMethod of MethodDefinition with argument object.
         method_def := define_method(interpréteuse, method_definition, object);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
 
         // 2. Perform SetFunctionName(methodDef.[[Closure]], methodDef.[[Key]]).
-        set_function_name(interpréteuse.donne_realm(), method_def.closure, method_def.key);
+        set_function_name(donne_realm(interpréteuse), method_def.closure, method_def.key);
 
         // 3. Return ? DefineMethodProperty(object, methodDef.[[Key]], methodDef.[[Closure]], enumerable).
         retourne define_method_property(object, method_def.key, method_def.closure, enumerable);
@@ -5037,7 +5037,7 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
 
         // 2. Let env be the running execution context's LexicalEnvironment.
         mv := interpréteuse.mv;
-        running_execution_context := mv.donne_running_execution_context();
+        running_execution_context := donne_running_execution_context(mv);
         env := running_execution_context.lexical_environment;
 
         // 3. Let privateEnv be the running execution context's PrivateEnvironment.
@@ -5050,17 +5050,17 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
         formal_parameter_list: [..]*Expression;
 
         // 6. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, formalParameterList, FunctionBody, non-lexical-this, env, privateEnv).
-        realm := interpréteuse.donne_realm();
+        realm := donne_realm(interpréteuse);
         closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, formal_parameter_list, method_definition.body, NON_LEXICAL_THIS, env, private_env);
 
         // 7. Perform MakeMethod(closure, object).
         make_method(closure, object);
 
         // 8. Perform SetFunctionName(closure, propKey, "get").
-        set_function_name(interpréteuse.donne_realm(), closure, prop_key, STR_get);
+        set_function_name(donne_realm(interpréteuse), closure, prop_key, STR_get);
 
         // 9. If propKey is a Private Name, then
-        si prop_key.est_private_name() {
+        si est_private_name(prop_key) {
             // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: closure, [[Set]]: undefined }.
             retourne PrivateElement(prop_key.PrivateName, PrivateElement.Kind.ACCESSOR, get = closure);
         }
@@ -5084,7 +5084,7 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
 
         // 2. Let env be the running execution context's LexicalEnvironment.
         mv := interpréteuse.mv;
-        running_execution_context := mv.donne_running_execution_context();
+        running_execution_context := donne_running_execution_context(mv);
         env := running_execution_context.lexical_environment;
 
         // 3. Let privateEnv be the running execution context's PrivateEnvironment.
@@ -5094,17 +5094,17 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
         source_text := donne_texte_source(method_definition);
 
         // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, PropertySetParameterList, FunctionBody, non-lexical-this, env, privateEnv).
-        realm := interpréteuse.donne_realm();
+        realm := donne_realm(interpréteuse);
         closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, method_definition.paramètres, method_definition.body, NON_LEXICAL_THIS, env, private_env);
 
         // 6. Perform MakeMethod(closure, object).
         make_method(closure, object);
 
         // 7. Perform SetFunctionName(closure, propKey, "set").
-        set_function_name(interpréteuse.donne_realm(), closure, prop_key, STR_get);
+        set_function_name(donne_realm(interpréteuse), closure, prop_key, STR_get);
 
         // À FAIRE 8. If propKey is a Private Name, then
-        si prop_key.est_private_name() {
+        si est_private_name(prop_key) {
         // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: undefined, [[Set]]: closure }.
             retourne PrivateElement(prop_key.PrivateName, PrivateElement.Kind.ACCESSOR, set = closure);
         }
@@ -5145,7 +5145,7 @@ OptionalMemberExpression :: struct {
 
 crée_optional_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, gauche: *Expression, droite: *Expression, calculé: bool) -> *OptionalMemberExpression
 {
-    résultat := parseuse.crée_noeud(lexème, OptionalMemberExpression);
+    résultat := crée_noeud(parseuse, lexème, OptionalMemberExpression);
     résultat.gauche = gauche;
     résultat.droite = droite;
     résultat.calculé = calculé;
@@ -5158,19 +5158,19 @@ sur_exécution_optional_member_expression :: fonc (base: *NoeudSyntaxique, inter
 
     // 1. Let baseReference be ? Evaluation of MemberExpression.
     completion := exécute_noeud(optional_chain.gauche, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     base_reference := completion.valeur;
 
     // 2. Let baseValue be ? GetValue(baseReference).
     base_value := get_value(interpréteuse, base_reference);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If baseValue is either undefined or null, then
-    si base_value.est_undefined() || base_value.est_nulle() {
+    si est_undefined(base_value) || est_nulle(base_value) {
         // a. Return undefined.
         retourne normal_completion(js_undefined);
     }
@@ -5234,7 +5234,7 @@ OptionalCallExpression :: struct {
 
 crée_optional_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, gauche: *Expression, arguments: [..]*Expression) -> *OptionalCallExpression
 {
-    résultat := parseuse.crée_noeud(lexème, OptionalCallExpression);
+    résultat := crée_noeud(parseuse, lexème, OptionalCallExpression);
     résultat.gauche = gauche;
     résultat.arguments = arguments;
     retourne résultat;
@@ -5246,19 +5246,19 @@ sur_exécution_optional_call_expression :: fonc (base: *NoeudSyntaxique, interpr
 
     // 1. Let baseReference be ? Evaluation of MemberExpression.
     completion := exécute_noeud(optional_chain.gauche, interpréteuse);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     base_reference := completion.valeur;
 
     // 2. Let baseValue be ? GetValue(baseReference).
     base_value := get_value(interpréteuse, base_reference);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. If baseValue is either undefined or null, then
-    si base_value.est_undefined() || base_value.est_nulle() {
+    si est_undefined(base_value) || est_nulle(base_value) {
         // a. Return undefined.
         retourne normal_completion(js_undefined);
     }
@@ -5285,7 +5285,7 @@ ClassDeclaration :: struct {
 
 crée_class_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, héritage: *Expression, identifier: *Identifier, body: *ClassBody) -> *ClassDeclaration
 {
-    résultat := parseuse.crée_noeud(lexème, ClassDeclaration);
+    résultat := crée_noeud(parseuse, lexème, ClassDeclaration);
     résultat.héritage = héritage;
     résultat.identifier = identifier;
     résultat.body = body;
@@ -5299,8 +5299,8 @@ sur_exécution_class_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse
 
     // 1. Perform ? BindingClassDeclarationEvaluation of this ClassDeclaration.
     _ := binding_class_declaration_evaluation(interpréteuse, class_declaration);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 2. Return empty.
@@ -5364,7 +5364,7 @@ is_static :: fonc (syntax: *NoeudSyntaxique) -> bool
     }
 
     property_key := évalue_property_name(interpréteuse, class_element_name);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         résultat: FieldName;
         retourne résultat;
     }
@@ -5378,7 +5378,7 @@ class_field_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, clas
 {
     // 1. Let name be ? Evaluation of ClassElementName.
     name := évalue_classe_element_name(interpréteuse, class_field.class_element_name);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne ClassFieldDefinition();
     }
 
@@ -5400,7 +5400,7 @@ class_field_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, clas
         source_text: chaine;
 
         // e. Let initializer be OrdinaryFunctionCreate(%Function.prototype%, sourceText, formalParameterList, Initializer, non-lexical-this, env, privateEnv).
-        realm := interpréteuse.donne_realm();
+        realm := donne_realm(interpréteuse);
         initializer = ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, formal_parameter_list, class_field.initializer, NON_LEXICAL_THIS, env, private_env);
 
         // f. Perform MakeMethod(initializer, homeObject).
@@ -5437,7 +5437,7 @@ class_static_block_definition_evaluation :: fonc (interpréteuse: *Interpréteus
     formal_parameters: [..]*Expression;
 
     // 5. Let bodyFunction be OrdinaryFunctionCreate(%Function.prototype%, sourceText, formalParameters, ClassStaticBlockBody, non-lexical-this, lex, privateEnv)
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
     body_function := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, formal_parameters, class_static_block.body, NON_LEXICAL_THIS, lex, private_env);
 
     // 6. Perform MakeMethod(bodyFunction, homeObject)
@@ -5500,7 +5500,7 @@ class_element_evaluation :: fonc (interpréteuse: *InterprèteArbre, syntax: *No
         résultat: ClassElementEvaluationResult;
         
         opt_private_element := method_definition_evaluation(interpréteuse, class_method, object, faux);
-        si opt_private_element.possède_valeur() {
+        si possède_valeur(opt_private_element) {
             résultat.Private = opt_private_element.Quelque;
         }
 
@@ -5532,7 +5532,7 @@ class_element_evaluation :: fonc (interpréteuse: *InterprèteArbre, syntax: *No
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-classdefinitionevaluation */
 class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_heritage: *Expression, class_body: *ClassBody, class_binding: Optionnel(ECMAString), class_name: FieldName) -> *Function
 {
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
     // 1. Let env be the LexicalEnvironment of the running execution context.
     mv := interpréteuse.mv;
@@ -5540,10 +5540,10 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     env := running_execution_context.lexical_environment;
 
     // 2. Let classEnv be NewDeclarativeEnvironment(env).
-    class_env := new_declarative_environment(env.donne_tas_de_mémoire(), env);
+    class_env := new_declarative_environment(donne_tas_de_mémoire(env), env);
 
     // 3. If classBinding is not undefined, then
-    si class_binding.possède_valeur() {
+    si possède_valeur(class_binding) {
         // a. Perform ! classEnv.CreateImmutableBinding(classBinding, true).
         _ := create_immutable_binding(class_env, realm, class_binding.Quelque, vrai);
     }
@@ -5552,7 +5552,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     outer_private_environment := running_execution_context.private_environment;
 
     // 5. Let classPrivateEnvironment be NewPrivateEnvironment(outerPrivateEnvironment).
-    class_private_environment := new_private_environment(realm.donne_tas_de_mémoire(), outer_private_environment);
+    class_private_environment := new_private_environment(donne_tas_de_mémoire(realm), outer_private_environment);
 
     // 6. If ClassBody is present, then
     si class_body {
@@ -5594,8 +5594,8 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     
         // c. Let superclassRef be Completion(Evaluation of ClassHeritage).
         completion := exécute_noeud(class_heritage, interpréteuse);
-        saufsi completion.est_normal() {
-            interpréteuse.définis_exception(completion);
+        saufsi est_normal(completion) {
+            définis_exception(interpréteuse, completion);
             retourne nul;
         }
         superclass_ref := completion.valeur;
@@ -5605,12 +5605,12 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
 
         // e. Let superclass be ? GetValue(? superclassRef).
         superclass := get_value(interpréteuse, superclass_ref);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne nul;
         }
 
         // f. If superclass is null, then
-        si superclass.est_nulle() {
+        si est_nulle(superclass) {
             // i. Let protoParent be null.
             proto_parent = nul;
 
@@ -5626,16 +5626,16 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
         // h. Else,
         sinon {
             // i. Let protoParent be ? Get(superclass, "prototype").
-            proto_parent_value := get(superclass.donne_objet(), STR_prototype);
-            si interpréteuse.possède_exception() {
+            proto_parent_value := get(donne_objet(superclass), STR_prototype);
+            si possède_exception(interpréteuse) {
                 retourne nul;
             }
 
             // ii. If protoParent is not an Object and protoParent is not null, throw a TypeError exception.
-            si proto_parent_value.est_object() {
-                proto_parent = proto_parent_value.donne_objet();
+            si est_object(proto_parent_value) {
+                proto_parent = donne_objet(proto_parent_value);
             }
-            sinon si proto_parent.est_nulle() {
+            sinon si est_nulle(proto_parent) {
                 proto_parent = nul;
             }
             sinon {
@@ -5644,7 +5644,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
             }
 
             // iii. Let constructorParent be superclass.
-            constructor_parent = superclass.donne_objet();
+            constructor_parent = donne_objet(superclass);
         }
     }
 
@@ -5683,8 +5683,8 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
         default_constructor := constructor_pour_classe_sans_constructor;
 
         // b. Let F be CreateBuiltinFunction(defaultConstructor, 0, className, « [[ConstructorKind]], [[SourceText]] », the current Realm Record, constructorParent).
-        tas_de_mémoire := realm.donne_tas_de_mémoire();
-        builtin := tas_de_mémoire.alloue(BuiltInFunction);
+        tas_de_mémoire := donne_tas_de_mémoire(realm);
+        builtin := alloue(tas_de_mémoire, BuiltInFunction);
         builtin.sur_call_or_construct = default_constructor;
         create_builtin_function(builtin, 0, class_name, realm, constructor_parent);
 
@@ -5712,7 +5712,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
 
     // 17. If ClassHeritage is present, set F.[[ConstructorKind]] to derived.
     si class_heritage {
-        F.définis_constructor_kind(ConstructorKind.Derived);
+        définis_constructor_kind(F, ConstructorKind.Derived);
     }
     
     // 18. Perform ! DefineMethodProperty(proto, "constructor", F, false).
@@ -5766,7 +5766,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
         }
 
         // c. If element is an abrupt completion, then
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             // i. Set the running execution context's LexicalEnvironment to env.
             running_execution_context.lexical_environment = env;
 
@@ -5780,7 +5780,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
         // d. Set element to ! element.
 
         // e. If element is a PrivateElement, then
-        si element.est_private_element() {
+        si est_private_element(element) {
             private_element := element.Private;
 
             // i. Assert: element.[[Kind]] is either method or accessor.
@@ -5834,7 +5834,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
             }
         }
         // f. Else if element is a ClassFieldDefinition Record, then
-        sinon si element.est_class_field_definition() {
+        sinon si est_class_field_definition(element) {
             // i. If IsStatic of e is false, append element to instanceFields.
             saufsi e_est_static {
                 tableau_ajoute(*instance_fields, element.Field);
@@ -5845,7 +5845,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
             }
         }
         // g. Else if element is a ClassStaticBlockDefinition Record, then
-        sinon si element.est_class_static_block_definition() {
+        sinon si est_class_static_block_definition(element) {
             // i. Append element to staticElements.
             tableau_ajoute(*static_elements, element);
         }
@@ -5855,16 +5855,16 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     running_execution_context.lexical_environment = env;
 
     // 27. If classBinding is not undefined, then
-    si class_binding.possède_valeur() {
+    si possède_valeur(class_binding) {
         // a. Perform ! classEnv.InitializeBinding(classBinding, F).
         initialize_binding(class_env, class_binding.Quelque, Valeur(Function = F));
     }
 
     // 28. Set F.[[PrivateMethods]] to instancePrivateMethods.
-    F.définis_private_methods(instance_private_methods);
+    définis_private_methods(F, instance_private_methods);
 
     // 29. Set F.[[Fields]] to instanceFields.
-    F.définis_fields(instance_fields);
+    définis_fields(F, instance_fields);
 
     // 30. For each PrivateElement method of staticPrivateMethods, do
     pour method dans static_private_methods {
@@ -5875,7 +5875,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     // 31. For each element elementRecord of staticElements, do
     pour element_record dans static_elements {
         // a. If elementRecord is a ClassFieldDefinition Record, then
-        si element_record.est_class_field_definition() {
+        si est_class_field_definition(element_record) {
             // i. Let result be Completion(DefineField(F, elementRecord)).
             define_field(interpréteuse, F, element_record.Field);
         }
@@ -5889,7 +5889,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
         }
 
         // c. If result is an abrupt completion, then
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             // i. Set the running execution context's PrivateEnvironment to outerPrivateEnvironment.
             running_execution_context.private_environment = outer_private_environment;
 
@@ -5911,13 +5911,13 @@ constructor_pour_classe_sans_constructor :: fonc (empl params: *ParamètresCallO
     args := arguments;
 
     // ii. If NewTarget is undefined, throw a TypeError exception.
-    si new_target.est_undefined() {
+    si est_undefined(new_target) {
         _ := lance_type_error(interpréteuse, "new target is undefined");
         retourne js_undefined;
     }
 
     // iii. Let F be the active function object.
-    F := donne_active_function_object(interpréteuse).vérifie_comme(BuiltInFunction);
+    F := vérifie_comme(donne_active_function_object(interpréteuse), BuiltInFunction);
 
     // iv. If F.[[ConstructorKind]] is derived, then
     result: Valeur;
@@ -5934,7 +5934,7 @@ constructor_pour_classe_sans_constructor :: fonc (empl params: *ParamètresCallO
 
         // 4. Let result be ? Construct(func, args, NewTarget).
         result = construct(interpréteuse, func, args, new_target);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
     }
@@ -5942,7 +5942,7 @@ constructor_pour_classe_sans_constructor :: fonc (empl params: *ParamètresCallO
     sinon {
         // 1. NOTE: This branch behaves similarly to constructor() {}.
         // 2. Let result be ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
-        realm := interpréteuse.donne_realm();
+        realm := donne_realm(interpréteuse);
         result = ordinary_create_from_constructor(realm, new_target.Function, realm.intrinsics.object_prototype, object_instance_crée);
     }
 
@@ -5962,12 +5962,12 @@ binding_class_declaration_evaluation :: fonc (interpréteuse: *InterprèteArbre,
 
     // 2. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments className and className.
     value := class_definition_evaluation(interpréteuse, class_declaration.héritage, class_declaration.body, class_name, class_name);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne nul;
     }
 
     // 3. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
-    value.définis_source_text(donne_texte_source(class_declaration));
+    définis_source_text(value, donne_texte_source(class_declaration));
 
     // 4. Let env be the running execution context's LexicalEnvironment.
     mv := interpréteuse.mv;
@@ -5994,10 +5994,10 @@ initialize_bound_name :: fonc (interpréteuse: *Interpréteuse, name: ECMAString
     // 2. Else,
     sinon {
         // a. Let lhs be ? ResolveBinding(name).
-        realm := interpréteuse.donne_realm();
-        chaine_pour_name := realm.crée_chaine(name);
+        realm := donne_realm(interpréteuse);
+        chaine_pour_name := crée_chaine(realm, name);
         lhs := resolve_binding(interpréteuse, chaine_pour_name);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
 
@@ -6024,7 +6024,7 @@ ClassExpression :: struct {
 
 crée_class_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, héritage: *Expression, identifier: *Identifier, body: *ClassBody) -> *ClassExpression
 {
-    résultat := parseuse.crée_noeud(lexème, ClassExpression);
+    résultat := crée_noeud(parseuse, lexème, ClassExpression);
     résultat.héritage = héritage;
     résultat.identifier = identifier;
     résultat.body = body;
@@ -6042,8 +6042,8 @@ sur_exécution_class_expression :: fonc (base: *NoeudSyntaxique, interpréteuse:
         class_binding: Optionnel(ECMAString);
         class_name : FieldName = crée_chaine_utf16_unique_vide();
         value := class_definition_evaluation(interpréteuse, class_expression.héritage, class_expression.body, class_binding, class_name);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         // 2. Set value.[[SourceText]] to the source text matched by ClassExpression.
@@ -6060,8 +6060,8 @@ sur_exécution_class_expression :: fonc (base: *NoeudSyntaxique, interpréteuse:
 
     // 2. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments className and className.
     value := class_definition_evaluation(interpréteuse, class_expression.héritage, class_expression.body, class_name, class_name);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Set value.[[SourceText]] to the source text matched by ClassExpression.
@@ -6086,7 +6086,7 @@ ClassBody :: struct {
 
 crée_class_body :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [..]*NoeudSyntaxique) -> *ClassBody
 {
-    résultat := parseuse.crée_noeud(lexème, ClassBody);
+    résultat := crée_noeud(parseuse, lexème, ClassBody);
     résultat.éléments = éléments;
     retourne résultat;
 }
@@ -6106,7 +6106,7 @@ ClassMethod :: struct {
 
 crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind, async: bool, generator: bool) -> *ClassMethod
 {
-    résultat := parseuse.crée_noeud(lexème, ClassMethod);
+    résultat := crée_noeud(parseuse, lexème, ClassMethod);
     résultat.class_element_name = key;
     résultat.paramètres = arguments;
     résultat.body = body;
@@ -6134,7 +6134,7 @@ ClassField :: struct {
 
 crée_class_field :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, initializer: *Expression, static: bool) -> *ClassField
 {
-    résultat := parseuse.crée_noeud(lexème, ClassField);
+    résultat := crée_noeud(parseuse, lexème, ClassField);
     résultat.class_element_name = class_element_name;
     résultat.initializer = initializer;
     résultat.static = static;
@@ -6156,7 +6156,7 @@ ClassStaticBlock :: struct {
 
 crée_class_static_block :: fonc (parseuse: *Parseuse, lexème: *Lexème, body: *FunctionBody) -> *ClassStaticBlock
 {
-    résultat := parseuse.crée_noeud(lexème, ClassStaticBlock);
+    résultat := crée_noeud(parseuse, lexème, ClassStaticBlock);
     résultat.body = body;
     retourne résultat;
 }
@@ -6177,7 +6177,7 @@ SuperCall :: struct {
 
 crée_super_call :: fonc (parseuse: *Parseuse, lexème: *Lexème, arguments: [..]*Expression) -> *SuperCall
 {
-    résultat := parseuse.crée_noeud(lexème, SuperCall);
+    résultat := crée_noeud(parseuse, lexème, SuperCall);
     résultat.arguments = arguments;
     retourne résultat;
 }
@@ -6198,7 +6198,7 @@ sur_exécution_super_call :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
     arg_list: [..]Valeur;
     diffère déloge(*arg_list);
     completion := argument_list_evaluation(interpréteuse, super_call.arguments, *arg_list);
-    saufsi completion.est_normal() {
+    saufsi est_normal(completion) {
         retourne completion;
     }
     
@@ -6209,8 +6209,8 @@ sur_exécution_super_call :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
     
     // 6. Let result be ? Construct(func, argList, newTarget)
     result := construct(interpréteuse, func, arg_list, new_target);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     
     // 7. Let thisER be GetThisEnvironment()
@@ -6221,8 +6221,8 @@ sur_exécution_super_call :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
     
     // 9. Perform ? BindThisValue(thisER, result)
     _ := bind_this_value(this_er, result);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 10. Let F be thisER.[[FunctionObject]]
@@ -6232,8 +6232,8 @@ sur_exécution_super_call :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
     
     // 12. Perform ? InitializeInstanceElements(result, F)
     initialize_instance_elements(interpréteuse, result, F);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 13. Return result
@@ -6280,7 +6280,7 @@ SuperProperty :: struct {
 
 crée_super_property :: fonc (parseuse: *Parseuse, lexème: *Lexème, property: *Expression, calculé: bool) -> *SuperProperty
 {
-    résultat := parseuse.crée_noeud(lexème, SuperProperty);
+    résultat := crée_noeud(parseuse, lexème, SuperProperty);
     résultat.property = property;
     résultat.calculé = calculé;
     retourne résultat;
@@ -6296,22 +6296,22 @@ sur_exécution_super_property :: fonc (base: *NoeudSyntaxique, interpréteuse: *
         env := get_this_environment(interpréteuse) comme *FunctionEnvironment;
 
         // 2. Let actualThis be ? env.GetThisBinding().
-        actual_this := env.get_this_binding(interpréteuse.donne_realm());
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        actual_this := get_this_binding(env, donne_realm(interpréteuse));
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         // 3. Let propertyNameReference be ? Evaluation of Expression.
         completion := exécute_noeud(super_property.property, interpréteuse);
-        saufsi completion.est_normal() {
+        saufsi est_normal(completion) {
             retourne completion;
         }
         property_name_reference := completion.valeur;
 
         // 4. Let propertyNameValue be ? GetValue(propertyNameReference).
         property_name_value := get_value(interpréteuse, property_name_reference);
-        si interpréteuse.possède_exception() {
-            retourne throw_completion(interpréteuse.donne_exception());
+        si possède_exception(interpréteuse) {
+            retourne throw_completion(donne_exception(interpréteuse));
         }
 
         // 5. Let strict be IsStrict(this SuperProperty).
@@ -6328,14 +6328,14 @@ sur_exécution_super_property :: fonc (base: *NoeudSyntaxique, interpréteuse: *
     env := get_this_environment(interpréteuse) comme *FunctionEnvironment;
 
     // 2. Let actualThis be ? env.GetThisBinding().
-    actual_this := env.get_this_binding(interpréteuse.donne_realm());
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    actual_this := get_this_binding(env, donne_realm(interpréteuse));
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 3. Let propertyKey be the StringValue of IdentifierName.
     assert(super_property.property.type == Identifier);
-    property_key := donne_chaine_primitive(super_property.property comme *Identifier, interpréteuse.donne_realm());
+    property_key := donne_chaine_primitive(super_property.property comme *Identifier, donne_realm(interpréteuse));
 
     // 4. Let strict be IsStrict(this SuperProperty).
     strict := is_strict(super_property);
@@ -6353,7 +6353,7 @@ make_super_property_reference :: fonc (interpréteuse: *Interpréteuse, actual_t
     env := get_this_environment(interpréteuse) comme *FunctionEnvironment;
 
     // 2. Assert: env.HasSuperBinding() is true.
-    assert(env.has_super_binding());
+    assert(has_super_binding(env));
 
     // 3. Assert: env is a Function Environment Record.
     assert(env.table.classe == FunctionEnvironment);
@@ -6380,7 +6380,7 @@ ObjectBindingPattern :: struct {
 
 crée_object_binding_pattern :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*Expression) -> *ObjectBindingPattern
 {
-    résultat := parseuse.crée_noeud(lexème, ObjectBindingPattern);
+    résultat := crée_noeud(parseuse, lexème, ObjectBindingPattern);
     résultat.properties = properties;
     retourne résultat;
 }
@@ -6401,7 +6401,7 @@ BindingProperty :: struct {
 
 crée_binding_property :: fonc (parseuse: *Parseuse, lexème: *Lexème, property_name: *Expression, binding_element: *Expression) -> *BindingProperty
 {
-    résultat := parseuse.crée_noeud(lexème, BindingProperty);
+    résultat := crée_noeud(parseuse, lexème, BindingProperty);
     résultat.property_name = property_name;
     résultat.binding_element = binding_element;
     retourne résultat;
@@ -6423,7 +6423,7 @@ BindingElement :: struct {
 
 crée_binding_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression, initializer: *Expression) -> *BindingElement
 {
-    résultat := parseuse.crée_noeud(lexème, BindingElement);
+    résultat := crée_noeud(parseuse, lexème, BindingElement);
     résultat.expression = expression;
     résultat.initializer = initializer;
     retourne résultat;
@@ -6444,7 +6444,7 @@ ArrayBindingPattern :: struct {
 
 crée_array_binding_pattern :: fonc (parseuse: *Parseuse, lexème: *Lexème, elements: [..]*Expression) -> *ArrayBindingPattern
 {
-    résultat := parseuse.crée_noeud(lexème, ArrayBindingPattern);
+    résultat := crée_noeud(parseuse, lexème, ArrayBindingPattern);
     résultat.elements = elements;
     retourne résultat;
 }
@@ -6465,7 +6465,7 @@ AwaitExpression :: struct {
 
 crée_await_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *AwaitExpression
 {
-    résultat := parseuse.crée_noeud(lexème, AwaitExpression);
+    résultat := crée_noeud(parseuse, lexème, AwaitExpression);
     résultat.expression = expression;
     retourne résultat;
 }
@@ -6489,7 +6489,7 @@ NewTarget :: struct {
 
 crée_new_target :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NewTarget
 {
-    résultat := parseuse.crée_noeud(lexème, NewTarget);
+    résultat := crée_noeud(parseuse, lexème, NewTarget);
     retourne résultat;
 }
 
@@ -6515,7 +6515,7 @@ YieldExpression :: struct {
 
 crée_yield_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression, est_star: bool) -> *YieldExpression
 {
-    résultat := parseuse.crée_noeud(lexème, YieldExpression);
+    résultat := crée_noeud(parseuse, lexème, YieldExpression);
     résultat.expression = expression;
     résultat.est_star = est_star;
     retourne résultat;

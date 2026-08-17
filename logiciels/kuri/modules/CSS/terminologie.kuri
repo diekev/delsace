@@ -611,21 +611,21 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             arrête;
         }
 
-        si it.texte.commence_par("PRV_") {
-            nom_tag := it.texte.avance(4);
+        si commence_par(it.texte, "PRV_") {
+            nom_tag := avance(it.texte, 4);
             ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"-", nom_tag, "-\");\n");
             continue;
         }
 
         nom_tag: chaine;
-        si it.texte.commence_par("PROP_") {
-            nom_tag = it.texte.avance(5);
+        si commence_par(it.texte, "PROP_") {
+            nom_tag = avance(it.texte, 5);
         }
-        sinon si it.texte.commence_par("PC_") {
-            nom_tag = it.texte.avance(3);
+        sinon si commence_par(it.texte, "PC_") {
+            nom_tag = avance(it.texte, 3);
         }
-        sinon si it.texte.commence_par("COL_") {
-            nom_tag = it.texte.avance(4);
+        sinon si commence_par(it.texte, "COL_") {
+            nom_tag = avance(it.texte, 4);
         }
         sinon {
             continue;

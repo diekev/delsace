@@ -150,7 +150,7 @@ envoie_courriel :: fonc (gestionnaire: *GestionnaireEnvoiCourriel, courriel: Cou
         retourne faux;
     }
 
-    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    données := données_utilisateur(prise, DonnéesPriseEnvoiCourriel);
     init_de(DonnéesPriseEnvoiCourriel)(données);
     données.courriel = courriel;
     données.config = gestionnaire.config;
@@ -174,7 +174,7 @@ crée_contexte_smtp :: fonc (boucle_évènements: *Boucle) -> *Contexte
 
 quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
-    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    données := données_utilisateur(prise, DonnéesPriseEnvoiCourriel);
     commande := commande_suivante(données.état, données.config, données.courriel);
     // À FAIRE : gestion de la mémoire
     //diffère déloge(*commande)
@@ -185,7 +185,7 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 {
     contenu := chaine_depuis_tranche_octets(données);
 
-    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    données_prise := données_utilisateur(prise, DonnéesPriseEnvoiCourriel);
     données_prise.historique.ajoute_message_serveuse(contenu);
 
     réponse := parse_réponse_serveuse(contenu);
@@ -213,14 +213,14 @@ quand_fermeture :: fonc (prise: *Prise)
 {
     //imprime("quand_fermeture !\n")
     // À FAIRE : notifie que le message fut envoyé ou non
-    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    données_prise := données_utilisateur(prise, DonnéesPriseEnvoiCourriel);
     détruit_données_prise(données_prise);
 }
 
 quand_écriture :: fonc (prise: *Prise)
 {
     //imprime("quand_écriture\n")
-    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    données_prise := données_utilisateur(prise, DonnéesPriseEnvoiCourriel);
     commande := avance(données_prise.commande_courante, données_prise.taille_envoyée);
     données_prise.taille_envoyée += prise.écris(commande);
 }

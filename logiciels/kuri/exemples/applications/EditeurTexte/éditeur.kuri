@@ -81,23 +81,23 @@ importe Unicode;
     éditeur.texte_possède_lexeuse = faux;
     init_de(SimpleLexeuse)(*éditeur.lexeuse);
 
-    si chm.extension() == ".kuri" {
+    si extension(chm) == ".kuri" {
         initialise_lexeuse_kuri(*éditeur.lexeuse);
         éditeur.texte_possède_lexeuse = vrai;
     }
-    sinon si chm.extension() == ".py" {
+    sinon si extension(chm) == ".py" {
         initialise_lexeuse_python(*éditeur.lexeuse);
         éditeur.texte_possède_lexeuse = vrai;
     }
-    sinon si chm.extension() == ".rs" {
+    sinon si extension(chm) == ".rs" {
         initialise_lexeuse_rust(*éditeur.lexeuse);
         éditeur.texte_possède_lexeuse = vrai;
     }
-    sinon si chm.extension() == ".c" || chm.extension() == ".h" {
+    sinon si extension(chm) == ".c" || extension(chm) == ".h" {
         initialise_lexeuse_c(*éditeur.lexeuse);
         éditeur.texte_possède_lexeuse = vrai;
     }
-    sinon si chm.extension() == ".cpp" || chm.extension() == ".hpp" || chm.extension() == ".cc" || chm.extension() == ".hh" {
+    sinon si extension(chm) == ".cpp" || extension(chm) == ".hpp" || extension(chm) == ".cc" || extension(chm) == ".hh" {
         initialise_lexeuse_cpp(*éditeur.lexeuse);
         éditeur.texte_possède_lexeuse = vrai;
     }
@@ -129,7 +129,7 @@ marque_modifié :: fonc (éditeur: *Éditeur)
         tableau_insère_indice(*éditeur.lignes_texte, ligne, où);
     }
 
-    éditeur.marque_modifié();
+    marque_modifié(éditeur);
 }
 
 éditeur_ajoute_nouvelle_ligne :: fonc (éditeur: *Éditeur) -> rien
@@ -220,7 +220,7 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
     }
 
     nligne: ChaineUTF32;
-    tableau_redimensionne(*nligne.points_de_code, ligne.taille() + tabs * (TAILLE_TABULATION - 1));
+    tableau_redimensionne(*nligne.points_de_code, taille(ligne) + tabs * (TAILLE_TABULATION - 1));
 
     idx := 0;
     pour c dans ligne {
@@ -247,18 +247,18 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
     tableau_insère_indice(*ligne.points_de_code, caractère, indice_caractère);
     éditeur.lignes_texte[indice_ligne] = ligne;
 
-    éditeur.marque_modifié();
+    marque_modifié(éditeur);
 }
 
 éditeur_supprime_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: ChaineUTF32, indice_ligne: z64, indice_caractère: z64) -> rien
 {
-    si indice_caractère < 0 || indice_caractère >= ligne.taille() {
+    si indice_caractère < 0 || indice_caractère >= taille(ligne) {
         retourne;
     }
 
     tableau_supprime_indice(*ligne.points_de_code, indice_caractère);
     éditeur.lignes_texte[indice_ligne] = ligne;
-    éditeur.marque_modifié();
+    marque_modifié(éditeur);
 }
 
 éditeur_supprime_caractère :: fonc (éditeur: *Éditeur) -> rien
@@ -278,7 +278,7 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
         éditeur.cx -= 1;
     }
     sinon {
-        éditeur.cx = (éditeur.lignes_texte[éditeur.cy - 1].taille()) comme z32;
+        éditeur.cx = (taille(éditeur.lignes_texte[éditeur.cy - 1])) comme z32;
         éditeur_adjoint_ligne(éditeur, éditeur.cy - 1, ligne);
         éditeur_supprime_ligne(éditeur, éditeur.cy);
         éditeur.cy -= 1;
@@ -315,14 +315,14 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
 
     détruit_chaine(*éditeur.lignes_texte[indice_ligne]);
     tableau_supprime_indice(*éditeur.lignes_texte, indice_ligne);
-    éditeur.marque_modifié();
+    marque_modifié(éditeur);
 }
 
 éditeur_adjoint_ligne :: fonc (éditeur: *Éditeur, indice_ligne: z64, texte: ChaineUTF32) -> rien
 {
     ligne := éditeur.lignes_texte[indice_ligne];
-    ancienne_taille := ligne.taille();
-    nouvelle_taille := ancienne_taille + texte.taille();
+    ancienne_taille := taille(ligne);
+    nouvelle_taille := ancienne_taille + taille(texte);
 
     si nouvelle_taille == 0 {
         retourne;
@@ -332,7 +332,7 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
     éditeur.lignes_texte[indice_ligne] = ligne;
 
     éditeur_ajourne_message_status(éditeur, ligne);
-    éditeur.marque_modifié();
+    marque_modifié(éditeur);
 }
 
 éditeur_défile :: fonc (éditeur: *Éditeur) -> rien
@@ -436,7 +436,7 @@ Mouvement :: énum {
     ligne := ChaineUTF32();
     si éditeur.cy < éditeur.lignes_texte.taille {
         ligne = éditeur.lignes_texte[éditeur.cy];
-        taille_ligne = ligne.taille();
+        taille_ligne = taille(ligne);
     }
 
     discr mouvement {
@@ -455,11 +455,11 @@ Mouvement :: énum {
             }
             sinon si éditeur.cy > 0 {
                 éditeur.cy -= 1;
-                éditeur.cx = éditeur.lignes_texte[éditeur.cy].taille() comme z32;
+                éditeur.cx = taille(éditeur.lignes_texte[éditeur.cy]) comme z32;
             }
         }
         MotPrécédent {
-            si éditeur.cx == ligne.taille() && taille_ligne != 0 {
+            si éditeur.cx == taille(ligne) && taille_ligne != 0 {
                 éditeur.cx -= 1;
             }
 
@@ -516,7 +516,7 @@ Mouvement :: énum {
         }
         FinLigne {
             si éditeur.cy < éditeur.lignes_texte.taille {
-                éditeur.cx = éditeur.lignes_texte[éditeur.cy].taille() comme z32;
+                éditeur.cx = taille(éditeur.lignes_texte[éditeur.cy]) comme z32;
             }
         }
         PagePrécédente {
@@ -538,7 +538,7 @@ Mouvement :: énum {
     }
 
     si éditeur.cy < éditeur.lignes_texte.taille {
-        taille_ligne = éditeur.lignes_texte[éditeur.cy].taille();
+        taille_ligne = taille(éditeur.lignes_texte[éditeur.cy]);
     }
 
     si éditeur.cx > taille_ligne {

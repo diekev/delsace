@@ -199,7 +199,7 @@ est_chemin_fichier_supporté :: fonc (routeuse: *NouvelleRouteuse, chemin: chain
     chm := chemin_pour_fichier(chemin);
 
     si fichier_existe(chm) {
-        extension := chm.extension();
+        extension := extension(chm);
 
         pour routeuse.extension_fichiers {
             si it == extension {
@@ -215,15 +215,15 @@ apparie_fichier :: fonc (routeuse: *NouvelleRouteuse @inutilisée, chemin: chain
 {
     chm := chemin_pour_fichier(chemin);
 
-    si chm.extension() == ".css" {
+    si extension(chm) == ".css" {
         retourne sers_fichier(prise, message, "text/css; charset=utf-8");
     }
 
-    si chm.extension() == ".png" {
+    si extension(chm) == ".png" {
         retourne sers_fichier(prise, message, "image/png");
     }
 
-    si chm.extension() == ".js" || chm.extension() == ".jsx" {
+    si extension(chm) == ".js" || extension(chm) == ".jsx" {
         retourne sers_fichier(prise, message, "text/javascript; charset=utf-8");
     }
 
@@ -246,7 +246,7 @@ divise_url :: fonc (ligne: chaine) -> [..]chaine
             si premier_slash {
                 premier_slash = faux;
 
-                mot := ligne.sous_chaine(0, 1);
+                mot := sous_chaine(ligne, 0, 1);
                 tableau_ajoute(*mots, mot);
 
                 début_mot = i + 1;
@@ -254,7 +254,7 @@ divise_url :: fonc (ligne: chaine) -> [..]chaine
                 continue;
             }
 
-            mot := ligne.sous_chaine(début_mot, début_mot + taille_mot);
+            mot := sous_chaine(ligne, début_mot, début_mot + taille_mot);
             tableau_ajoute(*mots, mot);
 
             début_mot = i + 1;
@@ -266,7 +266,7 @@ divise_url :: fonc (ligne: chaine) -> [..]chaine
     }
 
     si taille_mot != 0 {
-        mot := ligne.sous_chaine(début_mot, début_mot + taille_mot);
+        mot := sous_chaine(ligne, début_mot, début_mot + taille_mot);
 
         si mot {
             tableau_ajoute(*mots, mot);
@@ -321,7 +321,7 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
                 retourne ErreurParsage.ChevronFermantManquant;
             }
 
-            nom_données := it.sous_chaine(1, it.taille - 1);
+            nom_données := sous_chaine(it, 1, it.taille - 1);
 
             pour r dans résultat {
                 si r.chn == nom_données {
