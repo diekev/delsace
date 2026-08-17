@@ -2093,6 +2093,25 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             /* parse_expression_type ne peut pas être utilisé ici car la précédence utilisée
              * pourrait nous faire parser des expressions invalides. */
             auto expression_type = analyse_expression_primaire();
+
+            if (!fini()) {
+                /* Puisque nous utilisons analyse_expression_primaire() pour parser l'expression de
+                 * type, parsons manuellement les références de rubriques. */
+                auto lexème_suivant = lexème_courant();
+                while (lexème_suivant->genre == GenreLexème::POINT) {
+                    consomme();
+                    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
+                        rapporte_erreur("Attendu un identifiant après '.'");
+                    }
+
+                    lexème_suivant = lexème_courant();
+                    consomme();
+
+                    expression_type = m_contexte->assembleuse->crée_référence_rubrique(
+                        lexème_suivant, expression_type);
+                }
+            }
+
             return m_contexte->assembleuse->crée_comme(lexème, gauche, expression_type);
         }
         default:

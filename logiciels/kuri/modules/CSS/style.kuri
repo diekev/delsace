@@ -131,30 +131,30 @@ NumericValue :: struct {
 donne_numeric_value :: fonc (valeur: *ValeurDeStyle) -> Optionnel(NumericValue)
 {
     résultat: NumericValue;
-    si valeur.est_integer() {
-        résultat.value = valeur.donne_integer();
+    si est_integer(valeur) {
+        résultat.value = donne_integer(valeur);
     }
-    sinon si valeur.est_number() {
-        résultat.value = valeur.donne_number();
+    sinon si est_number(valeur) {
+        résultat.value = donne_number(valeur);
     }
-    sinon si valeur.est_longueur() {
+    sinon si est_longueur(valeur) {
         résultat.type.base_type = "length";
         résultat.type.exponent = 1;
-        l := valeur.donne_longueur();
+        l := donne_longueur(valeur);
         résultat.type.unité = l.unité;
         résultat.value = l.valeur;
     }
-    sinon si valeur.est_pixels() {
+    sinon si est_pixels(valeur) {
         résultat.type.base_type = "length";
         résultat.type.exponent = 1;
         résultat.type.unité = Longueur.Unité.Px;
-        résultat.value = valeur.donne_pixels();
+        résultat.value = donne_pixels(valeur);
     }
-    sinon si valeur.est_percentage() {
+    sinon si est_percentage(valeur) {
         résultat.type.base_type = "percent";
         résultat.type.exponent = 1;
         résultat.type.percent_hint = "percent";
-        résultat.value = valeur.donne_percentage();
+        résultat.value = donne_percentage(valeur);
     }
     sinon {
         retourne;
@@ -223,7 +223,7 @@ opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
             op := it.opérateur_calc;
 
             valeur := applique_opérateur_calc(op, gauche, droite);
-            saufsi valeur.possède_valeur() {
+            saufsi possède_valeur(valeur) {
                 tmp := ValeurCalc(valeur = calc);
                 imprime("Impossible de calculer : %\n", *tmp);
                 retourne ErreurDeCalcul.FormuleInvalide;
@@ -235,23 +235,23 @@ opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
 
         valeur := it.valeur;
 
-        si valeur.est_percentage() {
+        si est_percentage(valeur) {
             si ctx.pour_résolution_pourcentage {
-                valeur = crée_valeur_pixels(valeur.donne_percentage() * ctx.référence_pourcentage / 100.0);
+                valeur = crée_valeur_pixels(donne_percentage(valeur) * ctx.référence_pourcentage / 100.0);
             }
             sinon si genre_valeur_calculée.FontSize || genre_valeur_calculée.LineHeight {
-                valeur = crée_valeur_pixels(valeur.donne_percentage() * ctx.longueurs_relative_fonte.em / 100.0);
+                valeur = crée_valeur_pixels(donne_percentage(valeur) * ctx.longueurs_relative_fonte.em / 100.0);
             }
             sinon {
                 retourne ErreurDeCalcul.PourcentageIncalculable;
             }
         }
-        sinon si it.valeur.est_longueur() {
-            valeur = crée_valeur_pixels(calcule_longueur(valeur.donne_longueur(), ctx));
+        sinon si est_longueur(it.valeur) {
+            valeur = crée_valeur_pixels(calcule_longueur(donne_longueur(valeur), ctx));
         }
 
         numeric_value := donne_numeric_value(valeur);
-        saufsi numeric_value.possède_valeur() {
+        saufsi possède_valeur(numeric_value) {
             tmp := ValeurCalc(valeur = calc);
             imprime("Impossible de calculer : %\n", *tmp);
             retourne ErreurDeCalcul.FormuleInvalide;
@@ -287,7 +287,7 @@ applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: NumericValue, droi
     discr op {
         Plus {
             type_résultat := peut_ajouter_types(*gauche.type, *droite.type);
-            saufsi type_résultat.possède_valeur() {
+            saufsi possède_valeur(type_résultat) {
                 retourne;
             }
 
@@ -298,7 +298,7 @@ applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: NumericValue, droi
         }
         Moins {
             type_résultat := peut_ajouter_types(*gauche.type, *droite.type);
-            saufsi type_résultat.possède_valeur() {
+            saufsi possède_valeur(type_résultat) {
                 retourne;
             }
 
@@ -309,7 +309,7 @@ applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: NumericValue, droi
         }
         Fois {
             type_résultat := peut_multiplier_types(*gauche.type, *droite.type);
-            saufsi type_résultat.possède_valeur() {
+            saufsi possède_valeur(type_résultat) {
                 retourne;
             }
 
@@ -320,7 +320,7 @@ applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: NumericValue, droi
         }
         Divise {
             type_résultat := peut_multiplier_types(*gauche.type, *droite.type);
-            saufsi type_résultat.possède_valeur() {
+            saufsi possède_valeur(type_résultat) {
                 retourne;
             }
 
@@ -605,26 +605,26 @@ détruit_valeur_de_style :: fonc (valeur: *ValeurDeStyle)
         retourne;
     }
 
-    si valeur.est_variable() {
-        variable := valeur.donne_variable();
+    si est_variable(valeur) {
+        variable := donne_variable(valeur);
         détruit_tableau_component_value(*variable.fallback);
     }
-    sinon si valeur.est_url_absolu() {
-        url := valeur.donne_url_absolu();
+    sinon si est_url_absolu(valeur) {
+        url := donne_url_absolu(valeur);
         déloge_si_logée(*url);
     }
-    sinon si valeur.est_calc() {
-        calc := valeur.donne_calc();
+    sinon si est_calc(valeur) {
+        calc := donne_calc(valeur);
         déloge(*calc.valeurs);
     }
-    sinon si valeur.est_liste() {
+    sinon si est_liste(valeur) {
         liste := (valeur comme *ValeurListe).valeur;
         pour liste {
             détruit_valeur_de_style(it);
         }
         déloge(*liste);
     }
-    sinon si valeur.est_background_position() {
+    sinon si est_background_position(valeur) {
         position := (valeur comme *ValeurBackgroundPosition).valeur;
         détruit_valeur_de_style(position.décalage_horizontal);
         détruit_valeur_de_style(position.décalage_vertical);
@@ -645,56 +645,56 @@ sont_mêmes_valeurs :: fonc (a: *ValeurDeStyle, b: *ValeurDeStyle) -> bool
 
     discr a.type {
         MotClé {
-            retourne a.donne_mot_clé() == b.donne_mot_clé();
+            retourne donne_mot_clé(a) == donne_mot_clé(b);
         }
         URL {
-            retourne a.donne_url() == b.donne_url();
+            retourne donne_url(a) == donne_url(b);
         }
         URLAbsolu {
-            retourne a.donne_url_absolu() == b.donne_url_absolu();
+            retourne donne_url_absolu(a) == donne_url_absolu(b);
         }
         Couleur {
-            retourne a.donne_couleur() == b.donne_couleur();
+            retourne donne_couleur(a) == donne_couleur(b);
         }
         Integer {
-            retourne a.donne_integer() == b.donne_integer();
+            retourne donne_integer(a) == donne_integer(b);
         }
         Number {
-            retourne a.donne_number() == b.donne_number();
+            retourne donne_number(a) == donne_number(b);
         }
         Percentage {
-            retourne a.donne_percentage() == b.donne_percentage();
+            retourne donne_percentage(a) == donne_percentage(b);
         }
         Longueur {
-            retourne a.donne_longueur() == b.donne_longueur();
+            retourne donne_longueur(a) == donne_longueur(b);
         }
         Pixels {
-            retourne a.donne_pixels() == b.donne_pixels();
+            retourne donne_pixels(a) == donne_pixels(b);
         }
         Variable {
-            retourne a.donne_variable() == b.donne_variable();
+            retourne donne_variable(a) == donne_variable(b);
         }
         Calc {
-            retourne a.donne_calc() == b.donne_calc();
+            retourne donne_calc(a) == donne_calc(b);
         }
         Display {
-            retourne a.donne_display() == b.donne_display();
+            retourne donne_display(a) == donne_display(b);
         }
         BackgroundRepeat {
-            retourne a.donne_background_repeat() == b.donne_background_repeat();
+            retourne donne_background_repeat(a) == donne_background_repeat(b);
         }
         BackgroundPosition {
-            retourne a.donne_background_position() == b.donne_background_position();
+            retourne donne_background_position(a) == donne_background_position(b);
         }
         BackgroundSize {
-            retourne a.donne_background_size() == b.donne_background_size();
+            retourne donne_background_size(a) == donne_background_size(b);
         }
         String {
-            retourne a.donne_string() == b.donne_string();
+            retourne donne_string(a) == donne_string(b);
         }
         Liste {
-            liste_a := a.donne_liste();
-            liste_b := b.donne_liste();
+            liste_a := donne_liste(a);
+            liste_b := donne_liste(b);
             si liste_a.taille != liste_b.taille {
                 retourne faux;
             }
@@ -721,34 +721,34 @@ donne_line_style :: fonc (valeur: *ValeurDeStyle) -> LineStyle
 {
     assert_égalité(valeur.type, TypeValeurDeStyle.MotClé);
 
-    si valeur.est_mot_clé(PROP_none) {
+    si est_mot_clé(valeur, PROP_none) {
         retourne LineStyle.None;
     }
-    si valeur.est_mot_clé(PROP_hidden) {
+    si est_mot_clé(valeur, PROP_hidden) {
         retourne LineStyle.Hidden;
     }
-    si valeur.est_mot_clé(PROP_dotted) {
+    si est_mot_clé(valeur, PROP_dotted) {
         retourne LineStyle.Dotted;
     }
-    si valeur.est_mot_clé(PROP_dashed) {
+    si est_mot_clé(valeur, PROP_dashed) {
         retourne LineStyle.Dashed;
     }
-    si valeur.est_mot_clé(PROP_solid) {
+    si est_mot_clé(valeur, PROP_solid) {
         retourne LineStyle.Solid;
     }
-    si valeur.est_mot_clé(PROP_double) {
+    si est_mot_clé(valeur, PROP_double) {
         retourne LineStyle.Double;
     }
-    si valeur.est_mot_clé(PROP_groove) {
+    si est_mot_clé(valeur, PROP_groove) {
         retourne LineStyle.Groove;
     }
-    si valeur.est_mot_clé(PROP_ridge) {
+    si est_mot_clé(valeur, PROP_ridge) {
         retourne LineStyle.Ridge;
     }
-    si valeur.est_mot_clé(PROP_inset) {
+    si est_mot_clé(valeur, PROP_inset) {
         retourne LineStyle.Inset;
     }
-    si valeur.est_mot_clé(PROP_outset) {
+    si est_mot_clé(valeur, PROP_outset) {
         retourne LineStyle.Outset;
     }
 
@@ -759,14 +759,14 @@ donne_line_style :: fonc (valeur: *ValeurDeStyle) -> LineStyle
 donne_text_decoration_line :: fonc (valeur: *ValeurDeStyle) -> TextDecorationLine
 {
     si valeur.type == TypeValeurDeStyle.MotClé {
-        retourne donne_text_decoration_line_pour_mot_clé(valeur.donne_mot_clé());
+        retourne donne_text_decoration_line_pour_mot_clé(donne_mot_clé(valeur));
     }
 
     assert_égalité(valeur.type, TypeValeurDeStyle.Liste);
-    liste := valeur.donne_liste();
+    liste := donne_liste(valeur);
     résultat: TextDecorationLine;
     pour liste {
-        résultat |= donne_text_decoration_line_pour_mot_clé(it.donne_mot_clé());
+        résultat |= donne_text_decoration_line_pour_mot_clé(donne_mot_clé(it));
     }
     retourne résultat;
 }
@@ -774,7 +774,7 @@ donne_text_decoration_line :: fonc (valeur: *ValeurDeStyle) -> TextDecorationLin
 donne_cursor_type :: fonc (valeur: *ValeurDeStyle) -> CursorType
 {
     assert_égalité(valeur.type, TypeValeurDeStyle.MotClé);
-    retourne donne_type_cursor(valeur.donne_mot_clé());
+    retourne donne_type_cursor(donne_mot_clé(valeur));
 }
 
 donne_mot_clé :: fonc (valeur: *ValeurDeStyle) -> CSSOMString
@@ -845,7 +845,7 @@ donne_pixels :: fonc (valeur: *ValeurDeStyle) -> r64
 
 donne_pixels_ou_zéro_si_auto :: fonc (valeur: *ValeurDeStyle) -> r64
 {
-    si valeur.est_auto() {
+    si est_auto(valeur) {
         retourne 0.0;
     }
     retourne donne_pixels(valeur);
@@ -907,7 +907,7 @@ est_mot_clé :: fonc (valeur: *ValeurDeStyle) -> bool
 
 est_mot_clé :: fonc (valeur: *ValeurDeStyle, mot_clé: CSSOMString) -> bool
 {
-    retourne valeur.type == TypeValeurDeStyle.MotClé && valeur.donne_mot_clé() == mot_clé;
+    retourne valeur.type == TypeValeurDeStyle.MotClé && donne_mot_clé(valeur) == mot_clé;
 }
 
 est_auto :: fonc (valeur: *ValeurDeStyle) -> bool
@@ -932,7 +932,7 @@ est_percentage :: fonc (valeur: *ValeurDeStyle) -> bool
 
 est_pixels_ou_percentage :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    retourne valeur.est_pixels() || valeur.est_percentage();
+    retourne est_pixels(valeur) || est_percentage(valeur);
 }
 
 est_number :: fonc (valeur: *ValeurDeStyle) -> bool
@@ -1007,20 +1007,20 @@ est_background_size :: fonc (valeur: *ValeurDeStyle) -> bool
 
 est_négative :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    si valeur.est_longueur() {
-        retourne valeur.donne_longueur().valeur < 0.0;
+    si est_longueur(valeur) {
+        retourne donne_longueur(valeur).valeur < 0.0;
     }
-    si valeur.est_integer() {
-        retourne valeur.donne_integer() < 0.0;
+    si est_integer(valeur) {
+        retourne donne_integer(valeur) < 0.0;
     }
-    si valeur.est_number() {
-        retourne valeur.donne_number() < 0.0;
+    si est_number(valeur) {
+        retourne donne_number(valeur) < 0.0;
     }
-    si valeur.est_pixels() {
-        retourne valeur.donne_pixels() < 0.0;
+    si est_pixels(valeur) {
+        retourne donne_pixels(valeur) < 0.0;
     }
-    si valeur.est_percentage() {
-        retourne valeur.donne_percentage() < 0.0;
+    si est_percentage(valeur) {
+        retourne donne_percentage(valeur) < 0.0;
     }
     retourne faux;
 }
@@ -1036,39 +1036,39 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, adresse: **ValeurDeS
     valeur := mémoire(adresse);
     discr valeur.type {
         MotClé {
-            ajoute_au_tampon(enchaineuse, valeur.donne_mot_clé());
+            ajoute_au_tampon(enchaineuse, donne_mot_clé(valeur));
         }
         URL {
-            ajoute_au_tampon(enchaineuse, "url(\"", valeur.donne_url(), "\")");
+            ajoute_au_tampon(enchaineuse, "url(\"", donne_url(valeur), "\")");
         }
         URLAbsolu {
-            ajoute_au_tampon(enchaineuse, "url(\"", valeur.donne_url_absolu(), "\")");
+            ajoute_au_tampon(enchaineuse, "url(\"", donne_url_absolu(valeur), "\")");
         }
         String {
-            ajoute_au_tampon(enchaineuse, "\"", valeur.donne_string(), "\"");
+            ajoute_au_tampon(enchaineuse, "\"", donne_string(valeur), "\"");
         }
         Couleur {
-            c := valeur.donne_couleur();
+            c := donne_couleur(valeur);
             ajoute_au_tampon(enchaineuse, "rgb(", c.r, " ", c.v, " ", c.b, ")");
         }
         Integer {
-            ajoute_au_tampon(enchaineuse, valeur.donne_integer());
+            ajoute_au_tampon(enchaineuse, donne_integer(valeur));
         }
         Number {
-            ajoute_au_tampon(enchaineuse, valeur.donne_number());
+            ajoute_au_tampon(enchaineuse, donne_number(valeur));
         }
         Percentage {
-            ajoute_au_tampon(enchaineuse, valeur.donne_percentage(), "%");
+            ajoute_au_tampon(enchaineuse, donne_percentage(valeur), "%");
         }
         Longueur {
-            l := valeur.donne_longueur();
+            l := donne_longueur(valeur);
             ajoute_au_tampon(enchaineuse, l.valeur, donne_chaine_pour_unité(l.unité));
         }
         Pixels {
-            ajoute_au_tampon(enchaineuse, valeur.donne_pixels(), "px");
+            ajoute_au_tampon(enchaineuse, donne_pixels(valeur), "px");
         }
         Variable {
-            v := valeur.donne_variable();
+            v := donne_variable(valeur);
             ajoute_au_tampon(enchaineuse, "var(", v.nom, ",");
             pour v.fallback {
                 ajoute_au_tampon(enchaineuse, " ", it);
@@ -1076,7 +1076,7 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, adresse: **ValeurDeS
             ajoute_au_tampon(enchaineuse, ")");
         }
         Calc {
-            c := valeur.donne_calc();
+            c := donne_calc(valeur);
             ajoute_au_tampon(enchaineuse, "calc");
             virgule := "(";
             pour c.valeurs {
@@ -1091,26 +1091,26 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, adresse: **ValeurDeS
             ajoute_au_tampon(enchaineuse, ")");
         }
         Display {
-            d := valeur.donne_display();
+            d := donne_display(valeur);
             ajoute_au_tampon(enchaineuse, d);
         }
         BackgroundRepeat {
-            b := valeur.donne_background_repeat();
+            b := donne_background_repeat(valeur);
             ajoute_au_tampon(enchaineuse, b.horizontal);
-            saufsi b.vertical.est_vide() {
+            saufsi est_vide(b.vertical) {
                 ajoute_au_tampon(enchaineuse, b.vertical);
             }
         }
         BackgroundSize {
-            size := valeur.donne_background_size();
+            size := donne_background_size(valeur);
             imprime_dans_enchaineuse(enchaineuse, "% %", size.horizontal, size.vertical);
         }
         BackgroundPosition {
-            b := valeur.donne_background_position();
+            b := donne_background_position(valeur);
             imprime_dans_enchaineuse(enchaineuse, "% % % %", b.horizontal, b.décalage_horizontal, b.vertical, b.décalage_vertical);
         }
         Liste {
-            liste := valeur.donne_liste();
+            liste := donne_liste(valeur);
             virgule := "";
             pour liste {
                 imprime_dans_enchaineuse(enchaineuse, "%%", virgule, it);
@@ -1147,7 +1147,7 @@ crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *Propriét
             }
             /* Nous devons hériter des valeurs calculées. */
             id := it.id;
-            résultat.définis_valeur_calculée(id, parent.donne_valeur_calculée(id));
+            définis_valeur_calculée(résultat, id, donne_valeur_calculée(parent, id));
         }
     }
 
@@ -1228,7 +1228,7 @@ donne_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropri
 
 définis_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: *ValeurDeStyle)
 {
-    assert(!valeur.est_calc());
+    assert(!est_calc(valeur));
     propriétés.style.valeurs[id] = valeur;
 }
 
@@ -1239,24 +1239,24 @@ donne_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropri
 
 définis_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: *ValeurDeStyle)
 {
-    assert(!valeur.est_calc());
+    assert(!est_calc(valeur));
     propriétés.style_utilisée.valeurs[id] = valeur;
 }
 
 copie_valeur_calculée_vers_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété)
 {
-    propriétés.définis_valeur_utilisée(id, propriétés.donne_valeur_calculée(id));
+    définis_valeur_utilisée(propriétés, id, donne_valeur_calculée(propriétés, id));
 }
 
 résoud_pourcentage :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur_de_base: r64)
 {
-    valeur := propriétés.donne_valeur_calculée(id);
-    propriétés.définis_valeur_calculée(id, calcule_pourcentage(valeur, valeur_de_base));
+    valeur := donne_valeur_calculée(propriétés, id);
+    définis_valeur_calculée(propriétés, id, calcule_pourcentage(valeur, valeur_de_base));
 }
 
 donne_url_base_pour_background_image :: fonc (propriétés: *PropriétésDeStyle) -> *HTML.URL
 {
-    déclaration := propriétés.donne_déclaration(PROP_background_image);
+    déclaration := donne_déclaration(propriétés, PROP_background_image);
     saufsi déclaration {
         retourne nul;
     }
@@ -1606,7 +1606,7 @@ initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte:
     longueurs.em = fonte.taille;
 
     ex := donne_hauteur_glyph(fonte, 'o' comme n32);
-    si ex.possède_valeur() {
+    si possède_valeur(ex) {
         longueurs.ex = ex.Quelque comme r32;
     }
     sinon {
@@ -1614,7 +1614,7 @@ initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte:
     }
 
     cap := donne_hauteur_glyph(fonte, 'O' comme n32);
-    si cap.possède_valeur() {
+    si possède_valeur(cap) {
         longueurs.cap = cap.Quelque comme r32;
     }
     sinon {
@@ -1622,7 +1622,7 @@ initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte:
     }
 
     ch := donne_largeur_glyph(fonte, '0' comme n32);
-    si ch.possède_valeur() {
+    si possède_valeur(ch) {
         longueurs.ch = ch.Quelque;
     }
     sinon {
@@ -1630,14 +1630,14 @@ initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte:
     }
 
     ic := donne_largeur_glyph(fonte, 0x6C34);
-    si ic.possède_valeur() {
+    si possède_valeur(ic) {
         longueurs.ic = ic.Quelque;
     }
     sinon {
         longueurs.ic = longueurs.em;
     }
 
-    longueurs.lh = fonte.donne_métriques_fonte().donne_hauteur_ligne();
+    longueurs.lh = donne_hauteur_ligne(donne_métriques_fonte(fonte));
 }
 
 ContexteCalculStyle :: struct {
@@ -1666,8 +1666,8 @@ définis_propriétés :: fonc (ctx: *ContexteCalculStyle, propriétés: *Propri�
 
 résoud_pourcentage :: fonc (ctx: *ContexteCalculStyle, id: IDPropriété, référence: r64)
 {
-    valeur := ctx.propriétés.donne_valeur_calculée(id);
-    ctx.propriétés.définis_valeur_calculée(id, calcule_pourcentage(ctx, valeur, référence));
+    valeur := donne_valeur_calculée(ctx.propriétés, id);
+    définis_valeur_calculée(ctx.propriétés, id, calcule_pourcentage(ctx, valeur, référence));
 }
 
 calcule_pourcentage :: fonc (valeur: *ValeurDeStyle, ctx: *ContexteCalculStyle, référence: r64) -> *ValeurDeStyle
@@ -1682,12 +1682,12 @@ calcule_pourcentage :: fonc (ctx: *ContexteCalculStyle, valeur: *ValeurDeStyle, 
 
     ctx.référence_pourcentage = référence;
 
-    si valeur.est_percentage() {
-        retourne crée_valeur_pixels(valeur.donne_percentage() * référence / 100.0);
+    si est_percentage(valeur) {
+        retourne crée_valeur_pixels(donne_percentage(valeur) * référence / 100.0);
     }
 
-    si valeur.est_calc() {
-        résultat := évalue_calc(valeur.donne_calc(), GenreValeurCalculée.LongueurPourcentage, ctx);
+    si est_calc(valeur) {
+        résultat := évalue_calc(donne_calc(valeur), GenreValeurCalculée.LongueurPourcentage, ctx);
         discr résultat {
             Ok(v) {
                 retourne v;
@@ -1766,23 +1766,23 @@ calcule_style :: fonc (ctx: *ContexteCalculStyle, étape: ÉtapeCalculStyle)
         retourne;
     }
 
-    si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].donne_line_style() == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, donne_valeur_pixels_zéro());
+    si donne_line_style(propriétés.style.valeurs[IDPropriété.BorderStyleLeft]) == LineStyle.None {
+        définis_valeur_calculée(propriétés, IDPropriété.BorderWidthLeft, donne_valeur_pixels_zéro());
         active(*ctx.propriétés_calculées, IDPropriété.BorderWidthLeft comme n16);
         active(*ctx.propriétés_calculées, IDPropriété.BorderColorLeft comme n16);
     }
-    si propriétés.style.valeurs[IDPropriété.BorderStyleTop].donne_line_style() == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, donne_valeur_pixels_zéro());
+    si donne_line_style(propriétés.style.valeurs[IDPropriété.BorderStyleTop]) == LineStyle.None {
+        définis_valeur_calculée(propriétés, IDPropriété.BorderWidthTop, donne_valeur_pixels_zéro());
         active(*ctx.propriétés_calculées, IDPropriété.BorderWidthTop comme n16);
         active(*ctx.propriétés_calculées, IDPropriété.BorderColorTop comme n16);
     }
-    si propriétés.style.valeurs[IDPropriété.BorderStyleRight].donne_line_style() == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, donne_valeur_pixels_zéro());
+    si donne_line_style(propriétés.style.valeurs[IDPropriété.BorderStyleRight]) == LineStyle.None {
+        définis_valeur_calculée(propriétés, IDPropriété.BorderWidthRight, donne_valeur_pixels_zéro());
         active(*ctx.propriétés_calculées, IDPropriété.BorderWidthRight comme n16);
         active(*ctx.propriétés_calculées, IDPropriété.BorderColorRight comme n16);
     }
-    si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].donne_line_style() == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, donne_valeur_pixels_zéro());
+    si donne_line_style(propriétés.style.valeurs[IDPropriété.BorderStyleBottom]) == LineStyle.None {
+        définis_valeur_calculée(propriétés, IDPropriété.BorderWidthBottom, donne_valeur_pixels_zéro());
         active(*ctx.propriétés_calculées, IDPropriété.BorderWidthBottom comme n16);
         active(*ctx.propriétés_calculées, IDPropriété.BorderColorBottom comme n16);
     }
@@ -1807,11 +1807,11 @@ calcule_style_manuel :: fonc (ctx: *ContexteCalculStyle, ids_propriétés: []IDP
 
         infos := infos_types_propriétés_pour_id[it];
         valeur := calcule_valeur_propriété_générique(propriétés.style.valeurs[it], infos.genre_valeur_calculée, *propriétés.style, ctx);
-        propriétés.définis_valeur_calculée(it, valeur);
+        définis_valeur_calculée(propriétés, it, valeur);
     }
 
     pour ids_propriétés {
-        propriétés.définis_valeur_utilisée(it, propriétés.donne_valeur_calculée(it));
+        définis_valeur_utilisée(propriétés, it, donne_valeur_calculée(propriétés, it));
     }
 }
 
@@ -2062,10 +2062,10 @@ donne_bordure :: fonc (style: *Style) -> Border
     résultat.width[BorderEdge.Left] = style.valeurs[IDPropriété.BorderWidthLeft];
     résultat.width[BorderEdge.Right] = style.valeurs[IDPropriété.BorderWidthRight];
 
-    résultat.style[BorderEdge.Top] = style.valeurs[IDPropriété.BorderStyleTop].donne_line_style();
-    résultat.style[BorderEdge.Bottom] = style.valeurs[IDPropriété.BorderStyleBottom].donne_line_style();
-    résultat.style[BorderEdge.Left] = style.valeurs[IDPropriété.BorderStyleLeft].donne_line_style();
-    résultat.style[BorderEdge.Right] = style.valeurs[IDPropriété.BorderStyleRight].donne_line_style();
+    résultat.style[BorderEdge.Top] = donne_line_style(style.valeurs[IDPropriété.BorderStyleTop]);
+    résultat.style[BorderEdge.Bottom] = donne_line_style(style.valeurs[IDPropriété.BorderStyleBottom]);
+    résultat.style[BorderEdge.Left] = donne_line_style(style.valeurs[IDPropriété.BorderStyleLeft]);
+    résultat.style[BorderEdge.Right] = donne_line_style(style.valeurs[IDPropriété.BorderStyleRight]);
 
     résultat.color[BorderEdge.Top] = style.valeurs[IDPropriété.BorderColorTop];
     résultat.color[BorderEdge.Bottom] = style.valeurs[IDPropriété.BorderColorBottom];
@@ -2373,14 +2373,14 @@ GenreValeurCalculée :: énum_drapeau {
 
 calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_valeur_calculée: GenreValeurCalculée, style: *Style, ctx: *ContexteCalculStyle) -> Optionnel(*ValeurDeStyle)
 {
-    si valeur.est_mot_clé() {
-        m := valeur.donne_mot_clé();
+    si est_mot_clé(valeur) {
+        m := donne_mot_clé(valeur);
         si genre_valeur_calculée.Couleur {
             si m == PROP_currentColor {
                 retourne style.valeurs[IDPropriété.Color];
             }
             opt_couleur := trouve_couleur_pour_mot_clé(m);
-            si opt_couleur.possède_valeur() {
+            si possède_valeur(opt_couleur) {
                 retourne crée_valeur_couleur(opt_couleur.Quelque);
             }
             retourne;
@@ -2419,7 +2419,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             si m == PROP_bolder {
                 graisse_parent : r64 = 400.0;
                 si ctx.propriétés.parent {
-                    graisse_parent = ctx.propriétés.parent.donne_valeur_calculée(IDPropriété.FontWeight).donne_number();
+                    graisse_parent = donne_number(donne_valeur_calculée(ctx.propriétés.parent, IDPropriété.FontWeight));
                 }
 
                 si graisse_parent < 100.0 {
@@ -2447,7 +2447,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             si m == PROP_lighter {
                 graisse_parent : r64 = 400.0;
                 si ctx.propriétés.parent {
-                    graisse_parent = ctx.propriétés.parent.donne_valeur_calculée(IDPropriété.FontWeight).donne_number();
+                    graisse_parent = donne_number(donne_valeur_calculée(ctx.propriétés.parent, IDPropriété.FontWeight));
                 }
 
                 si graisse_parent < 100.0 {
@@ -2508,8 +2508,8 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             retourne valeur;
         }
     }
-    sinon si valeur.est_url() {
-        u := valeur.donne_url();
+    sinon si est_url(valeur) {
+        u := donne_url(valeur);
 
         si genre_valeur_calculée.BackgroundImage {
             base_url := donne_url_base_pour_background_image(ctx.propriétés);
@@ -2517,7 +2517,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
                 base_url = HTML.donne_base_url(ctx.document);
             }
 
-            url_src := HTML.basic_url_parser(u.donne_chaine_utf16(), base = base_url);
+            url_src := HTML.basic_url_parser(donne_chaine_utf16(u), base = base_url);
             saufsi url_src {
                 retourne donne_valeur_none();
             }
@@ -2527,24 +2527,24 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             retourne crée_valeur_url_absolu(url_string);
         }
     }
-    sinon si valeur.est_url_absolu() {
+    sinon si est_url_absolu(valeur) {
         si genre_valeur_calculée.BackgroundImage {
             retourne valeur;
         }
     }
-    sinon si valeur.est_couleur() {
+    sinon si est_couleur(valeur) {
         si genre_valeur_calculée.Couleur {
             retourne valeur;
         }
     }
-    sinon si valeur.est_longueur() {
-        l := valeur.donne_longueur();
+    sinon si est_longueur(valeur) {
+        l := donne_longueur(valeur);
         si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
             retourne crée_valeur_pixels(calcule_longueur(l, ctx));
         }
     }
-    sinon si valeur.est_integer() {
-        i := valeur.donne_integer();
+    sinon si est_integer(valeur) {
+        i := donne_integer(valeur);
         si genre_valeur_calculée.Nombre {
             retourne crée_valeur_number(i);
         }
@@ -2552,8 +2552,8 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             retourne crée_valeur_pixels(i);
         }
     }
-    sinon si valeur.est_number() {
-        n := valeur.donne_number();
+    sinon si est_number(valeur) {
+        n := donne_number(valeur);
         si genre_valeur_calculée.Nombre {
             retourne valeur;
         }
@@ -2561,11 +2561,11 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             retourne crée_valeur_pixels(n);
         }
     }
-    sinon si valeur.est_pixels() {
+    sinon si est_pixels(valeur) {
             retourne valeur;
     }
-    sinon si valeur.est_percentage() {
-        p := valeur.donne_percentage();
+    sinon si est_percentage(valeur) {
+        p := donne_percentage(valeur);
         si genre_valeur_calculée.FontSize {
             retourne crée_valeur_pixels(ctx.longueurs_relative_fonte.em * p / 100.0);
         }
@@ -2578,21 +2578,21 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             retourne valeur;
         }
     }
-    sinon si valeur.est_display() {
+    sinon si est_display(valeur) {
         si genre_valeur_calculée.Display {
             retourne valeur;
         }
     }
-    sinon si valeur.est_calc() {
+    sinon si est_calc(valeur) {
         panique("calc non-géré");
     }
-    sinon si valeur.est_background_repeat() {
+    sinon si est_background_repeat(valeur) {
         saufsi genre_valeur_calculée.BackgroundRepeat {
             retourne;
         }
 
-        b := valeur.donne_background_repeat();
-        si b.vertical.est_vide() {
+        b := donne_background_repeat(valeur);
+        si est_vide(b.vertical) {
             si b.horizontal == PROP_repeat_x {
                 b.horizontal = PROP_repeat;
                 b.vertical = PROP_no_repeat;
@@ -2619,11 +2619,11 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
 
         retourne crée_valeur_background_repeat(b);
     }
-    sinon si valeur.est_string() {
+    sinon si est_string(valeur) {
         retourne valeur;
     }
-    sinon si valeur.est_background_position() {
-        position := valeur.donne_background_position();
+    sinon si est_background_position(valeur) {
+        position := donne_background_position(valeur);
         si est_pixels_ou_percentage(position.décalage_vertical) && est_pixels_ou_percentage(position.décalage_horizontal) {
             retourne valeur;
         }
@@ -2648,7 +2648,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
 
         retourne crée_valeur_background_position(résultat);
     }
-    sinon si valeur.est_background_size() {
+    sinon si est_background_size(valeur) {
         saufsi genre_valeur_calculée.BackgroundSize {
             retourne;
         }
@@ -2668,71 +2668,71 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
 
     valeur := déclaration.value[0];
 
-    tantque valeur.est_variable() {
-        valeur = résoud_valeur_variable(ctx, info, valeur.donne_variable(), id);
+    tantque est_variable(valeur) {
+        valeur = résoud_valeur_variable(ctx, info, donne_variable(valeur), id);
     }
 
     /* "color: currentColor" doit prendre la valeur héritée
      * https://www.w3.org/TR/css-color-4/#resolving-other-colors */
-    si valeur.est_mot_clé(PROP_inherit) || (valeur.est_mot_clé(PROP_currentColor) && id == IDPropriété.Color) {
+    si est_mot_clé(valeur, PROP_inherit) || (est_mot_clé(valeur, PROP_currentColor) && id == IDPropriété.Color) {
         /* https://www.w3.org/TR/css-cascade/#inherit */
         si ctx.propriétés.parent {
-            valeur = ctx.propriétés.parent.donne_valeur_calculée(id);
+            valeur = donne_valeur_calculée(ctx.propriétés.parent, id);
         }
         sinon {
             valeur = ctx.valeurs_initiales.valeurs[id];
         }
     }
-    sinon si valeur.est_mot_clé(PROP_initial) {
+    sinon si est_mot_clé(valeur, PROP_initial) {
         /* https://www.w3.org/TR/css-cascade/#initial */
         valeur = ctx.valeurs_initiales.valeurs[id];
     }
-    sinon si valeur.est_mot_clé(PROP_unset) {
+    sinon si est_mot_clé(valeur, PROP_unset) {
         /* https://www.w3.org/TR/css-cascade/#inherit-initial */
         // À FAIRE : unset
         valeur = ctx.valeurs_initiales.valeurs[id];
     }
-    sinon si valeur.est_mot_clé(PROP_revert) {
+    sinon si est_mot_clé(valeur, PROP_revert) {
         /* https://www.w3.org/TR/css-cascade/#default */
         // À FAIRE : revert
         valeur = ctx.valeurs_initiales.valeurs[id];
     }
 
-    si valeur.est_calc() {
-        résultat := évalue_calc(valeur.donne_calc(), genre_valeur_calculée, ctx);
+    si est_calc(valeur) {
+        résultat := évalue_calc(donne_calc(valeur), genre_valeur_calculée, ctx);
         discr résultat {
             Ok(v) {
-                style.définis_valeur(id, copie_valeur(v));
+                définis_valeur(style, id, copie_valeur(v));
                 retourne;
             }
             Erreur(e) {
                 si e == ErreurDeCalcul.PourcentageIncalculable {
-                    style.définis_valeur(id, copie_valeur(valeur));
+                    définis_valeur(style, id, copie_valeur(valeur));
                     retourne;
                 }
             }
             sinon {}
         }
         valeur = ctx.valeurs_initiales.valeurs[id];
-        style.définis_valeur(id, copie_valeur(valeur));
+        définis_valeur(style, id, copie_valeur(valeur));
         retourne;
     }
 
     résultat := calcule_valeur_propriété_générique(valeur, genre_valeur_calculée, style, ctx);
-    si résultat.possède_valeur() {
+    si possède_valeur(résultat) {
         valeur_résultat := résultat.Quelque;
-        si info.drapeaux.ValeurNégativeIllégale && valeur_résultat.est_négative() {
+        si info.drapeaux.ValeurNégativeIllégale && est_négative(valeur_résultat) {
             si valeur_résultat != style.valeurs[id] {
                 détruit_valeur_de_style(valeur_résultat);
             }
             retourne;
         }
-        style.définis_valeur(id, valeur_résultat);
+        définis_valeur(style, id, valeur_résultat);
         retourne;
     }
 
     si genre_valeur_calculée.Spécifié {
-        si info.drapeaux.ValeurNégativeIllégale && valeur.est_négative() {
+        si info.drapeaux.ValeurNégativeIllégale && est_négative(valeur) {
             retourne;
         }
 
@@ -2740,7 +2740,7 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
             valeur = copie_valeur(valeur);
         }
 
-        style.définis_valeur(id, valeur);
+        définis_valeur(style, id, valeur);
         retourne;
     }
 }
@@ -2754,7 +2754,7 @@ résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropr
     }
 
     résultat := parse_valeur_propriété(info, déclaration.valeur_personnalisée);
-    si résultat.possède_valeur() {
+    si possède_valeur(résultat) {
         retourne résultat.Quelque;
     }
 

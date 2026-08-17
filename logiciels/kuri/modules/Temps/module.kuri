@@ -55,13 +55,13 @@ temps_écoulé_secondes :: fonc (inst: Instantané) -> z64
 
 temps_écoulé_millisecondes :: fonc (inst: Instantané) -> z64
 {
-    m := maintenant_précis().millisecondes();
+    m := millisecondes(maintenant_précis());
     retourne m - millisecondes(inst);
 }
 
 temps_écoulé_microsecondes :: fonc (inst: Instantané) -> z64
 {
-    m := maintenant_précis().microsecondes();
+    m := microsecondes(maintenant_précis());
     retourne m - microsecondes(inst);
 }
 

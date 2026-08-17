@@ -20,7 +20,7 @@ MASQUE_SÉQUENCE :: -1 ^ (-1 << BITS_SÉQUENCE);
 
 génère_temps :: fonc () -> z64
 {
-    retourne maintenant_système_précis().millisecondes();
+    retourne millisecondes(maintenant_système_précis());
 }
 
 ParamètresFlocon :: struct {

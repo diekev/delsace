@@ -122,7 +122,7 @@ chemin_normalisé :: fonc (tampon_chemin: *TamponChemin, pile: *Pile(chaine), ch
 {
     /* À FAIRE : structure dédiée. */
     tampon: [16]chaine;
-    utilise_tampon := pile.taille() < 16;
+    utilise_tampon := taille(pile) < 16;
 
     pile_secondaire: Pile(chaine);
     si utilise_tampon {
@@ -132,10 +132,10 @@ chemin_normalisé :: fonc (tampon_chemin: *TamponChemin, pile: *Pile(chaine), ch
 
     diffère saufsi utilise_tampon { détruit(*pile_secondaire); }
 
-    pile.renverse();
+    renverse(pile);
 
-    tantque !pile.est_vide() {
-        morceau_courant := pile.dépile();
+    tantque !est_vide(pile) {
+        morceau_courant := dépile(pile);
 
         si morceau_courant == "." {
             continue;
@@ -186,7 +186,7 @@ normalise_chemin :: fonc (tampon: *TamponChemin)
     pile := divise_et_empile_chemin(chemin);
     diffère détruit(*pile);
 
-    absolu := chemin.chn.commence_par(séparateur_chemin());
+    absolu := commence_par(chemin.chn, séparateur_chemin());
 
     réinitialise(tampon);
     chemin_normalisé(tampon, *pile, absolu);
@@ -371,7 +371,7 @@ crée_chemin_absolu :: fonc (pile: *Pile(chaine), base: CheminFichier, feuille: 
 {
     divise_et_empile_chemin(pile, base);
     divise_et_empile_chemin(pile, feuille);
-    retourne chemin_normalisé(pile, base.chn.commence_par(séparateur_chemin()));
+    retourne chemin_normalisé(pile, commence_par(base.chn, séparateur_chemin()));
 }
 
 est_absolu :: fonc (chm: CheminFichier) -> bool
@@ -406,7 +406,7 @@ chemin_parent :: fonc (chm: CheminFichier) -> CheminFichier
 
     empile(*pile, "..");
 
-    retourne chemin_normalisé(*pile, chm.chn.commence_par(séparateur_chemin()));
+    retourne chemin_normalisé(*pile, commence_par(chm.chn, séparateur_chemin()));
 }
 
 /* Retourne le nom du premier dossier après le dossier de base.
@@ -543,13 +543,13 @@ développe_variables :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> c
                 retourne copie_chaine("Entrée tronquée. Aucune accolade fermante trouvée après '{'");
             }
 
-            mot := chn.sous_chaine(début_variable, début_variable + taille_mot);
+            mot := sous_chaine(chn, début_variable, début_variable + taille_mot);
             si mot == "" {
                 retourne copie_chaine("Nom de variable vide entre '{}'");
             }
 
             opt_erreur := copie_variable_environnement(tampon, mot);
-            si opt_erreur.possède_valeur() {
+            si possède_valeur(opt_erreur) {
                 retourne opt_erreur.Quelque;
             }
             continue;
@@ -568,13 +568,13 @@ développe_variables :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> c
             taille_mot += 1;
         }
 
-        mot := chn.sous_chaine(début_variable, début_variable + taille_mot);
+        mot := sous_chaine(chn, début_variable, début_variable + taille_mot);
         si mot == "" {
             retourne copie_chaine("Nom de variable vide entre '$/'");
         }
 
         opt_erreur := copie_variable_environnement(tampon, mot);
-        si opt_erreur.possède_valeur() {
+        si possède_valeur(opt_erreur) {
             retourne opt_erreur.Quelque;
         }
     }
@@ -686,7 +686,7 @@ ajoute :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
 
 ajoute :: fonc (tampon: *TamponChemin, caractère: z8) -> bool
 {
-    si caractère == séparateur_chemin() && tampon.donne_dernier_caractère() == caractère {
+    si caractère == séparateur_chemin() && donne_dernier_caractère(tampon) == caractère {
         retourne vrai;
     }
 

@@ -9,12 +9,12 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
 {
     // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
     function_declaration_instantiation(interpréteuse, function_object, arguments_list);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
     // 2. Return ? Evaluation of FunctionStatementList.
     assert(function_object.corps.type == FunctionBody);
-    retourne interpréteuse.exécute((function_object.corps comme *FunctionBody).statement);
+    retourne exécute(interpréteuse, (function_object.corps comme *FunctionBody).statement);
 }
 
 /* 15.2.4 Runtime Semantics: InstantiateOrdinaryFunctionObject
@@ -50,7 +50,7 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
 instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteuse, expression: *FunctionExpression, opt_name : *FieldName = nul) -> *Function
 {
     mv := interpréteuse.mv;
-    running_execution_context := mv.donne_running_execution_context();
+    running_execution_context := donne_running_execution_context(mv);
     realm := running_execution_context.realm;
 
     si expression.id == nul {
@@ -92,10 +92,10 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
     outer_env := running_execution_context.lexical_environment;
 
     // 4. Let funcEnv be NewDeclarativeEnvironment(outerEnv).
-    func_env := new_declarative_environment(outer_env.donne_tas_de_mémoire(), outer_env);
+    func_env := new_declarative_environment(donne_tas_de_mémoire(outer_env), outer_env);
 
     // 5. Perform ! funcEnv.CreateImmutableBinding(name, false).
-    _ := func_env.create_immutable_binding(realm, name, faux);
+    _ := create_immutable_binding(func_env, realm, name, faux);
 
     // 6. Let privateEnv be the running execution context's PrivateEnvironment.
     private_env := running_execution_context.private_environment;
@@ -113,7 +113,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
     make_constructor(realm, closure);
 
     // 11. Perform ! funcEnv.InitializeBinding(name, closure).
-    func_env.initialize_binding(name, Valeur(Function = closure));
+    initialize_binding(func_env, name, Valeur(Function = closure));
 
     // 12. Return closure.
     retourne closure;
@@ -125,13 +125,13 @@ evaluate_concise_body :: fonc (interpréteuse: *Interpréteuse, function_object:
 {
     // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
     function_declaration_instantiation(interpréteuse, function_object, arguments_list);
-    si interpréteuse.possède_exception() {
-        retourne throw_completion(interpréteuse.donne_exception());
+    si possède_exception(interpréteuse) {
+        retourne throw_completion(donne_exception(interpréteuse));
     }
 
     // 2. Return ? Evaluation of ExpressionBody.
     assert(function_object.corps.type == ConciseBody);
-    retourne interpréteuse.exécute(function_object.corps);
+    retourne exécute(interpréteuse, function_object.corps);
 }
 
 /* 15.3.4 Runtime Semantics: InstantiateArrowFunctionExpression
@@ -139,7 +139,7 @@ evaluate_concise_body :: fonc (interpréteuse: *Interpréteuse, function_object:
 instantiate_arrow_function_expression :: fonc (interpréteuse: *Interpréteuse, arrow: *ArrowFunction, opt_name : *FieldName = nul) -> *Function
 {
     mv := interpréteuse.mv;
-    running_execution_context := mv.donne_running_execution_context();
+    running_execution_context := donne_running_execution_context(mv);
     realm := running_execution_context.realm;
 
     // 1. If name is not present, set name to "".

@@ -148,10 +148,10 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
 
     si touche.type == ToucheClavier.FIN {
         si touche.modificateur == ModificateurClavier.MAJUSCULE {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, éditrice.texte_à_éditer.taille());
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, taille(éditrice.texte_à_éditer));
         }
         sinon si touche.modificateur == ModificateurClavier.zéro {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.texte_à_éditer.taille());
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, taille(éditrice.texte_à_éditer));
         }
         retourne;
     }
@@ -363,7 +363,7 @@ donne_position_mot_précédent :: fonc (curseur: *CurseurTexte) -> z64
     ligne := mémoire(donne_ligne_courante(curseur));
     position := curseur.début;
 
-    si position == ligne.taille() && ligne.taille() != 0 {
+    si position == taille(ligne) && taille(ligne) != 0 {
         position -= 1;
     }
 
@@ -399,7 +399,7 @@ donne_position_mot_suivant :: fonc (curseur: *CurseurTexte) -> z64
     position := curseur.début;
 
     eu_séparation := faux;
-    tantque position < ligne.taille() {
+    tantque position < taille(ligne) {
         c := ligne[position];
         si eu_séparation && !est_séparation_mot(c) {
             arrête;

@@ -149,7 +149,7 @@ initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentSt
     navigable.active_session_history_entry = entry;
 
     // 5. Set navigable's parent to parent.
-    navigable.définis_parent(parent);
+    définis_parent(navigable, parent);
 }
 
 définis_parent :: fonc (navigable: *Navigable, parent: *Navigable)
@@ -165,8 +165,8 @@ définis_active_session_history_entry :: fonc (navigable: *Navigable, entry: *Se
 {
     document := donne_document(entry);
 
-    si navigable.est_top_level_traversable() && document != navigable.donne_active_document() {
-        document.notifie_changement_fully_active();
+    si est_top_level_traversable(navigable) && document != donne_active_document(navigable) {
+        notifie_changement_fully_active(document);
     }
 
     navigable.active_session_history_entry = entry;
@@ -183,7 +183,7 @@ donne_active_browsing_context :: fonc (navigable: *Navigable) -> *BrowsingContex
     /* A navigable's active browsing context is its active document's browsing context.
      * If this navigable is a traversable navigable, then its active browsing context
      * will be a top-level browsing context. */
-    document := navigable.donne_active_document();
+    document := donne_active_document(navigable);
     saufsi document {
         retourne nul;
     }
@@ -252,7 +252,7 @@ donne_session_history_entries :: fonc (user_agent: *UserAgent, navigable: *Navig
     traversable := donne_traversable_navigable(navigable);
 
     // 2. Assert: this is running within traversable's session history traversal queue.
-    assert(user_agent.est_exécuté_sur_file_parallèle(traversable));
+    assert(est_exécuté_sur_file_parallèle(user_agent, traversable));
 
     // 3. If navigable is traversable, return traversable's session history entries.
     si navigable == traversable {
@@ -384,7 +384,7 @@ crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: 
 
     // 5. Let traversable be a new traversable navigable.
     traversable := loge(TraversableNavigable);
-    traversable.indice_file_parallèle = user_agent.crée_file_parallèle_pour_traversable();
+    traversable.indice_file_parallèle = crée_file_parallèle_pour_traversable(user_agent);
 
     // 6. Initialize the navigable traversable given documentState.
     initialise_navigable(traversable, document_state);
@@ -420,7 +420,7 @@ crée_un_fresh_top_level_traversable :: fonc (user_agent: *UserAgent, initial_na
     // 2. Navigate traversable to initialNavigationURL using traversable's active document, with documentResource set to initialNavigationPostResource.
     params: ParamètresNavigationNavigable;
     params.url = initial_navigation_url;
-    params.source_document = traversable.donne_active_document();
+    params.source_document = donne_active_document(traversable);
     navigate(user_agent, traversable, params);
 
     // 3. Return traversable.
@@ -445,7 +445,7 @@ donne_node_navigable :: fonc (noeud: *Node) -> *Navigable
 
     /* À FAIRE : il nous faut tous les navigables. */
     pour user_agent.top_level_traversables {
-        si it.donne_active_document() == document {
+        si donne_active_document(it) == document {
             retourne it;
         }
     }
@@ -576,16 +576,16 @@ détermine_origin :: fonc (url: *URL, sandbox_flags: SandboxingFlags, source_ori
     }
 
     // 3. If url is about:srcdoc, then:
-    si url.est_about_srcdoc() {
+    si est_about_srcdoc(url) {
         // 1. Assert: sourceOrigin is non-null.
-        assert(source_origin.possède_valeur());
+        assert(possède_valeur(source_origin));
 
         // 2. Return sourceOrigin.
         retourne source_origin.Quelque;
     }
 
     // 4. If url matches about:blank and sourceOrigin is non-null, then return sourceOrigin.
-    si url.est_about_blank() && source_origin.possède_valeur() {
+    si est_about_blank(url) && possède_valeur(source_origin) {
         retourne source_origin.Quelque;
     }
 
@@ -611,7 +611,7 @@ sont_même_origine :: fonc (a: Origin, b: Origin) -> bool
             retourne faux;
         }
 
-        si !a.port.possède_valeur() || !b.port.possède_valeur() {
+        si !possède_valeur(a.port) || !possède_valeur(b.port) {
             retourne faux;
         }
 
@@ -633,12 +633,12 @@ sont_même_domaine_origine :: fonc (a: Origin, b: Origin) -> bool
     // 2. If A and B are both tuple origins:
     si !a.est_opaque && !b.est_opaque {
         // 1. If A and B's schemes are identical, and their domains are identical and non-null, then return true.
-        si a.scheme == b.scheme && a.domain.possède_valeur() && b.domain.possède_valeur() && a.domain.Quelque == b.domain.Quelque {
+        si a.scheme == b.scheme && possède_valeur(a.domain) && possède_valeur(b.domain) && a.domain.Quelque == b.domain.Quelque {
             retourne vrai;
         }
 
         // 2. Otherwise, if A and B are same origin and their domains are both null, return true.
-        si sont_même_origine(a, b) && !a.domain.possède_valeur() && !b.domain.possède_valeur() {
+        si sont_même_origine(a, b) && !possède_valeur(a.domain) && !possède_valeur(b.domain) {
             retourne vrai;
         }
     }
@@ -808,17 +808,17 @@ est_top_level_browsing_context :: fonc (browsing_context: *BrowsingContext) -> b
 donne_top_level_browsing_context :: fonc (start: *BrowsingContext) -> *BrowsingContext
 {
     // 1. If start's active document is not fully active, then return null.
-    active_document := start.donne_active_document();
+    active_document := donne_active_document(start);
     saufsi active_document {
         retourne nul;
     }
 
-    saufsi active_document.est_fully_active() {
+    saufsi est_fully_active(active_document) {
         retourne nul;
     }
 
     // 2. Let navigable be start's active document's node navigable.
-    navigable := active_document.donne_node_navigable();
+    navigable := donne_node_navigable(active_document);
 
     // 3. While navigable's parent is not null, set navigable to navigable's parent.
     tantque navigable.parent != nul {
@@ -826,7 +826,7 @@ donne_top_level_browsing_context :: fonc (start: *BrowsingContext) -> *BrowsingC
     }
 
     // 4. Return navigable's active browsing context.
-    retourne navigable.donne_active_browsing_context();
+    retourne donne_active_browsing_context(navigable);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-browsing-contexts */
@@ -850,11 +850,11 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
         creator_origin = creator.origin;
 
         // 2. Set creatorBaseURL to creator's document base URL.
-        creator_base_url =  creator.donne_base_url();
+        creator_base_url =  donne_base_url(creator);
 
         // 3. Set browsingContext's virtual browsing context group ID to creator's browsing context's top-level browsing context's virtual browsing context group ID.
         creator_browsing_context := creator.browsing_context; {
-            top_level_browsing_context := creator_browsing_context.donne_top_level_browsing_context();
+            top_level_browsing_context := donne_top_level_browsing_context(creator_browsing_context);
             si top_level_browsing_context {
                 browsing_context.virtual_browsing_context_group_id = top_level_browsing_context.virtual_browsing_context_group_id;
             }
@@ -915,13 +915,13 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     // 11. Let topLevelCreationURL be about:blank if embedder is null; otherwise embedder's relevant settings object's top-level creation URL.
     top_level_creation_url := donne_about_blank_url();
     si embedder {
-        top_level_creation_url = embedder.donne_relevant_settings_object().top_level_creation_url;
+        top_level_creation_url = donne_relevant_settings_object(embedder).top_level_creation_url;
     }
 
     // 12. Let topLevelOrigin be origin if embedder is null; otherwise embedder's relevant settings object's top-level origin.
     top_level_origin := origin;
     si embedder {
-        top_level_origin = embedder.donne_relevant_settings_object().top_level_origin;
+        top_level_origin = donne_relevant_settings_object(embedder).top_level_origin;
     }
 
     // 13. Set up a window environment settings object with about:blank, realm execution context, null, topLevelCreationURL, and topLevelOrigin.
@@ -933,10 +933,10 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     //     unsafeContextCreationTime and the new environment settings object's
     //     cross-origin isolated capability.
     load_timing_info: DocumentLoadTimingInfo;
-    load_timing_info.navigation_start_time = coarsen_time(unsafe_context_creation_time, environment_settings.donne_cross_origin_isolated_capability());
+    load_timing_info.navigation_start_time = coarsen_time(unsafe_context_creation_time, donne_cross_origin_isolated_capability(environment_settings));
 
     // 15. Let document be a new Document, with:
-    document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), realm_execution_context.realm);
+    document := crée_noeud_document(donne_tas_de_mémoire(user_agent), realm_execution_context.realm);
     // type "html"
     document.type = "html";
     // content type = "text/html"
@@ -1097,7 +1097,7 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
         // Return the current base URL of window's associated Document.
         env := base comme *WindowEnvironment;
         window := env.window;
-        retourne window.document.donne_base_url();
+        retourne donne_base_url(window.document);
     }
 
     // The origin
@@ -1236,7 +1236,7 @@ requires_storing_the_policy_container_in_history :: fonc (url: *URL) -> bool
     }
 
     // 2. If url is local, then return true.
-    si url.is_local() {
+    si is_local(url) {
         retourne vrai;
     }
 
@@ -1261,7 +1261,7 @@ determine_navigation_params_policy_container :: fonc (response_url: *URL,
     }
 
     // 2. If responseURL is about:srcdoc, then:
-    si response_url.est_about_srcdoc() {
+    si est_about_srcdoc(response_url) {
         // 1. Assert: parentPolicyContainer is not null.
         assert(parent_policy_container != nul);
 
@@ -1271,7 +1271,7 @@ determine_navigation_params_policy_container :: fonc (response_url: *URL,
 
     // 3. If responseURL is local and initiatorPolicyContainer is not null, 
     //    then return a clone of initiatorPolicyContainer.
-    si response_url.is_local() && initiator_policy_container != nul {
+    si is_local(response_url) && initiator_policy_container != nul {
         retourne clone(initiator_policy_container);
     }
 

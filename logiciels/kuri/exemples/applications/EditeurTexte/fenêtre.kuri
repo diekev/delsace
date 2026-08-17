@@ -118,20 +118,20 @@ parse_config_depuis_fichier :: fonc (anonyme: *Anonyme, chemin: chaine, projet: 
 
         consomme_ponctuation(lexeuse, "]]");
 
-        si lexème.est_mot_clé("paramètres") {
+        si est_mot_clé(lexème, "paramètres") {
             parse_paramètres(lexeuse);
         }
-        sinon si lexème.est_mot_clé("espace") {
+        sinon si est_mot_clé(lexème, "espace") {
             parse_espace_de_travail(lexeuse, projet);
         }
-        sinon si lexème.est_mot_clé("compilation") {
+        sinon si est_mot_clé(lexème, "compilation") {
             parse_commandes_compilation(lexeuse, projet);
         }
-        sinon si lexème.est_mot_clé("raccourcis") {
+        sinon si est_mot_clé(lexème, "raccourcis") {
             parse_raccourcis(lexeuse, raccourcis);
         }
         sinon {
-            imprimeln("catégorie inconnue : %", lexème.donne_texte());
+            imprimeln("catégorie inconnue : %", donne_texte(lexème));
             exit(1);
         }
     }
@@ -148,12 +148,12 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
 
     tantque !fini(lexeuse) {
         lexème := donne_lexème_suivant(lexeuse);
-        lexeuse.reprends_depuis_lexème(lexème);
-        si lexème.est_ponctuation("[[") {
+        reprends_depuis_lexème(lexeuse, lexème);
+        si est_ponctuation(lexème, "[[") {
             arrête;
         }
 
-        symbole := donne_symbole(lexeuse).donne_texte();
+        symbole := donne_texte(donne_symbole(lexeuse));
         nombre_couleur := donne_nombre(lexeuse).nombre.naturel;
 
         r := (nombre_couleur >> 24 & 0xff) comme r32 / 255.0;
@@ -202,15 +202,15 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
 
 parse_espace_de_travail :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
 {
-    tantque !lexeuse.fini() {
+    tantque !fini(lexeuse) {
         lexème := donne_lexème_suivant(lexeuse);
 
-        si lexème.est_ponctuation("[[") {
-            lexeuse.reprends_depuis_lexème(lexème);
+        si est_ponctuation(lexème, "[[") {
+            reprends_depuis_lexème(lexeuse, lexème);
             arrête;
         }
 
-        tableau_ajoute(*projet.chemins, copie_chaine(lexème.donne_texte()));
+        tableau_ajoute(*projet.chemins, copie_chaine(donne_texte(lexème)));
     }
 }
 
@@ -218,26 +218,26 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
 {
     info_compilation := tableau_ajoute_élément(*projet.commandes_de_compilation);
 
-    tantque !lexeuse.fini() {
+    tantque !fini(lexeuse) {
         lexème := donne_lexème_suivant(lexeuse);
 
-        si lexème.est_ponctuation("[[") {
-            lexeuse.reprends_depuis_lexème(lexème);
+        si est_ponctuation(lexème, "[[") {
+            reprends_depuis_lexème(lexeuse, lexème);
             arrête;
         }
 
         consomme_ponctuation(lexeuse, ":");
 
-        propriété := lexème.donne_texte();
+        propriété := donne_texte(lexème);
 
         si propriété == "dossier_compilat" {
             // @validation
             lexème = donne_lexème_suivant(lexeuse);
-            info_compilation.dossier_de_compilation = copie_chaine(lexème.donne_texte());
+            info_compilation.dossier_de_compilation = copie_chaine(donne_texte(lexème));
         }
         sinon si propriété == "commande" {
             // @validation
-            texte := lexeuse.donne_texte_jusque_nouvelle_ligne();
+            texte := donne_texte_jusque_nouvelle_ligne(lexeuse);
             divise(texte, ' ', *info_compilation.commande);
             pour * info_compilation.commande {
                 mémoire(it) = copie_chaine(mémoire(it));
@@ -254,34 +254,34 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, raccourcis: *ListeRaccourcis)
 {
     contexte_courant := "";
 
-    tantque !lexeuse.fini() {
+    tantque !fini(lexeuse) {
         lexème := donne_lexème_suivant(lexeuse);
         si lexème.type == TypeLexème.FinDeFichier {
             arrête;
         }
 
-        si lexème.est_ponctuation("[[") {
-            lexeuse.reprends_depuis_lexème(lexème);
+        si est_ponctuation(lexème, "[[") {
+            reprends_depuis_lexème(lexeuse, lexème);
             arrête;
         }
 
-        si lexème.est_ponctuation("[") {
+        si est_ponctuation(lexème, "[") {
             lexème = donne_lexème_suivant(lexeuse);
-            contexte_courant = lexème.donne_texte();
+            contexte_courant = donne_texte(lexème);
             consomme_ponctuation(lexeuse, "]");
             continue;
         }
 
-        raccourci, succès := donne_raccourci_pour_texte(lexème.donne_texte());
+        raccourci, succès := donne_raccourci_pour_texte(donne_texte(lexème));
         saufsi succès {
-            imprimeln("Impossible de déterminer le raccourci pour '%'", lexème.donne_texte());
+            imprimeln("Impossible de déterminer le raccourci pour '%'", donne_texte(lexème));
             exit(1);
         }
 
         lexème = donne_lexème_suivant(lexeuse);
-        commande := donne_commande_pour_nom(lexème.donne_texte());
+        commande := donne_commande_pour_nom(donne_texte(lexème));
         saufsi commande {
-            imprimeln("Commande inconnue '%'", lexème.donne_texte());
+            imprimeln("Commande inconnue '%'", donne_texte(lexème));
         }
 
         raccourci_commande := tableau_ajoute_élément(*raccourcis.raccourcis);
@@ -453,7 +453,7 @@ donne_fichiers_pour_sélecteur :: fonc (anonyme: *Anonyme) -> []InfoVisiteFichie
 {
     résultat: []InfoVisiteFichier;
     si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
-        si anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() {
+        si taille(anonyme.éditrice_sélection_fichier.texte_à_éditer) {
             résultat = anonyme.sélecteur_fichier_projet.fichiers_filtrés;
         }
         sinon {
@@ -461,7 +461,7 @@ donne_fichiers_pour_sélecteur :: fonc (anonyme: *Anonyme) -> []InfoVisiteFichie
         }
     }
     sinon si anonyme.état == Anonyme.État.OUVERTURE_PROJET {
-        si anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() {
+        si taille(anonyme.éditrice_sélection_fichier.texte_à_éditer) {
             résultat = anonyme.sélecteur_projet.fichiers_filtrés;
         }
         sinon {
@@ -533,7 +533,7 @@ principale :: fonc ()
         }
 
         métriques := donne_métriques_fonte(anonyme.fonte);
-        anonyme.éditeur.lignes = ((hauteur comme r32) / métriques.donne_hauteur_ligne()) comme z32 - 2;
+        anonyme.éditeur.lignes = ((hauteur comme r32) / donne_hauteur_ligne(métriques)) comme z32 - 2;
 
         ajourne_tampon_rendu(*anonyme.éditeur);
         éditeur_défile(*anonyme.éditeur);
@@ -554,8 +554,8 @@ dessine_fenêtre :: fonc (empl anonyme: *Anonyme, largeur: z32, hauteur: z32)
         peintre = crée_peintre_igumi(taille_canevas);
     }
 
-    peintre.définis_taille_canevas(taille_canevas);
-    peintre.efface_cible_rendu();
+    définis_taille_canevas(peintre, taille_canevas);
+    efface_cible_rendu(peintre);
 
     commandes := crée_interface(anonyme, largeur, hauteur);
     dessine_commandes(peintre, *commandes);
@@ -632,7 +632,7 @@ crée_interface :: fonc (anonyme: *Anonyme, largeur: z32, hauteur: z32) -> Comma
 dessine_indicateurs_lignes :: fonc (anonyme: *Anonyme, hauteur: z32)
 {
     métriques := donne_métriques_fonte(anonyme.fonte);
-    nombre_de_lignes := ((hauteur comme r32) / métriques.donne_hauteur_ligne()) comme z32 - 2;
+    nombre_de_lignes := ((hauteur comme r32) / donne_hauteur_ligne(métriques)) comme z32 - 2;
     nombre_de_colonnes := max(4, magnitude_décimale(anonyme.éditeur.lignes_texte.taille comme z32) + 2);
     largeur_colonnes := (métriques.largeur_moyenne * nombre_de_colonnes comme r32) comme z32;
 
@@ -664,7 +664,7 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
     anonyme.textes_alloués_par_image.taille = 0;
 
     métriques := donne_métriques_fonte(fonte);
-    hauteur_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_ligne := donne_hauteur_ligne(métriques) comme z32;
     largeur_caractère := métriques.largeur_moyenne;
 
     dispose_rectangle(id = "Vue Texte");
@@ -712,7 +712,7 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
                             config = config_texte_commentaire;
                         }
 
-                        dispose_texte(lexème.donne_texte(), config);
+                        dispose_texte(donne_texte(lexème), config);
                     }
                 }
                 termine_rectangle();
@@ -733,12 +733,12 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
                         texte_avant_curseur := texte_ligne;
                         texte_avant_curseur.points_de_code.taille = anonyme.éditeur.cx;
 
-                        position_curseur := fonte.donne_largeur_texte(texte_avant_curseur);
+                        position_curseur := donne_largeur_texte(fonte, texte_avant_curseur);
 
                         définis_flottance(position_curseur, (it * hauteur_ligne) comme r32);
 
                         texte_sous_curseur := avance(texte_ligne, anonyme.éditeur.cx);
-                        si texte_sous_curseur.taille() {
+                        si taille(texte_sous_curseur) {
                             texte_sous_curseur.points_de_code.taille = 1;
                             dispose_texte(texte_sous_curseur, ConfigurationTexte(fonte, thème.arrière_plan));
                         }
@@ -765,7 +765,7 @@ déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id:
     }
 
     métriques := donne_métriques_fonte(fonte);
-    hauteur_ligne := métriques.donne_hauteur_ligne();
+    hauteur_ligne := donne_hauteur_ligne(métriques);
     largeur_caractère := métriques.largeur_moyenne;
 
     cx := (où_relatif_x / largeur_caractère) comme z32;
@@ -776,8 +776,8 @@ déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id:
     }
     sinon {
         ligne := éditeur.lignes_texte[cy];
-        si cx >= ligne.taille() {
-            cx = ligne.taille() comme z32;
+        si cx >= taille(ligne) {
+            cx = taille(ligne) comme z32;
         }
     }
 
@@ -790,7 +790,7 @@ déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id:
 dessine_barre_status :: fonc (anonyme: *Anonyme)
 {
     métriques := donne_métriques_fonte(anonyme.fonte);
-    hauteur_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_ligne := donne_hauteur_ligne(métriques) comme z32;
 
     chemin := anonyme.éditeur.chemin_fichier;
     saufsi chemin {
@@ -817,7 +817,7 @@ dessine_barre_status :: fonc (anonyme: *Anonyme)
 dessine_barre_message :: fonc (anonyme: *Anonyme)
 {
     métriques := donne_métriques_fonte(anonyme.fonte);
-    hauteur_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_ligne := donne_hauteur_ligne(métriques) comme z32;
 
     dispose_rectangle();
     {
@@ -851,7 +851,7 @@ sur_édition_sélection_fichier :: fonc (empl rappels: *RappelsÉditionTexteSél
 
     si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
         pour anonyme.projet_ouvert.fichiers_disponibles {
-            si it.nom.commence_par(texte) {
+            si commence_par(it.nom, texte) {
                 tableau_ajoute(*sélecteur.fichiers_filtrés, it);
             }
         }
@@ -859,7 +859,7 @@ sur_édition_sélection_fichier :: fonc (empl rappels: *RappelsÉditionTexteSél
     sinon {
         assert(anonyme.état == Anonyme.État.OUVERTURE_PROJET);
         pour anonyme.infos_projets {
-            si it.nom.commence_par(texte) {
+            si commence_par(it.nom, texte) {
                 tableau_ajoute(*sélecteur.fichiers_filtrés, it);
             }
         }
