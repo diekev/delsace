@@ -249,7 +249,7 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
     invocation_target_in_shadow_tree := faux;
 
     // 2. If invocationTarget is a node and its root is a shadow root, then set invocationTargetInShadowTree to true.
-    si invocation_target.est_node() && racine_est_shadow_root(invocation_target comme *Node) {
+    si est_node(invocation_target) && racine_est_shadow_root(invocation_target comme *Node) {
         invocation_target_in_shadow_tree = vrai;
     }
 
@@ -257,7 +257,7 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
     root_of_closed_tree := faux;
 
     // 4. If invocationTarget is a shadow root whose mode is "closed", then set root-of-closed-tree to true.
-    si invocation_target.est_node() && (invocation_target comme *Node).genre == GenreNoeud.ShadowRoot {
+    si est_node(invocation_target) && (invocation_target comme *Node).genre == GenreNoeud.ShadowRoot {
         shadow_root := invocation_target comme *ShadowRoot;
         root_of_closed_tree = shadow_root.mode == ShadowRootMode.closed;
     }
@@ -413,7 +413,7 @@ donne_table :: fonc (event_target: *EventTarget) -> *TableVirtuelleEventTarget #
 
 get_the_parent :: fonc (target: *EventTarget, event: *Event) -> *EventTarget
 {
-    table := target.donne_table();
+    table := donne_table(target);
     assert(table != nul);
     assert(table.sur_get_the_parent != nul);
     retourne table.sur_get_the_parent(target, event);
@@ -421,7 +421,7 @@ get_the_parent :: fonc (target: *EventTarget, event: *Event) -> *EventTarget
 
 possède_activation_behavior :: fonc (target: *EventTarget) -> bool
 {
-    table := target.donne_table();
+    table := donne_table(target);
     /* À FAIRE : nous pourrions avoir une condition plus subtile pour,
      *  par exemple, les éléments ancres qui n'ont pas de href. */
     retourne table != nul && table.sur_activation_behavior != nul;
@@ -431,7 +431,7 @@ run_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
     event.est_dans_activation_behavior = vrai;
     diffère event.est_dans_activation_behavior = faux;
-    table := target.donne_table();
+    table := donne_table(target);
     assert(table != nul);
     assert(table.sur_activation_behavior != nul);
     table.sur_activation_behavior(target, event);
@@ -440,13 +440,13 @@ run_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 possède_legacy_pre_activation_behavior :: fonc (target: *EventTarget) -> bool
 {
     assert(possède_activation_behavior(target));
-    table := target.donne_table();
+    table := donne_table(target);
     retourne table != nul && table.sur_legacy_pre_activation_behavior != nul;
 }
 
 run_legacy_pre_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
-    table := target.donne_table();
+    table := donne_table(target);
     assert(table != nul);
     assert(table.sur_legacy_pre_activation_behavior != nul);
     table.sur_legacy_pre_activation_behavior(target, event);
@@ -454,7 +454,7 @@ run_legacy_pre_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 
 run_legacy_canceled_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
-    table := target.donne_table();
+    table := donne_table(target);
     assert(table != nul);
     assert(table.sur_legacy_canceled_activation_behavior != nul);
     table.sur_legacy_canceled_activation_behavior(target, event);
@@ -479,7 +479,7 @@ add_an_event_listener :: fonc (target: *EventTarget, listener: EventTarget.Event
     }
 
     // 4. If listener’s passive is null, then set it to the default passive value given listener’s type and eventTarget.
-    saufsi listener.passive.possède_valeur() {
+    saufsi possède_valeur(listener.passive) {
         listener.passive = default_passive_value(listener.type, target);
     }
 
@@ -556,7 +556,7 @@ donne_document_associé :: fonc (target: *EventTarget) -> *Document
 /* Enveloppe pour IDL où EventType n'est pas convertis. */
 add_event_listener :: fonc (target: *EventTarget, type: ChaineUTF16Unique, callback: *CallbackType, options : *AddEventListenerOptions = nul)
 {
-    chn_type := convertis_vers_chaine(type.donne_chaine_utf16());
+    chn_type := convertis_vers_chaine(donne_chaine_utf16(type));
     diffère déloge(*chn_type);
 
     valeur_type, trouvé := donne_valeur_énum_pour_nom(info_de(EventType), chn_type);
@@ -681,7 +681,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         target_override = target;
     }
     sinon {
-        target_override = target.donne_document_associé();
+        target_override = donne_document_associé(target);
     }
 
     // 3. Let activationTarget be null.
@@ -709,7 +709,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         is_activation_event := event.table.classe == MouseEvent && event.type == EventType.click;
 
         // 5. If isActivationEvent is true and target has activation behavior, then set activationTarget to target.
-        si is_activation_event && target.possède_activation_behavior() {
+        si is_activation_event && possède_activation_behavior(target) {
             activation_target = target;
         }
 
@@ -769,7 +769,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
                 target = parent;
 
                 // 1. If isActivationEvent is true, activationTarget is null, and target has activation behavior, then set activationTarget to target.
-                si is_activation_event == vrai && activation_target == nul && target.possède_activation_behavior() {
+                si is_activation_event == vrai && activation_target == nul && possède_activation_behavior(target) {
                     activation_target = target;
                 }
 
@@ -792,7 +792,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 
         // 12. If activationTarget is non-null and activationTarget has legacy-pre-activation behavior,
         //     then run activationTarget’s legacy-pre-activation behavior.
-        si activation_target && activation_target.possède_legacy_pre_activation_behavior() {
+        si activation_target && possède_legacy_pre_activation_behavior(activation_target) {
             run_legacy_pre_activation_behavior(activation_target, event);
         }
 
@@ -1002,7 +1002,7 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
             // 2. If invocationTargetInShadowTree is false, then set global’s current event to event.
 
         // 9. If listener’s passive is true, then set event’s in passive listener flag.
-        si it.passive.possède_valeur() && it.passive.Quelque == vrai {
+        si possède_valeur(it.passive) && it.passive.Quelque == vrai {
             event.in_passive_listener = vrai;
         }
 

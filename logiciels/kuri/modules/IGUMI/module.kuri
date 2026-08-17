@@ -157,7 +157,7 @@ recharge_nuanceur :: fonc (nuanceur: *NuanceurGL, source_vertex: chaine, source_
 {
     détruit_données_nuanceur(nuanceur);
     opt_programme := compile_un_programme(source_vertex, source_fragment);
-    saufsi opt_programme.possède_valeur() {
+    saufsi possède_valeur(opt_programme) {
         retourne;
     }
     nuanceur.programme = opt_programme.Quelque;
@@ -462,12 +462,12 @@ termine_immédiat :: fonc ()
     vérifie_erreur("termine_immédiat.glBindBuffer");
 
     si __ctx_courant.caméra_2d {
-        __ctx_courant.caméra_2d.ajourne_matrice();
-        définis_uniforme(nuanceur.loc_projection, __ctx_courant.caméra_2d.modèle_vue_projection());
+        ajourne_matrice(__ctx_courant.caméra_2d);
+        définis_uniforme(nuanceur.loc_projection, modèle_vue_projection(__ctx_courant.caméra_2d));
     }
     sinon si __ctx_courant.caméra_3d {
-        __ctx_courant.caméra_3d.ajourne();
-        MVP := __ctx_courant.caméra_3d.projection * __ctx_courant.caméra_3d.MV();
+        ajourne(__ctx_courant.caméra_3d);
+        MVP := __ctx_courant.caméra_3d.projection * MV(__ctx_courant.caméra_3d);
         définis_uniforme(nuanceur.loc_projection, MVP);
     }
     sinon {
@@ -976,11 +976,11 @@ dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: 
 
     définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32);
 
-    caractère_nul := fonte.donne_glyphe_nul();
+    caractère_nul := donne_glyphe_nul(fonte);
 
     dernier_caractère : *texture_glyph_t = nul;
     pour glyphes {
-        kerning := it.donne_crénage_avec(dernier_caractère);
+        kerning := donne_crénage_avec(it, dernier_caractère);
         x += kerning;
 
         glyphe_immédiat(it, x, y, couleur);

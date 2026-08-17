@@ -86,7 +86,7 @@ principale :: fonc ()
     }
 
     sélecteur_opt := parse_a_selector(args.query);
-    saufsi sélecteur_opt.possède_valeur() {
+    saufsi possède_valeur(sélecteur_opt) {
         imprimeln("Impossible de parser le sélecteur");
         exit(1);
     }
@@ -106,7 +106,7 @@ principale :: fonc ()
     tantque traversée.taille != 0 {
         noeud := enlève_dernier_élément(*traversée);
 
-        si noeud.est_élément() {
+        si est_élément(noeud) {
             élément := noeud comme *Element;
             si apparie_sélecteur(sélecteur, élément) {
                 tableau_ajoute(*éléments, élément);
@@ -130,7 +130,7 @@ principale :: fonc ()
     diffère déloge(*noeuds_à_garder);
 
     pour parsat.document.enfants {
-        si it.est_document_type() {
+        si est_document_type(it) {
             ensemble_ajoute(*noeuds_à_garder, it);
         }
     }
@@ -170,7 +170,7 @@ principale :: fonc ()
         tantque traversée {
             noeud := enlève_dernier_élément(*traversée);
 
-            si noeud.est_élément() {
+            si est_élément(noeud) {
                 élément := noeud comme *Element;
                 saufsi élément.local_name == TAG_link || élément.local_name == TAG_style || élément.local_name == TAG_title || élément.local_name == TAG_head {
                     continue;
@@ -189,7 +189,7 @@ principale :: fonc ()
                     tableau_ajoute(*traversée, it);
                 }
             }
-            sinon si noeud.est_texte() {
+            sinon si est_texte(noeud) {
                 ensemble_ajoute(*noeuds_à_garder, noeud);
             }
         }
@@ -232,7 +232,7 @@ principale :: fonc ()
         exit(0);
     }
 
-    chaine_texte := texte.convertis_vers_chaine();
+    chaine_texte := convertis_vers_chaine(texte);
     diffère déloge(*chaine_texte);
 
     saufsi écris_fichier_entier(args.sortie, chaine_texte) {

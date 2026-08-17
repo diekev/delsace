@@ -16,15 +16,15 @@ ArrayObject :: struct {
 
 array_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(ArrayObject);
+    retourne alloue(donne_tas_de_mémoire(realm), ArrayObject);
 }
 
 crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ArrayObject
 {
-    résultat := tas_de_mémoire.alloue(ArrayObject);
+    résultat := alloue(tas_de_mémoire, ArrayObject);
     résultat.prototype = array_prototype;
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), Writable);
+    ajoute_propriété(résultat, STR_length, Valeur(Number = nombre_éléments comme r64), Writable);
 
     retourne résultat;
 }
@@ -43,7 +43,7 @@ array_set_length :: fonc (array: *ArrayObject, len: n32)
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects-defineownproperty-p-desc */
 array_instance_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: *PropertyDescriptor) -> bool
 {
-    A := object.vérifie_comme(ArrayObject);
+    A := vérifie_comme(object, ArrayObject);
 
     // 1. If P is "length", then
     si property_key == STR_length {
@@ -140,7 +140,7 @@ array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> *Obj
 array_set_length :: fonc (A: *ArrayObject, desc: *PropertyDescriptor) -> bool
 {
     // 1. If Desc does not have a [[Value]] field, then
-    saufsi desc.value.possède_valeur() {
+    saufsi possède_valeur(desc.value) {
         // a. Return ! OrdinaryDefineOwnProperty(A, "length", Desc).
         retourne ordinary_define_own_property(A, STR_length, desc);
     }
@@ -152,16 +152,16 @@ array_set_length :: fonc (A: *ArrayObject, desc: *PropertyDescriptor) -> bool
     new_len := to_uint32(desc.value.Quelque);
 
     // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
-    interpréteuse := A.donne_tas_de_mémoire().mv.interpréteuse;
+    interpréteuse := donne_tas_de_mémoire(A).mv.interpréteuse;
     assert(interpréteuse != nul);
 
     number_len := to_number(interpréteuse, desc.value.Quelque);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne faux;
     }
 
     // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
-    si same_value_zero(new_len comme r64, number_len).est_false() {
+    si est_false(same_value_zero(new_len comme r64, number_len)) {
         retourne lance_range_error(interpréteuse, "invalid array length");
     }
 
@@ -193,7 +193,7 @@ array_set_length :: fonc (A: *ArrayObject, desc: *PropertyDescriptor) -> bool
 
     // 13. If newLenDesc does not have a [[Writable]] field or newLenDesc.[[Writable]] is true, then
     new_writable := faux;
-    si !new_len_desc.writable.possède_valeur() || new_len_desc.writable.Quelque == vrai {
+    si !possède_valeur(new_len_desc.writable) || new_len_desc.writable.Quelque == vrai {
         // a. Let newWritable be true.
         new_writable = vrai;
     }
@@ -254,15 +254,15 @@ ArrayConstructor :: struct {
 
 crée_array_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype , array_prototype: *ArrayPrototype) -> *ArrayConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(ArrayConstructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, ArrayConstructor);
     create_builtin_function(résultat, 1, STR_Array, realm, function_prototype);
 
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro);
 
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.constructor */
-    array_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(array_prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }
@@ -271,16 +271,16 @@ crée_array_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPro
  * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array */
 array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> Valeur
 {
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
     // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
-    si new_target.est_undefined() {
+    si est_undefined(new_target) {
         new_target.Object = donne_active_function_object(interpréteuse);
     }
 
     // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
-    proto := get_prototype_from_constructor(realm, new_target.donne_objet().vérifie_comme(Function), realm.intrinsics.array_prototype);
-    si interpréteuse.possède_exception() {
+    proto := get_prototype_from_constructor(realm, vérifie_comme(donne_objet(new_target), Function), realm.intrinsics.array_prototype);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -297,14 +297,14 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
     // 5. Else if numberOfArgs = 1, then
     sinon si number_of_args == 1 {
         // a. Let len be values[0].
-        len := params.donne_argument(0);
+        len := donne_argument(params, 0);
 
         // b. Let array be ! ArrayCreate(0, proto).
         array := array_create(realm, 0, proto);
 
         int_len: n32;
         // c. If len is not a Number, then
-        saufsi len.est_nombre() {
+        saufsi est_nombre(len) {
             // i. Perform ! CreateDataPropertyOrThrow(array, "0", len).
             create_data_property_or_throw(array, crée_chaine_utf16_unique("0"), len);
 
@@ -317,7 +317,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
             int_len = to_uint32(len);
     
             // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
-            si same_value_zero(int_len comme r64, len).est_false() {
+            si est_false(same_value_zero(int_len comme r64, len)) {
                 retourne lance_range_error(interpréteuse, "invalid array length");
             }
         }
@@ -335,7 +335,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
 
         // b. Let array be ? ArrayCreate(numberOfArgs, proto).
         array := array_create(realm, number_of_args comme r64, proto);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -348,7 +348,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
             pk := to_string(interpréteuse, Valeur(Number = k comme r64)).texte;
 
             // ii. Let itemK be values[k].
-            item_k := params.donne_argument(k);
+            item_k := donne_argument(params, k);
 
             // iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
             create_data_property_or_throw(array, pk, item_k);
@@ -386,16 +386,16 @@ ArrayPrototype :: struct {
 
 crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ArrayPrototype
 {
-    résultat := tas_de_mémoire.alloue(ArrayPrototype);
+    résultat := alloue(tas_de_mémoire, ArrayPrototype);
     résultat.prototype = prototype;
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), Writable);
-    résultat.ajoute_fonction_native(STR_fill, array_prototype_fill, 1);
-    résultat.ajoute_fonction_native(STR_join, array_prototype_join);
-    résultat.ajoute_fonction_native(STR_push, array_prototype_push, 1);
-    résultat.ajoute_fonction_native(STR_toString, array_prototype_to_string);
-    résultat.ajoute_fonction_native(STR_values, array_prototype_values);
-    résultat.ajoute_fonction_native(PropertyKey(Symbol = *Symbol_iterator), array_prototype_values);
+    ajoute_propriété(résultat, STR_length, Valeur(Number = 0.0), Writable);
+    ajoute_fonction_native(résultat, STR_fill, array_prototype_fill, 1);
+    ajoute_fonction_native(résultat, STR_join, array_prototype_join);
+    ajoute_fonction_native(résultat, STR_push, array_prototype_push, 1);
+    ajoute_fonction_native(résultat, STR_toString, array_prototype_to_string);
+    ajoute_fonction_native(résultat, STR_values, array_prototype_values);
+    ajoute_fonction_native(résultat, PropertyKey(Symbol = *Symbol_iterator), array_prototype_values);
 
     retourne résultat;
 }
@@ -406,23 +406,23 @@ crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
 array_prototype_fill :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    O := to_object(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Let len be ? LengthOfArrayLike(O).
     len := length_of_array_like(interpréteuse, O);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
-    start := params.donne_argument(1);
+    start := donne_argument(params, 1);
     relative_start: r64;
-    saufsi start.est_undefined() {
+    saufsi est_undefined(start) {
         relative_start = to_integer_or_infinity(interpréteuse, start);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
     }
@@ -445,14 +445,14 @@ array_prototype_fill :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     }
 
     // 7. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
-    end := params.donne_argument(2);
+    end := donne_argument(params, 2);
     relative_end: r64;
-    si end.est_undefined() {
+    si est_undefined(end) {
         relative_end = len;
     }
     sinon {
         relative_end = to_integer_or_infinity(interpréteuse, end);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
     }
@@ -472,7 +472,7 @@ array_prototype_fill :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     }
 
     // 11. Repeat, while k < final,
-    value := params.donne_argument(0);
+    value := donne_argument(params, 0);
 
     tantque k < final {
         // a. Let Pk be ! ToString(𝔽(k)).
@@ -480,7 +480,7 @@ array_prototype_fill :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 
         // b. Perform ? Set(O, Pk, value, true).
         set(O, pk, value, vrai);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -497,14 +497,14 @@ array_prototype_fill :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    O := to_object(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Let len be ? LengthOfArrayLike(O).
     len := length_of_array_like(interpréteuse, O);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -515,8 +515,8 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     }
     // 4. Else, let sep be ? ToString(separator).
     sinon {
-        str_sep := to_string(interpréteuse, params.donne_argument(0));
-        si interpréteuse.possède_exception() {
+        str_sep := to_string(interpréteuse, donne_argument(params, 0));
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
         sep = str_sep.texte;
@@ -533,25 +533,25 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     tantque k < len comme n32 {
         // a. If k > 0, set R to the string-concatenation of R and sep.
         si k > 0 {
-            ajoute(*R, sep.donne_chaine_utf16());
+            ajoute(*R, donne_chaine_utf16(sep));
         }
 
         // b. Let element be ? Get(O, ! ToString(𝔽(k))).
         element := get_by_index(O, k);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
         // c. If element is neither undefined nor null, then
-        saufsi element.est_nulle() || element.est_undefined() {
+        saufsi est_nulle(element) || est_undefined(element) {
             // i. Let S be ? ToString(element).
             S := to_string(interpréteuse, element);
-            si interpréteuse.possède_exception() {
+            si possède_exception(interpréteuse) {
                 retourne js_undefined;
             }
 
             // ii. Set R to the string-concatenation of R and S.
-            ajoute(*R, S.texte.donne_chaine_utf16());
+            ajoute(*R, donne_chaine_utf16(S.texte));
         }
 
         // d. Set k to k + 1.
@@ -561,7 +561,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     // 8. Return R.
     résultat := chaine_depuis_enchaineuse(*R);
     diffère détruit_chaine(*résultat);
-    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(*résultat));
+    retourne crée_chaine(donne_realm(interpréteuse), crée_chaine_utf16_unique(*résultat));
 }
 
 /* 23.1.3.23 Array.prototype.push ( ...items )
@@ -569,14 +569,14 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    O := to_object(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Let len be ? LengthOfArrayLike(O).
     len := length_of_array_like(interpréteuse, O);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -590,7 +590,7 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Valeur
         // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
         nom_propriété := to_string(interpréteuse, Valeur(Number = len)).texte;
         set(O, nom_propriété, it, vrai);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -600,7 +600,7 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 
     // 6. Perform ? Set(O, "length", 𝔽(len), true).
     set(O, STR_length, Valeur(Number = len), vrai);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -613,14 +613,14 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let array be ? ToObject(this value).
-    array := to_object(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    array := to_object(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Let func be ? Get(array, "join").
     func := get(array, STR_join);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -639,7 +639,7 @@ array_prototype_values :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value)
     O := to_object(interpréteuse, this_value);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -675,7 +675,7 @@ ArrayIterator :: struct {
 
 array_iterator_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(ArrayIterator);
+    retourne alloue(donne_tas_de_mémoire(realm), ArrayIterator);
 }
 
 /* 23.1.5.1 CreateArrayIterator ( array, kind )
@@ -683,8 +683,8 @@ array_iterator_instance_crée :: fonc (realm: *Realm) -> *Object
 create_array_iterator :: fonc (interpréteuse: *Interpréteuse, array: *Object, kind: IterationKind) -> *ArrayIterator
 {
     // 1. Let iterator be OrdinaryObjectCreate(%ArrayIteratorPrototype%, « [[IteratedArrayLike]], [[ArrayLikeNextIndex]], [[ArrayLikeIterationKind]] »).
-    realm := interpréteuse.donne_realm();
-    iterator := ordinary_object_create(realm, realm.intrinsics.array_iterator_prototype, array_iterator_instance_crée).vérifie_comme(ArrayIterator);
+    realm := donne_realm(interpréteuse);
+    iterator := vérifie_comme(ordinary_object_create(realm, realm.intrinsics.array_iterator_prototype, array_iterator_instance_crée), ArrayIterator);
 
     // 2. Set iterator.[[IteratedArrayLike]] to array.
     iterator.iterated_array_like = array;
@@ -719,15 +719,15 @@ array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> V
     o := this_value;
 
     // 2. If O is not an Object, throw a TypeError exception.
-    saufsi o.est_object() {
-        _ := interpréteuse.lance_type_error("iterator is not an Object");
+    saufsi est_object(o) {
+        _ := lance_type_error(interpréteuse, "iterator is not an Object");
         retourne js_undefined;
     }
-    O := this_value.donne_objet() comme *ArrayIterator;
+    O := donne_objet(this_value) comme *ArrayIterator;
 
     // 3. If O does not have all of the internal slots of an Array Iterator Instance (23.1.5.3), throw a TypeError exception.
     saufsi O.table.classe == ArrayIterator {
-        _ := interpréteuse.lance_type_error("Object is not an array iterator");
+        _ := lance_type_error(interpréteuse, "Object is not an array iterator");
         retourne js_undefined;
     }
 
@@ -736,7 +736,7 @@ array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> V
 
     // 5. If array is undefined, return CreateIteratorResultObject(undefined, true).
     si array == nul {
-        retourne create_iterator_result_object(interpréteuse.donne_realm(), js_undefined, vrai);
+        retourne create_iterator_result_object(donne_realm(interpréteuse), js_undefined, vrai);
     }
 
     // 6. Let index be O.[[ArrayLikeNextIndex]].
@@ -752,7 +752,7 @@ array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> V
     // 9. Else,
         // a. Let len be ? LengthOfArrayLike(array).
     len := length_of_array_like(interpréteuse, array);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -762,7 +762,7 @@ array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> V
         O.iterated_array_like = nul;
 
         // b. Return CreateIteratorResultObject(undefined, true).
-        retourne create_iterator_result_object(interpréteuse.donne_realm(), js_undefined, vrai);
+        retourne create_iterator_result_object(donne_realm(interpréteuse), js_undefined, vrai);
     }
 
     // 11. Set O.[[ArrayLikeNextIndex]] to index + 1.
@@ -785,7 +785,7 @@ array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> V
 
         // b. Let elementValue be ? Get(array, elementKey).
         element_value := get(array, element_key.texte);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -806,7 +806,7 @@ array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> V
     }
 
     // 15. Return CreateIteratorResultObject(result, false).
-    retourne create_iterator_result_object(interpréteuse.donne_realm(), result, faux);
+    retourne create_iterator_result_object(donne_realm(interpréteuse), result, faux);
 }
 
 /** \} */

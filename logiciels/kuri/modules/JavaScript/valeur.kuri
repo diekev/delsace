@@ -70,16 +70,16 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
             ajoute_au_tampon(enchaineuse, n);
         }
         Object(o) {
-            si o.possède_slot("[[ErrorData]]") {
+            si possède_slot(o, "[[ErrorData]]") {
                 error := trouve_propriété(o, STR_message).valeur.String;
-                ajoute_au_tampon(enchaineuse, o.donne_nom_classe(), ": ", error.texte);
+                ajoute_au_tampon(enchaineuse, donne_nom_classe(o), ": ", error.texte);
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]");
+                ajoute_au_tampon(enchaineuse, "[object ", donne_nom_classe(o), "]");
             }
         }
         Function(o) {
-            ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]");
+            ajoute_au_tampon(enchaineuse, "[object ", donne_nom_classe(o), "]");
         }
         String(s) {
             ajoute_au_tampon(enchaineuse, s.texte);
@@ -132,7 +132,7 @@ donne_objet :: fonc (valeur: Valeur) -> *Object
 
 est_cellule :: fonc (valeur: Valeur) -> bool
 {
-    retourne valeur.est_object() || valeur.est_chaine();
+    retourne est_object(valeur) || est_chaine(valeur);
 }
 
 donne_cellule :: fonc (valeur: Valeur) -> *Cellule
@@ -268,7 +268,7 @@ est_symbol :: fonc (valeur: Valeur) -> bool
 
 is_non_negative_integral_number :: fonc (valeur: Valeur) -> bool
 {
-    saufsi valeur.est_nombre() {
+    saufsi est_nombre(valeur) {
         retourne faux;
     }
     n := valeur.Number;
@@ -281,8 +281,8 @@ is_non_negative_integral_number :: fonc (valeur: Valeur) -> bool
 
 is_array_index :: fonc (valeur: Valeur) -> bool
 {
-    si valeur.est_chaine() {
-        texte := valeur.String.texte.donne_chaine_utf16();
+    si est_chaine(valeur) {
+        texte := donne_chaine_utf16(valeur.String.texte);
 
         texte_utf8 := convertis_vers_chaine(texte);
         diffère déloge(*texte_utf8);
@@ -299,8 +299,8 @@ is_array_index :: fonc (valeur: Valeur) -> bool
 
 to_uint32 :: fonc (valeur: Valeur) -> n32
 {
-    si valeur.est_chaine() {
-        texte := valeur.String.texte.donne_chaine_utf16();
+    si est_chaine(valeur) {
+        texte := donne_chaine_utf16(valeur.String.texte);
 
         texte_utf8 := convertis_vers_chaine(texte);
         diffère déloge(*texte_utf8);
@@ -313,7 +313,7 @@ to_uint32 :: fonc (valeur: Valeur) -> n32
         retourne résultat comme n32;
     }
 
-    assert(valeur.est_nombre());
+    assert(est_nombre(valeur));
     n := valeur.Number;
     assert(n >= 0.0);
     in := n comme n64;
@@ -330,13 +330,13 @@ to_uint32 :: fonc (valeur: Valeur) -> n32
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
 to_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> Valeur
 {
-    retourne to_primitive(interpréteuse.donne_realm(), valeur, type_préféré);
+    retourne to_primitive(donne_realm(interpréteuse), valeur, type_préféré);
 }
 
 to_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> Valeur
 {
     // 1. If input is an Object, then
-    si valeur.est_object() {
+    si est_object(valeur) {
         // À FAIRE : a. Let exoticToPrim be ? GetMethod(input, %Symbol.toPrimitive%).
         // b. If exoticToPrim is not undefined, then
             // i. If preferredType is not present, then
@@ -356,7 +356,7 @@ to_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePré
         }
 
         // d. Return ? OrdinaryToPrimitive(input, preferredType).
-        retourne ordinary_to_primitive(realm, valeur.donne_objet(), type_préféré);
+        retourne ordinary_to_primitive(realm, donne_objet(valeur), type_préféré);
     }
 
     // 2. Return input.
@@ -384,21 +384,21 @@ ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréfé
     pour method_names {
         // a. Let method be ? Get(O, name).
         method := get(object, it);
-        si realm.possède_exception() {
+        si possède_exception(realm) {
             retourne js_undefined;
         }
 
         // b. If IsCallable(method) is true, then
         si is_callable(method) {
             // i. Let result be ? Call(method, O).
-            mv := realm.donne_tas_de_mémoire().donne_mv();
+            mv := donne_mv(donne_tas_de_mémoire(realm));
             result := call(mv, method, object);
-            si realm.possède_exception() {
+            si possède_exception(realm) {
                 retourne js_undefined;
             }
 
             // ii. If result is not an Object, return result.
-            saufsi result.est_object() {
+            saufsi est_object(result) {
                 retourne result;
             }
         }
@@ -413,7 +413,7 @@ ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréfé
 to_boolean :: fonc (valeur: Valeur) -> bool
 {
     // 1. If argument is a Boolean, return argument.
-    si valeur.est_boolean() {
+    si est_boolean(valeur) {
         retourne valeur.Boolean;
     }
 
@@ -445,7 +445,7 @@ to_boolean :: fonc (valeur: Valeur) -> bool
     }
 
     // 3. If argument is an Object and argument has an [[IsHTMLDDA]] internal slot, return false.
-    si valeur.est_object() && possède_slot(valeur.donne_objet(), "[[IsHTMLDDA]]") {
+    si est_object(valeur) && possède_slot(donne_objet(valeur), "[[IsHTMLDDA]]") {
         retourne faux;
     }
 
@@ -459,12 +459,12 @@ to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Valeur
 {
     // 1. Let primValue be ? ToPrimitive(value, NUMBER).
     valeur_primitive := to_primitive(interpréteuse, valeur, TypePréféré.Number);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. If primValue is a BigInt, return primValue.
-    si valeur_primitive.est_big_int() {
+    si est_big_int(valeur_primitive) {
         retourne valeur_primitive;
     }
 
@@ -477,51 +477,51 @@ to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Valeur
 to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> r64
 {
     // 1. If argument is a Number, return argument.
-    si valeur.est_nombre() {
+    si est_nombre(valeur) {
         retourne valeur.Number;
     }
 
     // 2. If argument is either a Symbol or a BigInt, throw a TypeError exception.
-    si valeur.est_symbol() {
+    si est_symbol(valeur) {
         _ := lance_type_error(interpréteuse, "can't convert Symbol to number");
         retourne NaN;
     }
-    si valeur.est_big_int() {
+    si est_big_int(valeur) {
         _ := lance_type_error(interpréteuse, "can't convert BigInt to number");
         retourne NaN;
     }
 
     // 3. If argument is undefined, return NaN.
-    si valeur.est_undefined() {
+    si est_undefined(valeur) {
         retourne NaN;
     }
 
     // 4. If argument is either null or false, return +0𝔽.
-    si valeur.est_nulle() || valeur.est_false() {
+    si est_nulle(valeur) || est_false(valeur) {
         retourne 0.0;
     }
 
     // 5. If argument is true, return 1𝔽.
-    si valeur.est_true() {
+    si est_true(valeur) {
         retourne 1.0;
     }
 
     // 6. If argument is a String, return StringToNumber(argument).
-    si valeur.est_chaine() {
-        retourne string_to_number(interpréteuse.donne_realm(), valeur);
+    si est_chaine(valeur) {
+        retourne string_to_number(donne_realm(interpréteuse), valeur);
     }
 
     // 7. Assert: argument is an Object.
-    assert(valeur.est_object());
+    assert(est_object(valeur));
 
     // 8. Let primValue be ? ToPrimitive(argument, NUMBER).
     prim_value := to_primitive(interpréteuse, valeur, TypePréféré.Number);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 9. Assert: primValue is not an Object.
-    assert(prim_value.est_object() == faux);
+    assert(est_object(prim_value) == faux);
 
     // 10. Return ? ToNumber(primValue).
     retourne to_number(interpréteuse, prim_value);
@@ -561,7 +561,7 @@ to_integer_or_infinity :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur)
 {
     // 1. Let number be ? ToNumber(argument).
     number := to_number(interpréteuse, valeur);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne NaN;
     }
 
@@ -593,62 +593,62 @@ to_int32 :: fonc (argument: Valeur) -> r64
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
 to_string :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> *PrimitiveChaine
 {
-    retourne to_string(interpréteuse.donne_realm(), argument);
+    retourne to_string(donne_realm(interpréteuse), argument);
 }
 
 to_string :: fonc (realm: *Realm, argument: Valeur) -> *PrimitiveChaine
 {
     // 1. If argument is a String, return argument.
-    si argument.est_chaine() {
+    si est_chaine(argument) {
         retourne argument.String;
     }
 
     // 2. If argument is a Symbol, throw a TypeError exception.
-    si argument.est_symbol() {
+    si est_symbol(argument) {
         retourne lance_type_error(realm, "can't convert Symbol to string");
     }
 
     // 3. If argument is undefined, return "undefined".
-    si argument.est_undefined() {
+    si est_undefined(argument) {
         retourne crée_chaine(realm, STR_undefined);
     }
 
     // 4. If argument is null, return "null".
-    si argument.est_nulle() {
+    si est_nulle(argument) {
         retourne crée_chaine(realm, STR_null);
     }
 
     // 5. If argument is true, return "true".
-    si argument.est_true() {
+    si est_true(argument) {
         retourne crée_chaine(realm, STR_true);
     }
 
     // 6. If argument is false, return "false".
-    si argument.est_false() {
+    si est_false(argument) {
         retourne crée_chaine(realm, STR_false);
     }
 
     // 7. If argument is a Number, return Number::toString(argument, 10).
-    si argument.est_nombre() {
+    si est_nombre(argument) {
         retourne number_to_string(realm, argument, 10);
     }
 
     // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
-    si argument.est_big_int() {
+    si est_big_int(argument) {
         panique("to_string sur big_int non-implémenté");
     }
 
     // 9. Assert: argument is an Object.
-    assert(argument.est_object());
+    assert(est_object(argument));
 
     // 10. Let primValue be ? ToPrimitive(argument, STRING).
     prim_value := to_primitive(realm, argument, TypePréféré.String);
-    si realm.possède_exception() {
+    si possède_exception(realm) {
         retourne nul;
     }
 
     // 11. Assert: primValue is not an Object.
-    assert(!prim_value.est_object());
+    assert(!est_object(prim_value));
 
     // 12. Return ? ToString(primValue).
     retourne to_string(realm, prim_value);
@@ -664,38 +664,38 @@ TypePréféré :: énum {
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toobject */
 to_object :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> *Object
 {
-    retourne to_object(interpréteuse.donne_realm(), valeur);
+    retourne to_object(donne_realm(interpréteuse), valeur);
 }
 
 to_object :: fonc (realm: *Realm, valeur: Valeur) -> *Object
 {
-    si valeur.est_undefined() {
+    si est_undefined(valeur) {
         _ := lance_type_error(realm, "undefined is not an Object");
         retourne nul;
     }
 
-    si valeur.est_nulle() {
+    si est_nulle(valeur) {
         _ := lance_type_error(realm, "null is not an Object");
         retourne nul;
     }
 
-    si valeur.est_object() {
-        retourne valeur.donne_objet();
+    si est_object(valeur) {
+        retourne donne_objet(valeur);
     }
 
-    si valeur.est_chaine() {
+    si est_chaine(valeur) {
         chn := valeur.String;
         saufsi chn.objet {
-            chn.objet = crée_chaine(realm.donne_tas_de_mémoire(), realm.intrinsics.string_prototype, valeur.String);
+            chn.objet = crée_chaine(donne_tas_de_mémoire(realm), realm.intrinsics.string_prototype, valeur.String);
         }
         retourne chn.objet;
     }
 
-    si valeur.est_nombre() {
-        retourne crée_number_object(realm.donne_tas_de_mémoire(), realm.intrinsics.number_prototype, valeur.Number);
+    si est_nombre(valeur) {
+        retourne crée_number_object(donne_tas_de_mémoire(realm), realm.intrinsics.number_prototype, valeur.Number);
     }
 
-    si valeur.est_boolean() {
+    si est_boolean(valeur) {
         retourne crée_boolean_object(realm, valeur.Boolean);
     }
 
@@ -706,19 +706,19 @@ to_object :: fonc (realm: *Realm, valeur: Valeur) -> *Object
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-topropertykey */
 to_property_key :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> PropertyKey
 {
-    retourne to_property_key(interpréteuse.donne_realm(), argument);
+    retourne to_property_key(donne_realm(interpréteuse), argument);
 }
 
 to_property_key :: fonc (realm: *Realm, argument: Valeur) -> PropertyKey
 {
     // 1. Let key be ? ToPrimitive(argument, STRING).
     key := to_primitive(realm, argument, TypePréféré.String);
-    si realm.possède_exception() {
+    si possède_exception(realm) {
         retourne PropertyKey(Symbol = nul);
     }
 
     // 2. If key is a Symbol, then
-    si key.est_symbol() {
+    si est_symbol(key) {
         // a. Return key.
         retourne PropertyKey(Symbol = key.Symbol);
     }
@@ -733,7 +733,7 @@ to_length :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> r64
 {
     // 1. Let len be ? ToIntegerOrInfinity(argument).
     len := to_integer_or_infinity(interpréteuse, argument);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne NaN;
     }
 
@@ -758,11 +758,11 @@ to_length :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> r64
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-requireobjectcoercible */
 require_object_coercible :: fonc (realm: *Realm, value: Valeur) -> Valeur
 {
-    si value.est_nulle() {
+    si est_nulle(value) {
         _ := lance_type_error(realm, "null is not an Object");
         retourne js_undefined;
     }
-    si value.est_undefined() {
+    si est_undefined(value) {
         _ := lance_type_error(realm, "undefined is not an Object");
         retourne js_undefined;
     }
@@ -774,13 +774,13 @@ require_object_coercible :: fonc (realm: *Realm, value: Valeur) -> Valeur
 is_callable :: fonc (argument: Valeur) -> bool
 {
     // 1. If argument is not an Object, return false.
-    saufsi argument.est_object() {
+    saufsi est_object(argument) {
         retourne faux;
     }
 
     // 2. If argument has a [[Call]] internal method, return true.
-    object := argument.donne_objet();
-    si object.donne_table().sur_call {
+    object := donne_objet(argument);
+    si donne_table(object).sur_call {
         retourne vrai;
     }
 
@@ -793,13 +793,13 @@ is_callable :: fonc (argument: Valeur) -> bool
 is_constructor :: fonc (argument: Valeur) -> bool
 {
     // 1. If argument is not an Object, return false.
-    saufsi argument.est_object() {
+    saufsi est_object(argument) {
         retourne faux;
     }
 
     // 2. If argument has a [[Construct]] internal method, return true.
-    object := argument.donne_objet();
-    si object.donne_table().sur_construct {
+    object := donne_objet(argument);
+    si donne_table(object).sur_construct {
         retourne vrai;
     }
 
@@ -821,42 +821,42 @@ is_extensible :: fonc (object: *Object) -> bool
 same_type :: fonc (x: Valeur, y: Valeur) -> bool
 {
     // 1. If x is undefined and y is undefined, return true.
-    si x.est_undefined() && y.est_undefined() {
+    si est_undefined(x) && est_undefined(y) {
         retourne vrai;
     }
 
     // 2. If x is null and y is null, return true.
-    si x.est_nulle() && y.est_nulle() {
+    si est_nulle(x) && est_nulle(y) {
         retourne vrai;
     }
 
     // 3. If x is a Boolean and y is a Boolean, return true.
-    si x.est_boolean() && y.est_boolean() {
+    si est_boolean(x) && est_boolean(y) {
         retourne vrai;
     }
 
     // 4. If x is a Number and y is a Number, return true.
-    si x.est_nombre() && y.est_nombre() {
+    si est_nombre(x) && est_nombre(y) {
         retourne vrai;
     }
 
     // 5. If x is a BigInt and y is a BigInt, return true.
-    si x.est_big_int() && y.est_big_int() {
+    si est_big_int(x) && est_big_int(y) {
         retourne vrai;
     }
 
     // 6. If x is a Symbol and y is a Symbol, return true.
-    si x.est_symbol() && y.est_symbol() {
+    si est_symbol(x) && est_symbol(y) {
         retourne vrai;
     }
 
     // 7. If x is a String and y is a String, return true.
-    si x.est_chaine() && y.est_chaine() {
+    si est_chaine(x) && est_chaine(y) {
         retourne vrai;
     }
 
     // 8. If x is an Object and y is an Object, return true.
-    si x.est_object() && y.est_object() {
+    si est_object(x) && est_object(y) {
         retourne vrai;
     }
 
@@ -874,7 +874,7 @@ same_value :: fonc (x: Valeur, y: Valeur) -> Valeur
     }
 
     // 2. If x is a Number, then
-    si x.est_nombre() {
+    si est_nombre(x) {
         // a. Return Number::sameValue(x, y).
         retourne number_same_value(x, y);
     }
@@ -893,7 +893,7 @@ same_value_zero :: fonc (x: Valeur, y: Valeur) -> Valeur
     }
 
     // 2. If x is a Number, then
-    si x.est_nombre() {
+    si est_nombre(x) {
         // a. Return Number::sameValueZero(x, y).
         retourne number_same_value_zero(x, y);
     }
@@ -909,7 +909,7 @@ same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
     // 1. Assert: Type(x) is Type(y).
 
     // 2. If x is either null or undefined, return true.
-    si x.est_nulle() || x.est_undefined() {
+    si est_nulle(x) || est_undefined(x) {
         retourne Valeur(Boolean = vrai);
     }
 
@@ -920,7 +920,7 @@ same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
     }
 
     // 4. If x is a String, then
-    si x.est_chaine() {
+    si est_chaine(x) {
         // a. If x and y have the same length and the same code units in the same positions, return true; otherwise, return false.
         chnx := x.String;
         chny := y.String;
@@ -928,7 +928,7 @@ same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
     }
 
     // 5. If x is a Boolean, then
-    si x.est_boolean() {
+    si est_boolean(x) {
         // a. If x and y are both true or both false, return true; otherwise, return false.
         boolx := x.Boolean;
         booly := y.Boolean;
@@ -937,7 +937,7 @@ same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
 
     // 6. NOTE: All other ECMAScript language values are compared by identity.
     // 7. If x is y, return true; otherwise, return false.
-    retourne x.donne_objet() == y.donne_objet();
+    retourne donne_objet(x) == donne_objet(y);
 }
 
 /* 7.2.11 IsLessThan ( x, y, LeftFirst )
@@ -951,13 +951,13 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
     si left_first {
         // a. Let px be ? ToPrimitive(x, NUMBER).
         px = to_primitive(interpréteuse, x, TypePréféré.Number);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne faux;
         }
 
         // b. Let py be ? ToPrimitive(y, NUMBER).
         py = to_primitive(interpréteuse, y, TypePréféré.Number);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne faux;
         }
     }
@@ -966,19 +966,19 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
         // a. NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
         // b. Let py be ? ToPrimitive(y, NUMBER).
         py = to_primitive(interpréteuse, y, TypePréféré.Number);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne faux;
         }
 
         // c. Let px be ? ToPrimitive(x, NUMBER).
         px = to_primitive(interpréteuse, x, TypePréféré.Number);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne faux;
         }
     }
 
     // 3. If px is a String and py is a String, then
-    si px.est_chaine() && py.est_chaine() {
+    si est_chaine(px) && est_chaine(py) {
         // À FAIRE : standardise
         // a. Let lx be the length of px.
         // b. Let ly be the length of py.
@@ -995,14 +995,14 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
     // 4. Else,
     sinon {
         // a. If px is a BigInt and py is a String, then
-        si px.est_big_int() && py.est_chaine() {
+        si est_big_int(px) && est_chaine(py) {
             // i. Let ny be StringToBigInt(py).
             // ii. If ny is undefined, return undefined.
             // iii. Return BigInt::lessThan(px, ny).
             panique("is_less_than non-implémenté pour bigint < chaine");
         }
         // b. If px is a String and py is a BigInt, then
-        si px.est_chaine() && py.est_big_int() {
+        si est_chaine(px) && est_big_int(py) {
             // i. Let nx be StringToBigInt(px).
             // ii. If nx is undefined, return undefined.
             // iii. Return BigInt::lessThan(nx, py).
@@ -1011,20 +1011,20 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
         // c. NOTE: Because px and py are primitive values, evaluation order is not important.
         // d. Let nx be ? ToNumeric(px).
         nx := to_numeric(interpréteuse, px);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne faux;
         }
 
         // e. Let ny be ? ToNumeric(py).
         ny := to_numeric(interpréteuse, py);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne faux;
         }
 
         // f. If Type(nx) is Type(ny), then
         si donne_type(nx) == donne_type(ny) {
             // i. If nx is a Number, then
-            si nx.est_nombre() {
+            si est_nombre(nx) {
                 // 1. Return Number::lessThan(nx, ny).
                 retourne number_less_than(nx, ny);
             }
@@ -1037,7 +1037,7 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
         // g. Assert: nx is a BigInt and ny is a Number, or nx is a Number and ny is a BigInt.
 
         // h. If nx or ny is NaN, return undefined.
-        si nx.est_nan() || ny.est_nan() {
+        si est_nan(nx) || est_nan(ny) {
             retourne js_undefined;
         }
 
@@ -1053,37 +1053,37 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
 is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur) -> bool
 {
     // 1. If Type(x) is Type(y), then
-    si x.donne_type() == y.donne_type() {
+    si donne_type(x) == donne_type(y) {
         // a. Return IsStrictlyEqual(x, y).
         retourne is_strictly_equal(x, y);
     }
 
     // 2. If x is null and y is undefined, return true.
-    si x.est_nulle() && y.est_undefined() {
+    si est_nulle(x) && est_undefined(y) {
         retourne vrai;
     }
 
     // 3. If x is undefined and y is null, return true.
-    si x.est_undefined() && y.est_nulle() {
+    si est_undefined(x) && est_nulle(y) {
         retourne vrai;
     }
 
     // À FAIRE 4. NOTE: This step is replaced in section B.3.6.2.
 
     // 5. If x is a Number and y is a String, return ! IsLooselyEqual(x, ! ToNumber(y)).
-    si x.est_nombre() && y.est_chaine() {
+    si est_nombre(x) && est_chaine(y) {
         ny := to_number(interpréteuse, y);
         retourne is_loosely_equal(interpréteuse, x, ny);
     }
 
     // 6. If x is a String and y is a Number, return ! IsLooselyEqual(! ToNumber(x), y).
-    si x.est_chaine() && y.est_nombre() {
+    si est_chaine(x) && est_nombre(y) {
         nx := to_number(interpréteuse, x);
         retourne is_loosely_equal(interpréteuse, nx, y);
     }
 
     // 7. If x is a BigInt and y is a String, then
-    si x.est_big_int() && y.est_chaine() {
+    si est_big_int(x) && est_chaine(y) {
         // a. Let n be StringToBigInt(y).
         // b. If n is undefined, return false.
         // c. Return ! IsLooselyEqual(x, n).
@@ -1091,34 +1091,34 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur)
     }
 
     // 8. If x is a String and y is a BigInt, return ! IsLooselyEqual(y, x).
-    si x.est_chaine() && y.est_big_int() {
+    si est_chaine(x) && est_big_int(y) {
         panique("is_loosely_equal non-implémenté");
     }
 
     // 9. If x is a Boolean, return ! IsLooselyEqual(! ToNumber(x), y).
-    si x.est_boolean() {
+    si est_boolean(x) {
         nx := to_number(interpréteuse, x);
         retourne is_loosely_equal(interpréteuse, nx, y);
     }
 
     // 10. If y is a Boolean, return ! IsLooselyEqual(x, ! ToNumber(y)).
-    si y.est_boolean() {
+    si est_boolean(y) {
         ny := to_number(interpréteuse, y);
         retourne is_loosely_equal(interpréteuse, x, ny);
     }
 
     // 11. If x is either a String, a Number, a BigInt, or a Symbol and y is an Object, return ! IsLooselyEqual(x, ? ToPrimitive(y)).
-    si (x.est_chaine() || x.est_nombre() || x.est_big_int() || x.est_symbol()) && y.est_object() {
+    si (est_chaine(x) || est_nombre(x) || est_big_int(x) || est_symbol(x)) && est_object(y) {
         panique("is_loosely_equal non-implémenté");
     }
 
     // 12. If x is an Object and y is either a String, a Number, a BigInt, or a Symbol, return ! IsLooselyEqual(? ToPrimitive(x), y).
-    si x.est_object() && (y.est_chaine() || y.est_nombre() || y.est_big_int() || y.est_symbol()) {
+    si est_object(x) && (est_chaine(y) || est_nombre(y) || est_big_int(y) || est_symbol(y)) {
         panique("is_loosely_equal non-implémenté");
     }
 
     // 13. If x is a BigInt and y is a Number, or if x is a Number and y is a BigInt, then
-    si (x.est_big_int() && y.est_nombre()) || (x.est_nombre() && y.est_big_int()) {
+    si (est_big_int(x) && est_nombre(y)) || (est_nombre(x) && est_big_int(y)) {
         // a. If x is not finite or y is not finite, return false.
         // b. If ℝ(x) = ℝ(y), return true; otherwise return false.
         panique("is_loosely_equal non-implémenté");
@@ -1133,12 +1133,12 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur)
 is_strictly_equal :: fonc (x: Valeur, y: Valeur) -> bool
 {
     // 1. If Type(x) is not Type(y), return false.
-    si x.donne_type() != y.donne_type() {
+    si donne_type(x) != donne_type(y) {
         retourne faux;
     }
 
     // 2. If x is a Number, then
-    si x.est_nombre() {
+    si est_nombre(x) {
         // a. Return Number::equal(x, y).
         retourne number_equal(x, y);
     }

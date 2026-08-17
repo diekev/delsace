@@ -328,7 +328,7 @@ donne_chaine_primitive :: fonc (instruction: *InstructionDéfinisLocale, realm: 
             }
         }
 
-        résultat := realm.crée_chaine(instruction.nom);
+        résultat := crée_chaine(realm, instruction.nom);
         instruction.indice_chaine_en_cache = realm.chaines.taille comme z32 - 1;
         retourne résultat;
     }
@@ -355,7 +355,7 @@ donne_chaine_primitive :: fonc (instruction: *InstructionChargeLocale, realm: *R
             }
         }
 
-        résultat := realm.crée_chaine(instruction.nom);
+        résultat := crée_chaine(realm, instruction.nom);
         instruction.indice_chaine_en_cache = realm.chaines.taille comme z32 - 1;
         retourne résultat;
     }
@@ -779,7 +779,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionBrancheSiFaux {
                 branche := it comme *InstructionBrancheSiFaux;
 
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
                 valeur = to_boolean(valeur);
 
                 si est_false(valeur) {
@@ -790,7 +790,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionBrancheSiVrai {
                 branche := it comme *InstructionBrancheSiVrai;
 
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
                 valeur = to_boolean(valeur);
 
                 si est_true(valeur) {
@@ -800,193 +800,193 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionBrancheSaufsiNullOuUndefined {
                 branche := it comme *InstructionBrancheSaufsiNullOuUndefined;
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
 
-                saufsi valeur.est_nulle() || valeur.est_undefined() {
+                saufsi est_nulle(valeur) || est_undefined(valeur) {
                     courant = début + branche.décalage comme z64;
                     continue;
                 }
             }
             InstructionCharge {
                 inst_charge := it comme *InstructionCharge;
-                interprète.définis_accumulateur(inst_charge.vlr);
+                définis_accumulateur(interprète, inst_charge.vlr);
             }
             InstructionChargeRegistre {
                 inst_charge := it comme *InstructionChargeRegistre;
-                interprète.définis_accumulateur(donne_registre(registres, inst_charge.src));
+                définis_accumulateur(interprète, donne_registre(registres, inst_charge.src));
             }
             InstructionStocke {
                 stocke := it comme *InstructionStocke;
-                définis_registre(registres, stocke.dst, interprète.donne_accumulateur());
+                définis_registre(registres, stocke.dst, donne_accumulateur(interprète));
             }
             InstructionAjoute {
                 inst_ajout := it comme *InstructionAjoute;
                 gauche := donne_registre(registres, inst_ajout.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Plus, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionSoustrait {
                 inst := it comme *InstructionSoustrait;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Moins, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionMultiplie {
                 inst := it comme *InstructionMultiplie;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Multiplie, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionDivise {
                 inst := it comme *InstructionDivise;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Divise, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionModulo {
                 inst := it comme *InstructionModulo;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Modulo, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionDécalageGauche {
                 inst := it comme *InstructionDécalageGauche;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageGauche, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionDécalageDroite {
                 inst := it comme *InstructionDécalageDroite;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageDroite, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionDécalageDroiteNaturel {
                 inst := it comme *InstructionDécalageDroiteNaturel;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageDroiteNaturel, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionEtBinaire {
                 inst := it comme *InstructionEtBinaire;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.EtBinaire, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionOuBinaire {
                 inst := it comme *InstructionOuBinaire;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.OuBinaire, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionOuExBinaire {
                 inst := it comme *InstructionOuExBinaire;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.OuExclusif, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionExponentiation {
                 inst := it comme *InstructionExponentiation;
                 gauche := donne_registre(registres, inst.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Exponentiation, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionRelationInférieure {
                 relat := it comme *InstructionRelationInférieure;
                 gauche := donne_registre(registres, relat.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 r := is_less_than(interprète, gauche, droite, vrai);
 
-                si r.est_undefined() {
+                si est_undefined(r) {
                     r = Valeur(Boolean = faux);
                 }
-                interprète.définis_accumulateur(r);
+                définis_accumulateur(interprète, r);
             }
             InstructionRelationSupérieure {
                 relat := it comme *InstructionRelationSupérieure;
                 gauche := donne_registre(registres, relat.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 r := is_less_than(interprète, droite, gauche, faux);
 
-                si r.est_undefined() {
+                si est_undefined(r) {
                     r = Valeur(Boolean = faux);
                 }
-                interprète.définis_accumulateur(r);
+                définis_accumulateur(interprète, r);
             }
             InstructionRelationInférieureÉgale {
                 relat := it comme *InstructionRelationInférieureÉgale;
                 gauche := donne_registre(registres, relat.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 r := is_less_than(interprète, droite, gauche, faux);
-                si r.est_true() || r.est_undefined() {
+                si est_true(r) || est_undefined(r) {
                     r = Valeur(Boolean = faux);
                 }
                 sinon {
                     r = Valeur(Boolean = vrai);
                 }
-                interprète.définis_accumulateur(r);
+                définis_accumulateur(interprète, r);
             }
             InstructionRelationSupérieureÉgale {
                 relat := it comme *InstructionRelationSupérieureÉgale;
                 gauche := donne_registre(registres, relat.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 r := is_less_than(interprète, gauche, droite, vrai);
-                si r.est_true() || r.est_undefined() {
+                si est_true(r) || est_undefined(r) {
                     r = Valeur(Boolean = faux);
                 }
                 sinon {
                     r = Valeur(Boolean = vrai);
                 }
-                interprète.définis_accumulateur(r);
+                définis_accumulateur(interprète, r);
             }
             InstructionInstanceOf {
                 relat := it comme *InstructionInstanceOf;
                 gauche := donne_registre(registres, relat.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 completion := instanceof_operator(interprète, gauche, droite);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionIn {
                 relat := it comme *InstructionIn;
@@ -995,34 +995,34 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionComparaisonÉgal {
                 inst_ajout := it comme *InstructionComparaisonÉgal;
                 gauche := donne_registre(registres, inst_ajout.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 r := is_loosely_equal(interprète, gauche, droite);
-                interprète.définis_accumulateur(r);
+                définis_accumulateur(interprète, r);
             }
             InstructionComparaisonInégal {
                 inst_ajout := it comme *InstructionComparaisonInégal;
                 gauche := donne_registre(registres, inst_ajout.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 résultat := !is_loosely_equal(interprète, gauche, droite);
-                interprète.définis_accumulateur(résultat);
+                définis_accumulateur(interprète, résultat);
             }
             InstructionComparaisonÉgalStrict {
                 inst_ajout := it comme *InstructionComparaisonÉgalStrict;
                 gauche := donne_registre(registres, inst_ajout.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 résultat := is_strictly_equal(gauche, droite);
-                interprète.définis_accumulateur(résultat);
+                définis_accumulateur(interprète, résultat);
             }
             InstructionComparaisonInégalStrict {
                 inst_ajout := it comme *InstructionComparaisonInégalStrict;
                 gauche := donne_registre(registres, inst_ajout.gch);
-                droite := interprète.donne_accumulateur();
+                droite := donne_accumulateur(interprète);
 
                 résultat := !is_strictly_equal(gauche, droite);
-                interprète.définis_accumulateur(résultat);
+                définis_accumulateur(interprète, résultat);
             }
             InstructionCréeChaine {
                 crée_chaine := it comme *InstructionCréeChaine;
@@ -1039,48 +1039,48 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     chn = realm.chaines_littérales[crée_chaine.indice_chaine];
                 }
 
-                interprète.définis_accumulateur(Valeur(String = chn));
+                définis_accumulateur(interprète, Valeur(String = chn));
             }
             InstructionCréeObjet {
                 realm := donne_realm(interprète);
                 objet := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée);
-                interprète.définis_accumulateur(Valeur(Object = objet));
+                définis_accumulateur(interprète, Valeur(Object = objet));
             }
             InstructionCréeArray {
                 realm := donne_realm(interprète);
-                résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0);
-                interprète.définis_accumulateur(Valeur(Object = résultat));
+                résultat := crée_array(donne_tas_de_mémoire(realm), realm.intrinsics.array_prototype, 0);
+                définis_accumulateur(interprète, Valeur(Object = résultat));
             }
             InstructionDéfinisLocale {
                 définis_locale := it comme *InstructionDéfinisLocale;
                 realm := donne_realm(interprète);
 
-                résultat := resolve_binding(interprète, définis_locale.donne_chaine_primitive(realm));
+                résultat := resolve_binding(interprète, donne_chaine_primitive(définis_locale, realm));
 
                 // À FAIRE
                 // référence := résultat.valeur.R
                 // noeud.coordonnée = référence.coordonnée
 
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
                 completion_assignment := put_value(interprète, résultat, valeur);
-                interprète.définis_exception(completion_assignment);
+                définis_exception(interprète, completion_assignment);
             }
             InstructionChargeLocale {
                 charge_locale := it comme *InstructionChargeLocale;
                 realm := donne_realm(interprète);
 
-                résultat := resolve_binding(interprète, charge_locale.donne_chaine_primitive(realm));
+                résultat := resolve_binding(interprète, donne_chaine_primitive(charge_locale, realm));
 
                 rval := get_value(interprète, résultat);
-                interprète.définis_accumulateur(rval);
+                définis_accumulateur(interprète, rval);
             }
             InstructionInitialiseRéférence {
                 init := it comme *InstructionInitialiseRéférence;
 
                 realm := donne_realm(interprète);
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
 
-                lhs := resolve_binding(interprète, realm.crée_chaine(init.nom));
+                lhs := resolve_binding(interprète, crée_chaine(realm, init.nom));
                 initialize_reference_binding(lhs, valeur);
             }
             InstructionDéfinisMember {
@@ -1090,13 +1090,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 referenced_name := crée_chaine(realm, member.nom);
 
                 référence: ReferenceRecord;
-                référence.base = interprète.donne_accumulateur();
+                référence.base = donne_accumulateur(interprète);
                 référence.referenced_name = Valeur(String = referenced_name);
                 // À FAIRE : résultat.strict = strict
 
                 valeur := donne_registre(registres, member.src);
                 completion_assignment := put_value(interprète, référence, valeur);
-                interprète.définis_exception(completion_assignment);
+                définis_exception(interprète, completion_assignment);
             }
             InstructionChargeMember {
                 member := it comme *InstructionChargeMember;
@@ -1107,7 +1107,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 référence: ReferenceRecord;
 
                 si member.obj comme n32 == 0 {
-                    référence.base = interprète.donne_accumulateur();
+                    référence.base = donne_accumulateur(interprète);
                 }
                 sinon {
                     référence.base = donne_registre(registres, member.obj);
@@ -1117,13 +1117,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // À FAIRE : résultat.strict = strict
 
                 rval := get_value(interprète, référence);
-                interprète.définis_accumulateur(rval);
+                définis_accumulateur(interprète, rval);
             }
             InstructionDéfinisIndice {
                 inst := it comme *InstructionDéfinisIndice;
     
                 base_value := donne_registre(registres, inst.obj);
-                property_name_value := interprète.donne_accumulateur();
+                property_name_value := donne_accumulateur(interprète);
                 valeur := donne_registre(registres, inst.src);
 
                 référence: ReferenceRecord;
@@ -1132,13 +1132,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // À FAIRE : résultat.strict = strict
 
                 completion_rval := put_value(interprète, référence, valeur);
-                interprète.définis_exception(completion_rval);
+                définis_exception(interprète, completion_rval);
             }
             InstructionChargeIndice {
                 inst := it comme *InstructionChargeIndice;
 
                 base_value := donne_registre(registres, inst.obj);
-                property_name_value := interprète.donne_accumulateur();
+                property_name_value := donne_accumulateur(interprète);
 
                 référence: ReferenceRecord;
                 référence.base = base_value;
@@ -1146,13 +1146,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // À FAIRE : résultat.strict = strict
 
                 rval := get_value(interprète, référence);
-                interprète.définis_accumulateur(rval);
+                définis_accumulateur(interprète, rval);
             }
             InstructionCréePropriétéArray {
                 inst := it comme *InstructionCréePropriétéArray;
 
-                objet := donne_registre(registres, inst.obj).donne_objet();
-                valeur := interprète.donne_accumulateur();
+                objet := donne_objet(donne_registre(registres, inst.obj));
+                valeur := donne_accumulateur(interprète);
 
                 nom_propriété := to_string(interprète, Valeur(Number = inst.indice comme r64)).texte;
 
@@ -1164,7 +1164,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 arguments: [..]Valeur;
                 diffère déloge(*arguments);
 
-                pour appel.donne_arguments() {
+                pour donne_arguments(appel) {
                     tableau_ajoute(*arguments, donne_registre(registres, it));
                 }
 
@@ -1173,17 +1173,17 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 this_value := donne_registre(registres, appel.this_value);
 
                 // 4. If func is not an Object, throw a TypeError exception.
-                saufsi func.est_object() {
+                saufsi est_object(func) {
                     message := imprime_chaine("'%' is not an Object", func);
                     _ := lance_type_error(interprète, message);
-                    retourne throw_completion(interprète.donne_exception());
+                    retourne throw_completion(donne_exception(interprète));
                 }
                 
                 // 5. If IsCallable(func) is false, throw a TypeError exception.
-                saufsi func.is_callable() {
+                saufsi is_callable(func) {
                     message := imprime_chaine("'%' is not callable", func);
                     _ := lance_type_error(interprète, message);
-                    retourne throw_completion(interprète.donne_exception());
+                    retourne throw_completion(donne_exception(interprète));
                 }
 
                 // 6. If tailPosition is true, perform PrepareForTailCall().
@@ -1191,24 +1191,24 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // 7. Return ? Call(func, thisValue, argList).
                 valeur := call(interprète, func, this_value, arguments);
 
-                interprète.définis_accumulateur(valeur);
+                définis_accumulateur(interprète, valeur);
             }
             InstructionAppelEval {
                 appel := it comme *InstructionAppelEval;
-                realm := interprète.donne_realm();
+                realm := donne_realm(interprète);
 
                 arguments: [..]Valeur;
                 diffère déloge(*arguments);
 
-                pour appel.donne_arguments() {
+                pour donne_arguments(appel) {
                     tableau_ajoute(*arguments, donne_registre(registres, it));
                 }
 
                 func := donne_registre(registres, appel.func);
 
-                si same_value(func, Valeur(Object = realm.intrinsics.eval)).est_true() {
+                si est_true(same_value(func, Valeur(Object = realm.intrinsics.eval))) {
                     si arguments.taille == 0 {
-                        interprète.définis_accumulateur(js_undefined);
+                        définis_accumulateur(interprète, js_undefined);
                         continue;
                     }
 
@@ -1217,31 +1217,31 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     strict_caller := faux;
 
                     valeur := perform_eval(interprète, eval_arg, strict_caller, vrai);
-                    interprète.définis_accumulateur(valeur);
+                    définis_accumulateur(interprète, valeur);
                     continue;
                 }
 
                 this_value := donne_registre(registres, appel.this_value);
 
                 // 4. If func is not an Object, throw a TypeError exception.
-                saufsi func.est_object() {
+                saufsi est_object(func) {
                     message := imprime_chaine("'%' is not an Object", func);
                     _ := lance_type_error(interprète, message);
-                    retourne throw_completion(interprète.donne_exception());
+                    retourne throw_completion(donne_exception(interprète));
                 }
                 
                 // 5. If IsCallable(func) is false, throw a TypeError exception.
-                saufsi func.is_callable() {
+                saufsi is_callable(func) {
                     message := imprime_chaine("'%' is not callable", func);
                     _ := lance_type_error(interprète, message);
-                    retourne throw_completion(interprète.donne_exception());
+                    retourne throw_completion(donne_exception(interprète));
                 }
 
                 // 6. If tailPosition is true, perform PrepareForTailCall().
 
                 // 7. Return ? Call(func, thisValue, argList).
                 valeur := call(interprète, func, this_value, arguments);
-                interprète.définis_accumulateur(valeur);
+                définis_accumulateur(interprète, valeur);
             }
             InstructionNew {
                 new := it comme *InstructionNew;
@@ -1249,7 +1249,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 arguments: [..]Valeur;
                 diffère déloge(*arguments);
 
-                pour new.donne_arguments() {
+                pour donne_arguments(new) {
                     tableau_ajoute(*arguments, donne_registre(registres, it));
                 }
 
@@ -1258,12 +1258,12 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // 5. If IsConstructor(constructor) is false, throw a TypeError exception.
                 saufsi is_constructor(constructor) {
                     _ := lance_type_error(interprète, "expression is not a constructor");
-                    retourne throw_completion(interprète.donne_exception());
+                    retourne throw_completion(donne_exception(interprète));
                 }
 
                 // 6. Return ? Construct(constructor, argList).
                 valeur := construct(interprète, constructor, arguments);
-                interprète.définis_accumulateur(valeur);
+                définis_accumulateur(interprète, valeur);
             }
             InstructionThisValueAppel {
                 this_value := it comme *InstructionThisValueAppel;
@@ -1276,7 +1276,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 diffère interprète.mv.interpréteuse = interprète;
 
                 completion_ref := exécute(interpréteuse, this_value.noeud);
-                interprète.définis_exception(completion_ref);
+                définis_exception(interprète, completion_ref);
 
                 ref := completion_ref.valeur;
 
@@ -1293,7 +1293,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                         ref_env := ref.R.base.E;
                         // ii. Assert: refEnv is an Environment Record.
                         // iii. Let thisValue be refEnv.WithBaseObject().
-                        résultat = ref_env.with_base_object();
+                        résultat = with_base_object(ref_env);
                     }
                 }
                 // 2. Else,
@@ -1302,18 +1302,18 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     résultat = js_undefined;
                 }
 
-                interprète.définis_accumulateur(résultat);
+                définis_accumulateur(interprète, résultat);
             }
             InstructionRetour {
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
                 retourne return_completion(valeur);
             }
             InstructionThis {
                 valeur := resolve_this_binding(interprète);
-                interprète.définis_accumulateur(valeur);
+                définis_accumulateur(interprète, valeur);
             }
             InstructionIncrémente {
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
 
                 old_value := to_numeric(interprète, valeur);
 
@@ -1326,10 +1326,10 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     panique("update expression sur BigInt non-implémentée");
                 }
 
-                interprète.définis_accumulateur(nouvelle_valeur);
+                définis_accumulateur(interprète, nouvelle_valeur);
             }
             InstructionDécrémente {
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
 
                 old_value := to_numeric(interprète, valeur);
 
@@ -1342,25 +1342,25 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     panique("update expression sur BigInt non-implémentée");
                 }
 
-                interprète.définis_accumulateur(nouvelle_valeur);
+                définis_accumulateur(interprète, nouvelle_valeur);
             }
             InstructionInstancieFonction {
                 instance := it comme *InstructionInstancieFonction;
                 closure := instantiate_ordinary_function_expression(interprète, instance.fonction);
-                interprète.définis_accumulateur(Valeur(Function = closure));
+                définis_accumulateur(interprète, Valeur(Function = closure));
             }
             InstructionInstancieArrowFunction {
                 instance := it comme *InstructionInstancieArrowFunction;
                 closure := instantiate_arrow_function_expression(interprète, instance.fonction);
-                interprète.définis_accumulateur(Valeur(Function = closure));
+                définis_accumulateur(interprète, Valeur(Function = closure));
             }
             InstructionEntréeBlocCatch {
                 inst := it comme *InstructionEntréeBlocCatch;
 
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
                 status, old_env := crée_environnement_lexical_pour_catch(interprète, inst.nom, valeur);
-                si status.est_throw() {
-                    interprète.définis_exception(status.valeur.V);
+                si est_throw(status) {
+                    définis_exception(interprète, status.valeur.V);
                 }
                 si old_env != nul {
                     empile(*interprète.environments_catch, old_env);
@@ -1370,17 +1370,17 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 old_env := dépile(*interprète.environments_catch);
                 assert(old_env != nul);
                 mv := interprète.mv;
-                running_execution_context := mv.donne_running_execution_context();
+                running_execution_context := donne_running_execution_context(mv);
                 running_execution_context.lexical_environment = old_env;
 
                 // À FAIRE : nous devons également dépiler old env si une exception est lancée dans le bloc catch
             }
             InstructionEntréeSwitch {
                 mv := interprète.mv;
-                running_execution_context := mv.donne_running_execution_context();
+                running_execution_context := donne_running_execution_context(mv);
                 old_env := running_execution_context.lexical_environment;
 
-                block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env);
+                block_env := new_declarative_environment(donne_tas_de_mémoire(old_env), old_env);
                 //  À FAIRE : 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
 
                 running_execution_context.lexical_environment = block_env;
@@ -1390,14 +1390,14 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 old_env := dépile(*interprète.environments_catch);
                 assert(old_env != nul);
                 mv := interprète.mv;
-                running_execution_context := mv.donne_running_execution_context();
+                running_execution_context := donne_running_execution_context(mv);
                 running_execution_context.lexical_environment = old_env;
 
                 // À FAIRE : nous devons également dépiler old env si une exception est lancée dans le bloc catch
             }
             InstructionThrow {
-                valeur := interprète.donne_accumulateur();
-                interprète.définis_exception(valeur);
+                valeur := donne_accumulateur(interprète);
+                définis_exception(interprète, valeur);
             }
             InstructionEmpileExceptionHandler {
                 inst := it comme *InstructionEmpileExceptionHandler;
@@ -1409,83 +1409,83 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionNamedEvaluation {
                 inst := it comme *InstructionNamedEvaluation;
                 completion := named_evaluation(interprète, inst.noeud, inst.nom);
-                interprète.définis_exception(completion);
-                interprète.définis_accumulateur(completion.valeur.V);
+                définis_exception(interprète, completion);
+                définis_accumulateur(interprète, completion.valeur.V);
             }
             InstructionTypeof {
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
                 chn := donne_chaine_pour_typeof(valeur);
-                string := crée_chaine(interprète.donne_realm(), chn);
+                string := crée_chaine(donne_realm(interprète), chn);
                 résultat := Valeur(String = string);
-                interprète.définis_accumulateur(résultat);
+                définis_accumulateur(interprète, résultat);
             }
             InstructionUnaryMinus {
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
 
                 old_value := to_number(interprète, valeur);
-                si interprète.possède_exception() {
-                    retourne throw_completion(interprète.donne_exception());
+                si possède_exception(interprète) {
+                    retourne throw_completion(donne_exception(interprète));
                 }
 
                 // 3. If oldValue is a Number, then
-                résultat := si old_value.est_nombre() {
+                résultat := si est_nombre(old_value) {
                     // a. Return Number::unaryMinus(oldValue).
                     number_unary_minus(old_value);
                 }
                 // 4. Else,
                 sinon {
                     // a. Assert: oldValue is a BigInt.
-                    assert(old_value.est_big_int());
+                    assert(est_big_int(old_value));
                     // b. Return BigInt::unaryMinus(oldValue).
                     bigint_unary_minus(old_value);
                 };
-                interprète.définis_accumulateur(résultat);
+                définis_accumulateur(interprète, résultat);
             }
             InstructionUnaryPlus {
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
                 valeur = to_number(interprète, valeur);
-                interprète.définis_accumulateur(valeur);
+                définis_accumulateur(interprète, valeur);
             }
             InstructionLogicalNot {
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
                 old_value := to_boolean(valeur);
-                si old_value.est_true() {
+                si est_true(old_value) {
                     old_value = faux;
                 }
                 sinon {
                     old_value = vrai;
                 }
-                interprète.définis_accumulateur(old_value);
+                définis_accumulateur(interprète, old_value);
             }
             InstructionBinaryNot {
-                valeur := interprète.donne_accumulateur();
+                valeur := donne_accumulateur(interprète);
 
                 old_value := to_numeric(interprète, valeur);
-                si interprète.possède_exception() {
-                    retourne throw_completion(interprète.donne_exception());
+                si possède_exception(interprète) {
+                    retourne throw_completion(donne_exception(interprète));
                 }
 
 
                 // 3. If oldValue is a Number, then
-                si old_value.est_nombre() {
+                si est_nombre(old_value) {
                     // a. Return Number::bitwiseNOT(oldValue).
                     résultat := number_bitwise_not(old_value);
-                    interprète.définis_accumulateur(résultat);
+                    définis_accumulateur(interprète, résultat);
                     continue;
                 }
 
                 // 4. Else,
                 //    a. Assert: oldValue is a BigInt.
-                assert(old_value.est_big_int());
+                assert(est_big_int(old_value));
 
                 //    b. Return BigInt::bitwiseNOT(oldValue).
                 résultat := big_int_bitwise_not(old_value);
-                interprète.définis_accumulateur(résultat);
+                définis_accumulateur(interprète, résultat);
             }
             InstructionCDPOT {
                 inst := it comme *InstructionCDPOT;
-                valeur := interprète.donne_accumulateur();
-                objet := donne_registre(registres, inst.obj).donne_objet();
+                valeur := donne_accumulateur(interprète);
+                objet := donne_objet(donne_registre(registres, inst.obj));
                 create_data_property_or_throw(objet, inst.nom, valeur);
             }
             sinon {
@@ -1494,19 +1494,19 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
         }
 
-        si interprète.possède_exception() {
+        si possède_exception(interprète) {
             décalage := tête(*interprète.exception_handlers);
             si décalage == DécalageBranche(-1) {
-                retourne throw_completion(interprète.donne_exception());
+                retourne throw_completion(donne_exception(interprète));
             }
 
-            interprète.définis_accumulateur(interprète.donne_exception());
+            définis_accumulateur(interprète, donne_exception(interprète));
             courant = début + décalage comme z64;
         }
     }
 
     // imprime_registres(interprète)
-    retourne normal_completion(interprète.donne_accumulateur());
+    retourne normal_completion(donne_accumulateur(interprète));
 }
 
 imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
@@ -1521,23 +1521,23 @@ imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
 évalue_relation_in :: fonc (interprète: *InterprèteCodeBinaire, registres: ÉtatRegistres, inst: *InstructionIn)
 {
     gauche := donne_registre(registres, inst.gch);
-    droite := interprète.donne_accumulateur();
+    droite := donne_accumulateur(interprète);
 
-    saufsi droite.est_object() {
+    saufsi est_object(droite) {
         message := imprime_chaine("'%' is not an Object", droite);
         completion := lance_type_error(interprète, message);
-        interprète.définis_exception(completion);
+        définis_exception(interprète, completion);
         retourne;
     }
 
     // 6. Return ? HasProperty(rVal, ? ToPropertyKey(lVal)).
     P := to_property_key(interprète, gauche);
-    si interprète.possède_exception() {
+    si possède_exception(interprète) {
         retourne;
     }
 
-    résultat := has_property(droite.donne_objet(), P.String);
-    interprète.définis_accumulateur(résultat);
+    résultat := has_property(donne_objet(droite), P.String);
+    définis_accumulateur(interprète, résultat);
 }
 
 /** \} */

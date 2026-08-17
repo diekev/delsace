@@ -216,7 +216,7 @@ CLÉ_CONTROLE :: fonc (c: z8) -> CléConsole
 
 console_lis_clé :: fonc () -> CléConsole
 {
-    c := tente entrée_standarde().lis_caractère() piège _ {
+    c := tente lis_caractère(entrée_standarde()) piège _ {
         imprime("une erreur est survenue lors de la lecture de l'entrée !\n");
         retourne 0 comme CléConsole;
     };
@@ -224,12 +224,12 @@ console_lis_clé :: fonc () -> CléConsole
     si c == '\x1b' {
         seq: [3]z8;
 
-        seq[0] = tente entrée_standarde().lis_caractère() piège nonatteignable;
-        seq[1] = tente entrée_standarde().lis_caractère() piège nonatteignable;
+        seq[0] = tente lis_caractère(entrée_standarde()) piège nonatteignable;
+        seq[1] = tente lis_caractère(entrée_standarde()) piège nonatteignable;
 
         si seq[0] == '[' {
             si '0' <= seq[1] <= '9' {
-                seq[2] = tente entrée_standarde().lis_caractère() piège nonatteignable;
+                seq[2] = tente lis_caractère(entrée_standarde()) piège nonatteignable;
 
                 si seq[2] == '~' {
                     si seq[1] == '1' { retourne CléConsole.Début; }
@@ -399,7 +399,7 @@ console_dessine_lignes :: fonc (enchaineuse: *Enchaineuse) -> rien
             ligne := E.lignes_rendu[idx_ligne];
             ligne = avance(ligne, E.décalage_colonne);
 
-            si ligne.taille() > E.colonnes - 1 {
+            si taille(ligne) > E.colonnes - 1 {
                 ligne.points_de_code.taille = E.colonnes - 1;
             }
 

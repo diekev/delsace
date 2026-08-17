@@ -63,7 +63,7 @@ crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max:
     boucle_évènements := crée_boucle();
     ctx := crée_contexte_vide(boucle_évènements, nul, T);
 
-    ctx.mute_serveuse(serveuse);
+    mute_serveuse(ctx, serveuse);
 
     prise := crée_prise_pour_écoute(ctx, adresse_ip, port, connexions_max, TypeDonnéesPrise);
 
@@ -78,9 +78,9 @@ crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max:
     serveuse.adresse_ip = adresse_ip;
     serveuse.port = port;
 
-    serveuse.rappel_quand_ouverture(quand_ouverture);
-    serveuse.rappel_quand_données_reçues(quand_données_reçues);
-    serveuse.rappel_quand_fermeture(quand_fermeture);
+    rappel_quand_ouverture(serveuse, quand_ouverture);
+    rappel_quand_données_reçues(serveuse, quand_données_reçues);
+    rappel_quand_fermeture(serveuse, quand_fermeture);
 
     retourne serveuse;
 }
@@ -97,7 +97,7 @@ ajoute_service_fichier :: fonc (serveuse: *ServeuseHTTP, extension: chaine)
 
 lance :: fonc (serveuse: *ServeuseHTTP)
 {
-    serveuse.boucle_évènements.lance();
+    lance(serveuse.boucle_évènements);
 }
 
 détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
@@ -117,9 +117,9 @@ quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
     données := loge(DonnéesServeuseHTTP);
     données.parseuse = loge(ParseuseMessageClienteHTTP);
-    prise.mute_données_serveuse(données);
+    mute_données_serveuse(prise, données);
 
-    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP);
+    serveuse := accède_serveuse(prise.contexte_, ServeuseHTTP);
 
     si serveuse.quand_connexion_http {
         serveuse.quand_connexion_http(prise);
@@ -132,11 +132,11 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 
     si !contenu {
         // délai en cas de non-écriture
-        prise.mute_délai(10);
+        mute_délai(prise, 10);
         retourne;
     }
 
-    données_serveuse := prise.accède_données_serveuse(DonnéesServeuseHTTP);
+    données_serveuse := accède_données_serveuse(prise, DonnéesServeuseHTTP);
 
     si données_serveuse.connexion_est_websocket {
         quand_données_reçues_websocket(prise, données);
@@ -146,11 +146,11 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     // imprime("reçu :\n%\n", contenu)
 
     parseuse := données_serveuse.parseuse;
-    parseuse.ajourne_données(contenu);
+    ajourne_données(parseuse, contenu);
 
-    si !parseuse.message_prêt_pour_finalisation() {
+    si !message_prêt_pour_finalisation(parseuse) {
         // délai en cas de données partielles
-        prise.mute_délai(10);
+        mute_délai(prise, 10);
         retourne;
     }
 
@@ -158,11 +158,11 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     réponse : MessageServeuseHTTP = ---;
     diffère détruit_message(*réponse);
 
-    si parseuse.message_est_erroné() {
+    si message_est_erroné(parseuse) {
         réponse = mauvaise_requête();
     }
     sinon {
-        message = parseuse.finalise_message();
+        message = finalise_message(parseuse);
         réponse = gère_message(prise, *message);
     }
 
@@ -175,28 +175,28 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     écris_réponse(prise, *réponse);
 
     si suite == SuiteConnexion.Ferme {
-        prise.ferme();
+        ferme(prise);
     }
     sinon si suite == SuiteConnexion.PasseÀWebSocket {
         données_serveuse.connexion_est_websocket = vrai;
     }
     sinon {
         // délai en cas de non-lecture
-        prise.mute_délai(10);
-        parseuse.réinitialise();
+        mute_délai(prise, 10);
+        réinitialise(parseuse);
     }
 }
 
 quand_données_reçues_websocket :: fonc (prise: *Prise, données: []octet)
 {
-    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP);
+    serveuse := accède_serveuse(prise.contexte_, ServeuseHTTP);
     assert(serveuse.rappel_données_websocket != nul);
     serveuse.rappel_données_websocket(prise, données);
 }
 
 gère_message :: fonc (prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP
 {
-    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP);
+    serveuse := accède_serveuse(prise.contexte_, ServeuseHTTP);
     retourne apparie_route(*serveuse.routeuse, prise, message);
 }
 
@@ -208,8 +208,8 @@ SuiteConnexion :: énum {
 
 détermine_suite_connexion_après_réponse :: fonc (message: *MessageClienteHTTP, réponse: *MessageServeuseHTTP) -> SuiteConnexion
 {
-    connection_message := message.entête("Connection");
-    connection_réponse := réponse.entête("Connection");
+    connection_message := entête(message, "Connection");
+    connection_réponse := entête(réponse, "Connection");
 
     si connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "Upgrade") {
         retourne SuiteConnexion.PasseÀWebSocket;
@@ -237,9 +237,9 @@ détermine_suite_connexion_après_réponse :: fonc (message: *MessageClienteHTTP
 quand_fermeture :: fonc (prise: *Prise)
 {
     imprime("fermeture de la prise...\n");
-    données := prise.accède_données_serveuse(DonnéesServeuseHTTP);
+    données := accède_données_serveuse(prise, DonnéesServeuseHTTP);
     parseuse := données.parseuse;
-    parseuse.réinitialise();
+    réinitialise(parseuse);
     déloge(*parseuse);
     déloge(*données);
 }
@@ -259,7 +259,7 @@ PolitiqueDeCache :: énum {
     initialise_enchaineuse(*enchaineuse);
     diffère détruit_tampons(*enchaineuse);
 
-    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP);
+    serveuse := accède_serveuse(prise.contexte_, ServeuseHTTP);
 
     ajoute_au_tampon(*enchaineuse, message.version, " ", chaine_code_état_http(message.code_état), "\r\n");
     ajoute_au_tampon(*enchaineuse, "Server: ", serveuse.nom, "\r\n");
@@ -307,7 +307,7 @@ PolitiqueDeCache :: énum {
         ajoute_au_tampon(*enchaineuse, message.contenu);
     }
 
-    _ := prise.écris(*enchaineuse);
+    _ := écris(prise, *enchaineuse);
 }
 
 chaine_pour_aujourdhui :: fonc (enchaineuse: *Enchaineuse) -> rien

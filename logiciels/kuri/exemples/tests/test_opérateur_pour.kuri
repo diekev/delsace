@@ -55,7 +55,7 @@ opérateur pour :: (itératrice: ItératriceRubriqueStructure) -> DonnéesRubriq
     boucle {
         rubrique, nom := rubrique_suivante(*itératrice);
 
-        saufsi rubrique.est_valide() {
+        saufsi est_valide(rubrique) {
             arrête;
         }
 
