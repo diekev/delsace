@@ -37,7 +37,7 @@ redimensionne_tampon_de_rendu :: fonc (tampon: *TamponDeRendu, rect: RectanglePo
 définis_rect_ciseau :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32))
 {
     tampon.rect_ciseau = tampon.rect;
-    rect = tampon.donne_rect_sûr(rect);
+    rect = donne_rect_sûr(tampon, rect);
     tampon.rect_ciseau = rect;
 }
 

@@ -230,7 +230,7 @@ débute_lexème :: fonc (empl lexeuse: *Lexeuse) #enligne
 
 crée_lexème :: fonc (empl lexeuse: *Lexeuse, genre: GenreLexème) -> Lexème
 {
-    retourne Lexème(genre = genre, texte = lexeuse.donne_texte_courant());
+    retourne Lexème(genre = genre, texte = donne_texte_courant(lexeuse));
 }
 
 donne_texte_courant :: fonc (empl lexeuse: *Lexeuse) -> chaine #enligne
@@ -246,13 +246,13 @@ crée_lexème_pour_caractère :: fonc (lexeuse: *Lexeuse, genre: GenreLexème) -
 
 lèxe_nombre :: fonc (empl lexeuse: *Lexeuse) -> Lexème
 {
-    lexeuse.débute_lexème();
+    débute_lexème(lexeuse);
 
     si fini(lexeuse) {
         retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
     }
 
-    c := lexeuse.caractère_courant();
+    c := caractère_courant(lexeuse);
     fanion := fanions_caractères[c comme n8];
 
     si fanion.DébuteLittéraleBinaire {
@@ -268,45 +268,45 @@ lèxe_nombre :: fonc (empl lexeuse: *Lexeuse) -> Lexème
     }
 
     // Ne consommons pas le premier caractère, ce pourrait être un point.
-    lexeuse.recule();
+    recule(lexeuse);
 
     /* Partie entière. */
-    lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
-    si lexeuse.fini() {
+    avance_tantque(lexeuse, FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
+    si fini(lexeuse) {
         retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
     }
 
     /* Partie décimale. */
-    c = lexeuse.caractère_courant();
+    c = caractère_courant(lexeuse);
 
     si c == '.' {
-        lexeuse.avance();
-        lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
-        si lexeuse.fini() {
+        avance(lexeuse);
+        avance_tantque(lexeuse, FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
+        si fini(lexeuse) {
             retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
         }
 
-        c = lexeuse.caractère_courant();
+        c = caractère_courant(lexeuse);
     }
 
     /* Partie exposant. */
     si c == 'e' || c == 'E' {
-        lexeuse.avance();
-        si lexeuse.fini() {
-            lexeuse.rapporte_erreur("unexpeced end of input");
+        avance(lexeuse);
+        si fini(lexeuse) {
+            rapporte_erreur(lexeuse, "unexpeced end of input");
             retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
         }
 
-        c = lexeuse.caractère_courant();
+        c = caractère_courant(lexeuse);
         si c == '+' || c == '-' {
-            lexeuse.avance();
-            si lexeuse.fini() {
-                lexeuse.rapporte_erreur("unexpeced end of input");
+            avance(lexeuse);
+            si fini(lexeuse) {
+                rapporte_erreur(lexeuse, "unexpeced end of input");
                 retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
             }
         }
 
-        lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
+        avance_tantque(lexeuse, FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
     }
 
     retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
@@ -329,22 +329,22 @@ lèxe_nombre_hexadécimal :: fonc (lexeuse: *Lexeuse) -> Lexème
 
 lèxe_nombre_avec_drapeaux :: fonc (lexeuse: *Lexeuse, drapeaux: FanionCaractère) -> Lexème
 {
-    lexeuse.avance();
-    lexeuse.avance_tantque(drapeaux);
+    avance(lexeuse);
+    avance_tantque(lexeuse, drapeaux);
     retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
 }
 
 avance_tantque :: fonc (lexeuse: *Lexeuse, drapeaux: FanionCaractère)
 {
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant();
+        c := caractère_courant(lexeuse);
         fanion := fanions_caractères[c comme n8];
 
         si (fanion & drapeaux) == FanionCaractère.zéro {
             arrête;
         }
 
-        lexeuse.avance();
+        avance(lexeuse);
     }
 }
 
@@ -366,15 +366,15 @@ parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
 {
     texte := lexème.texte;
 
-    si texte.commence_par("0x") || texte.commence_par("0X") {
+    si commence_par(texte, "0x") || commence_par(texte, "0X") {
         retourne parse_nombre_hexadécimal(texte);
     }
 
-    si texte.commence_par("0b") || texte.commence_par("0B") {
+    si commence_par(texte, "0b") || commence_par(texte, "0B") {
         retourne parse_nombre_binaire(texte);
     }
 
-    si texte.commence_par("0o") || texte.commence_par("0O") {
+    si commence_par(texte, "0o") || commence_par(texte, "0O") {
         retourne parse_nombre_octal(texte);
     }
 
@@ -389,7 +389,7 @@ parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
         taille_part_entière += 1;
     }
 
-    données_nombre.partie_entière = texte_original.sous_chaine(0, taille_part_entière);
+    données_nombre.partie_entière = sous_chaine(texte_original, 0, taille_part_entière);
     texte_original = texte;
 
     /* Part décimale. */
@@ -404,7 +404,7 @@ parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
             taille_part_décimale += 1;
         }
 
-        données_nombre.partie_décimale = texte_original.sous_chaine(0, taille_part_décimale);
+        données_nombre.partie_décimale = sous_chaine(texte_original, 0, taille_part_décimale);
     }
 
     /* Exposant. */
@@ -418,7 +418,7 @@ parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
 
 parse_nombre_binaire :: fonc (texte: chaine) -> r64
 {
-    texte = texte.avance(2);
+    texte = avance(texte, 2);
 
     résultat: n64;
 
@@ -438,7 +438,7 @@ parse_nombre_binaire :: fonc (texte: chaine) -> r64
 
 parse_nombre_octal :: fonc (texte: chaine) -> r64
 {
-    texte = texte.avance(2);
+    texte = avance(texte, 2);
 
     résultat: r64;
 
@@ -456,7 +456,7 @@ parse_nombre_octal :: fonc (texte: chaine) -> r64
 
 parse_nombre_hexadécimal :: fonc (texte: chaine) -> r64
 {
-    texte = texte.avance(2);
+    texte = avance(texte, 2);
 
     résultat: r64;
 
@@ -474,14 +474,14 @@ parse_nombre_hexadécimal :: fonc (texte: chaine) -> r64
 
 lèxe_chaine_littérale :: fonc (empl lexeuse: *Lexeuse, caractère_final: z8) -> Lexème
 {
-    lexeuse.débute_lexème();
+    débute_lexème(lexeuse);
     /* N'incluons pas les guillemets. */
     lexeuse.début_mot = lexeuse.début_source;
 
     eu_guillemet_fermant := faux;
 
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant();
+        c := caractère_courant(lexeuse);
 
         si c == '\\' {
             début_source += 2;
@@ -510,7 +510,7 @@ lèxe_chaine_littérale :: fonc (empl lexeuse: *Lexeuse, caractère_final: z8) -
 
 lèxe_template_literal :: fonc (empl lexeuse: *Lexeuse) -> Lexème
 {
-    lexeuse.débute_lexème();
+    débute_lexème(lexeuse);
     /* N'incluons pas les guillemets. */
     lexeuse.début_mot = lexeuse.début_source;
 
@@ -520,7 +520,7 @@ lèxe_template_literal :: fonc (empl lexeuse: *Lexeuse) -> Lexème
     eu_guillemet_fermant := faux;
 
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant();
+        c := caractère_courant(lexeuse);
 
         si apparie(lexeuse, "${") {
             genre_lexème_final = GenreLexème.TemplateLiteralEnd;
@@ -531,13 +531,13 @@ lèxe_template_literal :: fonc (empl lexeuse: *Lexeuse) -> Lexème
             nichage := 0;
             début_source += 2;
 
-            tantque !lexeuse.fini() {
+            tantque !fini(lexeuse) {
                 consomme_espaces_blanches(lexeuse);
                 si fini(lexeuse) {
                     arrête;
                 }
 
-                c = lexeuse.caractère_courant();
+                c = caractère_courant(lexeuse);
                 si c == '{' {
                     nichage += 1;
                 }
@@ -550,7 +550,7 @@ lèxe_template_literal :: fonc (empl lexeuse: *Lexeuse) -> Lexème
                     nichage -= 1;
                 }
 
-                lexème = lexeuse.donne_lexème_suivant();
+                lexème = donne_lexème_suivant(lexeuse);
                 tableau_ajoute(*lexeuse.lexèmes, lexème);
             }
 
@@ -647,7 +647,7 @@ RésultatLexageRegex :: énum {
 //     / RegularExpressionBody / RegularExpressionFlags
 lèxe_regex_littérale :: fonc (empl lexeuse: *Lexeuse) -> Lexème
 {
-    lexeuse.débute_lexème();
+    débute_lexème(lexeuse);
 
     /* Nous ne vérifions pas si le résultat est différent de Oui, car Non sera retourné
      * lorsque qu'aucune fonction ne pourra apparier le '/' final. */
@@ -661,11 +661,11 @@ lèxe_regex_littérale :: fonc (empl lexeuse: *Lexeuse) -> Lexème
         retourne Lexème();
     }
 
-    c := lexeuse.caractère_courant();
+    c := caractère_courant(lexeuse);
     si c != '/' {
         rapporte_erreur(lexeuse, "expected '/'");
     }
-    lexeuse.avance();
+    avance(lexeuse);
 
     lèxe_regular_expression_flags(lexeuse);
 
@@ -757,11 +757,11 @@ lèxe_regular_expression_backslash_sequence :: fonc (lexeuse: *Lexeuse) -> Résu
         retourne RésultatLexageRegex.Erreur;
     }
 
-    c := lexeuse.caractère_courant();
+    c := caractère_courant(lexeuse);
     si c != '\\' {
         retourne RésultatLexageRegex.Non;
     }
-    lexeuse.avance();
+    avance(lexeuse);
 
     exclus: []z8;
     retourne lèxe_regular_expression_non_terminator(lexeuse, exclus);
@@ -776,7 +776,7 @@ lèxe_regular_expression_non_terminator :: fonc (lexeuse: *Lexeuse, exclus: []z8
         retourne RésultatLexageRegex.Erreur;
     }
 
-    c := lexeuse.caractère_courant();
+    c := caractère_courant(lexeuse);
 
     si c == '\n' {
         rapporte_erreur(lexeuse, "unexpected end of regular expression");
@@ -789,7 +789,7 @@ lèxe_regular_expression_non_terminator :: fonc (lexeuse: *Lexeuse, exclus: []z8
         }
     }
 
-    lexeuse.avance();
+    avance(lexeuse);
     retourne RésultatLexageRegex.Oui;
 }
 
@@ -802,11 +802,11 @@ lèxe_regular_expression_class :: fonc (lexeuse: *Lexeuse) -> RésultatLexageReg
         retourne RésultatLexageRegex.Erreur;
     }
 
-    c := lexeuse.caractère_courant();
+    c := caractère_courant(lexeuse);
     si c != '[' {
         retourne RésultatLexageRegex.Non;
     }
-    lexeuse.avance();
+    avance(lexeuse);
 
     résultat := lèxe_regular_expression_class_chars(lexeuse);
     si résultat != RésultatLexageRegex.Oui {
@@ -819,12 +819,12 @@ lèxe_regular_expression_class :: fonc (lexeuse: *Lexeuse) -> RésultatLexageReg
         retourne RésultatLexageRegex.Erreur;
     }
 
-    c = lexeuse.caractère_courant();
+    c = caractère_courant(lexeuse);
     si c != ']' {
         rapporte_erreur(lexeuse, "expected ']'");
         retourne RésultatLexageRegex.Erreur;
     }
-    lexeuse.avance();
+    avance(lexeuse);
 
     retourne RésultatLexageRegex.Oui;
 }
@@ -835,7 +835,7 @@ lèxe_regular_expression_class :: fonc (lexeuse: *Lexeuse) -> RésultatLexageReg
 lèxe_regular_expression_class_chars :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant();
+        c := caractère_courant(lexeuse);
         si c == ']' {
             /* Ne consommons pas le caractère, c'est le travail de la fonction qui nous appèle. */
             retourne RésultatLexageRegex.Oui;
@@ -876,7 +876,7 @@ lèxe_regular_expression_flags :: fonc (lexeuse: *Lexeuse)
     premier_caractère := vrai;
 
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant();
+        c := caractère_courant(lexeuse);
         fanion := fanions_caractères[c comme n8];
 
         si premier_caractère {
@@ -890,13 +890,13 @@ lèxe_regular_expression_flags :: fonc (lexeuse: *Lexeuse)
             retourne;
         }
 
-        lexeuse.avance();
+        avance(lexeuse);
     }
 }
 
 lèxe_identifiant :: fonc (empl lexeuse: *Lexeuse, genre_lexème: GenreLexème) -> Lexème
 {
-    lexeuse.débute_lexème();
+    débute_lexème(lexeuse);
 
     tantque !fini(lexeuse) {
         n := nombre_octets_utf8_rapide(lexeuse.début_source);
@@ -906,14 +906,14 @@ lèxe_identifiant :: fonc (empl lexeuse: *Lexeuse, genre_lexème: GenreLexème) 
         }
 
         si n == 1 {
-            c := lexeuse.caractère_courant();
+            c := caractère_courant(lexeuse);
             fanion := fanions_caractères[c comme n8];
 
             saufsi fanion.ContinueIdentifiant {
                 arrête;
             }
 
-            lexeuse.avance();
+            avance(lexeuse);
             continue;
         }
 
@@ -922,7 +922,7 @@ lèxe_identifiant :: fonc (empl lexeuse: *Lexeuse, genre_lexème: GenreLexème) 
             arrête;
         }
 
-        lexeuse.avance(n comme z32);
+        avance(lexeuse, n comme z32);
     }
 
     retourne crée_lexème(lexeuse, genre_lexème);
@@ -956,7 +956,7 @@ lèxe :: fonc (realm: *Realm, source: *TexteSource) -> Optionnel(*SyntaxError)
 
 donne_lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
-    c := lexeuse.caractère_courant();
+    c := caractère_courant(lexeuse);
     fanion := fanions_caractères[c comme n8];
 
     si fanion.DébuteChaineLittérale {
@@ -979,12 +979,12 @@ donne_lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             retourne lèxe_nombre(lexeuse);
         }
 
-        lexeuse.avance();
-        si !fini(lexeuse) && fanions_caractères[lexeuse.caractère_courant()].EstChiffre {
-            lexeuse.recule();
+        avance(lexeuse);
+        si !fini(lexeuse) && fanions_caractères[caractère_courant(lexeuse)].EstChiffre {
+            recule(lexeuse);
             retourne lèxe_nombre(lexeuse);
         }
-        lexeuse.recule();
+        recule(lexeuse);
     }
 
     si fanion.Ponctuation {
@@ -995,7 +995,7 @@ donne_lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 genre_lexème = GenreLexème.Point;
                 si apparie(lexeuse, "...") {
                     débute_lexème(lexeuse);
-                    lexeuse.avance(2);
+                    avance(lexeuse, 2);
                     retourne crée_lexème(lexeuse, GenreLexème.Spread);
                 }
             }
@@ -1020,7 +1020,7 @@ donne_lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             retourne lèxe_regex_littérale(lexeuse);
         }
 
-        lexeuse.débute_lexème();
+        débute_lexème(lexeuse);
 
         /* Pour le lexage des opérateurs, nous considérons l'opérateur le plus long possible valide.
          * Ceci nous permet d'éviter les erreurs si le code source est, p.e., "a>=-1" où nous avons
@@ -1028,25 +1028,25 @@ donne_lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
         opt_dernier_opérateur: Optionnel(GenreLexème);
 
         répète {
-            opt_genre := rafine_genre_lexème_opérateur(lexeuse.donne_texte_courant());
-            saufsi opt_genre.possède_valeur() {
-                lexeuse.recule();
+            opt_genre := rafine_genre_lexème_opérateur(donne_texte_courant(lexeuse));
+            saufsi possède_valeur(opt_genre) {
+                recule(lexeuse);
                 arrête;
             }
 
             opt_dernier_opérateur = opt_genre;
 
-            c = lexeuse.caractère_courant();
+            c = caractère_courant(lexeuse);
             fanion = fanions_caractères[c comme n8];
 
             saufsi fanion.PeutSuivreOpérateur {
                 arrête;
             }
 
-            lexeuse.avance();
+            avance(lexeuse);
         } tantque !fini(lexeuse);
 
-        saufsi opt_dernier_opérateur.possède_valeur() {
+        saufsi possède_valeur(opt_dernier_opérateur) {
             lexeuse.début_source = lexeuse.début_mot;
             rapporte_erreur(lexeuse, "Opérateur inconnu");
         }
@@ -1055,12 +1055,12 @@ donne_lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 
         si dernier_opérateur == GenreLexème.OptionalChaining {
             /* Vérifie si ?. n'est pas suivi d'un chiffre, auquel cas nous devrions avoir '?' et '.' */
-            saufsi lexeuse.fini() {
+            saufsi fini(lexeuse) {
                 c = caractère_courant(lexeuse);
                 fanion = fanions_caractères[c comme n8];
                 si fanion.EstChiffre {
                     /* Remet le point. */
-                    lexeuse.recule();
+                    recule(lexeuse);
 
                     dernier_opérateur = GenreLexème.Interrogation;
                 }
@@ -1085,11 +1085,11 @@ donne_lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 consomme_espaces_blanches :: fonc (lexeuse: *Lexeuse)
 {
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant();
+        c := caractère_courant(lexeuse);
         fanion := fanions_caractères[c comme n8];
 
         si fanion.EstEspaceBlanche {
-            lexeuse.avance();
+            avance(lexeuse);
             continue;
         }
 
@@ -1110,13 +1110,13 @@ consomme_espaces_blanches :: fonc (lexeuse: *Lexeuse)
 
         si c == '<' && apparie(lexeuse, "<!--") {
             lexeuse.dans_commentaire_html = vrai;
-            lexeuse.avance(4);
+            avance(lexeuse, 4);
             continue;
         }
 
         si c == '-' && apparie(lexeuse, "-->") && lexeuse.dans_commentaire_html {
             lexeuse.dans_commentaire_html = faux;
-            lexeuse.avance(3);
+            avance(lexeuse, 3);
             continue;
         }
 
@@ -1146,9 +1146,9 @@ consomme_commentaire_ligne_seule :: fonc (lexeuse: *Lexeuse)
 {
     /* Lèxe commentaire. */
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant();
+        c := caractère_courant(lexeuse);
         /* À FAIRE : valide caractère Unicode ? */
-        lexeuse.avance();
+        avance(lexeuse);
 
         si c == '\n' {
             arrête;
@@ -1158,17 +1158,17 @@ consomme_commentaire_ligne_seule :: fonc (lexeuse: *Lexeuse)
 
 consomme_commentaire_bloc :: fonc (lexeuse: *Lexeuse)
 {
-    lexeuse.avance(2);
+    avance(lexeuse, 2);
 
     /* Lèxe commentaire. */
     tantque !fini(lexeuse) {
         si apparie(lexeuse, "*/") {
-            lexeuse.avance(2);
+            avance(lexeuse, 2);
             arrête;
         }
 
         /* À FAIRE : valide caractère Unicode ? */
-        lexeuse.avance();
+        avance(lexeuse);
     }
 }
 

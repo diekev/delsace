@@ -40,7 +40,7 @@ trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
 {
     valeur := trouve_valeur_rubrique(données.valeur, nom);
 
-    si valeur.est_valide() {
+    si est_valide(valeur) {
         retourne valeur;
     }
 
@@ -55,7 +55,7 @@ trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
 imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
 {
     si valeur.info.id == GenreInfoType.CHAINE {
-        chn := valeur.comme_chaine();
+        chn := comme_chaine(valeur);
 
         pour chn {
             /* Remplace les caractères sensibles par leurs échappements.
@@ -121,7 +121,7 @@ génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique,
         VARIABLE {
             valeur := trouve_valeur_pour_expression(données, noeud);
 
-            saufsi valeur.est_valide() {
+            saufsi est_valide(valeur) {
                 retourne erreur_de_génération(données, "Variable « ", noeud.données.chn, " » inconnue !");
             }
 
@@ -131,19 +131,19 @@ génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique,
         POUR {
             valeur := trouve_valeur_pour_expression(données, noeud.enfants[1]);
 
-            saufsi valeur.est_valide() {
+            saufsi est_valide(valeur) {
                 retourne erreur_de_génération(données, "Impossible de trouver « ", noeud.enfants[1].données.chn, " » !");
             }
 
             variable := noeud.enfants[0].données.chn;
 
-            si valeur.est_tableau() {
+            si est_tableau(valeur) {
                 itératrice := crée_itératrice_tableau(valeur);
 
                 boucle {
                     valeur_ := valeur_suivante(*itératrice);
 
-                    saufsi valeur_.est_valide() {
+                    saufsi est_valide(valeur_) {
                         arrête;
                     }
 
@@ -179,7 +179,7 @@ génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique,
         ACCÈS_RUBRIQUE {
             valeur := trouve_valeur_pour_expression(données, noeud);
 
-            saufsi valeur.est_valide() {
+            saufsi est_valide(valeur) {
                 retourne erreur_de_génération(données, "Impossible de résoudre l'expression « ", noeud.enfants[0].données.chn, ".", noeud.enfants[1].données.chn, " » !");
             }
 
@@ -193,16 +193,16 @@ génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique,
 
 évalue_condition :: fonc (valeur: eini) -> bool
 {
-    saufsi valeur.est_valide() {
+    saufsi est_valide(valeur) {
         retourne faux;
     }
 
-    si valeur.est_bool() {
-        retourne valeur.comme_bool();
+    si est_bool(valeur) {
+        retourne comme_bool(valeur);
     }
 
-    si valeur.est_chaine() {
-        retourne valeur.comme_chaine() != "";
+    si est_chaine(valeur) {
+        retourne comme_chaine(valeur) != "";
     }
 
     retourne faux;
@@ -223,7 +223,7 @@ trouve_valeur_pour_expression :: fonc (données: *DonnéesGénération, noeud: *
 
             valeur_accédée := trouve_valeur_pour_expression(données, accédé);
 
-            saufsi valeur_accédée.est_valide() {
+            saufsi est_valide(valeur_accédée) {
                 retourne résultat;
             }
 

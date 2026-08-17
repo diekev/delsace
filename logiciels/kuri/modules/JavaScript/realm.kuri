@@ -27,7 +27,7 @@ ExecutionContext :: struct {
 
 crée_execution_context :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ExecutionContext
 {
-    retourne tas_de_mémoire.alloue(ExecutionContext);
+    retourne alloue(tas_de_mémoire, ExecutionContext);
 }
 
 /* 9.4.1 GetActiveScriptOrModule ( )
@@ -115,7 +115,7 @@ Intrinsics :: struct {
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-createintrinsics */
 create_intrinsics :: fonc (realm: *Realm)
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
 
     realm.intrinsics.object_prototype = crée_object_prototype(tas_de_mémoire);
     realm.intrinsics.string_prototype = crée_string_prototype(realm, realm.intrinsics.object_prototype);
@@ -227,7 +227,7 @@ est_intrinsics :: fonc (realm: *Realm, object: *Object) -> bool
 
 realm_sur_destruction :: fonc (base: *Cellule)
 {
-    realm := base.vérifie_comme(Realm);
+    realm := vérifie_comme(base, Realm);
     déloge(*realm.chaines_littérales);
     déloge(*realm.chaines);
     déloge(*realm.intrinsics.host_intrinsics);
@@ -235,17 +235,17 @@ realm_sur_destruction :: fonc (base: *Cellule)
 
 donne_mv :: fonc (realm: *Realm) -> *MachineVirtuelle
 {
-    retourne realm.donne_tas_de_mémoire().donne_mv();
+    retourne donne_mv(donne_tas_de_mémoire(realm));
 }
 
 /* 9.3.1 InitializeHostDefinedRealm ( )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-initializehostdefinedrealm */
 initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *ConfigurationRealm = nul) -> *Realm
 {
-    tas_de_mémoire := mv.donne_tas_de_mémoire();
+    tas_de_mémoire := donne_tas_de_mémoire(mv);
 
     // 1. Let realm be a new Realm Record.
-    realm := tas_de_mémoire.alloue(Realm);
+    realm := alloue(tas_de_mémoire, Realm);
 
     // 2. Perform CreateIntrinsics(realm).
     create_intrinsics(realm);
@@ -273,7 +273,7 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *C
     new_context.script_or_module = nul;
 
     // 11. Push newContext onto the execution context stack; newContext is now the running execution context.
-    mv.empile_execution_context(new_context);
+    empile_execution_context(mv, new_context);
 
     global : *Object = ---;
     // 12. If the host requires use of an exotic object to serve as realm's global object, then
@@ -308,7 +308,7 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *C
     // 18. Perform ? SetDefaultGlobalBindings(realm).
     completion := set_default_global_bindings(realm);
     // À FAIRE : retourne la completion au lieu du Realm (standard).
-    assert(completion.est_normal());
+    assert(est_normal(completion));
 
     // 19. Create any host-defined global object properties on global.
     si configuration && configuration.crée_propriétés_hôte_objet_global {
@@ -414,8 +414,8 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
 
         // c. Perform ? DefinePropertyOrThrow(global, name, desc).
         define_property_or_throw(global, name, *desc);
-        si realm.possède_exception() {
-            retourne throw_completion(realm.donne_exception());
+        si possède_exception(realm) {
+            retourne throw_completion(donne_exception(realm));
         }
     }
 

@@ -129,12 +129,12 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
         candidat := chemin_suivant(*exploratrice);
         discr candidat {
             Quelque(chemin) {
-                si chemin.est_un_dossier() {
+                si est_un_dossier(chemin) {
                     empile_dossier(*exploratrice, chemin);
                     continue;
                 }
 
-                si fait_partie_de(chemin.extension(), ...extensions) {
+                si fait_partie_de(extension(chemin), ...extensions) {
                     exécute_rappel_pour_fichier(racine, chemin, *données, rappels, données_utilisateurs);
                 }
             }
@@ -180,7 +180,7 @@ tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, indice_ligne: z64, d�
 
     taille_bloc := 0;
     indice_début_bloc := indice_ligne;
-    tantque indice_ligne < lignes.taille && lignes[indice_ligne].commence_par(début_ligne) {
+    tantque indice_ligne < lignes.taille && commence_par(lignes[indice_ligne], début_ligne) {
         indice_ligne += 1;
         taille_bloc += 1;
     }
@@ -219,7 +219,7 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: *Donn�
     }
 
     si lignes.taille != nouvelles_lignes.taille {
-        données_fichier.remplace_lignes(nouvelles_lignes);
+        remplace_lignes(données_fichier, nouvelles_lignes);
         retourne;
     }
 
@@ -267,7 +267,7 @@ remplaces_tabulation_par_espaces :: fonc (données_fichier: *DonnéesFichier)
     }
 
     si lignes_furent_modifiées {
-        données_fichier.remplace_lignes(nouvelles_lignes);
+        remplace_lignes(données_fichier, nouvelles_lignes);
         retourne;
     }
 
@@ -280,11 +280,11 @@ remplaces_tabulation_par_espaces :: fonc (données_fichier: *DonnéesFichier)
 
 exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc (données_fichier: *DonnéesFichier), données_utilisateurs: eini)
 {
-    si chemin.est_un_dossier() {
+    si est_un_dossier(chemin) {
         exécute_rappel_pour_dossier(chemin, extensions, rappels, données_utilisateurs);
     }
     sinon {
-        si fait_partie_de(chemin.extension(), ...extensions) {
+        si fait_partie_de(extension(chemin), ...extensions) {
             exécute_rappel_pour_fichier(chemin, chemin, rappels, données_utilisateurs);
         }
     }

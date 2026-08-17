@@ -94,7 +94,7 @@ test_mises_en_pages :: fonc () -> bool
 
     imprime("\n");
 
-    fin := début.temps_écoulé_millisecondes();
+    fin := temps_écoulé_millisecondes(début);
 
     si échecs.taille != 0 {
         pour échecs {
@@ -192,7 +192,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
             imprime("Appuyez sur entrée si le test passe, le fichier de sortie sera ajourné, sinon tapez \"non\" ou \"n\" pour passer au suivant\n");
             imprime("> ");
 
-            entrée := tente entrée_standarde().lis_tout() piège nonatteignable;
+            entrée := tente lis_tout(entrée_standarde()) piège nonatteignable;
             diffère déloge(*entrée);
 
             réponse := recule(entrée, 1);
@@ -224,7 +224,7 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
 {
     résultat: [..]CheminFichier;
 
-    dossier_parent := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    dossier_parent := chemin_parent(CheminFichier(#chemin_de_ce_fichier));
     diffère détruit_chemin(*dossier_parent);
     dossier := dossier_parent / "fichiers/sources";
 
@@ -232,7 +232,7 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
     {
         saufsi info.est_dossier {
             chemin := CheminFichier(info.chemin);
-            si chemin.extension() == ".html" {
+            si extension(chemin) == ".html" {
                 tableau_ajoute(fichiers, CheminFichier(copie_chaine(info.chemin)));
             }
         }
@@ -261,7 +261,7 @@ donne_chemin_pour_fichier_sortie :: fonc (chemin: CheminFichier) -> CheminFichie
     dossier := chemin_parent(chemin);
     diffère détruit_chemin(*dossier);
 
-    nom_fichier_texte := enchaine(chemin.nom_fichier(), ".txt");
+    nom_fichier_texte := enchaine(nom_fichier(chemin), ".txt");
 
     tmp := dossier / nom_fichier_texte;
     diffère détruit_chemin(*tmp);

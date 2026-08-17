@@ -19,7 +19,7 @@ principale :: fonc ()
     pour chemins {
         chemin := CheminFichier(it);
 
-        si chemin.extension() == ".js" {
+        si extension(chemin) == ".js" {
             tableau_ajoute(*fichiers_javascript, it);
         }
     }
@@ -28,7 +28,7 @@ principale :: fonc ()
         sortie := appel_programme_et_donne_sortie("./js", it);
         diffère déloge(*sortie);
 
-        si sortie.commence_par("SyntaxError") {
+        si commence_par(sortie, "SyntaxError") {
             imprimeln("%", it);
             imprimeln("%", sortie);
         }

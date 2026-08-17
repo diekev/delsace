@@ -24,7 +24,7 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 {
     sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: ÉtatSouris)
     {
-        panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || panneau_diviseur.rect.contient(souris.où);
+        panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || contient(panneau_diviseur.rect, souris.où);
 
         si panneau_diviseur.souris_pressée {
             /* À FAIRE : position relative de la souris dans le rect parent ! */
@@ -35,7 +35,7 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 
     sur_clic_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clic: ClicSouris) -> bool
     {
-        saufsi panneau_diviseur.rect.contient(clic.état.où) {
+        saufsi contient(panneau_diviseur.rect, clic.état.où) {
             panneau_diviseur.souris_pressée = faux;
             retourne faux;
         }
@@ -52,12 +52,12 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 
     sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
     {
-        contexte.définis_curseur_souris(TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST);
+        définis_curseur_souris(contexte, TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST);
     }
 
     sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
     {
-        contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE);
+        définis_curseur_souris(contexte, TypeCurseurSystème.FLÈCHE);
     }
 
     sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage)
@@ -74,7 +74,7 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
             thème.couleur_diviseur;
         };
 
-        peintre.remplis_rectangle(panneau_diviseur.rect_diviseur, couleur);
+        remplis_rectangle(peintre, panneau_diviseur.rect_diviseur, couleur);
     }
 
     sur_redimension :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32))
@@ -86,7 +86,7 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         ajourne_disposition(panneau_diviseur);
     }
 
-    résultat := ctx.crée_panneau(PanneauDiviseur);
+    résultat := crée_panneau(ctx, PanneauDiviseur);
     tableau_ajoute(*ctx.diviseurs, résultat);
     résultat.sur_déplacement_souris = sur_déplacement_souris;
     résultat.sur_clic_souris = sur_clic_souris;

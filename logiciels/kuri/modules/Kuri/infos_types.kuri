@@ -215,7 +215,7 @@ donne_nom_énum_pour_valeur :: fonc (valeur: eini) -> chaine
 
 donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: $T) -> chaine
 {
-    pour info.donne_valeurs_typées(T) {
+    pour donne_valeurs_typées(info, T) {
         si it == valeur {
             retourne info.noms[indice_it];
         }
@@ -263,7 +263,7 @@ donne_indice_valeur_énum :: fonc (valeur: eini) -> z64
 
 donne_indice_valeur_énum :: fonc (info: *InfoTypeÉnum, valeur: $T) -> z64
 {
-    pour info.donne_valeurs_typées(T) {
+    pour donne_valeurs_typées(info, T) {
         si it == valeur {
             retourne indice_it;
         }

@@ -12,7 +12,7 @@ donne_current_realm :: fonc (platform_object: *PlatformObject) -> *JS.Realm
 
 donne_current_settings_object :: fonc (platform_object: *PlatformObject) -> *EnvironmentSettings
 {
-    realm := platform_object.donne_current_realm();
+    realm := donne_current_realm(platform_object);
     saufsi realm {
         retourne nul;
     }
@@ -42,7 +42,7 @@ donne_relevant_realm :: fonc (platform_object: *PlatformObject) -> *JS.Realm
 
 donne_relevant_settings_object :: fonc (platform_object: *PlatformObject) -> *EnvironmentSettings
 {
-    realm := platform_object.donne_relevant_realm();
+    realm := donne_relevant_realm(platform_object);
     saufsi realm {
         retourne nul;
     }
@@ -51,7 +51,7 @@ donne_relevant_settings_object :: fonc (platform_object: *PlatformObject) -> *En
 
 donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *JS.Object
 {
-    realm := platform_object.donne_relevant_realm();
+    realm := donne_relevant_realm(platform_object);
     saufsi realm {
         retourne nul;
     }
@@ -100,7 +100,7 @@ EnvironmentSettings :: struct {
 
 donne_realm :: fonc (environment: *EnvironmentSettings) -> *JS.Realm
 {
-    ctx := environment.donne_realm_execution_context();
+    ctx := donne_realm_execution_context(environment);
     saufsi ctx {
         retourne nul;
     }
@@ -109,7 +109,7 @@ donne_realm :: fonc (environment: *EnvironmentSettings) -> *JS.Realm
 
 donne_global_object :: fonc (environment: *EnvironmentSettings) -> *JS.Object
 {
-    realm := environment.donne_realm();
+    realm := donne_realm(environment);
     saufsi realm {
         retourne nul;
     }
@@ -187,18 +187,18 @@ scripting_est_désactivé :: fonc (user_agent: *UserAgent, environment: *Environ
 /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-n-noscript */
 scripting_est_activé :: fonc (noeud: *Node) -> bool
 {
-    node_document := noeud.donne_node_document();
+    node_document := donne_node_document(noeud);
     saufsi node_document {
         retourne faux;
     }
     saufsi node_document.browsing_context {
         retourne faux;
     }
-    settings := noeud.donne_relevant_settings_object();
+    settings := donne_relevant_settings_object(noeud);
     saufsi settings {
         retourne faux;
     }
-    retourne scripting_est_activé(node_document.donne_user_agent(), settings);
+    retourne scripting_est_activé(donne_user_agent(node_document), settings);
 }
 
 scripting_est_désactivé :: fonc (noeud: *Node) -> bool

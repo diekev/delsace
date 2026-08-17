@@ -83,7 +83,7 @@ lis_grand_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: ty
 lis_petit_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> (T, z64)
 {
     résultat: T;
-    taille_lue := flux.lis(résultat);
+    taille_lue := lis(flux, résultat);
     retourne résultat, taille_lue;
 }
 

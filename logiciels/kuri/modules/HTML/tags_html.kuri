@@ -390,8 +390,8 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
         }
 
         nom_tag: chaine;
-        si it.texte.commence_par("TAG_") {
-            nom_tag = it.texte.avance(4);
+        si commence_par(it.texte, "TAG_") {
+            nom_tag = avance(it.texte, 4);
             si nom_tag == "annotation_xml" {
                 nom_tag = "annotation-xml";
             }
@@ -417,14 +417,14 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
                 nom_tag = "missing-glyph";
             }
         }
-        sinon si it.texte.commence_par("ATTR_") {
-            nom_tag = it.texte.avance(5);
+        sinon si commence_par(it.texte, "ATTR_") {
+            nom_tag = avance(it.texte, 5);
             si nom_tag == "http_equiv" {
                 nom_tag = "http-equiv";
             }
         }
-        sinon si it.texte.commence_par("EVT_") {
-            nom_tag = it.texte.avance(4);
+        sinon si commence_par(it.texte, "EVT_") {
+            nom_tag = avance(it.texte, 4);
         }
         sinon {
             continue;

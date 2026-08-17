@@ -166,7 +166,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
 
     discr prise.type {
         RAPPEL {
-            ptr_fonction := prise.données_utilisateur(*Fonction_De_Rappel);
+            ptr_fonction := données_utilisateur(prise, *Fonction_De_Rappel);
             fonction := mémoire(ptr_fonction);
             fonction.fonction(fonction, prise.contexte_);
 
@@ -177,7 +177,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             si évènements.EPOLLOUT {
                 si erreurs != EPOLL_EVENTS.zéro {
                     notifie_erreur(prise, erreurs);
-                    prise.ferme_connexion_en_cours();
+                    ferme_connexion_en_cours(prise);
                 }
                 sinon {
                     /* Toutes les prises doivent pouvoir lire. */
@@ -190,7 +190,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                     prise.type = TypePrise.PRISE;
 
                     /* Si nous avions un délai, remettons-le à zéro ici. */
-                    prise.mute_délai(0);
+                    mute_délai(prise, 0);
 
                     prise.contexte_.quand_ouverture_(prise, vrai);
                 }
@@ -220,7 +220,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                             prise.contexte_.quand_ouverture_(prise_acceptée, faux);
                         }
 
-                        si prise.est_fermée() {
+                        si est_fermée(prise) {
                             arrête;
                         }
 
@@ -232,7 +232,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
         PRISE {
             si erreurs != EPOLL_EVENTS.zéro {
                 notifie_erreur(prise, erreurs);
-                prise.ferme();
+                ferme(prise);
                 retourne;
             }
 
@@ -243,7 +243,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                 // À FAIRE: fermetures
 
                 // le serveur a demandé la fermeture de la connexion
-                si prise.est_fermée() {
+                si est_fermée(prise) {
                     retourne;
                 }
 
@@ -252,12 +252,12 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
 
             si évènements.EPOLLIN {
                 // À FAIRE : utilise un tampon stocké dans la boucle
-                données := prise.lis_tout();
+                données := lis_tout(prise);
                 diffère déloge(*données);
 
                 si données.taille == 0 {
                     /* À FAIRE : quand le serveur ferme nous pouvons continuer à lire indéfiniememnt. */
-                    prise.ferme();
+                    ferme(prise);
                     retourne;
                 }
 
