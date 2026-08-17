@@ -83,7 +83,7 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
     // 10. Let result be ParseScript(source, settings's realm, script).
     host_defined := JS.crée_host_defined(script);
 
-    discr JS.parse_script(source, settings.donne_realm(), host_defined) {
+    discr JS.parse_script(source, donne_realm(settings), host_defined) {
         Erreur(e) {
             error := JS.Valeur(Object = e);
             imprime("%\n", error);
@@ -158,7 +158,7 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
             cleanup_after_running_script(settings);
 
             // 2. Throw a "NetworkError" DOMException.
-            realm := settings.donne_realm_execution_context().realm;
+            realm := donne_realm_execution_context(settings).realm;
             throw_dom_exception(realm, "NetworkError", "");
             retourne JS.throw_completion(JS.donne_exception(realm));
         }
@@ -166,7 +166,7 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
         // 3. Otherwise, rethrow errors is false. Perform the following steps:
 
         // 1. Report an exception given by evaluationStatus.[[Value]] for script's settings object's global object.
-        report_an_exception(evaluation_status.valeur.V, script.settings_object.donne_global_object());
+        report_an_exception(evaluation_status.valeur.V, donne_global_object(script.settings_object));
 
         // 2. Clean up after running script with settings.
         cleanup_after_running_script(settings);
@@ -186,7 +186,7 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
     // 11. If we've reached this point, evaluationStatus was left as null because the script was aborted
     //     prematurely during evaluation.
     //     Return Completion { [[Type]]: throw, [[Value]]: a new "QuotaExceededError" DOMException, [[Target]]: empty }.
-    realm := settings.donne_realm_execution_context().realm;
+    realm := donne_realm_execution_context(settings).realm;
     throw_dom_exception(realm, "QuotaExceededError", "");
     retourne JS.throw_completion(JS.donne_exception(realm));
 }
@@ -194,7 +194,7 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#prepare-to-run-script */
 prepare_to_run_script :: fonc (settings: *EnvironmentSettings)
 {
-    execution_context := settings.donne_realm_execution_context();
+    execution_context := donne_realm_execution_context(settings);
     mv := JS.donne_mv(JS.donne_tas_de_mémoire(execution_context));
 
     // 1. Push settings's realm execution context onto the JavaScript execution context stack; it is now the running JavaScript execution context.
@@ -206,7 +206,7 @@ prepare_to_run_script :: fonc (settings: *EnvironmentSettings)
 /* https://html.spec.whatwg.org/multipage/webappapis.html#clean-up-after-running-script */
 cleanup_after_running_script :: fonc (settings: *EnvironmentSettings)
 {
-    execution_context := settings.donne_realm_execution_context();
+    execution_context := donne_realm_execution_context(settings);
     mv := JS.donne_mv(JS.donne_tas_de_mémoire(execution_context));
 
     // 1. Assert: settings's realm execution context is the running JavaScript execution context.
@@ -236,8 +236,8 @@ report_an_exception :: fonc (exception: JS.Valeur, global: *JS.Object)
 
     settings: *EnvironmentSettings;
     si mv.execution_contexts.taille == 0 {
-        settings = window.donne_relevant_settings_object();
-        execution_context := settings.donne_realm_execution_context();
+        settings = donne_relevant_settings_object(window);
+        execution_context := donne_realm_execution_context(settings);
         assert(execution_context != nul);
         JS.empile_execution_context(mv, execution_context);
     }
@@ -248,10 +248,10 @@ report_an_exception :: fonc (exception: JS.Valeur, global: *JS.Object)
         JS.dépile_execution_context(mv);
     }
 
-    texte_exception := convertis_vers_chaine(chn.texte.donne_chaine_utf16());
+    texte_exception := convertis_vers_chaine(donne_chaine_utf16(chn.texte));
 
-    user_agent := window.document.donne_user_agent();
-    user_agent.rapporte_exception(window.document, texte_exception);
+    user_agent := donne_user_agent(window.document);
+    rapporte_exception(user_agent, window.document, texte_exception);
 }
 
 /** \} */

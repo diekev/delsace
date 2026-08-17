@@ -96,7 +96,7 @@ crée_objet_window :: fonc (user_agent: *UserAgent, tas_de_mémoire: *JS.TasDeM�
 
     flux_sortie_sur_log :: fonc (empl flux: *FluxSortieConsole, texte: chaine)
     {
-        user_agent.rapporte_log(window.document, copie_chaine(texte));
+        rapporte_log(user_agent, window.document, copie_chaine(texte));
     }
 
     flux_sortie_sur_efface :: fonc (base: *JS.FluxSortieConsole @inutilisée)
@@ -142,12 +142,12 @@ donne_self :: fonc (window: *Window) -> *Window
 /* https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-alert-noargs */
 alert :: fonc (window: *Window, message: DOMString)
 {
-    user_agent := window.document.donne_user_agent();
+    user_agent := donne_user_agent(window.document);
     saufsi user_agent {
         retourne;
     }
 
-    user_agent.affiche_alerte(message);
+    affiche_alerte(user_agent, message);
 }
 
 set_timeout :: fonc (window: *Window, handler: *JS.Object, time_out: z32) -> z32
@@ -157,7 +157,7 @@ set_timeout :: fonc (window: *Window, handler: *JS.Object, time_out: z32) -> z32
 
 clear_timeout :: fonc (window: *Window, id: z32)
 {
-    user_agent := window.document.donne_user_agent();
+    user_agent := donne_user_agent(window.document);
     saufsi user_agent {
         retourne;
     }
@@ -172,7 +172,7 @@ clear_timeout :: fonc (window: *Window, id: z32)
         }
     }
 
-    user_agent.détruit_timeout(id);
+    détruit_timeout(user_agent, id);
 }
 
 set_interval :: fonc (window: *Window, handler: *JS.Object, time_out: z32) -> z32
@@ -187,7 +187,7 @@ clear_interval :: fonc (window: *Window, id: z32)
 
 request_animation_frame :: fonc (window: *Window, callback: *JS.Object) -> z32
 {
-    user_agent := window.document.donne_user_agent();
+    user_agent := donne_user_agent(window.document);
     saufsi user_agent {
         retourne -1;
     }
@@ -212,7 +212,7 @@ clear_animation_frame :: fonc (window: *Window, id: z32)
 
 crée_chronomètre :: fonc (window: *Window, handler: *JS.Object, time_out: z32, se_répète: bool) -> z32
 {
-    user_agent := window.document.donne_user_agent();
+    user_agent := donne_user_agent(window.document);
     saufsi user_agent {
         retourne -1;
     }
@@ -222,7 +222,7 @@ crée_chronomètre :: fonc (window: *Window, handler: *JS.Object, time_out: z32,
     chronomètre: Window.Chronomètres;
     chronomètre.handler = handler;
     chronomètre.time_out = time_out;
-    chronomètre.id = user_agent.crée_timeout(algorithm, time_out, se_répète);
+    chronomètre.id = crée_timeout(user_agent, algorithm, time_out, se_répète);
     tableau_ajoute(*window.chronomètres, chronomètre);
     retourne chronomètre.id;
 }
@@ -386,7 +386,7 @@ cross_origin_get :: fonc (object: *JS.Object, property_key: JS.PropertyKey, rece
     }
 
     // 2. Assert: desc is not undefined.
-    assert(opt_desc.possède_valeur());
+    assert(possède_valeur(opt_desc));
     desc := opt_desc.Quelque;
 
     // 3. If IsDataDescriptor(desc) is true, then return desc.[[Value]].
@@ -403,7 +403,7 @@ cross_origin_get :: fonc (object: *JS.Object, property_key: JS.PropertyKey, rece
     mv := JS.donne_mv(JS.donne_tas_de_mémoire(JS.donne_objet(receiver)));
 
     // 6. If getter is undefined, then throw a "SecurityError" DOMException.
-    saufsi getter.possède_valeur() {
+    saufsi possède_valeur(getter) {
         throw_dom_exception(mv.interpréteuse, "SecurityError", "");
         retourne JS.js_undefined;
     }
@@ -458,7 +458,7 @@ Navigator :: struct {
 
 crée_navigator :: fonc (window: *Window, user_agent: *UserAgent)
 {
-    résultat := crée_platform_object(window.donne_tas_de_mémoire(), window.realm, Navigator);
+    résultat := crée_platform_object(donne_tas_de_mémoire(window), window.realm, Navigator);
     résultat.app_code_name = crée_chaine_utf16_unique("Mozilla");
     résultat.app_name = crée_chaine_utf16_unique("Netscape");
     résultat.platform = crée_chaine_utf16_unique("Linux x86_64");
@@ -494,7 +494,7 @@ table_virtuelle_location := TableVirtuellePlatformObject(
 crée_location :: fonc (window: *Window)
 {
     // 1. Let location be a new Location platform object.
-    location := crée_platform_object(window.donne_tas_de_mémoire(), window.realm, Location);
+    location := crée_platform_object(donne_tas_de_mémoire(window), window.realm, Location);
 
     // À FAIRE 2. Let valueOf be location's relevant realm.[[Intrinsics]].[[%Object.prototype.valueOf%]].
 
@@ -567,7 +567,7 @@ donne_hostname :: fonc (location: *Location) -> DOMString
 
     // 2. If this's url's host is null, return the empty string.
     url := donne_url(location);
-    saufsi url.host.possède_valeur() {
+    saufsi possède_valeur(url.host) {
         retourne crée_chaine_utf16_unique_vide();
     }
 
@@ -589,7 +589,7 @@ table_virtuelle_screen := TableVirtuellePlatformObject(
 
 crée_screen :: fonc (window: *Window, user_agent: *UserAgent)
 {
-    screen := crée_platform_object(window.donne_tas_de_mémoire(), window.realm, Screen);
+    screen := crée_platform_object(donne_tas_de_mémoire(window), window.realm, Screen);
     screen.user_agent = user_agent;
     window.screen = screen;
 }
@@ -605,12 +605,12 @@ Screen :: struct {
 
 donne_width :: fonc (screen: *Screen) -> z64
 {
-    retourne screen.user_agent.donne_taille_écran().largeur comme z64;
+    retourne donne_taille_écran(screen.user_agent).largeur comme z64;
 }
 
 donne_height :: fonc (screen: *Screen) -> z64
 {
-    retourne screen.user_agent.donne_taille_écran().hauteur comme z64;
+    retourne donne_taille_écran(screen.user_agent).hauteur comme z64;
 }
 
 /** \} */

@@ -123,7 +123,7 @@ donne_fontconfig_weight :: fonc (graisse: GraisseFonte) -> z32
 
 donne_fonte_défaut :: fonc (ctx: *GlobalesDessin) -> *Fonte
 {
-    résultat := ctx.donne_fonte(PROP_serif, "normal", GraisseFonte.Normale, ctx.taille_fonte_défaut);
+    résultat := donne_fonte(ctx, PROP_serif, "normal", GraisseFonte.Normale, ctx.taille_fonte_défaut);
     saufsi résultat {
         imprimeln("Impossible de trouver la fonte défaut");
         exit(1);
@@ -133,7 +133,7 @@ donne_fonte_défaut :: fonc (ctx: *GlobalesDessin) -> *Fonte
 
 donne_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: chaine, graisse: GraisseFonte, taille: r32, replis_sur_défaut := vrai) -> *Fonte
 {
-    existante := ctx.donne_fonte_en_cache(famille, style, graisse, taille);
+    existante := donne_fonte_en_cache(ctx, famille, style, graisse, taille);
     si existante {
         retourne existante;
     }
@@ -171,7 +171,7 @@ donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: c
     pattern := FcPatternCreate();
     diffère FcPatternDestroy(pattern);
 
-    chn_famille := convertis_vers_chaine(famille.donne_chaine_utf16());
+    chn_famille := convertis_vers_chaine(donne_chaine_utf16(famille));
     diffère déloge(*chn_famille);
 
     chaine_c_famille := crée_chaine_c(chn_famille);

@@ -63,7 +63,7 @@ exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
     }
 
     résultat := script_evaluation(script);
-    si résultat.est_normal() {
+    si est_normal(résultat) {
         retourne vrai;
     }
 
@@ -92,8 +92,8 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutil
     flux.sur_log = flux_sortie_sur_log;
     flux.sur_efface = flux_sortie_sur_efface;
 
-    console := crée_console(global.donne_tas_de_mémoire(), flux, nul);
+    console := crée_console(donne_tas_de_mémoire(global), flux, nul);
 
-    global.ajoute_fonction_native("rm", fonction_native_éboue);
-    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable);
+    ajoute_fonction_native(global, "rm", fonction_native_éboue);
+    ajoute_propriété(global, crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable);
 }

@@ -6,7 +6,7 @@ importe SysFichier;
 
 #exécute {
     chemin_courant := #chemin_de_ce_fichier;
-    dossier := CheminFichier(chemin_courant).chemin_parent();
+    dossier := chemin_parent(CheminFichier(chemin_courant));
     diffère détruit_chemin(*dossier);
 
     tampon_chemin: TamponChemin;
@@ -31,7 +31,7 @@ importe SysFichier;
 
         pour fichiers {
             chemin := CheminFichier(it);
-            nom_fichier := chemin.nom_fichier();
+            nom_fichier := nom_fichier(chemin);
 
             sortie := enchaine(dossier.chn, "/intern/", nom_fichier, ".o");
             tableau_ajoute(*fichiers_objets, sortie);
