@@ -1709,12 +1709,6 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
         auto type_composé = type->comme_type_composé();
         auto info_rubrique = donne_rubrique_pour_nom(type_composé, expression_rubrique->ident);
         if (!info_rubrique.has_value()) {
-            if (expression_rubrique->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
-                /* Laisse la validation d'appel gérer ce cas. */
-                expression_rubrique->aide_génération_code = PEUT_ÊTRE_APPEL_UNIFORME;
-                return CodeRetourValidation::OK;
-            }
-
             rapporte_erreur_rubrique_inconnue(
                 expression_rubrique, expression_rubrique, type_composé);
             return CodeRetourValidation::Erreur;
@@ -1781,12 +1775,6 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             }
         }
 
-        return CodeRetourValidation::OK;
-    }
-
-    if (expression_rubrique->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
-        /* Laisse la validation d'appel gérer ce cas. */
-        expression_rubrique->aide_génération_code = PEUT_ÊTRE_APPEL_UNIFORME;
         return CodeRetourValidation::OK;
     }
 

@@ -356,7 +356,7 @@ remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: *ParamètresCré
         dessin_indexé = vrai;
     }
 
-    définis_pointeur_attribut(données_tampon, programme.donne_adresse_attribut(paramètres.attribut) comme n32, paramètres.dimension_attribut);
+    définis_pointeur_attribut(données_tampon, donne_adresse_attribut(programme, paramètres.attribut) comme n32, paramètres.dimension_attribut);
     vérifie_erreur("Erreur lors de la mise en place de l'attribut");
 }
 
@@ -370,7 +370,7 @@ remplis_tampon_extra :: fonc (empl tampon: *TamponRendu, paramètres: *Paramètr
     génère_tampon_extra(données_tampon, paramètres.pointeur_données_extra, paramètres.taille_octet_données_extra comme z64);
     vérifie_erreur("Erreur lors de la génération du tampon extra");
 
-    définis_pointeur_attribut(données_tampon, programme.donne_adresse_attribut(paramètres.attribut) comme n32, paramètres.dimension_attribut);
+    définis_pointeur_attribut(données_tampon, donne_adresse_attribut(programme, paramètres.attribut) comme n32, paramètres.dimension_attribut);
     vérifie_erreur("Erreur lors de la mise en place du pointeur");
 
     // if (parametres.attribut == "normal" || parametres.attribut == "normaux") {
@@ -390,7 +390,7 @@ remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommet
 {
     params: ParamètresCréationTampon;
     initialise_paramètres_tampon(*params, attribut, sommets, indices);
-    tampon.remplis_tampon(*params);
+    remplis_tampon(tampon, *params);
 }
 
 remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommets: []Vec3)
@@ -398,21 +398,21 @@ remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommet
     indices: []n32;
     params: ParamètresCréationTampon;
     initialise_paramètres_tampon(*params, attribut, sommets, indices);
-    tampon.remplis_tampon(*params);
+    remplis_tampon(tampon, *params);
 }
 
 remplis_tampon_extra :: fonc (tampon: *TamponRendu, attribut: chaine, données: []Vec3)
 {
     params: ParamètresCréationTampon;
     initialise_paramètres_extra(*params, attribut, données);
-    tampon.remplis_tampon_extra(*params);
+    remplis_tampon_extra(tampon, *params);
 }
 
 remplis_tampon_extra :: fonc (tampon: *TamponRendu, attribut: chaine, données: []CouleurRVBA)
 {
     params: ParamètresCréationTampon;
     initialise_paramètres_extra(*params, attribut, données);
-    tampon.remplis_tampon_extra(*params);
+    remplis_tampon_extra(tampon, *params);
 }
 
 dessine :: fonc (empl tampon: *TamponRendu, ctx: *ContexteRendu)

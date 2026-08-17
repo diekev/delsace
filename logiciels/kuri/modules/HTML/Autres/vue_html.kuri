@@ -177,7 +177,7 @@ définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: Port_Fenêtre_Nat
 {
     titre := "VueHTML";
 
-    élément_title := document.donne_title_element();
+    élément_title := donne_title_element(document);
     si élément_title {
         texte_titre := donne_contenu_texte_descandants(élément_title);
         diffère détruit_chaine(*texte_titre);
@@ -325,9 +325,9 @@ dessine_fenêtre :: fonc (empl vue_html: *VueHTML, largeur: z32, hauteur: z32)
         peintre_id = crée_peintre_igumi(taille_canevas);
     }
 
-    peintre.définis_taille_canevas(taille_canevas);
-    peintre_id.définis_taille_canevas(taille_canevas);
-    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0));
+    définis_taille_canevas(peintre, taille_canevas);
+    définis_taille_canevas(peintre_id, taille_canevas);
+    efface_cible_rendu(peintre, CouleurRVBA(1.0, 1.0, 1.0, 1.0));
 
     commandes := crée_interface(vue_html, largeur, hauteur);
     dessine_commandes(peintre, *commandes);
@@ -504,8 +504,8 @@ dessine_page :: fonc (vue_html: *VueHTML, rect: RectanglePosDim(r32))
     IGUMI.quad_immédiat(rect.x, rect.y, rect.largeur, rect.hauteur, CouleurRVBA(1.0, 1.0, 1.0, 1.0));
     IGUMI.termine_immédiat();
 
-    vue_html.peintre.définis_ciseau(rect);
-    diffère vue_html.peintre.restaure_ciseau();
+    définis_ciseau(vue_html.peintre, rect);
+    diffère restaure_ciseau(vue_html.peintre);
 
     largeur := rect.largeur comme z32;
     hauteur := rect.hauteur comme z32;
@@ -525,29 +525,29 @@ dessine_page :: fonc (vue_html: *VueHTML, rect: RectanglePosDim(r32))
     
     dessine_commandes(vue_html.peintre, commandes, faux);
 
-    document := page.donne_document();
-    lien_survolé := document.donne_lien_survolé();
+    document := donne_document(page);
+    lien_survolé := donne_lien_survolé(document);
     si lien_survolé {
-        href := lien_survolé.donne_href();
+        href := donne_href(lien_survolé);
 
-        saufsi href.est_vide() {
-            texte := href.donne_chaine_utf16();
+        saufsi est_vide(href) {
+            texte := donne_chaine_utf16(href);
             fonte := CSS.donne_fonte_défaut(document.globales_dessin);
-            métriques := fonte.donne_métriques_fonte();
+            métriques := donne_métriques_fonte(fonte);
 
             rect_lien: RectanglePosDim(r32);
             rect_lien.y = 0;
-            rect_lien.hauteur = métriques.donne_hauteur_ligne();
-            rect_lien.largeur = fonte.donne_largeur_texte(texte) + 2.0 * métriques.largeur_moyenne;
+            rect_lien.hauteur = donne_hauteur_ligne(métriques);
+            rect_lien.largeur = donne_largeur_texte(fonte, texte) + 2.0 * métriques.largeur_moyenne;
 
             couleur := CouleurRVBAN8(255, 255, 255, 255);
-            vue_html.peintre.remplis_rectangle(rect_lien, couleur);
+            remplis_rectangle(vue_html.peintre, rect_lien, couleur);
 
             couleur = CouleurRVBAN8(0, 0, 0, 255);
             rect_lien.x = métriques.largeur_moyenne;
-            vue_html.peintre.dessine_texte(fonte, texte, rect_lien, couleur, nul);
+            dessine_texte(vue_html.peintre, fonte, texte, rect_lien, couleur, nul);
 
-            vue_html.peintre.termine_dessin();
+            termine_dessin(vue_html.peintre);
         }
     }
 }
@@ -756,11 +756,11 @@ crée_boucle_évènement :: fonc () -> *Boucle_Évènement_VueHTML
 
 initialise_contexte_boucle :: fonc (ctx: *Contexte)
 {
-    ctx.mute_quand_ouverture(rappel_quand_ouverture_prise);
-    ctx.mute_quand_données_reçues(rappel_quand_données_reçues_prise);
-    ctx.mute_quand_fermeture(rappel_quand_fermeture_prise);
-    ctx.mute_quand_écriture(rappel_quand_écriture_prise);
-    ctx.mute_quand_erreur_connexion(rappel_quand_erreur_connexion_prise);
+    mute_quand_ouverture(ctx, rappel_quand_ouverture_prise);
+    mute_quand_données_reçues(ctx, rappel_quand_données_reçues_prise);
+    mute_quand_fermeture(ctx, rappel_quand_fermeture_prise);
+    mute_quand_écriture(ctx, rappel_quand_écriture_prise);
+    mute_quand_erreur_connexion(ctx, rappel_quand_erreur_connexion_prise);
 }
 
 détruit_boucle_évènement :: fonc (boucle_: *Boucle_Évènement_VueHTML)
@@ -879,7 +879,7 @@ rappel_quand_ouverture_prise :: fonc (prise: *Prise, est_client: bool @inutilis�
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    uri := données_prise.requête.donne_url_courant();
+    uri := donne_url_courant(données_prise.requête);
 
     ajoute_au_tampon(*enchaineuse, données_prise.requête.method, " ");
     sérialise_chemin(*enchaineuse, uri);
@@ -918,7 +918,7 @@ rappel_quand_données_reçues_prise :: fonc (prise: *Prise, données: []octet)
     }
 
     imprime("Temps de parsage HTTP : %\n", données_prise.temps_parsage_http);
-    imprime("Temps requête         : %\n", données_prise.début_requête.temps_écoulé_microsecondes());
+    imprime("Temps requête         : %\n", temps_écoulé_microsecondes(données_prise.début_requête));
 
     message := finalise_message(parseuse);
 
@@ -926,7 +926,7 @@ rappel_quand_données_reçues_prise :: fonc (prise: *Prise, données: []octet)
     response.status = message.status;
 
     pour message.entêtes {
-        response.ajoute_entête(copie_chaine(it.nom), copie_chaine(it.valeur));
+        ajoute_entête(response, copie_chaine(it.nom), copie_chaine(it.valeur));
     }
 
     si message.contenu.taille != 0 {
@@ -1043,7 +1043,7 @@ initialise_rappels_interface :: fonc (résultat: *RappelsInterfaceVueHTML, vue_h
 évalue_chronomètres :: fonc (plateforme: *RappelsInterfaceVueHTML)
 {
     pour * plateforme.chronomètres {
-        temps_écoulé := it.début.temps_écoulé_millisecondes();
+        temps_écoulé := temps_écoulé_millisecondes(it.début);
         si temps_écoulé >= it.délai {
             it.début = maintenant_précis();
             si it.algorithm.sur_run {
@@ -1078,7 +1078,7 @@ rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueH
 {
     file := donne_file_courante(rappels);
 
-    uri := requête.donne_url_courant();
+    uri := donne_url_courant(requête);
     hôte := uri.host;
     port := donne_port_ou_défaut(uri);
 

@@ -48,7 +48,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
         ligne = recule(ligne, 1);
     }
 
-    si ligne.commence_par("f ") {
+    si commence_par(ligne, "f ") {
         tmp := avance(ligne, 2);
 
         est_quad := faux;
@@ -86,7 +86,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
 
         créatrice.ajoute_polygone(créatrice, polygone.données, taille_polygone);
     }
-    sinon si ligne.commence_par("v ") {
+    sinon si commence_par(ligne, "v ") {
         tmp := avance(ligne, 2);
 
         x: r32;
@@ -102,7 +102,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
 
         créatrice.ajoute_point(créatrice, x, y, z);
     }
-    sinon si ligne.commence_par("o ") {
+    sinon si commence_par(ligne, "o ") {
         nom := avance(ligne, 2);
         si créatrice.commence_nouvel_objet {
             créatrice.commence_nouvel_objet(créatrice, nom);

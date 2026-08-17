@@ -14,12 +14,12 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
 {
     sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: ÉtatSouris)
     {
-        panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(souris.où);
+        panneau_bouton.souris_dans_rect = contient(panneau_bouton.rect, souris.où);
     }
 
     sur_clic_souris :: fonc (panneau_bouton: *PanneauBouton, clic: ClicSouris) -> bool
     {
-        saufsi panneau_bouton.rect.contient(clic.état.où) {
+        saufsi contient(panneau_bouton.rect, clic.état.où) {
             retourne faux;
         }
 
@@ -42,10 +42,10 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
         métriques := donne_métriques_fonte(fonte);
 
         /* Calcul rect. */
-        hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+        hauteur_de_ligne := donne_hauteur_ligne(métriques) comme z32;
         hauteur_bouton := hauteur_de_ligne + 10;
         espaçage := donne_largeur_texte(fonte, "0") comme z32;
-        largeur_texte := fonte.donne_largeur_texte(panneau_bouton.bouton.texte) comme z32;
+        largeur_texte := donne_largeur_texte(fonte, panneau_bouton.bouton.texte) comme z32;
 
         largeur_bouton := largeur_texte + espaçage * 2;
 
@@ -67,16 +67,16 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
             couleur = thème.couleur_bouton_survolé;
         }
 
-        peintre.remplis_rectangle(panneau_bouton.rect, couleur);
+        remplis_rectangle(peintre, panneau_bouton.rect, couleur);
 
         rect_texte := rect;
         rect_texte.x += espaçage;
         rect_texte.y += 5;
 
-        peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, thème.couleur_texte);
+        dessine_texte(peintre, fonte, panneau_bouton.bouton.texte, rect_texte, thème.couleur_texte);
     }
 
-    résultat := ctx.crée_panneau(PanneauBouton);
+    résultat := crée_panneau(ctx, PanneauBouton);
     résultat.bouton = bouton;
 
     si parent {
@@ -109,7 +109,7 @@ guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> État�
 {
     empl guetteuse := base comme *GuetteusePanneauBouton;
 
-    panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(clic.état.où);
+    panneau_bouton.souris_dans_rect = contient(panneau_bouton.rect, clic.état.où);
 
     si clic.action == ActionSouris.RELACHÉE {
         panneau_bouton.souris_pressée = faux;

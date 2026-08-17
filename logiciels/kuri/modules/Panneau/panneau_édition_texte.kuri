@@ -31,9 +31,9 @@ PanneauÉditionTexte :: struct {
 
 crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chaine, parent: *Panneau, lieutenant := "") -> *PanneauÉditionTexte
 {
-    résultat := contexte.crée_panneau(PanneauÉditionTexte);
+    résultat := crée_panneau(contexte, PanneauÉditionTexte);
     si parent {
-        parent.ajoute_enfant(résultat);
+        ajoute_enfant(parent, résultat);
     }
     résultat.sur_dessin = sur_dessin_panneau_édition_texte;
     résultat.sur_redimension = sur_redimension_panneau_édition_texte;
@@ -60,19 +60,19 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
     peintre := ctx.peintre;
     fonte := ctx.fonte;
 
-    peintre.remplis_rectangle(rect, thème.couleur_arrière_plan);
-    peintre.dessine_rectangle(rect, thème.couleur_contour);
+    remplis_rectangle(peintre, rect, thème.couleur_arrière_plan);
+    dessine_rectangle(peintre, rect, thème.couleur_contour);
 
     texte_à_dessiner := texte;
     couleur_texte := thème.couleur_texte;
 
-    si texte_à_dessiner.est_vide() {
+    si est_vide(texte_à_dessiner) {
         texte_à_dessiner = lieutenant;
         couleur_texte = thème.couleur_lieutenant;
     }
 
     rect_texte_pour_dessin := rect_texte;
-    peintre.dessine_texte(fonte, texte_à_dessiner, rect_texte_pour_dessin, couleur_texte);
+    dessine_texte(peintre, fonte, texte_à_dessiner, rect_texte_pour_dessin, couleur_texte);
 
     saufsi en_édition {
         retourne;
@@ -82,7 +82,7 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
         texte_avant_curseur := texte;
         texte_avant_curseur.points_de_code.taille = curseur.fin;
 
-        curseur_x := fonte.donne_largeur_texte(texte_avant_curseur) comme z32;
+        curseur_x := donne_largeur_texte(fonte, texte_avant_curseur) comme z32;
 
         ligne_curseur: Ligne(z32);
         ligne_curseur.p0.x = rect_texte.x + curseur_x;
@@ -91,29 +91,29 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
         ligne_curseur.p0.y = rect_texte.y;
         ligne_curseur.p1.y = rect_texte.y + rect_texte.hauteur;
 
-        peintre.dessine_segment(ligne_curseur, thème.couleur_curseur_texte);
+        dessine_segment(peintre, ligne_curseur, thème.couleur_curseur_texte);
     }
 
     si curseur.début != curseur.fin {
         texte_avant_sélection := texte;
         texte_avant_sélection.points_de_code.taille = curseur.début;
-        largeur_avant_sélection := fonte.donne_largeur_texte(texte_avant_sélection) comme z32;
+        largeur_avant_sélection := donne_largeur_texte(fonte, texte_avant_sélection) comme z32;
 
         texte_jusque_fin_sélection := texte;
         texte_jusque_fin_sélection.points_de_code.taille = curseur.fin;
-        largeur_jusque_fin_sélection := fonte.donne_largeur_texte(texte_jusque_fin_sélection) comme z32;
+        largeur_jusque_fin_sélection := donne_largeur_texte(fonte, texte_jusque_fin_sélection) comme z32;
 
         rect_sélection := rect_texte;
         rect_sélection.x += largeur_avant_sélection;
         rect_sélection.largeur = largeur_jusque_fin_sélection - largeur_avant_sélection;
 
-        peintre.remplis_rectangle(rect_sélection, thème.couleur_sélection_texte);
+        remplis_rectangle(peintre, rect_sélection, thème.couleur_sélection_texte);
 
         texte_sélectionné := texte;
         texte_sélectionné.points_de_code.données += curseur.début;
         texte_sélectionné.points_de_code.taille = curseur.fin - curseur.début;
 
-        peintre.dessine_texte(fonte, texte_sélectionné, rect_sélection, thème.couleur_texte_sélectionné);
+        dessine_texte(peintre, fonte, texte_sélectionné, rect_sélection, thème.couleur_texte_sélectionné);
     }
 }
 
@@ -122,10 +122,10 @@ sur_redimension_panneau_édition_texte :: fonc (base: *Panneau, rect_disponible:
     empl panneau := base comme *PanneauÉditionTexte;
 
     fonte := contexte.fonte;
-    métriques := fonte.donne_métriques_fonte();
+    métriques := donne_métriques_fonte(fonte);
 
     largeur_texte := 70 * métriques.largeur_moyenne + 10;
-    hauteur_texte := métriques.donne_hauteur_ligne() + 10;
+    hauteur_texte := donne_hauteur_ligne(métriques) + 10;
 
     discr règle_cotation_verticale {
         SurContenu {
@@ -149,7 +149,7 @@ sur_redimension_panneau_édition_texte :: fonc (base: *Panneau, rect_disponible:
 
 sur_clic_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, clic: ClicSouris) -> bool
 {
-    saufsi rect.contient(clic.état.où) {
+    saufsi contient(rect, clic.état.où) {
         retourne faux;
     }
 
@@ -397,7 +397,7 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
     }
 
     si touche.type == ToucheClavier.FIN {
-        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.texte.taille());
+        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, taille(panneau.texte));
         retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
@@ -444,7 +444,7 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -
     empl guetteuse := base comme *GuetteuseÉditionTexte;
 
     si clic.action == ActionSouris.PRESSÉE {
-        si panneau.rect.contient(clic.état.où) {
+        si contient(panneau.rect, clic.état.où) {
             définis_position_curseur_pour_clic(panneau, clic.état);
             état = ÉtatGuettageÉditionTexte.EnSélection;
         }
@@ -453,7 +453,7 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -
         }
     }
     sinon si clic.action == ActionSouris.RELACHÉE {
-        si panneau.rect.contient(clic.état.où) {
+        si contient(panneau.rect, clic.état.où) {
             si état == ÉtatGuettageÉditionTexte.AttenteRelachementClic {
                 état = ÉtatGuettageÉditionTexte.EnÉdition;
 
@@ -495,7 +495,7 @@ donne_position_curseur_pour_souris :: fonc (panneau: *PanneauÉditionTexte, sour
         retourne indice;
     }
 
-    retourne panneau.texte.taille();
+    retourne taille(panneau.texte);
 }
 
 /** \} */

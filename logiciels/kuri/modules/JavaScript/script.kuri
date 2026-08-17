@@ -71,7 +71,7 @@ crée_texte_source :: fonc (texte: chaine) -> TexteSource
 crée_texte_source :: fonc (texte: ECMAString) -> TexteSource
 {
     résultat : TexteSource = ---;
-    résultat.texte = convertis_vers_chaine(texte.donne_chaine_utf16());
+    résultat.texte = convertis_vers_chaine(donne_chaine_utf16(texte));
     retourne résultat;
 }
 
@@ -110,7 +110,7 @@ initialise_script :: fonc (résultat: *Script, realm: *Realm, source: TexteSourc
 
 sur_destruction_script :: fonc (base: *Cellule)
 {
-    script := base.vérifie_comme(Script);
+    script := vérifie_comme(base, Script);
     détruit_données_script(script);
 }
 
@@ -126,7 +126,7 @@ détruit_données_script :: fonc (script: *Script)
  * https://tc39.es/ecma262/#sec-parse-script */
 parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostDefined()) -> Résultat(*Script, *SyntaxError)
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
 
     source := crée_texte_source(source_texte);
 
@@ -140,7 +140,7 @@ parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostD
         Ok(noeud) {
             assert(noeud.type == NoeudScript);
             // 3. Return Script Record { [[Realm]]: realm, [[ECMAScriptCode]]: script, [[LoadedModules]]: « », [[HostDefined]]: hostDefined }.
-            résultat := tas_de_mémoire.alloue(Script);
+            résultat := alloue(tas_de_mémoire, Script);
             initialise_script(résultat, realm, source, noeud comme *NoeudScript, host_defined);
             retourne résultat;
         }
@@ -154,8 +154,8 @@ parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostD
  * https://tc39.es/ecma262/#sec-runtime-semantics-scriptevaluation */
 script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
 {
-    tas_de_mémoire := script_record.donne_tas_de_mémoire();
-    mv := tas_de_mémoire.donne_mv();
+    tas_de_mémoire := donne_tas_de_mémoire(script_record);
+    mv := donne_mv(tas_de_mémoire);
 
     // 1. Let globalEnv be scriptRecord.[[Realm]].[[GlobalEnv]].
     global_env := script_record.realm.global_environment;
@@ -182,10 +182,10 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     script_context.private_environment = nul;
 
     // 9. Suspend the running execution context.
-    mv.suspend_running_execution_context();
+    suspend_running_execution_context(mv);
 
     // 10. Push scriptContext onto the execution context stack; scriptContext is now the running execution context.
-    mv.empile_execution_context(script_context);
+    empile_execution_context(mv, script_context);
 
     // 11. Let script be scriptRecord.[[ECMAScriptCode]].
     script := script_record.ecma_script_code;
@@ -194,7 +194,7 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     résultat := global_declaration_instantiation(script_record.realm, script, global_env);
 
     // 13. If result is a normal completion, then
-    si résultat.est_normal() {
+    si est_normal(résultat) {
         // a. Set result to Completion(Evaluation of script).
         résultat = interprète_script(mv, script);
 
@@ -203,8 +203,8 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     }
 
     // 14. Suspend scriptContext and remove it from the execution context stack.
-    mv.suspend_running_execution_context();
-    mv.dépile_execution_context();
+    suspend_running_execution_context(mv);
+    dépile_execution_context(mv);
 
     // 15. Assert: The execution context stack is not empty.
     assert(mv.execution_contexts.taille != 0);
@@ -304,17 +304,17 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
             // i. If IsConstantDeclaration of d is true, then
             si is_constant_declaration(it) {
                 // 1. Perform ? env.CreateImmutableBinding(dn, true).
-                _ := env.create_immutable_binding(realm, dn, vrai);
-                si realm.possède_exception() {
-                    retourne throw_completion(realm.donne_exception());
+                _ := create_immutable_binding(env, realm, dn, vrai);
+                si possède_exception(realm) {
+                    retourne throw_completion(donne_exception(realm));
                 }
             }
             // ii. Else,
             sinon {
                 // 1. Perform ? env.CreateMutableBinding(dn, false).
-                env.create_mutable_binding(realm, dn, faux);
-                si realm.possède_exception() {
-                    retourne throw_completion(realm.donne_exception());
+                create_mutable_binding(env, realm, dn, faux);
+                si possède_exception(realm) {
+                    retourne throw_completion(donne_exception(realm));
                 }
             }
         }
@@ -332,9 +332,9 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
         fo := instantiate_function_object(realm, function, env, private_env);
     
         // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-        env.create_global_function_binding(fn, Valeur(Object = fo), faux);
-        si realm.possède_exception() {
-            retourne throw_completion(realm.donne_exception());
+        create_global_function_binding(env, fn, Valeur(Object = fo), faux);
+        si possède_exception(realm) {
+            retourne throw_completion(donne_exception(realm));
         }
     }
 
@@ -469,7 +469,7 @@ GoalSymbol :: énum {
 parse_text :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol) -> Résultat(*NoeudSyntaxique, *SyntaxError)
 {
     opt_erreur := lèxe(realm, source_text);
-    si opt_erreur.possède_valeur() {
+    si possède_valeur(opt_erreur) {
         retourne opt_erreur.Quelque;
     }
 

@@ -436,7 +436,7 @@ donne_chemins_du_dossier_récursif :: fonc (dossier: chaine, résultat: *[..]cha
 
             // À FAIRE(langage) : conversion en expression booléenne des expressions variadiques
             // À FAIRE(langage) : passage des expressions variadiques sans expansion
-            si extensions.taille != 0 && !est_une_extension_parmi(it.extension(), ...extensions) {
+            si extensions.taille != 0 && !est_une_extension_parmi(extension(it), ...extensions) {
                 continue;
             }
 

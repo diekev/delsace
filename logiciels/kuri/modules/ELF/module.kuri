@@ -72,7 +72,7 @@ donne_entêtes_de_programme :: fonc (fichier: *FichierELF) -> []Elf64_Phdr
 {
     résultat: []Elf64_Phdr;
 
-    entête := fichier.entête_fichier();
+    entête := entête_fichier(fichier);
     si entête {
         si entête.e_phoff > 0 && entête.e_phoff comme z64 < fichier.contenu.taille {
             résultat.données = (fichier.contenu.données + entête.e_phoff) comme *Elf64_Phdr;
@@ -86,7 +86,7 @@ donne_entêtes_de_programme :: fonc (fichier: *FichierELF) -> []Elf64_Phdr
 
 donne_nombre_de_sections :: fonc (fichier: *FichierELF) -> Elf64_Xword
 {
-    entête := fichier.entête_fichier();
+    entête := entête_fichier(fichier);
     saufsi entête {
         retourne 0;
     }
@@ -114,7 +114,7 @@ donne_nombre_de_sections :: fonc (fichier: *FichierELF) -> Elf64_Xword
 
 donne_entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *EntêteSectionELF64
 {
-    entête := fichier.entête_fichier();
+    entête := entête_fichier(fichier);
     décalage := entête.e_shoff + indice * taille_de(EntêteSectionELF64);
     si décalage comme z64 >= fichier.contenu.taille {
         imprimeln("La section à l'indice '%' est hors des limites du fichier.", indice);
@@ -139,7 +139,7 @@ trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSect
 
 trouve_section :: fonc (fichier: *FichierELF, nom: chaine) -> *EntêteSectionELF64
 {
-    entête := fichier.entête_fichier();
+    entête := entête_fichier(fichier);
     saufsi entête {
         retourne nul;
     }

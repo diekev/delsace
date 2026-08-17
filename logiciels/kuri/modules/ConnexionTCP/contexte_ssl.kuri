@@ -156,7 +156,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: []octet)
 
                 /* Erreur critique, fermons la connexion. */
                 notifie_erreur(prise, type_erreur, détail);
-                prise.ferme();
+                ferme(prise);
                 retourne;
             }
 
@@ -169,7 +169,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: []octet)
             /* Présumons que nous avons vider le tampon, ou alors il y eu une erreur. */
             si données_ssl_boucle.ssl_read_input_length {
                 notifie_erreur(prise, Type_Erreur_Connexion.SSL);
-                prise.ferme();
+                ferme(prise);
                 retourne;
             }
 
@@ -186,7 +186,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: []octet)
 
             ctx_prise_ssl.sur_données_reçues_base(prise, données_déchiffrées);
 
-            si prise.est_fermée() {
+            si est_fermée(prise) {
                 retourne;
             }
 
@@ -217,7 +217,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: []octet)
         ctx_prise_ssl = prise.contexte_ comme *ContextePriseSSL;
         ctx_prise_ssl.quand_écriture_(prise);
 
-        si prise.est_fermée() {
+        si est_fermée(prise) {
             retourne;
         }
     }
@@ -255,7 +255,7 @@ sur_fermeture_ssl :: fonc (prise: *Prise) -> rien
 
 sur_fin_ssl :: fonc (prise: *Prise) -> rien
 {
-    prise.ferme();
+    ferme(prise);
 }
 
 // ------------------------------------------------------

@@ -74,12 +74,12 @@ imprime_condensant :: fonc (enchaineuse: *Enchaineuse, condensat: *Condensat)
 
 opérateur < :: (condensat1: Condensat, condensat2: Condensat) -> bool
 {
-    retourne condensat1.donne_chaine() < condensat2.donne_chaine();
+    retourne donne_chaine(condensat1) < donne_chaine(condensat2);
 }
 
 opérateur == :: (condensat1: Condensat, condensat2: Condensat) -> bool
 {
-    retourne condensat1.donne_chaine() == condensat2.donne_chaine();
+    retourne donne_chaine(condensat1) == donne_chaine(condensat2);
 }
 
 /** \} */
