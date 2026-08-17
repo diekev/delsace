@@ -42,13 +42,13 @@ web_socket_sur_destruction :: fonc (base: *JS.Cellule)
 web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *WebSocket, url: DOMString) -> JS.Valeur
 {
     realm := JS.donne_realm(interpréteuse);
-    settings := web_socket.donne_relevant_settings_object();
+    settings := donne_relevant_settings_object(web_socket);
 
     window := JS.vérifie_comme(realm.global_object, Window);
-    user_agent := window.document.donne_user_agent();
+    user_agent := donne_user_agent(window.document);
 
     // 1. Let baseURL be this's relevant settings object's API base URL.
-    base_url := settings.donne_api_base_url();
+    base_url := donne_api_base_url(settings);
 
     // 2. Let urlRecord be the result of applying the URL parser to url with baseURL.
     // @fuite-de-mémoire si une exception est lancée
@@ -62,11 +62,11 @@ web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *W
 
     // 4. If urlRecord’s scheme is "http", then set urlRecord’s scheme to "ws".
     si url_record.scheme == "http" {
-        url_record.définis_schéma("ws");
+        définis_schéma(url_record, "ws");
     }
     // 5. Otherwise, if urlRecord’s scheme is "https", set urlRecord’s scheme to "wss".
     sinon si url_record.scheme == "https" {
-        url_record.définis_schéma("wss");
+        définis_schéma(url_record, "wss");
     }
 
     // 6. If urlRecord’s scheme is not "ws" or "wss", then throw a "SyntaxError" DOMException.
@@ -76,7 +76,7 @@ web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *W
     }
 
     // 7. If urlRecord’s fragment is non-null, then throw a "SyntaxError" DOMException.
-    si url_record.fragment.possède_valeur() {
+    si possède_valeur(url_record.fragment) {
         throw_dom_exception(interpréteuse, "SyntaxError", "WebSocket URLs should not have fragments");
         retourne JS.js_undefined;
     }
@@ -115,7 +115,7 @@ lance_tâche_pour_établir_connexion_websocket :: fonc (user_agent: *UserAgent, 
     sur_run :: fonc (empl tâche: *Tâche)
     {
         // À FAIRE : Establish a WebSocket connection given urlRecord, protocols, and client. [FETCH]
-        user_agent.lance_requête_websocket(web_socket, client);
+        lance_requête_websocket(user_agent, web_socket, client);
     }
 
     tâche := crée_algorithm(sur_run, Tâche);
@@ -123,7 +123,7 @@ lance_tâche_pour_établir_connexion_websocket :: fonc (user_agent: *UserAgent, 
     tâche.web_socket = web_socket;
     tâche.client = client;
 
-    user_agent.lance_en_parallèle(tâche);
+    lance_en_parallèle(user_agent, tâche);
 }
 
 #portée_module
@@ -138,7 +138,7 @@ send :: fonc (web_socket: *WebSocket, data: DOMString)
         retourne;
     }
 
-    chaine_native := convertis_vers_chaine(data.donne_chaine_utf16());
+    chaine_native := convertis_vers_chaine(donne_chaine_utf16(data));
     données: [..]octet;
     données.données = chaine_native.caractères;
     données.taille = chaine_native.taille;
@@ -146,9 +146,9 @@ send :: fonc (web_socket: *WebSocket, data: DOMString)
 
     global_object := web_socket.realm.global_object;
     window := JS.vérifie_comme(global_object, Window);
-    user_agent := window.document.donne_user_agent();
+    user_agent := donne_user_agent(window.document);
 
-    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_DE_TEXTE, données);
+    envoie_message_websocket(user_agent, web_socket, WS.OpCode.FRAME_DE_TEXTE, données);
 }
 
 send :: fonc (web_socket: *WebSocket, data: *JS.ArrayBuffer)
@@ -164,9 +164,9 @@ send :: fonc (web_socket: *WebSocket, data: *JS.ArrayBuffer)
 
     global_object := web_socket.realm.global_object;
     window := JS.vérifie_comme(global_object, Window);
-    user_agent := window.document.donne_user_agent();
+    user_agent := donne_user_agent(window.document);
 
-    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_BINAIRE, données);
+    envoie_message_websocket(user_agent, web_socket, WS.OpCode.FRAME_BINAIRE, données);
 }
 
 send :: fonc (web_socket: *WebSocket, data: *Blob)
@@ -182,9 +182,9 @@ send :: fonc (web_socket: *WebSocket, data: *Blob)
 
     global_object := web_socket.realm.global_object;
     window := JS.vérifie_comme(global_object, Window);
-    user_agent := window.document.donne_user_agent();
+    user_agent := donne_user_agent(window.document);
 
-    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_BINAIRE, données);
+    envoie_message_websocket(user_agent, web_socket, WS.OpCode.FRAME_BINAIRE, données);
 }
 
 // close :: fonc ()

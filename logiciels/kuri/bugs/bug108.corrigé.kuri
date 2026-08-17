@@ -13,7 +13,7 @@ principale :: fonc ()
 {
     opt := optionnel();
 
-    saufsi opt.possède_valeur() {
+    saufsi possède_valeur(opt) {
         exit(1);
     }
 }

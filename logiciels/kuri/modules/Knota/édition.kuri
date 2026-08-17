@@ -11,10 +11,10 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
     sélection := graphe.sélection;
 
     pos_souris := souris.état.où;
-    point := pos_souris.donne_point_2d_réel();
+    point := donne_point_2d_réel(pos_souris);
 
-    si sélection.est_sur_sélectionné(point) {
-        éléments := sélection.donne_éléments_sélectionnés();
+    si est_sur_sélectionné(sélection, point) {
+        éléments := donne_éléments_sélectionnés(sélection);
 
         si éléments.taille > 1 {
             graphe.mode_interaction = Mode_Interaction_Graphe.DÉPLACE_SÉLECTION_ACTIVE;
@@ -28,8 +28,8 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
             graphe.mode_interaction = Mode_Interaction_Graphe.CONNEXION_INTERACTIVE;
         }
         sinon {
-            si noeud_actif.rectangle_drapeau.contient(point) {
-                noeud_actif.bascule_drapeau_rendu();
+            si contient(noeud_actif.rectangle_drapeau, point) {
+                bascule_drapeau_rendu(noeud_actif);
             }
 
             graphe.mode_interaction = Mode_Interaction_Graphe.DÉPLACE_SÉLECTION_ACTIVE;
@@ -38,11 +38,11 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
         retourne;
     }
 
-    sélection.clic(point);
-    éléments := sélection.donne_éléments_sélectionnés();
+    clic(sélection, point);
+    éléments := donne_éléments_sélectionnés(sélection);
 
     si éléments.taille == 0 {
-        graphe.définis_noeud_actif(nul);
+        définis_noeud_actif(graphe, nul);
         graphe.mode_interaction = Mode_Interaction_Graphe.UTILISE_OUTIL_SÉLECTION;
         retourne;
     }
@@ -52,14 +52,14 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
     assert(noeud_actif.type_item == Noeud);
     assert(noeud_actif != graphe.noeud_actif);
 
-    graphe.définis_noeud_actif(noeud_actif);
+    définis_noeud_actif(graphe, noeud_actif);
 
     si commence_connexion_interactive(graphe, noeud_actif, point) {
         graphe.mode_interaction = Mode_Interaction_Graphe.CONNEXION_INTERACTIVE;
     }
     sinon {
-        si noeud_actif.rectangle_drapeau.contient(point) {
-            noeud_actif.bascule_drapeau_rendu();
+        si contient(noeud_actif.rectangle_drapeau, point) {
+            bascule_drapeau_rendu(noeud_actif);
         }
         graphe.mode_interaction = Mode_Interaction_Graphe.DÉPLACE_SÉLECTION_ACTIVE;
     }
@@ -73,28 +73,28 @@ ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris, del
         }
         CONNEXION_INTERACTIVE {
             assert(graphe.connexion_interactive != nul);
-            connexion := graphe.débute_connexion_interactive();
+            connexion := débute_connexion_interactive(graphe);
             connexion.x = souris.état.où.x comme r32;
             connexion.y = souris.état.où.y comme r32;
         }
         DÉPLACE_SÉLECTION_ACTIVE {
             sélection := graphe.sélection;
-            éléments_sélectionnées := sélection.donne_éléments_sélectionnés();
+            éléments_sélectionnées := donne_éléments_sélectionnés(sélection);
 
             guette_survol_connexion(graphe);
 
             pour éléments_sélectionnées {
                 item := graphe.items[it];
-                item.définis_position(item.position.x + delta.x, item.position.y + delta.y);
+                définis_position(item, item.position.x + delta.x, item.position.y + delta.y);
             }
         }
         UTILISE_OUTIL_SÉLECTION {
             sélection := graphe.sélection;
             pos_souris := souris.état.où;
-            point := pos_souris.donne_point_2d_réel();
-            sélection.clic_majuscule(point);
+            point := donne_point_2d_réel(pos_souris);
+            clic_majuscule(sélection, point);
             graphe.utilise_outil_sélection = vrai;
-            graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheOutilSélection));
+            envoie_message(graphe, MessageObservable(info_de(Graphe), MessageGrapheOutilSélection));
         }
     }
 }
@@ -125,20 +125,20 @@ termine_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
             /* Déconnecte la prise entrée originelle si existante. */
             si connexion.connexion_originelle {
                 prise_entrée := connexion.connexion_originelle.prise_entrée;
-                graphe.déconnecte(prise_entrée);
+                déconnecte(graphe, prise_entrée);
             }
 
             si peut_connecter(entrée, sortie) {
-                graphe.crée_connexion(entrée, sortie);
+                crée_connexion(graphe, entrée, sortie);
             }
 
-            graphe.termine_connexion_interactive();
+            termine_connexion_interactive(graphe);
         }
         DÉPLACE_SÉLECTION_ACTIVE {
             si graphe.connexion_pour_survol_noeud {
                 /* Nous lâchons un noeud sur une connexion, connectons-le. */
                 sélection := graphe.sélection;
-                éléments_sélectionnées := sélection.donne_éléments_sélectionnés();
+                éléments_sélectionnées := donne_éléments_sélectionnés(sélection);
 
                 assert(éléments_sélectionnées.taille == 1);
                 noeud := graphe.items[éléments_sélectionnées[0]] comme *Noeud;
@@ -152,10 +152,10 @@ termine_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
                 prise_entrée_noeud := noeud.entrées[0];
                 prise_sortie_noeud := noeud.sorties[0];
 
-                graphe.déconnecte(prise_entrée);
+                déconnecte(graphe, prise_entrée);
 
-                graphe.crée_connexion(prise_entrée_noeud, prise_sortie);
-                graphe.crée_connexion(prise_entrée, prise_sortie_noeud);
+                crée_connexion(graphe, prise_entrée_noeud, prise_sortie);
+                crée_connexion(graphe, prise_entrée, prise_sortie_noeud);
 
                 /* Fait de la place pour l'ajout du noeud. */
                 noeud_amont := prise_sortie.noeud_parent;
@@ -164,27 +164,27 @@ termine_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
                 pos_y_amont := noeud_amont.position.y;
                 pos_y_aval := noeud_aval.position.y;
 
-                si (noeud.position.y - pos_y_amont) < (3.0 * noeud.rectangle().hauteur) {
-                    décalage := (3.0 * noeud.rectangle().hauteur) - (noeud.position.y - pos_y_amont);
-                    noeud.décale_verticalement_noeuds_en_amont(-décalage);
+                si (noeud.position.y - pos_y_amont) < (3.0 * rectangle(noeud).hauteur) {
+                    décalage := (3.0 * rectangle(noeud).hauteur) - (noeud.position.y - pos_y_amont);
+                    décale_verticalement_noeuds_en_amont(noeud, -décalage);
                 }
 
-                si (pos_y_aval - noeud.position.y) < (3.0 * noeud.rectangle().hauteur) {
-                    décalage := (3.0 * noeud.rectangle().hauteur) - (pos_y_aval - noeud.position.y);
-                    noeud.décale_verticalement_noeuds_en_aval(décalage);
+                si (pos_y_aval - noeud.position.y) < (3.0 * rectangle(noeud).hauteur) {
+                    décalage := (3.0 * rectangle(noeud).hauteur) - (pos_y_aval - noeud.position.y);
+                    décale_verticalement_noeuds_en_aval(noeud, décalage);
                 }
 
                 /* Positionne le noeud horizontalement à mi-chemin entre les prises. */
                 pos_x := (noeud_aval.position.x + noeud_amont.position.x) * 0.5;
-                noeud.définis_position(pos_x, noeud.position.y);
+                définis_position(noeud, pos_x, noeud.position.y);
                 
                 graphe.connexion_pour_survol_noeud = nul;
-                graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGraphePositionChangée));
+                envoie_message(graphe, MessageObservable(info_de(Graphe), MessageGraphePositionChangée));
             }
         }
         UTILISE_OUTIL_SÉLECTION {
             graphe.utilise_outil_sélection = faux;
-            graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheOutilSélection));
+            envoie_message(graphe, MessageObservable(info_de(Graphe), MessageGrapheOutilSélection));
         }
     }
 }
@@ -203,7 +203,7 @@ supprime_sélection :: fonc (graphe: *Graphe) -> bool
     noeuds_à_supprimer: [..]*Noeud;
     diffère déloge(*noeuds_à_supprimer);
 
-    pour sélection.donne_éléments_sélectionnés() {
+    pour donne_éléments_sélectionnés(sélection) {
         item := graphe.items[it];
         saufsi item.type_item == Noeud {
             continue;
@@ -216,10 +216,10 @@ supprime_sélection :: fonc (graphe: *Graphe) -> bool
     }
 
     pour noeuds_à_supprimer {
-        graphe.supprime_noeud(it);
+        supprime_noeud(graphe, it);
     }
 
-    sélection.réinitialise();
+    réinitialise(sélection);
     retourne vrai;
 }
 
@@ -256,10 +256,10 @@ trouve_noeud :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *Noeud
     noeud_le_plus_proche: *Noeud;
     distance_la_plus_proche := R32_MAX;
 
-    pour graphe.itère_noeuds() {
-        rectangle_noeud := it.rectangle();
+    pour itère_noeuds(graphe) {
+        rectangle_noeud := rectangle(it);
 
-        centre := rectangle_noeud.donne_point_central();
+        centre := donne_point_central(rectangle_noeud);
 
         dx := centre.x - point.x;
         dy := centre.y - point.y;
@@ -278,7 +278,7 @@ trouve_noeud :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *Noeud
 trouve_prise_contenant :: fonc (prises: []*$T, point: Point2D(r32)) -> *T
 {
     pour prises {
-        si it.rectangle.contient(point) {
+        si contient(it.rectangle, point) {
             retourne it;
         }
     }
@@ -318,7 +318,7 @@ trouve_prise_entrée :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *Prise_En
 
 finalise_ajout_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
 {
-    noeud.définis_position(graphe.centre_x, graphe.centre_y);
+    définis_position(noeud, graphe.centre_x, graphe.centre_y);
 
     // if (graphe.connexion_active != nul) {
     // 	if (graphe.connexion_active->prise_entrée != nul) {
@@ -332,10 +332,10 @@ finalise_ajout_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
     // }
 
     /* Définis actif et ajout à la sélection. */
-    graphe.définis_noeud_actif(noeud);
+    définis_noeud_actif(graphe, noeud);
 
     sélection := graphe.sélection;
-    sélection.clic(noeud.position);
+    clic(sélection, noeud.position);
 }
 
 commence_connexion_interactive :: fonc (graphe: *Graphe, noeud: *Noeud, point: Point2D(r32)) -> bool
@@ -344,7 +344,7 @@ commence_connexion_interactive :: fonc (graphe: *Graphe, noeud: *Noeud, point: P
     prise_sortie := trouve_prise_sortie(noeud, point);
 
     si prise_entrée != nul || prise_sortie != nul {
-        connexion := graphe.débute_connexion_interactive();
+        connexion := débute_connexion_interactive(graphe);
         connexion.x = point.x;
         connexion.y = point.y;
 
@@ -367,7 +367,7 @@ commence_connexion_interactive :: fonc (graphe: *Graphe, noeud: *Noeud, point: P
 guette_survol_connexion :: fonc (graphe: *Graphe)
 {
     sélection := graphe.sélection;
-    éléments_sélectionnées := sélection.donne_éléments_sélectionnés();
+    éléments_sélectionnées := donne_éléments_sélectionnés(sélection);
 
     si éléments_sélectionnées.taille != 1 {
         retourne;
@@ -382,7 +382,7 @@ guette_survol_connexion :: fonc (graphe: *Graphe)
         retourne;
     }
 
-    rect_noeud := noeud.rectangle();
+    rect_noeud := rectangle(noeud);
     graphe.connexion_pour_survol_noeud = nul;
 
     pour graphe.connexions {
@@ -394,8 +394,8 @@ guette_survol_connexion :: fonc (graphe: *Graphe)
             continue;
         }
 
-        p0 := it.prise_entrée.rectangle.donne_point_central();
-        p1 := it.prise_sortie.rectangle.donne_point_central();
+        p0 := donne_point_central(it.prise_entrée.rectangle);
+        p1 := donne_point_central(it.prise_sortie.rectangle);
 
         si intersecte_ligne_rectangle(p0, p1, rect_noeud) {
             graphe.connexion_pour_survol_noeud = it;
@@ -408,7 +408,7 @@ décale_verticalement_noeuds_en_amont :: fonc (aval: *Noeud, décalage: r32)
     pour aval.entrées {
         si it.connexion {
             amont := it.connexion.prise_sortie.noeud_parent;
-            amont.définis_position(amont.position.x, amont.position.y + décalage);
+            définis_position(amont, amont.position.x, amont.position.y + décalage);
             décale_verticalement_noeuds_en_amont(amont, décalage);
         }
     }
@@ -419,7 +419,7 @@ décale_verticalement_noeuds_en_aval :: fonc (amont: *Noeud, décalage: r32)
     pour amont.sorties {
         pour connexion dans it.connexions {
             aval := connexion.prise_entrée.noeud_parent;
-            aval.définis_position(aval.position.x, aval.position.y + décalage);
+            définis_position(aval, aval.position.x, aval.position.y + décalage);
             décale_verticalement_noeuds_en_aval(aval, décalage);
         }
     }
@@ -434,11 +434,11 @@ décale_verticalement_noeuds_en_aval :: fonc (amont: *Noeud, décalage: r32)
 sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: *ClicSouris) -> bool
 {
     sélection := graphe.sélection;
-    sélection.clic(donne_point_2d_réel(souris.état.où));
+    clic(sélection, donne_point_2d_réel(souris.état.où));
 
-    éléments := sélection.donne_éléments_sélectionnés();
+    éléments := donne_éléments_sélectionnés(sélection);
     si éléments.taille != 1 {
-        graphe.définis_noeud_actif(nul);
+        définis_noeud_actif(graphe, nul);
         retourne faux;
     }
 
@@ -446,14 +446,14 @@ sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: *ClicSouri
     assert(item != nul);
 
     saufsi item.type_item == Noeud {
-        graphe.définis_noeud_actif(nul);
+        définis_noeud_actif(graphe, nul);
         retourne faux;
     }
 
     noeud := item comme *Noeud;
 
-    graphe.définis_noeud_pour_information(noeud);
-    graphe.définis_noeud_actif(noeud);
+    définis_noeud_pour_information(graphe, noeud);
+    définis_noeud_actif(graphe, noeud);
     retourne vrai;
 }
 
@@ -466,11 +466,11 @@ sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: *ClicSouri
 donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: *ClicSouris) -> *Graphe
 {
     sélection := graphe.sélection;
-    sélection.clic(donne_point_2d_réel(souris.état.où));
+    clic(sélection, donne_point_2d_réel(souris.état.où));
 
-    éléments := sélection.donne_éléments_sélectionnés();
+    éléments := donne_éléments_sélectionnés(sélection);
     si éléments.taille != 1 {
-        graphe.définis_noeud_actif(nul);
+        définis_noeud_actif(graphe, nul);
         retourne nul;
     }
 
@@ -478,13 +478,13 @@ donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: *ClicSouris) -> *G
     assert(item != nul);
 
     saufsi item.type_item == Noeud {
-        graphe.définis_noeud_actif(nul);
+        définis_noeud_actif(graphe, nul);
         retourne nul;
     }
 
     noeud := item comme *Noeud;
-    graphe.définis_noeud_actif(noeud);
-    retourne noeud.donne_sous_graphe();
+    définis_noeud_actif(graphe, noeud);
+    retourne donne_sous_graphe(noeud);
 }
 
 /** \} */
@@ -509,7 +509,7 @@ applique_zoom :: fonc (graphe: *Graphe, souris: *ClicSouris)
         valeur *= Constantes(r32).PHI_INV;
     }
 
-    graphe.définis_zoom(valeur);
+    définis_zoom(graphe, valeur);
 }
 
 /** \} */
@@ -522,7 +522,7 @@ déplace_graphe :: fonc (graphe: *Graphe, delta: Vec2)
 {
     x := graphe.centre_x + delta.x;
     y := graphe.centre_y + delta.y;
-    graphe.définis_position(x, y);
+    définis_position(graphe, x, y);
 }
 
 /** \} */
@@ -536,7 +536,7 @@ TypeMimeCopieNoeud :: "knota/copie-noeud";
 crée_fichier_de_copie_pour_sélection :: fonc (graphe: *Graphe) -> Optionnel([..]octet)
 {
     sélection := graphe.sélection;
-    éléments := sélection.donne_éléments_sélectionnés();
+    éléments := donne_éléments_sélectionnés(sélection);
 
     si éléments.taille == 0 {
         retourne;
@@ -561,7 +561,7 @@ crée_fichier_de_copie_pour_sélection :: fonc (graphe: *Graphe) -> Optionnel([.
                 continue;
             }
 
-            noeud_sortie := entrée.connexion.donne_noeud_sortie();
+            noeud_sortie := donne_noeud_sortie(entrée.connexion);
             si ensemble_possède(noeuds_à_copier, noeud_sortie) {
                 ensemble_ajoute(*connexions_à_copier, entrée.connexion);
             }
@@ -569,7 +569,7 @@ crée_fichier_de_copie_pour_sélection :: fonc (graphe: *Graphe) -> Optionnel([.
 
         pour sortie dans noeud.sorties {
             pour connexion dans sortie.connexions {
-                noeud_entrée := connexion.donne_noeud_entrée();
+                noeud_entrée := donne_noeud_entrée(connexion);
                 si ensemble_possède(noeuds_à_copier, noeud_entrée) {
                     ensemble_ajoute(*connexions_à_copier, connexion);
                 }

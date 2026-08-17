@@ -4,6 +4,7 @@
 #include "site_source.hh"
 
 #include "lexemes.hh"
+#include "modules.hh"
 
 SiteSource SiteSource::crée(const Fichier *fichier, const Lexème *lexème)
 {
@@ -13,5 +14,6 @@ SiteSource SiteSource::crée(const Fichier *fichier, const Lexème *lexème)
     site.indice_colonne = lexème->colonne;
     site.indice_colonne_min = site.indice_colonne;
     site.indice_colonne_max = static_cast<int>(site.indice_colonne + lexème->chaine.taille());
+    site.décalage = lexème->chaine.pointeur() - fichier->tampon().début();
     return site;
 }

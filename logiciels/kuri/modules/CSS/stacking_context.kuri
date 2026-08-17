@@ -48,32 +48,32 @@ imprime_et_réinitialise_fut_dessiné :: fonc (ctx: *StackingContext)
 
 donne_z_index :: fonc (stacking_context: *StackingContext) -> *ValeurDeStyle
 {
-    retourne stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.ZIndex);
+    retourne donne_valeur_calculée(stacking_context.racine.propriétés, IDPropriété.ZIndex);
 }
 
 donne_opacité :: fonc (stacking_context: *StackingContext) -> r64
 {
-    opacity := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Opacity);
-    si opacity.est_percentage() {
-        retourne opacity.donne_percentage();
+    opacity := donne_valeur_calculée(stacking_context.racine.propriétés, IDPropriété.Opacity);
+    si est_percentage(opacity) {
+        retourne donne_percentage(opacity);
     }
-    retourne opacity.donne_number();
+    retourne donne_number(opacity);
 }
 
 donne_z_index_pour_tri :: fonc (stacking_context: *StackingContext) -> z32
 {
     z_index := donne_z_index(stacking_context);
-    si z_index.est_mot_clé(PROP_auto) {
+    si est_mot_clé(z_index, PROP_auto) {
         retourne 0;
     }
 
-    retourne z_index.donne_number() comme z32;
+    retourne donne_number(z_index) comme z32;
 }
 
 est_position_fixée :: fonc (stacking_context: *StackingContext) -> bool
 {
-    position := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Position);
-    retourne position.est_mot_clé(PROP_fixed);
+    position := donne_valeur_calculée(stacking_context.racine.propriétés, IDPropriété.Position);
+    retourne est_mot_clé(position, PROP_fixed);
 }
 
 #portée_module
@@ -131,10 +131,10 @@ construis_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStack
     résultat := parent;
 
     si doit_générer_un_stacking_context(racine) {
-        résultat = constructrice.crée_stacking_context();
+        résultat = crée_stacking_context(constructrice);
         résultat.racine = racine;
         si parent {
-            parent.ajoute_enfant(résultat);
+            ajoute_enfant(parent, résultat);
         }
     }
 
@@ -159,31 +159,31 @@ doit_générer_un_stacking_context :: fonc (box: *Box) -> bool
         retourne vrai;
     }
 
-    position := box.propriétés.donne_valeur_calculée(IDPropriété.Position);
-    z_index := box.propriétés.donne_valeur_calculée(IDPropriété.ZIndex);
+    position := donne_valeur_calculée(box.propriétés, IDPropriété.Position);
+    z_index := donne_valeur_calculée(box.propriétés, IDPropriété.ZIndex);
 
     // Element with a position value absolute or relative and z-index value other than auto.
-    si (position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_relative)) && !z_index.est_auto() {
+    si (est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_relative)) && !est_auto(z_index) {
         retourne vrai;
     }
 
     // Element with a position value fixed or sticky (sticky for all mobile browsers, but not older desktop browsers).
-    si position.est_mot_clé(PROP_fixed) {
+    si est_mot_clé(position, PROP_fixed) {
         retourne vrai;
     }
 
     // À FAIRE : Element with a container-type value size or inline-size set, intended for container queries.
 
     // Element that is a child of a flex container, with z-index value other than auto.
-    si box.parent.donne_display().inner_type == Display.Type.Flex && !z_index.est_auto() {
+    si donne_display(box.parent).inner_type == Display.Type.Flex && !est_auto(z_index) {
         retourne vrai;
     }
 
     // À FAIRE : Element that is a child of a grid container, with z-index value other than auto.
 
     // Element with an opacity value less than 1.
-    opacity := box.propriétés.donne_valeur_calculée(IDPropriété.Opacity);
-    si (opacity.est_number() && opacity.donne_number() < 1.0) || (opacity.est_percentage() && opacity.donne_percentage() < 1.0) {
+    opacity := donne_valeur_calculée(box.propriétés, IDPropriété.Opacity);
+    si (est_number(opacity) && donne_number(opacity) < 1.0) || (est_percentage(opacity) && donne_percentage(opacity) < 1.0) {
         retourne vrai;
     }
 
@@ -218,7 +218,7 @@ tri_stacking_contexts :: fonc (racine: *StackingContext)
 
 compare_stacking_contexts_pour_tri :: fonc (a: *StackingContext, b: *StackingContext) -> z32
 {
-    retourne a.donne_z_index_pour_tri() - b.donne_z_index_pour_tri();
+    retourne donne_z_index_pour_tri(a) - donne_z_index_pour_tri(b);
 }
 
 #portée_module
@@ -228,11 +228,11 @@ donne_rectangle_ciselage_pour_overflow :: fonc (box: *Box) -> (bool, RectanglePo
     résultat: RectanglePosDim(r32);
 
     tantque box != nul {
-        overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
-        overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
+        overflow_x := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
+        overflow_y := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
 
-        saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-            retourne vrai, box.donne_rectangle_rembourrage();
+        saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+            retourne vrai, donne_rectangle_rembourrage(box);
         }
 
         box = box.parent;
@@ -256,18 +256,18 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
 
     doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent);
     si doit_ciseler {
-        rect := ctx.donne_rectangle_corrigé(rect_ciselage);
-        ctx.commandes.débute_ciselage(rect);
+        rect := donne_rectangle_corrigé(ctx, rect_ciselage);
+        débute_ciselage(ctx.commandes, rect);
     }
 
     si stacking_context.parent && !ctx.tampon_id_couleur {
-        ctx.commandes.débute_sous_tampon();
+        débute_sous_tampon(ctx.commandes);
     }
 
     dessine(stacking_context.racine, ctx);
 
     si stacking_context.parent && !ctx.tampon_id_couleur {
-        ctx.commandes.termine_sous_tampon(opacité comme r32);
+        termine_sous_tampon(ctx.commandes, opacité comme r32);
     }
 
     pour stacking_context.enfants {
@@ -275,7 +275,7 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
     }
 
     si doit_ciseler {
-        ctx.commandes.termine_ciselage();
+        termine_ciselage(ctx.commandes);
     }
 }
 
@@ -294,8 +294,8 @@ dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, 
 
     doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent);
     si doit_ciseler {
-        rect := ctx.donne_rectangle_corrigé(rect_ciselage);
-        ctx.commandes.débute_ciselage(rect);
+        rect := donne_rectangle_corrigé(ctx, rect_ciselage);
+        débute_ciselage(ctx.commandes, rect);
     }
 
     dessine_tampon_id(stacking_context.racine, ctx);
@@ -305,7 +305,7 @@ dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, 
     }
 
     si doit_ciseler {
-        ctx.commandes.termine_ciselage();
+        termine_ciselage(ctx.commandes);
     }
 }
 

@@ -271,7 +271,7 @@ lis_n8 :: fonc (tampon: *TamponOctetFixe) -> n8
 
 lis_n16 :: fonc (tampon: *TamponOctetFixe) -> n16
 {
-    retourne tampon.lis_n8() comme n16 << 8 | tampon.lis_n8() comme n16;
+    retourne lis_n8(tampon) comme n16 << 8 | lis_n8(tampon) comme n16;
 }
 
 lis_n32 :: fonc (tampon: *TamponOctetFixe) -> n32
@@ -456,7 +456,7 @@ marque_position_écriture_table_des_chaines :: fonc (sauvegardeuse: *Sauvegardeu
 
 écris_table_des_chaines :: fonc (sauvegardeuse: *Sauvegardeuse)
 {
-    saufsi sauvegardeuse.position_pointeur_table_chaines.possède_valeur() {
+    saufsi possède_valeur(sauvegardeuse.position_pointeur_table_chaines) {
         retourne;
     }
 
@@ -514,7 +514,7 @@ détruit_lectrice :: fonc (lectrice: *Lectrice, préserve_données := faux)
 
 lis_nombre_magique :: fonc (lectrice: *Lectrice, nombre_magique: [4]z8) -> bool
 {
-    valeur := lectrice.lis_valeur_typée([4]z8);
+    valeur := lis_valeur_typée(lectrice, [4]z8);
 
     pour nombre_magique {
         si it != valeur[indice_it] {
