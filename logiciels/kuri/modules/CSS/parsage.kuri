@@ -310,7 +310,7 @@ est_mot_clé :: fonc (value: ComponentValue, mot_clé: CSSOMString) -> bool
     saufsi est_lexème_de_genre(value, GenreLexème.Ident) {
         retourne faux;
     }
-    retourne value.donne_texte() == mot_clé;
+    retourne donne_texte(value) == mot_clé;
 }
 
 ÉtatParsage :: énum {
@@ -334,7 +334,7 @@ initialise_une_parseuse :: fonc (lexèmes: []$T) -> Parseuse(T)
 
 lexème_courant :: fonc (parseuse: *Parseuse($T)) -> T
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne Lexème(GenreLexème.EOF);
     }
 
@@ -343,7 +343,7 @@ lexème_courant :: fonc (parseuse: *Parseuse($T)) -> T
 
 consomme_le_lexème_en_entrée_suivant :: fonc (parseuse: *Parseuse($T)) -> T
 {
-    résultat := parseuse.lexème_courant();
+    résultat := lexème_courant(parseuse);
     parseuse.curseur += 1;
     retourne résultat;
 }
@@ -361,8 +361,8 @@ avance :: fonc (parseuse: *Parseuse($T))
 consomme_espaces_blanches :: fonc (parseuse: *Parseuse($T))
 {
     tantque !fini(parseuse) {
-        si parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Whitespace) {
-            parseuse.avance();
+        si est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Whitespace) {
+            avance(parseuse);
             continue;
         }
 
@@ -372,7 +372,7 @@ consomme_espaces_blanches :: fonc (parseuse: *Parseuse($T))
 
 apparie_lexème_ident :: fonc (parseuse: *Parseuse($T)) -> bool #enligne
 {
-    retourne parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Ident);
+    retourne est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Ident);
 }
 
 fini :: fonc (parseuse: *Parseuse($T)) -> bool
@@ -395,7 +395,7 @@ rapporte_erreur :: fonc (parseuse: *Parseuse($T) @inutilisée, message: chaine)
 parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)) -> Optionnel(*ValeurDeStyle)
 {
     // 1. Normalize input, and set input to the result.
-    chn_input := input.donne_chaine_utf16().convertis_vers_chaine();
+    chn_input := convertis_vers_chaine(donne_chaine_utf16(input));
     diffère déloge(*chn_input);
 
     retourne parse_according_to_a_css_grammar(chn_input, grammar);
@@ -545,21 +545,21 @@ parse_a_css_color :: fonc (input: CSSOMString, context: *HTML.Element @inutilis�
 {
     // 1. Parse input as a <color>. If the result is failure, return failure; otherwise, let color be the result.
     opt_color := parse_according_to_a_css_grammar(input, parse_propriété_color);
-    saufsi opt_color.possède_valeur() {
+    saufsi possède_valeur(opt_color) {
         retourne;
     }
 
     color := opt_color.Quelque;
     diffère détruit_valeur_de_style(color);
 
-    saufsi color.est_couleur() {
+    saufsi est_couleur(color) {
         retourne;
     }
 
     // À FAIRE : 2. Let used color be the result of resolving color to a used color. If the value of other properties on the element a <color> is on is required to do the resolution (such as resolving a currentcolor or system color), use element if it was passed, or the initial values of the properties if not.
 
     // 3. Return used color.
-    retourne color.donne_couleur();
+    retourne donne_couleur(color);
 }
 
 /** \} */
@@ -575,40 +575,40 @@ consomme_une_liste_de_règles :: fonc (parseuse: *Parseuse($T), top_level: bool)
     résultat: [..]*ParsedRule;
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+        lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
-        si lexème.est_lexème_de_genre(GenreLexème.Whitespace) {
+        si est_lexème_de_genre(lexème, GenreLexème.Whitespace) {
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
             retourne résultat;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.CDO) || lexème.est_lexème_de_genre(GenreLexème.CDC) {
+        si est_lexème_de_genre(lexème, GenreLexème.CDO) || est_lexème_de_genre(lexème, GenreLexème.CDC) {
             si top_level {
                 continue;
             }
 
-            parseuse.reconsomme_le_lexème_courant();
+            reconsomme_le_lexème_courant(parseuse);
 
-            règle := parseuse.consomme_une_règle_qualifiée();
+            règle := consomme_une_règle_qualifiée(parseuse);
             si règle {
                 tableau_ajoute(*résultat, règle);
             }
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.At_Keyword) {
-            parseuse.reconsomme_le_lexème_courant();
-            règle := parseuse.consomme_une_règle_arobase();
+        si est_lexème_de_genre(lexème, GenreLexème.At_Keyword) {
+            reconsomme_le_lexème_courant(parseuse);
+            règle := consomme_une_règle_arobase(parseuse);
             tableau_ajoute(*résultat, règle);
             continue;
         }
 
-        parseuse.reconsomme_le_lexème_courant();
+        reconsomme_le_lexème_courant(parseuse);
 
-        règle := parseuse.consomme_une_règle_qualifiée();
+        règle := consomme_une_règle_qualifiée(parseuse);
         si règle {
             tableau_ajoute(*résultat, règle);
         }
@@ -621,35 +621,35 @@ consomme_une_liste_de_règles :: fonc (parseuse: *Parseuse($T), top_level: bool)
 consomme_une_règle_arobase :: fonc (parseuse: *Parseuse($T)) -> *ParsedAtRule
 {
     résultat := loge(ParsedAtRule);
-    résultat.name = parseuse.lexème_courant().donne_texte();
+    résultat.name = donne_texte(lexème_courant(parseuse));
 
-    _ := parseuse.consomme_le_lexème_en_entrée_suivant();
+    _ := consomme_le_lexème_en_entrée_suivant(parseuse);
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+        lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
-        si lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+        si est_lexème_de_genre(lexème, GenreLexème.Semicolon) {
             retourne résultat;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
-            parseuse.rapporte_erreur("fin de fichier dans une @-rule");
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
+            rapporte_erreur(parseuse, "fin de fichier dans une @-rule");
             retourne résultat;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.Open_Bracket) {
-            bloc := parseuse.consomme_un_bloc_simple(lexème);
+        si est_lexème_de_genre(lexème, GenreLexème.Open_Bracket) {
+            bloc := consomme_un_bloc_simple(parseuse, lexème);
             résultat.bloc = bloc;
             retourne résultat;
         }
 
-        si lexème.est_simple_bloc_de_genre(GenreLexème.Open_Bracket) {
-            résultat.bloc = lexème.donne_bloc_simple();
+        si est_simple_bloc_de_genre(lexème, GenreLexème.Open_Bracket) {
+            résultat.bloc = donne_bloc_simple(lexème);
             retourne résultat;
         }
 
-        parseuse.reconsomme_le_lexème_courant();
-        valeur := parseuse.consomme_une_valeur_composante();
+        reconsomme_le_lexème_courant(parseuse);
+        valeur := consomme_une_valeur_composante(parseuse);
         tableau_ajoute(*résultat.prelude, valeur);
     }
 
@@ -662,27 +662,27 @@ consomme_une_règle_qualifiée :: fonc (parseuse: *Parseuse($T)) -> *ParsedQuali
     résultat := loge(ParsedQualifiedRule);
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+        lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
-            parseuse.rapporte_erreur("fin de fichier dans une qualified-rule");
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
+            rapporte_erreur(parseuse, "fin de fichier dans une qualified-rule");
             // À FAIRE détruit le résultat
             retourne nul;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.Open_Bracket) {
-            bloc := parseuse.consomme_un_bloc_simple(lexème);
+        si est_lexème_de_genre(lexème, GenreLexème.Open_Bracket) {
+            bloc := consomme_un_bloc_simple(parseuse, lexème);
             résultat.bloc = bloc;
             retourne résultat;
         }
 
-        si lexème.est_simple_bloc_de_genre(GenreLexème.Open_Bracket) {
-            résultat.bloc = lexème.donne_bloc_simple();
+        si est_simple_bloc_de_genre(lexème, GenreLexème.Open_Bracket) {
+            résultat.bloc = donne_bloc_simple(lexème);
             retourne résultat;
         }
 
-        parseuse.reconsomme_le_lexème_courant();
-        valeur := parseuse.consomme_une_valeur_composante();
+        reconsomme_le_lexème_courant(parseuse);
+        valeur := consomme_une_valeur_composante(parseuse);
         tableau_ajoute(*résultat.prelude, valeur);
     }
 
@@ -696,25 +696,25 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: *Parseuse($T)) -> Styl
     rules: [..]*ParsedRule;
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+        lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
-        si lexème.est_lexème_de_genre(GenreLexème.Whitespace) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+        si est_lexème_de_genre(lexème, GenreLexème.Whitespace) || est_lexème_de_genre(lexème, GenreLexème.Semicolon) {
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
             // Extend decls with rules, then return decls.
             arrête;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.At_Keyword) {
-            parseuse.reconsomme_le_lexème_courant();
+        si est_lexème_de_genre(lexème, GenreLexème.At_Keyword) {
+            reconsomme_le_lexème_courant(parseuse);
             rule := consomme_une_règle_arobase(parseuse);
             tableau_ajoute(*rules, rule);
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        si est_lexème_de_genre(lexème, GenreLexème.Ident) {
             // Initialize a temporary list initially filled with the current input token.
             temp: [..]ComponentValue;
             tableau_ajoute(*temp, lexème);
@@ -722,21 +722,21 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: *Parseuse($T)) -> Styl
             // As long as the next input token is anything other than a <semicolon-token>
             // or <EOF-token>, consume a component value and append it to the temporary list.
             tantque !fini(parseuse) {
-                lexème = parseuse.lexème_courant();
+                lexème = lexème_courant(parseuse);
 
-                si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+                si est_lexème_de_genre(lexème, GenreLexème.EOF) || est_lexème_de_genre(lexème, GenreLexème.Semicolon) {
                     arrête;
                 }
 
                 tableau_ajoute(*temp, lexème);
-                parseuse.avance();
+                avance(parseuse);
             }
 
             // Consume a declaration from the temporary list.
             // If anything was returned, append it to decls.
             parseuse_decl := initialise_une_parseuse(temp);
             decl := consomme_une_déclaration(*parseuse_decl);
-            si decl.possède_valeur() {
+            si possède_valeur(decl) {
                 tableau_ajoute(*decls, decl.Quelque);
             }
 
@@ -745,8 +745,8 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: *Parseuse($T)) -> Styl
             continue;
         }
 
-        si lexème.est_lexème_esperluette() {
-            parseuse.reconsomme_le_lexème_courant();
+        si est_lexème_esperluette(lexème) {
+            reconsomme_le_lexème_courant(parseuse);
             rule := consomme_une_règle_qualifiée(parseuse);
             si rule {
                 tableau_ajoute(*rules, rule);
@@ -760,8 +760,8 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: *Parseuse($T)) -> Styl
          * <semicolon-token> or <EOF-token>, consume a component value
          * and throw away the returned value. */
         tantque !fini(parseuse) {
-            lexème = parseuse.lexème_courant();
-            si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+            lexème = lexème_courant(parseuse);
+            si est_lexème_de_genre(lexème, GenreLexème.EOF) || est_lexème_de_genre(lexème, GenreLexème.Semicolon) {
                 arrête;
             }
             component_value := consomme_une_valeur_composante(parseuse);
@@ -780,26 +780,26 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: *Parseuse($T)) -> StyleBl
     rules: [..]*ParsedRule;
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+        lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
-        si lexème.est_lexème_de_genre(GenreLexème.Whitespace) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+        si est_lexème_de_genre(lexème, GenreLexème.Whitespace) || est_lexème_de_genre(lexème, GenreLexème.Semicolon) {
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
             arrête;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.At_Keyword) {
-            parseuse.reconsomme_le_lexème_courant();
-            rule := parseuse.consomme_une_règle_arobase();
+        si est_lexème_de_genre(lexème, GenreLexème.At_Keyword) {
+            reconsomme_le_lexème_courant(parseuse);
+            rule := consomme_une_règle_arobase(parseuse);
             si rule {
                 tableau_ajoute(*rules, rule);
             }
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        si est_lexème_de_genre(lexème, GenreLexème.Ident) {
             // Initialize a temporary list initially filled with the current input token.
             temp: [..]ComponentValue;
             tableau_ajoute(*temp, lexème);
@@ -807,9 +807,9 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: *Parseuse($T)) -> StyleBl
             // As long as the next input token is anything other than a <semicolon-token>
             // or <EOF-token>, consume a component value and append it to the temporary list.
             tantque !fini(parseuse) {
-                lexème = parseuse.lexème_courant();
+                lexème = lexème_courant(parseuse);
 
-                si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+                si est_lexème_de_genre(lexème, GenreLexème.EOF) || est_lexème_de_genre(lexème, GenreLexème.Semicolon) {
                     arrête;
                 }
 
@@ -821,7 +821,7 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: *Parseuse($T)) -> StyleBl
             // If anything was returned, append it to the list of declarations.
             parseuse_decl := initialise_une_parseuse(temp);
             decl := consomme_une_déclaration(*parseuse_decl);
-            si decl.possède_valeur() {
+            si possède_valeur(decl) {
                 tableau_ajoute(*decls, decl.Quelque);
             }
 
@@ -834,10 +834,10 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: *Parseuse($T)) -> StyleBl
         // Reconsume the current input token.
         // As long as the next input token is anything other than a <semicolon-token> or <EOF-token>,
         // consume a component value and throw away the returned value.
-        parseuse.reconsomme_le_lexème_courant();
+        reconsomme_le_lexème_courant(parseuse);
         tantque !fini(parseuse) {
-            lexème = parseuse.lexème_courant();
-            si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+            lexème = lexème_courant(parseuse);
+            si est_lexème_de_genre(lexème, GenreLexème.EOF) || est_lexème_de_genre(lexème, GenreLexème.Semicolon) {
                 arrête;
             }
             component_value := consomme_une_valeur_composante(parseuse);
@@ -851,20 +851,20 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: *Parseuse($T)) -> StyleBl
 /* 5.5.6 Consume a declaration */
 consomme_une_déclaration :: fonc (parseuse: *Parseuse($T)) -> Optionnel(ParsedDeclaration)
 {
-    lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+    lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
     résultat: ParsedDeclaration;
-    résultat.name = lexème.donne_texte();
+    résultat.name = donne_texte(lexème);
 
     // 1. While the next input token is a <whitespace-token>, consume the next input token.
     consomme_espaces_blanches(parseuse);
 
     // 2. If the next input token is anything other than a <colon-token>, this is a parse error. Return nothing.
     //    Otherwise, consume the next input token.
-    saufsi parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Colon) {
+    saufsi est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Colon) {
         retourne;
     }
-    parseuse.avance();
+    avance(parseuse);
 
     // 3. While the next input token is a <whitespace-token>, consume the next input token.
     consomme_espaces_blanches(parseuse);
@@ -872,8 +872,8 @@ consomme_une_déclaration :: fonc (parseuse: *Parseuse($T)) -> Optionnel(ParsedD
     // 4. As long as the next input token is anything other than an <EOF-token>, consume a component value and append it to the declaration’s value.
     value: [..]ComponentValue;
     tantque !fini(parseuse) {
-        lexème = parseuse.lexème_courant();
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+        lexème = lexème_courant(parseuse);
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
             arrête;
         }
 
@@ -890,11 +890,11 @@ consomme_une_déclaration :: fonc (parseuse: *Parseuse($T)) -> Optionnel(ParsedD
         sauvegarde_taille := value.taille;
         i0 := value.taille - 1;
 
-        si value[i0].est_lexème_de_genre(GenreLexème.Ident) && compare_ascii_insensible_à_la_casse(value[i0].lexème.valeur, "important") {
+        si est_lexème_de_genre(value[i0], GenreLexème.Ident) && compare_ascii_insensible_à_la_casse(value[i0].lexème.valeur, "important") {
             value.taille -= 1;
             supprime_espaces_blanches_en_fin(*value);
 
-            si value.taille > 0 && value[value.taille - 1].est_lexème_exclamation() {
+            si value.taille > 0 && est_lexème_exclamation(value[value.taille - 1]) {
                 value.taille -= 1;
                 résultat.important = vrai;
             }
@@ -916,7 +916,7 @@ supprime_espaces_blanches_en_fin :: fonc (value: *[..]ComponentValue)
 {
     nombre_d_espaces_blanches := 0;
     pour > mémoire(value) {
-        saufsi it.est_lexème_de_genre(GenreLexème.Whitespace) {
+        saufsi est_lexème_de_genre(it, GenreLexème.Whitespace) {
             arrête;
         }
         nombre_d_espaces_blanches += 1;
@@ -932,19 +932,19 @@ consomme_une_lise_de_valeur_composante :: fonc (parseuse: *Parseuse($T), stop_to
     values: [..]ComponentValue;
 
     tantque !fini(parseuse) {
-        lexème := parseuse.lexème_courant();
+        lexème := lexème_courant(parseuse);
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(stop_token) {
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) || est_lexème_de_genre(lexème, stop_token) {
             arrête;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.Close_Bracket) {
+        si est_lexème_de_genre(lexème, GenreLexème.Close_Bracket) {
             si nested {
                 arrête;
             }
 
             /* parse-error */
-            lexème = parseuse.consomme_le_lexème_en_entrée_suivant();
+            lexème = consomme_le_lexème_en_entrée_suivant(parseuse);
             tableau_ajoute(*values, lexème);
             continue;
         }
@@ -959,14 +959,14 @@ consomme_une_lise_de_valeur_composante :: fonc (parseuse: *Parseuse($T), stop_to
 /* 5.5.8 Consume a component value */
 consomme_une_valeur_composante :: fonc (parseuse: *Parseuse($T)) -> ComponentValue
 {
-    lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+    lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
-    si lexème.est_lexème_de_genre(GenreLexème.Open_Bracket) || lexème.est_lexème_de_genre(GenreLexème.Open_Square_Bracket) || lexème.est_lexème_de_genre(GenreLexème.Open_Parenthesis) {
-        retourne parseuse.consomme_un_bloc_simple(lexème);
+    si est_lexème_de_genre(lexème, GenreLexème.Open_Bracket) || est_lexème_de_genre(lexème, GenreLexème.Open_Square_Bracket) || est_lexème_de_genre(lexème, GenreLexème.Open_Parenthesis) {
+        retourne consomme_un_bloc_simple(parseuse, lexème);
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.Function) {
-        retourne parseuse.consomme_une_fonction(lexème);
+    si est_lexème_de_genre(lexème, GenreLexème.Function) {
+        retourne consomme_une_fonction(parseuse, lexème);
     }
 
     // XXX - parseuse.lexème_courant() ?
@@ -975,13 +975,13 @@ consomme_une_valeur_composante :: fonc (parseuse: *Parseuse($T)) -> ComponentVal
 
 donne_genre_lexème_mirroir :: fonc (lexème: Lexème) -> GenreLexème
 {
-    si lexème.est_lexème_de_genre(GenreLexème.Open_Bracket) {
+    si est_lexème_de_genre(lexème, GenreLexème.Open_Bracket) {
         retourne GenreLexème.Close_Bracket;
     }
-    si lexème.est_lexème_de_genre(GenreLexème.Open_Square_Bracket) {
+    si est_lexème_de_genre(lexème, GenreLexème.Open_Square_Bracket) {
         retourne GenreLexème.Close_Square_Bracket;
     }
-    assert(lexème.est_lexème_de_genre(GenreLexème.Open_Parenthesis));
+    assert(est_lexème_de_genre(lexème, GenreLexème.Open_Parenthesis));
     retourne GenreLexème.Close_Parenthesis;
 }
 
@@ -994,19 +994,19 @@ consomme_un_bloc_simple :: fonc (parseuse: *Parseuse($T), lexème_associé: T) -
     résultat.token = lexème_associé;
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+        lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
-        si lexème.est_lexème_de_genre(genre_lexème_fin) {
+        si est_lexème_de_genre(lexème, genre_lexème_fin) {
             retourne résultat;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
-            parseuse.rapporte_erreur("fin de fichier dans un bloc simple");
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
+            rapporte_erreur(parseuse, "fin de fichier dans un bloc simple");
             retourne résultat;
         }
 
-        parseuse.reconsomme_le_lexème_courant();
-        valeur := parseuse.consomme_une_valeur_composante();
+        reconsomme_le_lexème_courant(parseuse);
+        valeur := consomme_une_valeur_composante(parseuse);
         tableau_ajoute(*résultat.value, valeur);
     }
 
@@ -1017,23 +1017,23 @@ consomme_un_bloc_simple :: fonc (parseuse: *Parseuse($T), lexème_associé: T) -
 consomme_une_fonction :: fonc (parseuse: *Parseuse($T), lexème_function: T) -> ParsedFunction
 {
     résultat: ParsedFunction;
-    résultat.name = lexème_function.donne_texte();
+    résultat.name = donne_texte(lexème_function);
     résultat.name = résultat.name;
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant();
+        lexème := consomme_le_lexème_en_entrée_suivant(parseuse);
 
-        si lexème.est_lexème_de_genre(GenreLexème.Close_Parenthesis) {
+        si est_lexème_de_genre(lexème, GenreLexème.Close_Parenthesis) {
             retourne résultat;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
-            parseuse.rapporte_erreur("fin de fichier dans une fonction");
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
+            rapporte_erreur(parseuse, "fin de fichier dans une fonction");
             retourne résultat;
         }
 
-        parseuse.reconsomme_le_lexème_courant();
-        valeur := parseuse.consomme_une_valeur_composante();
+        reconsomme_le_lexème_courant(parseuse);
+        valeur := consomme_une_valeur_composante(parseuse);
         tableau_ajoute(*résultat.value, valeur);
     }
 
@@ -1054,7 +1054,7 @@ parse_selector_list :: fonc (prelude: []ComponentValue) -> Optionnel(SelectorLis
 {
     parseuse := initialise_une_parseuse(prelude);
     résultat := parse_selector_list(*parseuse);
-    saufsi résultat.possède_valeur() {
+    saufsi possède_valeur(résultat) {
         imprime("Impossible de parser : ");
         pour prelude {
             imprime("%", it);
@@ -1121,16 +1121,16 @@ parse_complex_selector_list :: fonc (parseuse: *ParseuseSelector, list: *Selecto
 
         tableau_ajoute(*list.complex_selectors, complex);
 
-        saufsi parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Comma) {
+        saufsi est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Comma) {
             arrête;
         }
 
         // imprime("-- virgule\n")
-        _ := parseuse.consomme_le_lexème_en_entrée_suivant();
+        _ := consomme_le_lexème_en_entrée_suivant(parseuse);
     }
 
     consomme_espaces_blanches(parseuse);
-    saufsi parseuse.fini() {
+    saufsi fini(parseuse) {
         détruit_données_selector_list(list);
         retourne ÉtatParsage.Erreur;
     }
@@ -1156,14 +1156,14 @@ parse_complex_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Complex
             arrête;
         }
 
-        si combinateur_courant.possède_valeur() {
+        si possède_valeur(combinateur_courant) {
             compound.combinateur = combinateur_courant.Quelque;
         }
 
         tableau_ajoute(*résultat.compound_selectors, compound);
 
         combinateur: Combinator;
-        état = parseuse.parse_combinateur(*combinateur);
+        état = parse_combinateur(parseuse, *combinateur);
         si état == ÉtatParsage.Erreur {
             détruit_données_compound_selector(*compound);
             retourne état;
@@ -1193,8 +1193,8 @@ parse_compound_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Compou
     // imprime("-- position : %\n", parseuse.curseur)
 
     /* <type-selector>? */
-    type_selector := parseuse.parse_type_selector();
-    si type_selector.possède_valeur() {
+    type_selector := parse_type_selector(parseuse);
+    si possède_valeur(type_selector) {
         // imprime("-- %\n", type_selector.Quelque)
         tableau_ajoute(*résultat.simple_selectors, type_selector.Quelque);
     }
@@ -1202,7 +1202,7 @@ parse_compound_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Compou
     /* <subclass-selector>* */
     tantque !fini(parseuse) {
         subclass_selector : SimpleSelector = ---;
-        état := parseuse.parse_subclass_selector(*subclass_selector);
+        état := parse_subclass_selector(parseuse, *subclass_selector);
         si état == ÉtatParsage.Erreur {
             retourne état;
         }
@@ -1217,7 +1217,7 @@ parse_compound_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Compou
     /* [ <pseudo-element-selector> <pseudo-class-selector>* ]* */
     tantque !fini(parseuse) {
         pseudo_element_selector: SimpleSelector;
-        état := parseuse.parse_pseudo_element_selector(*pseudo_element_selector);
+        état := parse_pseudo_element_selector(parseuse, *pseudo_element_selector);
         si état == ÉtatParsage.Erreur {
             retourne état;
         }
@@ -1230,7 +1230,7 @@ parse_compound_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Compou
 
         tantque !fini(parseuse) {
             subclass_selector : SimpleSelector = ---;
-            état = parseuse.parse_subclass_selector(*subclass_selector);
+            état = parse_subclass_selector(parseuse, *subclass_selector);
             si état == ÉtatParsage.Erreur {
                 retourne état;
             }
@@ -1259,11 +1259,11 @@ parse_type_selector :: fonc (parseuse: *ParseuseSelector) -> Optionnel(SimpleSel
     parseuse_locale := mémoire(parseuse);
 
     opt_wq_name := parse_wq_name(*parseuse_locale);
-    si opt_wq_name.possède_valeur() {
+    si possède_valeur(opt_wq_name) {
         wq_name := opt_wq_name.Quelque;
 
         espace_de_nom := crée_chaine_utf16_unique_vide();
-        si wq_name.ns_prefix.possède_valeur() {
+        si possède_valeur(wq_name.ns_prefix) {
             espace_de_nom = wq_name.ns_prefix.Quelque.espace;
         }
 
@@ -1274,11 +1274,11 @@ parse_type_selector :: fonc (parseuse: *ParseuseSelector) -> Optionnel(SimpleSel
     parseuse_locale = mémoire(parseuse);
 
     ns_prefix := parse_ns_prefix(*parseuse_locale);
-    saufsi ns_prefix.possède_valeur() {
+    saufsi possède_valeur(ns_prefix) {
         parseuse_locale = mémoire(parseuse);
     }
 
-    si lexème_courant(*parseuse_locale).est_lexème_fois() {
+    si est_lexème_fois(lexème_courant(*parseuse_locale)) {
         avance(*parseuse_locale);
         parseuse.curseur = parseuse_locale.curseur;
         retourne crée_universal_selector(crée_chaine_utf16_unique_vide());
@@ -1298,7 +1298,7 @@ parse_wq_name :: fonc (parseuse: *ParseuseSelector) -> Optionnel(WQName)
     parseuse_locale := mémoire(parseuse);
     résultat.ns_prefix = parse_ns_prefix(*parseuse_locale);
 
-    saufsi résultat.ns_prefix.possède_valeur() {
+    saufsi possède_valeur(résultat.ns_prefix) {
         parseuse_locale = mémoire(parseuse);
     }
 
@@ -1321,20 +1321,20 @@ parse_ns_prefix :: fonc (parseuse: *ParseuseSelector) -> Optionnel(NSPrefix)
 {
     résultat: NSPrefix;
 
-    si parseuse.apparie_lexème_ident() {
-        résultat.espace = parseuse.lexème_courant().lexème.valeur;
-        parseuse.avance();
+    si apparie_lexème_ident(parseuse) {
+        résultat.espace = lexème_courant(parseuse).lexème.valeur;
+        avance(parseuse);
     }
-    sinon si parseuse.lexème_courant().est_lexème_fois() {
+    sinon si est_lexème_fois(lexème_courant(parseuse)) {
         résultat.espace = ChaineUTF16Unique('*' comme n32);
-        parseuse.avance();
+        avance(parseuse);
     }
 
-    si parseuse.lexème_courant().est_lexème_pipe() {
-        parseuse.avance();
+    si est_lexème_pipe(lexème_courant(parseuse)) {
+        avance(parseuse);
 
         /* Ignorons les appariements d'attibuts avec |=. */
-        si parseuse.lexème_courant().est_lexème_égal() {
+        si est_lexème_égal(lexème_courant(parseuse)) {
             retourne;
         }
 
@@ -1346,22 +1346,22 @@ parse_ns_prefix :: fonc (parseuse: *ParseuseSelector) -> Optionnel(NSPrefix)
                       <attribute-selector> | <pseudo-class-selector> */
 parse_subclass_selector :: fonc (parseuse: *ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
-    état := parseuse.parse_id_selector(résultat);
+    état := parse_id_selector(parseuse, résultat);
     si état != ÉtatParsage.EssaieEncore {
         retourne état;
     }
 
-    état = parseuse.parse_class_selector(résultat);
+    état = parse_class_selector(parseuse, résultat);
     si état != ÉtatParsage.EssaieEncore {
         retourne état;
     }
 
-    état = parseuse.parse_attribute_selector(résultat);
+    état = parse_attribute_selector(parseuse, résultat);
     si état != ÉtatParsage.EssaieEncore {
         retourne état;
     }
 
-    état = parseuse.parse_pseudo_class_selector(faux, résultat);
+    état = parse_pseudo_class_selector(parseuse, faux, résultat);
     si état != ÉtatParsage.EssaieEncore {
         retourne état;
     }
@@ -1372,16 +1372,16 @@ parse_subclass_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Simple
 /* <id-selector> = <hash-token> */
 parse_id_selector :: fonc (parseuse: *ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
-    lexème := parseuse.lexème_courant();
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Hash) {
+    lexème := lexème_courant(parseuse);
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Hash) {
         retourne ÉtatParsage.EssaieEncore;
     }
 
-    si lexème.lexème.valeur.donne_chaine_utf16().taille() == 0 {
+    si taille(donne_chaine_utf16(lexème.lexème.valeur)) == 0 {
         retourne ÉtatParsage.Erreur;
     }
 
-    parseuse.avance();
+    avance(parseuse);
     mémoire(résultat) = crée_id_selector(lexème.lexème.valeur);
     retourne ÉtatParsage.Ok;
 }
@@ -1392,7 +1392,7 @@ parse_class_selector :: fonc (parseuse: *ParseuseSelector, résultat: *SimpleSel
     parseuse_locale := mémoire(parseuse);
 
     lexème := lexème_courant(*parseuse_locale);
-    saufsi lexème.est_lexème_point() {
+    saufsi est_lexème_point(lexème) {
         retourne ÉtatParsage.EssaieEncore;
     }
     avance(*parseuse_locale);
@@ -1414,34 +1414,34 @@ parse_class_selector :: fonc (parseuse: *ParseuseSelector, résultat: *SimpleSel
  * <attr-modifier> = i | s */
 parse_attribute_selector :: fonc (parseuse: *ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
-    saufsi parseuse.lexème_courant().est_simple_bloc_de_genre(GenreLexème.Open_Square_Bracket) {
+    saufsi est_simple_bloc_de_genre(lexème_courant(parseuse), GenreLexème.Open_Square_Bracket) {
         retourne ÉtatParsage.EssaieEncore;
     }
 
-    bloc := parseuse.lexème_courant().bloc;
+    bloc := lexème_courant(parseuse).bloc;
 
     parseuse_locale := initialise_une_parseuse(bloc.value);
 
     opt_wq_name := parse_wq_name(*parseuse_locale);
-    saufsi opt_wq_name.possède_valeur() {
+    saufsi possède_valeur(opt_wq_name) {
         rapporte_erreur(*parseuse_locale, "wq_name invalide pour le selécteur d'attribut");
         retourne ÉtatParsage.Erreur;
     }
     wq_name := opt_wq_name.Quelque;
 
     espace_de_nom := crée_chaine_utf16_unique_vide();
-    si wq_name.ns_prefix.possède_valeur() {
+    si possède_valeur(wq_name.ns_prefix) {
         espace_de_nom = wq_name.ns_prefix.Quelque.espace;
     }
     
     si fini(*parseuse_locale) {
-        parseuse.avance();
+        avance(parseuse);
         mémoire(résultat) = crée_attribute_selector(espace_de_nom, wq_name.ident);
         retourne ÉtatParsage.Ok;
     }
 
     matcher := parse_attribute_matcher(*parseuse_locale);
-    saufsi matcher.possède_valeur() {
+    saufsi possède_valeur(matcher) {
         rapporte_erreur(*parseuse_locale, "matcher invalide");
         retourne ÉtatParsage.Erreur;
     }
@@ -1449,7 +1449,7 @@ parse_attribute_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Simpl
     lexème_courant := lexème_courant(*parseuse_locale);
     attribute_value: CSSOMString;
 
-    si lexème_courant.est_lexème_de_genre(GenreLexème.String) || lexème_courant.est_lexème_de_genre(GenreLexème.Ident) {
+    si est_lexème_de_genre(lexème_courant, GenreLexème.String) || est_lexème_de_genre(lexème_courant, GenreLexème.Ident) {
         attribute_value = lexème_courant.lexème.valeur;
         avance(*parseuse_locale);
     }
@@ -1463,7 +1463,7 @@ parse_attribute_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Simpl
     lexème_courant = lexème_courant(*parseuse_locale);
     modifier: Optionnel(SimpleSelector.AttributeModifier);
 
-    si lexème_courant.est_lexème_de_genre(GenreLexème.Ident) {
+    si est_lexème_de_genre(lexème_courant, GenreLexème.Ident) {
         valeur := lexème_courant.lexème.valeur;
 
         si valeur.valeur == ('i' comme n32) || valeur.valeur == ('I' comme n32) {
@@ -1481,7 +1481,7 @@ parse_attribute_selector :: fonc (parseuse: *ParseuseSelector, résultat: *Simpl
         retourne ÉtatParsage.Erreur;
     }
 
-    parseuse.avance();
+    avance(parseuse);
     mémoire(résultat) = crée_attribute_selector(espace_de_nom, wq_name.ident, matcher.Quelque, attribute_value, modifier);
     retourne ÉtatParsage.Ok;
 }
@@ -1491,39 +1491,39 @@ parse_attribute_matcher :: fonc (parseuse: *ParseuseSelector) -> Optionnel(Simpl
 {
     matcher: Optionnel(SimpleSelector.AttributeMatcher);
 
-    lexème_courant := parseuse.lexème_courant();
+    lexème_courant := lexème_courant(parseuse);
 
-    si lexème_courant.est_lexème_tilde() {
+    si est_lexème_tilde(lexème_courant) {
         matcher = SimpleSelector.AttributeMatcher.INCLUS;
-        parseuse.avance();
+        avance(parseuse);
     }
-    sinon si lexème_courant.est_lexème_pipe() {
+    sinon si est_lexème_pipe(lexème_courant) {
         matcher = SimpleSelector.AttributeMatcher.DASHMATCH;
-        parseuse.avance();
+        avance(parseuse);
     }
-    sinon si lexème_courant.est_lexème_circonflèxe() {
+    sinon si est_lexème_circonflèxe(lexème_courant) {
         matcher = SimpleSelector.AttributeMatcher.PREFIXMATCH;
-        parseuse.avance();
+        avance(parseuse);
     }
-    sinon si lexème_courant.est_lexème_dollar() {
+    sinon si est_lexème_dollar(lexème_courant) {
         matcher = SimpleSelector.AttributeMatcher.SUFFIXMATCH;
-        parseuse.avance();
+        avance(parseuse);
     }
-    sinon si lexème_courant.est_lexème_fois() {
+    sinon si est_lexème_fois(lexème_courant) {
         matcher = SimpleSelector.AttributeMatcher.SUBSTRINGMATCH;
-        parseuse.avance();
+        avance(parseuse);
     }
 
-    lexème_courant = parseuse.lexème_courant();
+    lexème_courant = lexème_courant(parseuse);
 
-    saufsi lexème_courant.est_lexème_égal() {
-        parseuse.rapporte_erreur("Attendu '=' pour le matcher");
+    saufsi est_lexème_égal(lexème_courant) {
+        rapporte_erreur(parseuse, "Attendu '=' pour le matcher");
         parseuse.possède_erreur = vrai;
         retourne;
     }
-    parseuse.avance();
+    avance(parseuse);
 
-    saufsi matcher.possède_valeur() {
+    saufsi possède_valeur(matcher) {
         matcher = SimpleSelector.AttributeMatcher.EST_ÉGAL;
     }
 
@@ -1536,7 +1536,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
 {
     parseuse_locale := mémoire(parseuse);
 
-    saufsi lexème_courant(*parseuse_locale).est_lexème_de_genre(GenreLexème.Colon) {
+    saufsi est_lexème_de_genre(lexème_courant(*parseuse_locale), GenreLexème.Colon) {
         retourne ÉtatParsage.EssaieEncore;
     }
 
@@ -1557,7 +1557,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
         }
 
         pseudo_classe := donne_pseudo_classe_pour_nom(ident);
-        saufsi pseudo_classe.possède_valeur() {
+        saufsi possède_valeur(pseudo_classe) {
             retourne ÉtatParsage.Erreur;
         }
 
@@ -1565,7 +1565,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
         retourne ÉtatParsage.Ok;
     }
 
-    si lexème_courant(*parseuse_locale).est_fonction() {
+    si est_fonction(lexème_courant(*parseuse_locale)) {
         fonction := lexème_courant(*parseuse_locale).function;
         nom_fonction := fonction.name;
 
@@ -1574,7 +1574,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
             avance(*parseuse_locale);
 
             opt_selectors := parse_selector_list(fonction.value);
-            si opt_selectors.possède_valeur() {
+            si possède_valeur(opt_selectors) {
                 parseuse.curseur = parseuse_locale.curseur;
                 mémoire(résultat) = crée_function_selector(nom_fonction, opt_selectors.Quelque);
                 retourne ÉtatParsage.Ok;
@@ -1586,7 +1586,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
 
             /* À FAIRE : ceci doit être parse_forgiving_selector_list */
             opt_selectors := parse_selector_list(fonction.value);
-            si opt_selectors.possède_valeur() {
+            si possède_valeur(opt_selectors) {
                 parseuse.curseur = parseuse_locale.curseur;
                 mémoire(résultat) = crée_function_selector(nom_fonction, opt_selectors.Quelque);
                 retourne ÉtatParsage.Ok;
@@ -1598,7 +1598,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
 
             /* À FAIRE : ceci doit être parse_forgiving_selector_list */
             opt_selectors := parse_selector_list(fonction.value);
-            si opt_selectors.possède_valeur() {
+            si possède_valeur(opt_selectors) {
                 parseuse.curseur = parseuse_locale.curseur;
                 mémoire(résultat) = crée_function_selector(nom_fonction, opt_selectors.Quelque);
                 retourne ÉtatParsage.Ok;
@@ -1610,7 +1610,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
 
             /* À FAIRE : ceci doit être parse_compound_selector */
             opt_selectors := parse_selector_list(fonction.value);
-            si opt_selectors.possède_valeur() {
+            si possède_valeur(opt_selectors) {
                 parseuse.curseur = parseuse_locale.curseur;
                 mémoire(résultat) = crée_function_selector(nom_fonction, opt_selectors.Quelque);
                 retourne ÉtatParsage.Ok;
@@ -1620,7 +1620,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
         sinon si nom_fonction == PROP_dir {
             avance(*parseuse_locale);
 
-            si fonction.value.taille == 1 && fonction.value[0].est_lexème_de_genre(GenreLexème.Ident) {
+            si fonction.value.taille == 1 && est_lexème_de_genre(fonction.value[0], GenreLexème.Ident) {
                 nom := fonction.value[0].lexème.valeur;
                 si nom == PROP_ltr || nom == PROP_rtl {
                     parseuse.curseur = parseuse_locale.curseur;
@@ -1633,7 +1633,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
             avance(*parseuse_locale);
 
             opt_nth_child := parse_nth_child(fonction.value);
-            saufsi opt_nth_child.possède_valeur() {
+            saufsi possède_valeur(opt_nth_child) {
                 retourne ÉtatParsage.Erreur;
             }
             
@@ -1647,7 +1647,7 @@ parse_pseudo_class_selector :: fonc (parseuse: *ParseuseSelector, pour_pseudo_el
             avance(*parseuse_locale);
 
             relative_selectors := parse_relative_selector_list(fonction.value);
-            saufsi relative_selectors.possède_valeur() {
+            saufsi possède_valeur(relative_selectors) {
                 retourne ÉtatParsage.Erreur;
             }
             
@@ -1675,11 +1675,11 @@ parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.Nt
 
     lexème := lexème_courant(*parseuse);
 
-    si lexème.est_mot_clé(PROP_odd) {
+    si est_mot_clé(lexème, PROP_odd) {
         retourne SimpleSelector.NthChild(2, 1);
     }
 
-    si lexème.est_mot_clé(PROP_even) {
+    si est_mot_clé(lexème, PROP_even) {
         retourne SimpleSelector.NthChild(2);
     }
 
@@ -1688,14 +1688,14 @@ parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.Nt
 
     A_est_négatif := faux;
     A: z32;
-    si lexème.est_lexème_moins() {
+    si est_lexème_moins(lexème) {
         /* -n */
         avance(*parseuse);
         A_est_négatif = vrai;
 
         consomme_espaces_blanches(*parseuse);
         lexème = lexème_courant(*parseuse);
-        saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        saufsi est_lexème_de_genre(lexème, GenreLexème.Ident) {
             retourne;
         }
         avance(*parseuse);
@@ -1706,21 +1706,21 @@ parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.Nt
 
         A = -1;
     }
-    sinon si lexème.est_mot_clé(chn_moins_n) {
+    sinon si est_mot_clé(lexème, chn_moins_n) {
         avance(*parseuse);
         A = -1;
     }
-    sinon si lexème.est_mot_clé(chn_n) {
+    sinon si est_mot_clé(lexème, chn_n) {
         avance(*parseuse);
         A = 1;
     }
     sinon {
-        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        si est_lexème_de_genre(lexème, GenreLexème.Number) {
             B := lexème.lexème.numeric_value comme z32;
             retourne SimpleSelector.NthChild(0, B);
         }
 
-        saufsi lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        saufsi est_lexème_de_genre(lexème, GenreLexème.Dimension) {
             retourne;
         }
         avance(*parseuse);
@@ -1735,10 +1735,10 @@ parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.Nt
 
     est_négatif := faux;
 
-    si lexème.est_lexème_plus() {
+    si est_lexème_plus(lexème) {
         avance(*parseuse);
     }
-    sinon si lexème.est_lexème_moins() {
+    sinon si est_lexème_moins(lexème) {
         avance(*parseuse);
         est_négatif = vrai;
     }
@@ -1751,7 +1751,7 @@ parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.Nt
 
     consomme_espaces_blanches(*parseuse);
     lexème = lexème_courant(*parseuse);
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Number) {
         retourne;
     }
 
@@ -1769,7 +1769,7 @@ parse_pseudo_element_selector :: fonc (parseuse: *ParseuseSelector, résultat: *
 {
     parseuse_locale := mémoire(parseuse);
 
-    saufsi lexème_courant(*parseuse_locale).est_lexème_de_genre(GenreLexème.Colon) {
+    saufsi est_lexème_de_genre(lexème_courant(*parseuse_locale), GenreLexème.Colon) {
         retourne ÉtatParsage.EssaieEncore;
     }
 
@@ -1790,33 +1790,33 @@ parse_combinateur :: fonc (parseuse: *ParseuseSelector, résultat: *Combinator) 
 
     combinateur: Optionnel(Combinator);
 
-    si parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Whitespace) {
+    si est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Whitespace) {
         /* À FAIRE : nouvelle ligne ? */
         combinateur = Combinator.DESCENDANT;
     }
 
     consomme_espaces_blanches(parseuse);
 
-    saufsi parseuse.fini() {
-        lexème := parseuse.lexème_courant();
+    saufsi fini(parseuse) {
+        lexème := lexème_courant(parseuse);
 
-        si lexème.est_lexème_greater() {
-            parseuse.avance();
+        si est_lexème_greater(lexème) {
+            avance(parseuse);
             combinateur = Combinator.CHILD;
         }
-        sinon si lexème.est_lexème_plus() {
-            parseuse.avance();
+        sinon si est_lexème_plus(lexème) {
+            avance(parseuse);
             combinateur = Combinator.NEXT_SIBLING;
         }
-        sinon si lexème.est_lexème_tilde() {
-            parseuse.avance();
+        sinon si est_lexème_tilde(lexème) {
+            avance(parseuse);
             combinateur = Combinator.SUBSEQUENT_SIBLING;
         }
-        sinon si lexème.est_lexème_pipe() {
-            parseuse.avance();
-            lexème = parseuse.lexème_courant();
-            si lexème.est_lexème_pipe() {
-                parseuse.avance();
+        sinon si est_lexème_pipe(lexème) {
+            avance(parseuse);
+            lexème = lexème_courant(parseuse);
+            si est_lexème_pipe(lexème) {
+                avance(parseuse);
                 combinateur = Combinator.COLUMN;
             }
             sinon {
@@ -1827,7 +1827,7 @@ parse_combinateur :: fonc (parseuse: *ParseuseSelector, résultat: *Combinator) 
         consomme_espaces_blanches(parseuse);
     }
 
-    si combinateur.possède_valeur() {
+    si possède_valeur(combinateur) {
         mémoire(résultat) = combinateur.Quelque;
         retourne ÉtatParsage.Ok;
     }
@@ -1885,15 +1885,15 @@ parse_a_media_query :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQuery
 
     not_rencontré := faux;
 
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
-    si lexème.est_mot_clé(PROP_only) {
-        parseuse.avance();
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
+    si est_mot_clé(lexème, PROP_only) {
+        avance(parseuse);
         /* Rien à faire, 'only' est uniquement utilisé pour désactiver la
          * requête sur les agents ne supportant pas la nouvelle syntaxe post-HTML4. */
     }
-    sinon si lexème.est_mot_clé(PROP_not) {
-        parseuse.avance();
+    sinon si est_mot_clé(lexème, PROP_not) {
+        avance(parseuse);
         not_rencontré = vrai;
     }
 
@@ -1902,10 +1902,10 @@ parse_a_media_query :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQuery
         retourne nul;
     }
 
-    parseuse.consomme_espaces_blanches();
-    lexème = parseuse.lexème_courant();
-    si lexème.est_mot_clé(PROP_and) {
-        parseuse.avance();
+    consomme_espaces_blanches(parseuse);
+    lexème = lexème_courant(parseuse);
+    si est_mot_clé(lexème, PROP_and) {
+        avance(parseuse);
 
         droite := parse_a_media_condition_without_or(parseuse);
         saufsi droite {
@@ -1925,12 +1925,12 @@ parse_a_media_query :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQuery
 // <media-type> = <ident>
 parse_a_media_type :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQuery
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
 
-    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-        parseuse.avance();
-        ident := lexème.donne_texte();
+    si est_lexème_de_genre(lexème, GenreLexème.Ident) {
+        avance(parseuse);
+        ident := donne_texte(lexème);
         retourne crée_media_query_type(ident);
     }
 
@@ -1952,12 +1952,12 @@ parse_a_media_condition :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQ
 
     gauche := media_in_parens;
 
-    tantque !parseuse.fini() {
-        parseuse.consomme_espaces_blanches();
-        lexème := parseuse.lexème_courant();
+    tantque !fini(parseuse) {
+        consomme_espaces_blanches(parseuse);
+        lexème := lexème_courant(parseuse);
 
-        si lexème.est_mot_clé(PROP_and) {
-            parseuse.avance();
+        si est_mot_clé(lexème, PROP_and) {
+            avance(parseuse);
 
             media_and := parse_a_media_and(parseuse, gauche);
             saufsi media_and {
@@ -1968,8 +1968,8 @@ parse_a_media_condition :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQ
             continue;
         }
 
-        si lexème.est_mot_clé(PROP_or) {
-            parseuse.avance();
+        si est_mot_clé(lexème, PROP_or) {
+            avance(parseuse);
 
             media_or := parse_a_media_or(parseuse, gauche);
             saufsi media_or {
@@ -1980,12 +1980,12 @@ parse_a_media_condition :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQ
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
-            parseuse.avance();
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
+            avance(parseuse);
             arrête;
         }
 
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
     }
 
     retourne gauche;
@@ -2006,12 +2006,12 @@ parse_a_media_condition_without_or :: fonc (parseuse: *Parseuse(ComponentValue))
 
     gauche := media_in_parens;
 
-    tantque !parseuse.fini() {
-        parseuse.consomme_espaces_blanches();
-        lexème := parseuse.lexème_courant();
+    tantque !fini(parseuse) {
+        consomme_espaces_blanches(parseuse);
+        lexème := lexème_courant(parseuse);
 
-        si lexème.est_mot_clé(PROP_and) {
-            parseuse.avance();
+        si est_mot_clé(lexème, PROP_and) {
+            avance(parseuse);
 
             media_and := parse_a_media_and(parseuse, gauche);
             saufsi media_and {
@@ -2022,12 +2022,12 @@ parse_a_media_condition_without_or :: fonc (parseuse: *Parseuse(ComponentValue))
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
-            parseuse.avance();
+        si est_lexème_de_genre(lexème, GenreLexème.EOF) {
+            avance(parseuse);
             arrête;
         }
 
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
     }
 
     retourne gauche;
@@ -2036,14 +2036,14 @@ parse_a_media_condition_without_or :: fonc (parseuse: *Parseuse(ComponentValue))
 // <media-not> = not <media-in-parens>
 parse_a_media_not :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQuery
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
     
-    saufsi lexème.est_mot_clé(PROP_not) {
+    saufsi est_mot_clé(lexème, PROP_not) {
         retourne nul;
     }
 
-    parseuse.avance();
+    avance(parseuse);
 
     opérande := parse_a_media_in_parens(parseuse);
     saufsi opérande {
@@ -2057,14 +2057,14 @@ parse_a_media_not :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQuery
 // <media-and> = and <media-in-parens>
 parse_a_media_and :: fonc (parseuse: *Parseuse(ComponentValue), gauche: *MediaQuery) -> *MediaQuery
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
     
-    saufsi lexème.est_mot_clé(PROP_and) {
+    saufsi est_mot_clé(lexème, PROP_and) {
         retourne nul;
     }
 
-    parseuse.avance();
+    avance(parseuse);
 
     droite := parse_a_media_in_parens(parseuse);
     saufsi droite {
@@ -2077,14 +2077,14 @@ parse_a_media_and :: fonc (parseuse: *Parseuse(ComponentValue), gauche: *MediaQu
 // <media-or> = or <media-in-parens>
 parse_a_media_or :: fonc (parseuse: *Parseuse(ComponentValue), gauche: *MediaQuery) -> *MediaQuery
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
     
-    saufsi lexème.est_mot_clé(PROP_or) {
+    saufsi est_mot_clé(lexème, PROP_or) {
         retourne nul;
     }
 
-    parseuse.avance();
+    avance(parseuse);
 
     droite := parse_a_media_in_parens(parseuse);
     saufsi droite {
@@ -2097,14 +2097,14 @@ parse_a_media_or :: fonc (parseuse: *Parseuse(ComponentValue), gauche: *MediaQue
 // <media-in-parens> = ( <media-condition> ) | ( <media-feature> ) | <general-enclosed>
 parse_a_media_in_parens :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQuery
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
 
-    saufsi lexème.est_simple_bloc_de_genre(GenreLexème.Open_Parenthesis) {
+    saufsi est_simple_bloc_de_genre(lexème, GenreLexème.Open_Parenthesis) {
         retourne nul;
     }
 
-    parseuse.avance();
+    avance(parseuse);
 
     bloc := lexème.bloc;
 
@@ -2133,7 +2133,7 @@ parse_a_media_feature :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQue
     parseuse_locale := mémoire(parseuse);
     opt_mf_plain := parse_mf_plain(*parseuse_locale);
     parseuse.possède_erreur = parseuse_locale.possède_erreur;
-    si opt_mf_plain.possède_valeur() {
+    si possède_valeur(opt_mf_plain) {
         parseuse.curseur = parseuse_locale.curseur;
         retourne crée_media_query_feature(opt_mf_plain.Quelque);
     }
@@ -2141,7 +2141,7 @@ parse_a_media_feature :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQue
     parseuse_locale = mémoire(parseuse);
     opt_mf_boolean := parse_mf_boolean(*parseuse_locale);
     parseuse.possède_erreur = parseuse_locale.possède_erreur;
-    si opt_mf_boolean.possède_valeur() {
+    si possède_valeur(opt_mf_boolean) {
         parseuse.curseur = parseuse_locale.curseur;
         retourne crée_media_query_feature(opt_mf_boolean.Quelque);
     }
@@ -2160,19 +2160,19 @@ parse_a_media_feature :: fonc (parseuse: *Parseuse(ComponentValue)) -> *MediaQue
 parse_mf_plain :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(MediaFeaturePlain)
 {
     opt_mf_name := parse_mf_name(parseuse);
-    saufsi opt_mf_name.possède_valeur() {
+    saufsi possède_valeur(opt_mf_name) {
         retourne;
     }
 
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Colon) {
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Colon) {
         retourne;
     }
-    parseuse.avance();
+    avance(parseuse);
 
-    opt_value := parseuse.parse_mf_value();
-    saufsi opt_value.possède_valeur() {
+    opt_value := parse_mf_value(parseuse);
+    saufsi possède_valeur(opt_value) {
         parseuse.possède_erreur = vrai;
         retourne;
     }
@@ -2187,7 +2187,7 @@ parse_mf_plain :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(MediaF
 parse_mf_boolean :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(MediaFeatureBoolean)
 {
     opt_mf_name := parse_mf_name(parseuse);
-    saufsi opt_mf_name.possède_valeur() {
+    saufsi possède_valeur(opt_mf_name) {
         retourne;
     }
 
@@ -2204,34 +2204,34 @@ parse_mf_boolean :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(Medi
 // <mf-name> = <ident>
 parse_mf_name :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
 
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Ident) {
         retourne;
     }
 
-    parseuse.avance();
-    retourne lexème.donne_texte();
+    avance(parseuse);
+    retourne donne_texte(lexème);
 }
 
 // <mf-value> = <number> | <dimension> | <ident> | <ratio>
 parse_mf_value :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(MediaFeatureValue)
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
 
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        parseuse.avance();
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
+        avance(parseuse);
         retourne MediaFeatureValue(number = lexème.lexème.numeric_value);
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+    si est_lexème_de_genre(lexème, GenreLexème.Dimension) {
         données_lexème := lexème.lexème;
 
         unité := donne_unité_pour_nom(données_lexème.unité);
-        si unité.possède_valeur() {
-            parseuse.avance();
+        si possède_valeur(unité) {
+            avance(parseuse);
             longueur := Longueur(données_lexème.numeric_value, unité.Quelque);
             retourne MediaFeatureValue(dimension = longueur);
         }
@@ -2239,9 +2239,9 @@ parse_mf_value :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(MediaF
         retourne;
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-        parseuse.avance();
-        retourne MediaFeatureValue(ident = lexème.donne_texte());
+    si est_lexème_de_genre(lexème, GenreLexème.Ident) {
+        avance(parseuse);
+        retourne MediaFeatureValue(ident = donne_texte(lexème));
     }
 
     // À FAIRE : calc
@@ -2296,8 +2296,8 @@ commence_par_préfixe_vendeur :: fonc (nom: CSSOMString) -> bool
     préfixes_vendeurs := [PRV_khtml, PRV_moz, PRV_ms, PRV_o, PRV_webkit];
 
     pour préfixes_vendeurs {
-        préfixe := it.donne_chaine_utf16();
-        si est_préfixe_de(préfixe, nom.donne_chaine_utf16()) {
+        préfixe := donne_chaine_utf16(it);
+        si est_préfixe_de(préfixe, donne_chaine_utf16(nom)) {
             retourne vrai;
         }
     }
@@ -2353,7 +2353,7 @@ parse_a_rule_generic :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_
 parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedQualifiedRule) -> *CSSStyleRule
 {
     selectors := parse_selector_list(parsed_rule.prelude);
-    saufsi selectors.possède_valeur() {
+    saufsi possède_valeur(selectors) {
         /* Si nous n'arrivons pas à parser les sélecteurs,
          * nous devons ignorer la règle. */
         retourne nul;
@@ -2433,7 +2433,7 @@ contexte_parsage_shorthand_ajoute_propriété :: fonc (ctx: *ContexteParsageShor
     tableau_ajoute(*déclaration.value, copie_valeur(valeur));
     déclaration.important = ctx.déclaration_parsée.important;
 
-    ctx.déclaration.ajoute_déclaration(déclaration);
+    ajoute_déclaration(ctx.déclaration, déclaration);
 }
 
 /* Les valeurs et noms doivent être données dans l'ordre : top, right, bottom, left. Voir #BorderEdge. */
@@ -2483,12 +2483,12 @@ parse_mot_clé_global :: fonc (ctx: *ContexteParsageShorthand, noms_propriétés
 {
     parseuse := initialise_une_parseuse(value);
     valeur := parse_css_wide_keyword(*parseuse);
-    saufsi valeur.possède_valeur() {
+    saufsi possède_valeur(valeur) {
         retourne faux;
     }
 
     pour noms_propriétés {
-        ctx.ajoute_propriété(it, valeur.Quelque);
+        ajoute_propriété(ctx, it, valeur.Quelque);
     }
 
     retourne vrai;
@@ -2497,7 +2497,7 @@ parse_mot_clé_global :: fonc (ctx: *ContexteParsageShorthand, noms_propriétés
 parse_shorthand_avec_variable :: fonc (ctx: *ContexteParsageShorthand, info_type_propriété: *InfoTypePropriété, value: []ComponentValue) -> bool
 {
     pour value {
-        si it.est_fonction(PROP_var) {
+        si est_fonction(it, PROP_var) {
             arrête;
         }
     }
@@ -2512,7 +2512,7 @@ parse_shorthand_avec_variable :: fonc (ctx: *ContexteParsageShorthand, info_type
     déclaration.est_shorthand_avec_variable = vrai;
     déclaration.valeur_personnalisée = copie_tableau_component_value(value);
 
-    ctx.déclaration.ajoute_déclaration(déclaration);
+    ajoute_déclaration(ctx.déclaration, déclaration);
 
     retourne vrai;
 }
@@ -2528,7 +2528,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
             déclaration.case_sensitive = vrai;
             déclaration.est_personnalisée = vrai;
             déclaration.valeur_personnalisée = copie_tableau_component_value(it.value);
-            résultat.ajoute_déclaration(déclaration);
+            ajoute_déclaration(résultat, déclaration);
             continue;
         }
 
@@ -2554,7 +2554,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
         }
 
         opt_valeur := parse_valeur_propriété(info_type_propriété, it.value);
-        saufsi opt_valeur.possède_valeur() {
+        saufsi possède_valeur(opt_valeur) {
             rapporte_erreur_de_parsage(it);
             continue;
         }
@@ -2565,7 +2565,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
         tableau_ajoute(*déclaration.value, opt_valeur.Quelque);
         déclaration.important = it.important;
 
-        résultat.ajoute_déclaration(déclaration);
+        ajoute_déclaration(résultat, déclaration);
     }
 
     retourne résultat;
@@ -2578,12 +2578,12 @@ rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
     }
 
     pour déclaration.value {
-        si it.est_lexème_de_genre(GenreLexème.Ident) {
+        si est_lexème_de_genre(it, GenreLexème.Ident) {
             si commence_par_préfixe_vendeur(it.lexème.valeur) {
                 retourne;
             }
         }
-        sinon si it.est_fonction() {
+        sinon si est_fonction(it) {
             fonction := it.function;
             si commence_par_préfixe_vendeur(fonction.name) {
                 retourne;
@@ -2600,21 +2600,21 @@ rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
 parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     opt_valeur := info_type_propriété.fonction_de_parsage(value);
-    si opt_valeur.possède_valeur() {
+    si possède_valeur(opt_valeur) {
         retourne opt_valeur;
     }
 
     parseuse := initialise_une_parseuse(value);
     opt_valeur = parse_mot_clé_global_ou_var(*parseuse);
-    si opt_valeur.possède_valeur() {
+    si possède_valeur(opt_valeur) {
         retourne opt_valeur;
     }
 }
 
 est_propriété_personnalisée :: fonc (nom: CSSOMString) -> bool
 {
-    chn := nom.donne_chaine_utf16();
-    si chn.taille() < 2 {
+    chn := donne_chaine_utf16(nom);
+    si taille(chn) < 2 {
         retourne faux;
     }
 
@@ -2860,24 +2860,24 @@ parse_css_wide_keyword :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionne
 parse_mot_clé_global_ou_var :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     opt_valeur := parse_css_wide_keyword(parseuse);
-    si opt_valeur.possède_valeur() {
+    si possède_valeur(opt_valeur) {
         retourne opt_valeur;
     }
 
     opt_variable := parse_variable(parseuse);
-    si opt_variable.possède_valeur() {
+    si possède_valeur(opt_variable) {
         retourne opt_variable.Quelque;
     }
 }
 
 parse_mot_clé :: fonc (parseuse: *Parseuse(ComponentValue), mots_clés: []CSSOMString) -> Optionnel(*ValeurDeStyle)
 {
-    lexème := parseuse.lexème_courant();
+    lexème := lexème_courant(parseuse);
 
     pour mots_clés {
-        si lexème.est_identifiant(it) {
-            parseuse.avance();
-            retourne crée_valeur_mot_clé(lexème.donne_texte());
+        si est_identifiant(lexème, it) {
+            avance(parseuse);
+            retourne crée_valeur_mot_clé(donne_texte(lexème));
         }
     }
 }
@@ -2885,18 +2885,18 @@ parse_mot_clé :: fonc (parseuse: *Parseuse(ComponentValue), mots_clés: []CSSOM
 /* https://drafts.csswg.org/css-values-4/#lengths */
 parse_valeur_length :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne;
     }
 
-    lexème := parseuse.lexème_courant();
+    lexème := lexème_courant(parseuse);
 
-    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+    si est_lexème_de_genre(lexème, GenreLexème.Dimension) {
         données_lexème := lexème.lexème;
 
         unité := donne_unité_pour_nom(données_lexème.unité);
-        si unité.possède_valeur() {
-            parseuse.avance();
+        si possède_valeur(unité) {
+            avance(parseuse);
             longueur := Longueur(données_lexème.numeric_value, unité.Quelque);
             retourne crée_valeur_longueur(longueur);
         }
@@ -2904,14 +2904,14 @@ parse_valeur_length :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*
         retourne;
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
         /* Pour <length>, si l'unité est manquante, seul 0 est valide. */
         valeur := lexème.lexème.numeric_value;
         si valeur != 0.0 {
             retourne;
         }
 
-        parseuse.avance();
+        avance(parseuse);
 
         si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
             retourne crée_valeur_integer(valeur);
@@ -2926,8 +2926,8 @@ parse_valeur_length :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*
 parse_valeur_length_positive :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_length(parseuse);
-    si valeur.possède_valeur() {
-        si valeur.Quelque.est_négative() {
+    si possède_valeur(valeur) {
+        si est_négative(valeur.Quelque) {
             retourne;
         }
         retourne valeur;
@@ -2936,28 +2936,28 @@ parse_valeur_length_positive :: fonc (parseuse: *Parseuse(ComponentValue)) -> Op
 
 parse_valeur_percentage :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne;
     }
 
-    lexème := parseuse.lexème_courant();
+    lexème := lexème_courant(parseuse);
 
-    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
-        parseuse.avance();
+    si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
+        avance(parseuse);
         retourne crée_valeur_percentage(lexème.lexème.numeric_value);
     }
 }
 
 parse_valeur_number :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne;
     }
 
-    lexème := parseuse.lexème_courant();
+    lexème := lexème_courant(parseuse);
 
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        parseuse.avance();
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
+        avance(parseuse);
 
         si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
             retourne crée_valeur_integer(lexème.lexème.numeric_value);
@@ -2970,8 +2970,8 @@ parse_valeur_number :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*
 parse_valeur_number_positive :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_number(parseuse);
-    si valeur.possède_valeur() {
-        si valeur.Quelque.est_négative() {
+    si possède_valeur(valeur) {
+        si est_négative(valeur.Quelque) {
             retourne;
         }
         retourne valeur;
@@ -2981,7 +2981,7 @@ parse_valeur_number_positive :: fonc (parseuse: *Parseuse(ComponentValue)) -> Op
 parse_valeur_length_percentage :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     length := parse_valeur_length(parseuse);
-    si length.possède_valeur() {
+    si possède_valeur(length) {
         retourne length;
     }
     retourne parse_valeur_percentage(parseuse);
@@ -2990,8 +2990,8 @@ parse_valeur_length_percentage :: fonc (parseuse: *Parseuse(ComponentValue)) -> 
 parse_valeur_length_percentage_positive :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_length_percentage(parseuse);
-    si valeur.possède_valeur() {
-        si valeur.Quelque.est_négative() {
+    si possède_valeur(valeur) {
+        si est_négative(valeur.Quelque) {
             retourne;
         }
         retourne valeur;
@@ -3000,9 +3000,9 @@ parse_valeur_length_percentage_positive :: fonc (parseuse: *Parseuse(ComponentVa
 
 parse_valeur_length_percentage_ou_auto :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    lexème := parseuse.lexème_courant();
-    si lexème.est_mot_clé(PROP_auto) {
-        parseuse.avance();
+    lexème := lexème_courant(parseuse);
+    si est_mot_clé(lexème, PROP_auto) {
+        avance(parseuse);
         retourne donne_valeur_auto();
     }
     retourne parse_valeur_length_percentage(parseuse);
@@ -3011,8 +3011,8 @@ parse_valeur_length_percentage_ou_auto :: fonc (parseuse: *Parseuse(ComponentVal
 parse_valeur_length_percentage_positive_ou_auto :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_length_percentage_ou_auto(parseuse);
-    si valeur.possède_valeur() {
-        si valeur.Quelque.est_négative() {
+    si possède_valeur(valeur) {
+        si est_négative(valeur.Quelque) {
             retourne;
         }
         retourne valeur;
@@ -3023,12 +3023,12 @@ parse_valeur_length_percentage_positive_ou_auto :: fonc (parseuse: *Parseuse(Com
  * <calc()>  = calc( <calc-sum> ) */
 parse_calc_function :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne;
     }
 
-    lexème := parseuse.lexème_courant();
-    saufsi lexème.est_fonction(PROP_calc) {
+    lexème := lexème_courant(parseuse);
+    saufsi est_fonction(lexème, PROP_calc) {
         retourne;
     }
 
@@ -3041,7 +3041,7 @@ parse_calc_function :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*
         retourne;
     }
 
-    parseuse.avance();
+    avance(parseuse);
 
     résultat := crée_valeur_calc(CalcFunction(valeurs));
     retourne résultat;
@@ -3050,28 +3050,28 @@ parse_calc_function :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*
 /* <calc-sum> = <calc-product> [ [ '+' | '-' ] <calc-product> ]* */
 parse_calc_sum :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..]NoeudDeCalcul) -> bool
 {
-    saufsi parseuse.parse_calc_product(résultat) {
+    saufsi parse_calc_product(parseuse, résultat) {
         retourne faux;
     }
 
-    tantque !parseuse.fini() {
-        parseuse.consomme_espaces_blanches();
-        lexème := parseuse.lexème_courant();
+    tantque !fini(parseuse) {
+        consomme_espaces_blanches(parseuse);
+        lexème := lexème_courant(parseuse);
         opérateur_calc: OpérateurCalc;
-        si lexème.est_lexème_plus() {
-            parseuse.avance();
+        si est_lexème_plus(lexème) {
+            avance(parseuse);
             opérateur_calc = OpérateurCalc.Plus;
         }
-        sinon si lexème.est_lexème_moins() {
-            parseuse.avance();
+        sinon si est_lexème_moins(lexème) {
+            avance(parseuse);
             opérateur_calc = OpérateurCalc.Moins;
         }
         sinon {
             arrête;
         }
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
 
-        saufsi parseuse.parse_calc_product(résultat) {
+        saufsi parse_calc_product(parseuse, résultat) {
             retourne faux;
         }
 
@@ -3084,29 +3084,29 @@ parse_calc_sum :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..]Noe
 /* <calc-product> = <calc-value> [ [ '*' | '/' ] <calc-value> ]* */
 parse_calc_product :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..]NoeudDeCalcul) -> bool
 {
-    saufsi parseuse.parse_calc_value(résultat) {
+    saufsi parse_calc_value(parseuse, résultat) {
         retourne faux;
     }
 
-    tantque !parseuse.fini() {
-        parseuse.consomme_espaces_blanches();
-        lexème := parseuse.lexème_courant();
+    tantque !fini(parseuse) {
+        consomme_espaces_blanches(parseuse);
+        lexème := lexème_courant(parseuse);
         opérateur_calc: OpérateurCalc;
-        si lexème.est_lexème_fois() {
-            parseuse.avance();
+        si est_lexème_fois(lexème) {
+            avance(parseuse);
             opérateur_calc = OpérateurCalc.Fois;
         }
-        sinon si lexème.est_lexème_slash() {
-            parseuse.avance();
+        sinon si est_lexème_slash(lexème) {
+            avance(parseuse);
             opérateur_calc = OpérateurCalc.Divise;
         }
         sinon {
             arrête;
         }
 
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
 
-        saufsi parseuse.parse_calc_value(résultat) {
+        saufsi parse_calc_value(parseuse, résultat) {
             retourne faux;
         }
 
@@ -3119,15 +3119,15 @@ parse_calc_product :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..
 /* <calc-value> = <number> | <dimension> | <percentage> | <calc-keyword> | ( <calc-sum> ) */
 parse_calc_value :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..]NoeudDeCalcul) -> bool
 {
-    parseuse.consomme_espaces_blanches();
+    consomme_espaces_blanches(parseuse);
 
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne faux;
     }
 
-    lexème := parseuse.lexème_courant();
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        parseuse.avance();
+    lexème := lexème_courant(parseuse);
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
+        avance(parseuse);
 
         si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
             tableau_ajoute(résultat, NoeudDeCalcul(valeur = crée_valeur_integer(lexème.lexème.numeric_value)));
@@ -3139,12 +3139,12 @@ parse_calc_value :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..]N
         retourne vrai;
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+    si est_lexème_de_genre(lexème, GenreLexème.Dimension) {
         données_lexème := lexème.lexème;
 
         unité := donne_unité_pour_nom(données_lexème.unité);
-        si unité.possède_valeur() {
-            parseuse.avance();
+        si possède_valeur(unité) {
+            avance(parseuse);
             longueur := Longueur(données_lexème.numeric_value, unité.Quelque);
             tableau_ajoute(résultat, NoeudDeCalcul(valeur = crée_valeur_longueur(longueur)));
             retourne vrai;
@@ -3153,34 +3153,34 @@ parse_calc_value :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..]N
         retourne faux;
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
-        parseuse.avance();
+    si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
+        avance(parseuse);
         tableau_ajoute(résultat, NoeudDeCalcul(valeur = crée_valeur_percentage(lexème.lexème.numeric_value)));
         retourne vrai;
     }
 
     // À FAIRE : <calc-keyword>, var()
 
-    si lexème.est_lexème_de_genre(GenreLexème.Open_Parenthesis) {
-        parseuse.avance();
-        saufsi parseuse.parse_calc_sum(résultat) {
+    si est_lexème_de_genre(lexème, GenreLexème.Open_Parenthesis) {
+        avance(parseuse);
+        saufsi parse_calc_sum(parseuse, résultat) {
             retourne faux;
         }
 
-        si parseuse.fini() {
+        si fini(parseuse) {
             retourne faux;
         }
 
-        lexème = parseuse.lexème_courant();
-        saufsi lexème.est_lexème_de_genre(GenreLexème.Close_Parenthesis) {
+        lexème = lexème_courant(parseuse);
+        saufsi est_lexème_de_genre(lexème, GenreLexème.Close_Parenthesis) {
             retourne faux;
         }
 
-        parseuse.avance();
+        avance(parseuse);
         retourne vrai;
     }
 
-    si lexème.est_simple_bloc_de_genre(GenreLexème.Open_Parenthesis) {
+    si est_simple_bloc_de_genre(lexème, GenreLexème.Open_Parenthesis) {
         bloc := lexème.bloc;
         parseuse_bloc := initialise_une_parseuse(bloc.value);
 
@@ -3188,7 +3188,7 @@ parse_calc_value :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..]N
             retourne faux;
         }
 
-        parseuse.avance();
+        avance(parseuse);
         retourne vrai;
     }
 
@@ -3197,13 +3197,13 @@ parse_calc_value :: fonc (parseuse: *Parseuse(ComponentValue), résultat: *[..]N
 
 parse_variable :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    parseuse.consomme_espaces_blanches();
-    si parseuse.fini() {
+    consomme_espaces_blanches(parseuse);
+    si fini(parseuse) {
         retourne;
     }
 
-    lexème := parseuse.lexème_courant();
-    saufsi lexème.est_fonction(PROP_var) {
+    lexème := lexème_courant(parseuse);
+    saufsi est_fonction(lexème, PROP_var) {
         retourne;
     }
 
@@ -3213,20 +3213,20 @@ parse_variable :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*Valeu
 
 parse_variables_depuis_arguments :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    parseuse.consomme_espaces_blanches();
+    consomme_espaces_blanches(parseuse);
 
-    lexème := parseuse.lexème_courant();
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+    lexème := lexème_courant(parseuse);
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Ident) {
         retourne;
     }
 
-    nom := lexème.donne_texte();
-    saufsi nom.est_propriété_personnalisée() {
+    nom := donne_texte(lexème);
+    saufsi est_propriété_personnalisée(nom) {
         retourne;
     }
 
-    parseuse.avance();
-    parseuse.consomme_espaces_blanches();
+    avance(parseuse);
+    consomme_espaces_blanches(parseuse);
 
     // À FAIRE : fallback
 
@@ -3240,7 +3240,7 @@ parse_propriété_number :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
 {
     parseuse := initialise_une_parseuse(value);
     lexème := lexème_courant(*parseuse);
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
         retourne crée_valeur_number(lexème.lexème.numeric_value);
     }
 }
@@ -3249,10 +3249,10 @@ parse_propriété_number_ou_pourcentage :: fonc (value: []ComponentValue) -> Opt
 {
     parseuse := initialise_une_parseuse(value);
     lexème := lexème_courant(*parseuse);
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
         retourne crée_valeur_number(lexème.lexème.numeric_value);
     }
-    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+    si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
         retourne crée_valeur_percentage(lexème.lexème.numeric_value / 100.0);
     }
 }
@@ -3261,10 +3261,10 @@ parse_propriété_number_ou_auto :: fonc (value: []ComponentValue) -> Optionnel(
 {
     parseuse := initialise_une_parseuse(value);
     lexème := lexème_courant(*parseuse);
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
         retourne crée_valeur_number(lexème.lexème.numeric_value);
     }
-    si lexème.est_mot_clé(PROP_auto) {
+    si est_mot_clé(lexème, PROP_auto) {
         retourne donne_valeur_auto();
     }
 }
@@ -3280,10 +3280,10 @@ parse_propriété_all :: fonc (ctx: *ContexteParsageShorthand, value: []Componen
 {
     parseuse := initialise_une_parseuse(value);
     opt_valeur := parse_css_wide_keyword(*parseuse);
-    si opt_valeur.possède_valeur() {
+    si possède_valeur(opt_valeur) {
         valeur := opt_valeur.Quelque;
         pour * infos_types_propriétés {
-            ctx.ajoute_propriété(it.nom, valeur);
+            ajoute_propriété(ctx, it.nom, valeur);
         }
         retourne vrai;
     }
@@ -3302,33 +3302,33 @@ parse_propriété_display :: fonc (value: []ComponentValue) -> Optionnel(*Valeur
     parseuse := initialise_une_parseuse(value);
 
     mot_clé := parse_display_legacy(*parseuse);
-    si mot_clé.possède_valeur() {
+    si possède_valeur(mot_clé) {
         retourne mot_clé;
     }
 
     mot_clé = parse_display_outside(*parseuse);
-    si mot_clé.possède_valeur() {
+    si possède_valeur(mot_clé) {
         retourne mot_clé;
     }
 
     mot_clé = parse_display_inside(*parseuse);
-    si mot_clé.possède_valeur() {
+    si possède_valeur(mot_clé) {
         retourne mot_clé;
     }
 
     mot_clé = parse_display_box(*parseuse);
-    si mot_clé.possède_valeur() {
+    si possède_valeur(mot_clé) {
         retourne mot_clé;
     }
 
     mot_clé = parse_display_internal(*parseuse);
-    si mot_clé.possède_valeur() {
+    si possède_valeur(mot_clé) {
         retourne mot_clé;
     }
 
     lexème := lexème_courant(*parseuse);
-    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-        si lexème.donne_texte() == PROP_list_item {
+    si est_lexème_de_genre(lexème, GenreLexème.Ident) {
+        si donne_texte(lexème) == PROP_list_item {
             retourne crée_valeur_mot_clé(PROP_list_item);
         }
     }
@@ -3344,7 +3344,7 @@ parse_display_inside :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(
 parse_display_outside :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     opt_mot_clé := parse_css_wide_keyword(parseuse);
-    si opt_mot_clé.possède_valeur() {
+    si possède_valeur(opt_mot_clé) {
         retourne opt_mot_clé;
     }
 
@@ -3356,7 +3356,7 @@ parse_display_outside :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel
 parse_display_box :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     opt_mot_clé := parse_css_wide_keyword(parseuse);
-    si opt_mot_clé.possède_valeur() {
+    si possède_valeur(opt_mot_clé) {
         retourne opt_mot_clé;
     }
 
@@ -3415,7 +3415,7 @@ parse_propriété_color :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDe
         consomme_espaces_blanches(*parseuse);
 
         valeur := parse_valeur_couleur(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             retourne valeur;
         }
 
@@ -3425,21 +3425,21 @@ parse_propriété_color :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDe
 
 parse_valeur_couleur :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne;
     }
 
-    lexème := parseuse.lexème_courant();
+    lexème := lexème_courant(parseuse);
 
-    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-        opt_couleur := trouve_couleur_pour_mot_clé(lexème.donne_texte());
-        si opt_couleur.possède_valeur() {
-            parseuse.avance();
+    si est_lexème_de_genre(lexème, GenreLexème.Ident) {
+        opt_couleur := trouve_couleur_pour_mot_clé(donne_texte(lexème));
+        si possède_valeur(opt_couleur) {
+            avance(parseuse);
             retourne crée_valeur_couleur(opt_couleur.Quelque);
         }
 
-        si compare_ascii_insensible_à_la_casse(lexème.donne_texte(), PROP_currentColor) {
-            parseuse.avance();
+        si compare_ascii_insensible_à_la_casse(donne_texte(lexème), PROP_currentColor) {
+            avance(parseuse);
             retourne donne_valeur_currentColor();
         }
 
@@ -3447,8 +3447,8 @@ parse_valeur_couleur :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(
     }
 
     /* https://www.w3.org/TR/css-color-4/#typedef-hex-color */
-    si lexème.est_lexème_de_genre(GenreLexème.Hash) {
-        valeur := lexème.donne_texte().donne_chaine_utf16();
+    si est_lexème_de_genre(lexème, GenreLexème.Hash) {
+        valeur := donne_chaine_utf16(donne_texte(lexème));
 
         pour valeur.unités {
             saufsi est_chiffre_hexadecimal_ascii(it) {
@@ -3457,25 +3457,25 @@ parse_valeur_couleur :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(
         }
 
         couleur: CouleurRVBAN8;
-        si valeur.taille() == 3 {
+        si taille(valeur) == 3 {
             couleur.r = (valeur_hex_depuis_unité(valeur.unités[0]) comme r32 / 15.0 * 255.0) comme n8;
             couleur.v = (valeur_hex_depuis_unité(valeur.unités[1]) comme r32 / 15.0 * 255.0) comme n8;
             couleur.b = (valeur_hex_depuis_unité(valeur.unités[2]) comme r32 / 15.0 * 255.0) comme n8;
             couleur.a = 255;
         }
-        sinon si valeur.taille() == 4 {
+        sinon si taille(valeur) == 4 {
             couleur.r = (valeur_hex_depuis_unité(valeur.unités[0]) comme r32 / 15.0 * 255.0) comme n8;
             couleur.v = (valeur_hex_depuis_unité(valeur.unités[1]) comme r32 / 15.0 * 255.0) comme n8;
             couleur.b = (valeur_hex_depuis_unité(valeur.unités[2]) comme r32 / 15.0 * 255.0) comme n8;
             couleur.a = (valeur_hex_depuis_unité(valeur.unités[3]) comme r32 / 15.0 * 255.0) comme n8;
         }
-        sinon si valeur.taille() == 6 {
+        sinon si taille(valeur) == 6 {
             couleur.r = valeur_hex_depuis_unité(valeur.unités[0]) * 16 + valeur_hex_depuis_unité(valeur.unités[1]);
             couleur.v = valeur_hex_depuis_unité(valeur.unités[2]) * 16 + valeur_hex_depuis_unité(valeur.unités[3]);
             couleur.b = valeur_hex_depuis_unité(valeur.unités[4]) * 16 + valeur_hex_depuis_unité(valeur.unités[5]);
             couleur.a = 255;
         }
-        sinon si valeur.taille() == 8 {
+        sinon si taille(valeur) == 8 {
             couleur.r = valeur_hex_depuis_unité(valeur.unités[0]) * 16 + valeur_hex_depuis_unité(valeur.unités[1]);
             couleur.v = valeur_hex_depuis_unité(valeur.unités[2]) * 16 + valeur_hex_depuis_unité(valeur.unités[3]);
             couleur.b = valeur_hex_depuis_unité(valeur.unités[4]) * 16 + valeur_hex_depuis_unité(valeur.unités[5]);
@@ -3485,25 +3485,25 @@ parse_valeur_couleur :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(
             retourne;
         }
 
-        parseuse.avance();
+        avance(parseuse);
         retourne crée_valeur_couleur(couleur);
     }
 
-    si lexème.est_fonction() {
+    si est_fonction(lexème) {
         fonction := lexème.function;
 
         si compare_ascii_insensible_à_la_casse(fonction.name, PROP_rgb, PROP_rgba) {
             résultat := parse_couleur_rgb(*fonction);
-            si résultat.possède_valeur() {
-                parseuse.avance();
+            si possède_valeur(résultat) {
+                avance(parseuse);
             }
             retourne résultat;
         }
 
         si compare_ascii_insensible_à_la_casse(fonction.name, PROP_hsl, PROP_hsla) {
             résultat := parse_couleur_hsl(*fonction);
-            si résultat.possède_valeur() {
-                parseuse.avance();
+            si possède_valeur(résultat) {
+                avance(parseuse);
             }
             retourne résultat;
         }
@@ -3516,17 +3516,17 @@ parse_valeur_couleur :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(
 parse_couleur_rgb :: fonc (function: *ParsedFunction) -> Optionnel(*ValeurDeStyle)
 {
     résultat := parse_couleur_syntaxe_legacy(function.value);
-    si résultat.possède_valeur() {
+    si possède_valeur(résultat) {
         retourne résultat;
     }
 
     résultat = parse_couleur_rgb_legacy(function.value);
-    si résultat.possède_valeur() {
+    si possède_valeur(résultat) {
         retourne résultat;
     }
 
     résultat = parse_couleur_rgb_modern(function.value);
-    si résultat.possède_valeur() {
+    si possède_valeur(résultat) {
         retourne résultat;
     }
 }
@@ -3543,7 +3543,7 @@ parse_couleur_rgb_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
 
     tantque !fini(*parseuse) && nombre_de_valeurs < 3 {
         lexème := lexème_courant(*parseuse);
-        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        si est_lexème_de_genre(lexème, GenreLexème.Number) {
             si eu_pourcentage {
                 /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
                 retourne;
@@ -3554,7 +3554,7 @@ parse_couleur_rgb_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
             valeurs[nombre_de_valeurs] = lexème.lexème.numeric_value;
             nombre_de_valeurs += 1;
         }
-        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        sinon si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
             si eu_nombre {
                 /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
                 retourne;
@@ -3565,7 +3565,7 @@ parse_couleur_rgb_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
             valeurs[nombre_de_valeurs] = valeur;
             nombre_de_valeurs += 1;
         }
-        sinon si lexème.est_mot_clé(PROP_none) {
+        sinon si est_mot_clé(lexème, PROP_none) {
             valeurs[nombre_de_valeurs] = 0.0;
             nombre_de_valeurs += 1;
         }
@@ -3583,15 +3583,15 @@ parse_couleur_rgb_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
     consomme_espaces_blanches(*parseuse);
     saufsi fini(*parseuse) {
         lexème := lexème_courant(*parseuse);
-        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        si est_lexème_de_genre(lexème, GenreLexème.Number) {
             valeurs[3] = lexème.lexème.numeric_value * 255.0;
         }
-        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        sinon si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
             eu_pourcentage = vrai;
             valeur := lexème.lexème.numeric_value * 255.0 / 100.0;
             valeurs[3] = valeur;
         }
-        sinon si lexème.est_mot_clé(PROP_none) {
+        sinon si est_mot_clé(lexème, PROP_none) {
             valeurs[3] = 0.0;
         }
     }
@@ -3612,7 +3612,7 @@ parse_couleur_rgb_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
 
     tantque !fini(*parseuse) && nombre_de_valeurs < 3 {
         lexème := lexème_courant(*parseuse);
-        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        si est_lexème_de_genre(lexème, GenreLexème.Number) {
             si eu_pourcentage {
                 /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
                 retourne;
@@ -3623,7 +3623,7 @@ parse_couleur_rgb_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
             valeurs[nombre_de_valeurs] = lexème.lexème.numeric_value;
             nombre_de_valeurs += 1;
         }
-        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        sinon si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
             si eu_nombre {
                 /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
                 retourne;
@@ -3648,10 +3648,10 @@ parse_couleur_rgb_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
     consomme_espaces_blanches(*parseuse);
     saufsi fini(*parseuse) {
         lexème := lexème_courant(*parseuse);
-        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        si est_lexème_de_genre(lexème, GenreLexème.Number) {
             valeurs[3] = lexème.lexème.numeric_value * 255.0;
         }
-        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        sinon si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
             eu_pourcentage = vrai;
             valeur := lexème.lexème.numeric_value * 255.0 / 100.0;
             valeurs[3] = valeur;
@@ -3675,7 +3675,7 @@ parse_couleur_syntaxe_legacy :: fonc (value: []ComponentValue) -> Optionnel(*Val
 
     tantque !fini(*parseuse) && nombre_de_valeurs < 4 {
         lexème := lexème_courant(*parseuse);
-        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        si est_lexème_de_genre(lexème, GenreLexème.Number) {
             si eu_pourcentage && nombre_de_valeurs < 4 {
                 /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
                 retourne;
@@ -3691,7 +3691,7 @@ parse_couleur_syntaxe_legacy :: fonc (value: []ComponentValue) -> Optionnel(*Val
             valeurs[nombre_de_valeurs] = valeur;
             nombre_de_valeurs += 1;
         }
-        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        sinon si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
             si eu_nombre && nombre_de_valeurs < 4 {
                 /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
                 retourne;
@@ -3731,12 +3731,12 @@ parse_couleur_syntaxe_legacy :: fonc (value: []ComponentValue) -> Optionnel(*Val
 parse_couleur_hsl :: fonc (function: *ParsedFunction) -> Optionnel(*ValeurDeStyle)
 {
     résultat := parse_couleur_hsl_legacy(function.value);
-    si résultat.possède_valeur() {
+    si possède_valeur(résultat) {
         retourne résultat;
     }
 
     résultat = parse_couleur_hsl_modern(function.value);
-    si résultat.possède_valeur() {
+    si possède_valeur(résultat) {
         retourne résultat;
     }
 }
@@ -3748,12 +3748,12 @@ parse_couleur_hsl_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
     /* Teinte */
     hue : r64 = 0;
     opt_hue := parse_hue(*parseuse);
-    si opt_hue.possède_valeur() {
+    si possède_valeur(opt_hue) {
         hue = opt_hue.Quelque;
     }
     sinon {
         lexème := lexème_courant(*parseuse);
-        saufsi lexème.est_mot_clé(PROP_none) {
+        saufsi est_mot_clé(lexème, PROP_none) {
             retourne;
         }
         avance(*parseuse);
@@ -3764,10 +3764,10 @@ parse_couleur_hsl_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
     /* Saturation. */
     lexème := lexème_courant(*parseuse);
     sat : r64 = 0;
-    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+    si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
         sat = lexème.lexème.numeric_value;
     }
-    sinon saufsi lexème.est_mot_clé(PROP_none) {
+    sinon saufsi est_mot_clé(lexème, PROP_none) {
         retourne;
     }
     avance(*parseuse);
@@ -3777,10 +3777,10 @@ parse_couleur_hsl_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
     /* Luminance */
     lexème = lexème_courant(*parseuse);
     lum : r64 = 0;
-    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+    si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
         lum = lexème.lexème.numeric_value;
     }
-    sinon saufsi lexème.est_mot_clé(PROP_none) {
+    sinon saufsi est_mot_clé(lexème, PROP_none) {
         retourne;
     }
     avance(*parseuse);
@@ -3791,10 +3791,10 @@ parse_couleur_hsl_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
     alpha : r64 = 0.0;
     saufsi fini(*parseuse) {
         lexème = lexème_courant(*parseuse);
-        si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
             alpha = lexème.lexème.numeric_value / 100.0;
         }
-        sinon si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        sinon si est_lexème_de_genre(lexème, GenreLexème.Number) {
             alpha = lexème.lexème.numeric_value;
         }
         sinon {
@@ -3826,7 +3826,7 @@ parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
 
     /* Teinte */
     opt_hue := parse_hue(*parseuse);
-    saufsi opt_hue.possède_valeur() {
+    saufsi possède_valeur(opt_hue) {
         retourne;
     }
     hue := opt_hue.Quelque;
@@ -3837,7 +3837,7 @@ parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
 
     /* Saturation. */
     lexème := lexème_courant(*parseuse);
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Percentage) {
         retourne;
     }
     sat := lexème.lexème.numeric_value;
@@ -3849,7 +3849,7 @@ parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
 
     /* Luminance */
     lexème = lexème_courant(*parseuse);
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Percentage) {
         retourne;
     }
     lum := lexème.lexème.numeric_value;
@@ -3859,10 +3859,10 @@ parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
     alpha : r64 = 0.0;
     si consomme_virgule_et_espaces_blanches(*parseuse) {
         lexème = lexème_courant(*parseuse);
-        si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        si est_lexème_de_genre(lexème, GenreLexème.Percentage) {
             alpha = lexème.lexème.numeric_value / 100.0;
         }
-        sinon si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        sinon si est_lexème_de_genre(lexème, GenreLexème.Number) {
             alpha = lexème.lexème.numeric_value;
         }
         sinon {
@@ -3890,33 +3890,33 @@ parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
 
 parse_hue :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(r64)
 {
-    lexème := parseuse.lexème_courant();
+    lexème := lexème_courant(parseuse);
 
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        parseuse.avance();
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
+        avance(parseuse);
         retourne lexème.lexème.numeric_value;
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+    si est_lexème_de_genre(lexème, GenreLexème.Dimension) {
         données_lexème := lexème.lexème;
         
         si données_lexème.unité == PROP_deg {
-            parseuse.avance();
+            avance(parseuse);
             retourne lexème.lexème.numeric_value;
         }
 
         si données_lexème.unité == PROP_grad {
-            parseuse.avance();
+            avance(parseuse);
             retourne lexème.lexème.numeric_value / 400.0 * 360.0;
         }
 
         si données_lexème.unité == PROP_rad {
-            parseuse.avance();
+            avance(parseuse);
             retourne lexème.lexème.numeric_value / Constantes(r64).PI * 180.0;
         }
 
         si données_lexème.unité == PROP_turn {
-            parseuse.avance();
+            avance(parseuse);
             retourne lexème.lexème.numeric_value * 360.0;
         }
 
@@ -3926,25 +3926,25 @@ parse_hue :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(r64)
 
 consomme_virgule_et_espaces_blanches :: fonc (parseuse: *Parseuse(ComponentValue)) -> bool
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Comma) {
         retourne faux;
     }
-    parseuse.avance();
-    parseuse.consomme_espaces_blanches();
+    avance(parseuse);
+    consomme_espaces_blanches(parseuse);
     retourne vrai;
 }
 
 consomme_slash_et_espaces_blanches :: fonc (parseuse: *Parseuse(ComponentValue)) -> bool
 {
-    parseuse.consomme_espaces_blanches();
-    lexème := parseuse.lexème_courant();
-    saufsi lexème.est_lexème_slash() {
+    consomme_espaces_blanches(parseuse);
+    lexème := lexème_courant(parseuse);
+    saufsi est_lexème_slash(lexème) {
         retourne faux;
     }
-    parseuse.avance();
-    parseuse.consomme_espaces_blanches();
+    avance(parseuse);
+    consomme_espaces_blanches(parseuse);
     retourne vrai;
 }
 
@@ -3981,19 +3981,19 @@ parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value
         consomme_espaces_blanches(*parseuse);
 
         valeur_line := parse_valeur_text_decoration_line(*parseuse);
-        si valeur_line.possède_valeur() {
+        si possède_valeur(valeur_line) {
             line = valeur_line.Quelque;
             continue;
         }
 
         valeur_style := parse_valeur_text_decoration_style(*parseuse);
-        si valeur_style.possède_valeur() {
+        si possède_valeur(valeur_style) {
             style = valeur_style.Quelque;
             continue;
         }
 
         valeur_color := parse_valeur_couleur(*parseuse);
-        si valeur_color.possède_valeur() {
+        si possède_valeur(valeur_color) {
             color = valeur_color.Quelque;
             continue;
         }
@@ -4021,7 +4021,7 @@ parse_propriété_text_decoration_style :: fonc (value: []ComponentValue) -> Opt
 
 parse_valeur_text_decoration_line :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne;
     }
 
@@ -4029,16 +4029,16 @@ parse_valeur_text_decoration_line :: fonc (parseuse: *Parseuse(ComponentValue)) 
     diffère déloge(*mots_clés);
 
     tantque !fini(parseuse) {
-        lexème := parseuse.lexème_courant();
+        lexème := lexème_courant(parseuse);
 
-        saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        saufsi est_lexème_de_genre(lexème, GenreLexème.Ident) {
             retourne;
         }
 
-        mot_clé := lexème.donne_texte();
+        mot_clé := donne_texte(lexème);
 
         si mot_clé == PROP_none {
-            parseuse.avance();
+            avance(parseuse);
             retourne donne_valeur_none();
         }
 
@@ -4055,8 +4055,8 @@ parse_valeur_text_decoration_line :: fonc (parseuse: *Parseuse(ComponentValue)) 
             retourne;
         }
 
-        parseuse.avance();
-        parseuse.consomme_espaces_blanches();
+        avance(parseuse);
+        consomme_espaces_blanches(parseuse);
     }
 
     si mots_clés.taille == 1 {
@@ -4072,20 +4072,20 @@ parse_valeur_text_decoration_line :: fonc (parseuse: *Parseuse(ComponentValue)) 
 
 parse_valeur_text_decoration_style :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne;
     }
 
-    lexème := parseuse.lexème_courant();
+    lexème := lexème_courant(parseuse);
 
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+    saufsi est_lexème_de_genre(lexème, GenreLexème.Ident) {
         retourne;
     }
 
-    mot_clé := lexème.donne_texte();
+    mot_clé := donne_texte(lexème);
 
     si mot_clé == PROP_solid {
-        parseuse.avance();
+        avance(parseuse);
         retourne donne_valeur_solid();
     }
 
@@ -4188,7 +4188,7 @@ parse_propriété_cursor :: fonc (value: []ComponentValue) -> Optionnel(*ValeurD
 
     parseuse := initialise_une_parseuse(value);
     valeur := parse_mot_clé(*parseuse, mots_clés);
-    saufsi valeur.possède_valeur() {
+    saufsi possède_valeur(valeur) {
         retourne;
     }
 
@@ -4220,14 +4220,14 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: []Compone
         consomme_espaces_blanches(*parseuse);
 
         valeur := parse_valeur_font_weight(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             /* font-weight et font-size peuvent n'être qu'un nombre, si nous avons un slash,
              * c'est une font-size, sinon font-weight. */
             si consomme_slash_et_espaces_blanches(*parseuse) {
                 font_size = valeur.Quelque;
 
                 valeur = parse_valeur_line_height(*parseuse);
-                si valeur.possède_valeur() {
+                si possède_valeur(valeur) {
                     line_height = valeur.Quelque;
                     continue;
                 }
@@ -4239,7 +4239,7 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: []Compone
         }
 
         valeur = parse_valeur_font_size(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             font_size = valeur.Quelque;
 
             saufsi consomme_slash_et_espaces_blanches(*parseuse) { 
@@ -4247,7 +4247,7 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: []Compone
             }
 
             valeur = parse_valeur_line_height(*parseuse);
-            si valeur.possède_valeur() {
+            si possède_valeur(valeur) {
                 line_height = valeur.Quelque;
                 continue;
             }
@@ -4256,7 +4256,7 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: []Compone
         }
 
         valeur = parse_valeur_font_family(*parseuse, vrai);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             font_family = valeur.Quelque;
             continue;
         }
@@ -4264,10 +4264,10 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: []Compone
         retourne faux;
     }
 
-    ctx.ajoute_propriété(PROP_font_weight, font_weight);
-    ctx.ajoute_propriété(PROP_line_height, line_height);
-    ctx.ajoute_propriété(PROP_font_family, font_family);
-    ctx.ajoute_propriété(PROP_font_size, font_size);
+    ajoute_propriété(ctx, PROP_font_weight, font_weight);
+    ajoute_propriété(ctx, PROP_line_height, line_height);
+    ajoute_propriété(ctx, PROP_font_family, font_family);
+    ajoute_propriété(ctx, PROP_font_size, font_size);
     retourne vrai;
 }
 
@@ -4305,33 +4305,33 @@ parse_valeur_font_family :: fonc (parseuse: *Parseuse(ComponentValue), pour_shor
     diffère déloge(*morceaux);
 
     tantque !fini(parseuse) {
-        lexème := parseuse.lexème_courant();
+        lexème := lexème_courant(parseuse);
 
-        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        si est_lexème_de_genre(lexème, GenreLexème.Ident) {
             si fait_partie_de(lexème.lexème.valeur, ...generic_complete) {
                 tableau_ajoute(*valeurs, lexème.lexème.valeur);
-                parseuse.avance();
+                avance(parseuse);
                 continue;
             }
 
             /* Essaie de parser une suite d'identifiants pouvant correspondre à une famille composée sans guillemets. */
             morceaux.taille = 0;
             tableau_ajoute(*morceaux, lexème.lexème.valeur);
-            parseuse.avance();
+            avance(parseuse);
 
             chn_espace := crée_chaine_utf16_unique(" ");
 
             tantque !fini(parseuse) {
-                parseuse.consomme_espaces_blanches();
-                lexème = parseuse.lexème_courant();
+                consomme_espaces_blanches(parseuse);
+                lexème = lexème_courant(parseuse);
 
-                saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+                saufsi est_lexème_de_genre(lexème, GenreLexème.Ident) {
                     arrête;
                 }
 
                 tableau_ajoute(*morceaux, chn_espace);
                 tableau_ajoute(*morceaux, lexème.lexème.valeur);
-                parseuse.avance();
+                avance(parseuse);
             }
 
             /* Nous ne pouvons savoir si les guillemets sont manquants où s'il y des mots-clés en plus. */
@@ -4344,13 +4344,13 @@ parse_valeur_font_family :: fonc (parseuse: *Parseuse(ComponentValue), pour_shor
             continue;
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.String) {
+        si est_lexème_de_genre(lexème, GenreLexème.String) {
             tableau_ajoute(*valeurs, lexème.lexème.valeur);
-            parseuse.avance();
+            avance(parseuse);
             continue;
         }
 
-        si parseuse.consomme_virgule_et_espaces_blanches() {
+        si consomme_virgule_et_espaces_blanches(parseuse) {
             continue;
         }
 
@@ -4396,13 +4396,13 @@ parse_valeur_font_weight :: fonc (parseuse: *Parseuse(ComponentValue)) -> Option
     ];
 
     valeur := parse_mot_clé(parseuse, mots_clés);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur;
     }
 
-    lexème := parseuse.lexème_courant();
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        parseuse.avance();
+    lexème := lexème_courant(parseuse);
+    si est_lexème_de_genre(lexème, GenreLexème.Number) {
+        avance(parseuse);
         retourne crée_valeur_number(lexème.lexème.numeric_value);
     }
 }
@@ -4425,12 +4425,12 @@ parse_valeur_font_size :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionne
     mots_clés := [PROP_larger, PROP_smaller, PROP_xx_small, PROP_x_small, PROP_small, PROP_medium, PROP_large, PROP_x_large, PROP_xx_large, PROP_xxx_large];
 
     valeur := parse_valeur_length_percentage_positive(parseuse);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur;
     }
 
     valeur = parse_mot_clé(parseuse, mots_clés);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur;
     }
 }
@@ -4485,7 +4485,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
         consomme_espaces_blanches(*parseuse);
 
         valeur_couleur := parse_valeur_couleur(*parseuse);
-        si valeur_couleur.possède_valeur() {
+        si possède_valeur(valeur_couleur) {
             si eu_couleur {
                 /* Seule une couleur est autorisée. */
                 retourne faux;
@@ -4496,34 +4496,34 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
         }
 
         valeur_image := parse_valeur_background_image(*parseuse);
-        si valeur_image.possède_valeur() {
+        si possède_valeur(valeur_image) {
             image = valeur_image;
             continue;
         }
 
         valeur_attachment := parse_valeur_background_attachment(*parseuse);
-        si valeur_attachment.possède_valeur() {
+        si possède_valeur(valeur_attachment) {
             background_attachment = valeur_attachment;
             continue;
         }
 
         valeur_repeat := parse_valeur_background_repeat(*parseuse);
-        si valeur_repeat.possède_valeur() {
+        si possède_valeur(valeur_repeat) {
             background_repeat = valeur_repeat;
             continue;
         }
 
         valeur_position := parse_valeur_background_position(*parseuse);
-        si valeur_position.possède_valeur() {
+        si possède_valeur(valeur_position) {
             background_position = valeur_position.Quelque;
 
             lexème := lexème_courant(*parseuse);
-            si lexème.est_lexème_slash() {
+            si est_lexème_slash(lexème) {
                 avance(*parseuse);
                 consomme_espaces_blanches(*parseuse);
 
                 size := parse_valeur_background_size(*parseuse);
-                saufsi size.possède_valeur() {
+                saufsi possède_valeur(size) {
                     retourne faux;
                 }
 
@@ -4534,7 +4534,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
         }
 
         valeur_visual_box := parse_valeur_visual_box(*parseuse);
-        si valeur_visual_box.possède_valeur() {
+        si possède_valeur(valeur_visual_box) {
             /* If one <visual-box> value is present then it sets both background-origin and background-clip
              * to that value. If two values are present, then the first sets background-origin and the second
              * background-clip. */
@@ -4575,7 +4575,7 @@ parse_propriété_background_image :: fonc (value: []ComponentValue) -> Optionne
 
     tantque !fini(*parseuse) {
         image := parse_valeur_background_image(*parseuse);
-        si image.possède_valeur() {
+        si possède_valeur(image) {
             retourne image;
         }
 
@@ -4587,23 +4587,23 @@ parse_propriété_background_image :: fonc (value: []ComponentValue) -> Optionne
  * <image> = <url> | <gradient> */
 parse_valeur_background_image :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    lexème := parseuse.lexème_courant();
-    si lexème.est_mot_clé(PROP_none) {
-        parseuse.avance();
+    lexème := lexème_courant(parseuse);
+    si est_mot_clé(lexème, PROP_none) {
+        avance(parseuse);
         retourne donne_valeur_none();
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.Url) {
+    si est_lexème_de_genre(lexème, GenreLexème.Url) {
         url := lexème.lexème.valeur;
-        parseuse.avance();
+        avance(parseuse);
         retourne crée_valeur_url(url);
     }
 
-    si lexème.est_fonction() {
+    si est_fonction(lexème) {
         fonction := lexème.function;
 
         si fonction.name == PROP_url {
-            parseuse.avance();
+            avance(parseuse);
             /* À FAIRE : parse proprement un identifiant ou une chaine. */
             retourne crée_valeur_url(fonction.value[0].lexème.valeur);
         }
@@ -4621,21 +4621,21 @@ parse_propriété_background_repeat :: fonc (value: []ComponentValue) -> Optionn
 /* <repeat-style> = repeat-x | repeat-y | [repeat | space | round | no-repeat]{1,2} */
 parse_valeur_background_repeat :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne;
     }
 
     résultat: BackgroundRepeat;
 
-    lexème := parseuse.lexème_courant();
-    si lexème.est_mot_clé(PROP_repeat_x) {
-        parseuse.avance();
+    lexème := lexème_courant(parseuse);
+    si est_mot_clé(lexème, PROP_repeat_x) {
+        avance(parseuse);
         résultat.horizontal = PROP_repeat_x;
         retourne crée_valeur_background_repeat(résultat);
     }
 
-    si lexème.est_mot_clé(PROP_repeat_y) {
-        parseuse.avance();
+    si est_mot_clé(lexème, PROP_repeat_y) {
+        avance(parseuse);
         résultat.horizontal = PROP_repeat_y;
         retourne crée_valeur_background_repeat(résultat);
     }
@@ -4643,18 +4643,18 @@ parse_valeur_background_repeat :: fonc (parseuse: *Parseuse(ComponentValue)) -> 
     mots_clés := [PROP_repeat, PROP_space, PROP_round, PROP_no_repeat];
 
     valeur := parse_mot_clé(parseuse, mots_clés);
-    saufsi valeur.possède_valeur() {
+    saufsi possède_valeur(valeur) {
         retourne;
     }
     
-    résultat.horizontal = valeur.Quelque.donne_mot_clé();
+    résultat.horizontal = donne_mot_clé(valeur.Quelque);
     détruit_valeur_de_style(valeur.Quelque);
 
-    parseuse.consomme_espaces_blanches();
+    consomme_espaces_blanches(parseuse);
 
     valeur = parse_mot_clé(parseuse, mots_clés);
-    si valeur.possède_valeur() {
-        résultat.vertical = valeur.Quelque.donne_mot_clé();
+    si possède_valeur(valeur) {
+        résultat.vertical = donne_mot_clé(valeur.Quelque);
         détruit_valeur_de_style(valeur.Quelque);
     }
 
@@ -4694,18 +4694,18 @@ parse_valeur_background_position :: fonc (parseuse: *Parseuse(ComponentValue)) -
         }
     }
 
-    tantque !parseuse.fini() && nombre_de_valeurs != 4 {
-        parseuse.consomme_espaces_blanches();
+    tantque !fini(parseuse) && nombre_de_valeurs != 4 {
+        consomme_espaces_blanches(parseuse);
 
         opt_mot_clé := parse_mot_clé(parseuse, mots_clés);
-        si opt_mot_clé.possède_valeur() {
+        si possède_valeur(opt_mot_clé) {
             valeurs[nombre_de_valeurs] = opt_mot_clé.Quelque;
             nombre_de_valeurs += 1;
             continue;
         }
 
         opt_length := parse_valeur_length_percentage(parseuse);
-        si opt_length.possède_valeur() {
+        si possède_valeur(opt_length) {
             valeurs[nombre_de_valeurs] = opt_length.Quelque;
             nombre_de_valeurs += 1;
             continue;
@@ -4721,8 +4721,8 @@ parse_valeur_background_position :: fonc (parseuse: *Parseuse(ComponentValue)) -
     résultat: BackgroundPosition = ---;
 
     si nombre_de_valeurs == 1 {
-        si valeurs[0].est_mot_clé() {
-            résultat.horizontal = valeurs[0].donne_mot_clé();
+        si est_mot_clé(valeurs[0]) {
+            résultat.horizontal = donne_mot_clé(valeurs[0]);
             résultat.décalage_horizontal = donne_valeur_percentage_zéro();
         }
         sinon {
@@ -4734,16 +4734,16 @@ parse_valeur_background_position :: fonc (parseuse: *Parseuse(ComponentValue)) -
         résultat.décalage_vertical = crée_valeur_percentage(50.0);
     }
     sinon si nombre_de_valeurs == 2 {
-        si valeurs[0].est_mot_clé() {
-            résultat.horizontal = valeurs[0].donne_mot_clé();
+        si est_mot_clé(valeurs[0]) {
+            résultat.horizontal = donne_mot_clé(valeurs[0]);
             résultat.décalage_horizontal = donne_valeur_percentage_zéro();
         }
         sinon {
             résultat.horizontal = PROP_left;
             résultat.décalage_horizontal = copie_valeur(valeurs[0]);
         }
-        si valeurs[1].est_mot_clé() {
-            résultat.vertical = valeurs[1].donne_mot_clé();
+        si est_mot_clé(valeurs[1]) {
+            résultat.vertical = donne_mot_clé(valeurs[1]);
             résultat.décalage_vertical = donne_valeur_percentage_zéro();
         }
         sinon {
@@ -4752,12 +4752,12 @@ parse_valeur_background_position :: fonc (parseuse: *Parseuse(ComponentValue)) -
         }
     }
     sinon si nombre_de_valeurs == 3 {
-        si valeurs[0].est_mot_clé() && valeurs[1].est_mot_clé() && !valeurs[2].est_mot_clé() {
+        si est_mot_clé(valeurs[0]) && est_mot_clé(valeurs[1]) && !est_mot_clé(valeurs[2]) {
             valeurs[3] = valeurs[2];
             valeurs[2] = valeurs[1];
             valeurs[1] = donne_valeur_percentage_zéro();
         }
-        sinon si valeurs[0].est_mot_clé() && !valeurs[1].est_mot_clé() && valeurs[2].est_mot_clé() {
+        sinon si est_mot_clé(valeurs[0]) && !est_mot_clé(valeurs[1]) && est_mot_clé(valeurs[2]) {
             valeurs[3] = donne_valeur_percentage_zéro();
         }
         sinon {
@@ -4765,21 +4765,21 @@ parse_valeur_background_position :: fonc (parseuse: *Parseuse(ComponentValue)) -
             retourne;
         }
 
-        résultat.horizontal = valeurs[0].donne_mot_clé();
+        résultat.horizontal = donne_mot_clé(valeurs[0]);
         résultat.décalage_horizontal = copie_valeur(valeurs[1]);
-        résultat.vertical = valeurs[2].donne_mot_clé();
+        résultat.vertical = donne_mot_clé(valeurs[2]);
         résultat.décalage_vertical = copie_valeur(valeurs[3]);
     }
     sinon {
         assert(nombre_de_valeurs == 4);
-        saufsi valeurs[0].est_mot_clé() && !valeurs[1].est_mot_clé() && valeurs[2].est_mot_clé() && !valeurs[3].est_mot_clé() {
+        saufsi est_mot_clé(valeurs[0]) && !est_mot_clé(valeurs[1]) && est_mot_clé(valeurs[2]) && !est_mot_clé(valeurs[3]) {
             // invalide
             retourne;
         }
 
-        résultat.horizontal = valeurs[0].donne_mot_clé();
+        résultat.horizontal = donne_mot_clé(valeurs[0]);
         résultat.décalage_horizontal = copie_valeur(valeurs[1]);
-        résultat.vertical = valeurs[2].donne_mot_clé();
+        résultat.vertical = donne_mot_clé(valeurs[2]);
         résultat.décalage_vertical = copie_valeur(valeurs[3]);
     }
 
@@ -4815,17 +4815,17 @@ parse_valeur_background_size :: fonc (parseuse: *Parseuse(ComponentValue)) -> Op
 {
     mots_clés := [PROP_contain, PROP_cover];
     valeur := parse_mot_clé(parseuse, mots_clés);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur;
     }
 
     horizontal := parse_valeur_length_percentage_positive_ou_auto(parseuse);
-    saufsi horizontal.possède_valeur() {
+    saufsi possède_valeur(horizontal) {
         retourne;
     }
 
     vertical := parse_valeur_length_percentage_positive_ou_auto(parseuse);
-    saufsi vertical.possède_valeur() {
+    saufsi possède_valeur(vertical) {
         vertical = donne_valeur_auto();
     }
 
@@ -4860,19 +4860,19 @@ parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(Val
         consomme_espaces_blanches(*parseuse);
 
         style := parse_valeur_line_style(*parseuse);
-        si style.possède_valeur() {
+        si possède_valeur(style) {
             valeur_style = style;
             continue;
         }
 
         width := parse_valeur_line_width(*parseuse);
-        si width.possède_valeur() {
+        si possède_valeur(width) {
             valeur_width = width;
             continue;
         }
 
         color := parse_valeur_couleur(*parseuse);
-        si color.possède_valeur() {
+        si possède_valeur(color) {
             valeur_color = color;
             continue;
         }
@@ -4882,7 +4882,7 @@ parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(Val
 
     résultat: ValeursBorder;
 
-    si valeur_width.possède_valeur() {
+    si possède_valeur(valeur_width) {
         résultat.width = valeur_width.Quelque;
     }
     sinon {
@@ -4890,7 +4890,7 @@ parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(Val
         résultat.width = donne_valeur_medium();
     }
 
-    si valeur_style.possède_valeur() {
+    si possède_valeur(valeur_style) {
         résultat.style = valeur_style.Quelque;
     }
     sinon {
@@ -4898,7 +4898,7 @@ parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(Val
         résultat.style = donne_valeur_none();
     }
 
-    si valeur_color.possède_valeur() {
+    si possède_valeur(valeur_color) {
         résultat.color = valeur_color.Quelque;
     }
     sinon {
@@ -4921,7 +4921,7 @@ parse_propriété_border :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
     }
 
     opt_valeurs := parse_propriété_border_impl(value);
-    saufsi opt_valeurs.possède_valeur() {
+    saufsi possède_valeur(opt_valeurs) {
         retourne faux;
     }
 
@@ -4966,7 +4966,7 @@ parse_propriété_border_edge :: fonc (ctx: *ContexteParsageShorthand, value: []
     }
 
     opt_valeurs := parse_propriété_border_impl(value);
-    saufsi opt_valeurs.possède_valeur() {
+    saufsi possède_valeur(opt_valeurs) {
         retourne faux;
     }
 
@@ -5013,14 +5013,14 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
         consomme_espaces_blanches(*parseuse);
 
         color := parse_valeur_couleur(*parseuse);
-        si color.possède_valeur() {
+        si possède_valeur(color) {
             résultat[nombre_valeurs] = color.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         opt_valeur := parse_mot_clé_global_ou_var(*parseuse);
-        si opt_valeur.possède_valeur() {
+        si possède_valeur(opt_valeur) {
             résultat[nombre_valeurs] = opt_valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5033,7 +5033,7 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_boite(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5053,14 +5053,14 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
         consomme_espaces_blanches(*parseuse);
 
         style := parse_valeur_line_style(*parseuse);
-        si style.possède_valeur() {
+        si possède_valeur(style) {
             résultat[nombre_valeurs] = style.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         opt_valeur := parse_mot_clé_global_ou_var(*parseuse);
-        si opt_valeur.possède_valeur() {
+        si possède_valeur(opt_valeur) {
             résultat[nombre_valeurs] = opt_valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5073,7 +5073,7 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_boite(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5093,14 +5093,14 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
         consomme_espaces_blanches(*parseuse);
 
         width := parse_valeur_line_width(*parseuse);
-        si width.possède_valeur() {
+        si possède_valeur(width) {
             résultat[nombre_valeurs] = width.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         opt_valeur := parse_mot_clé_global_ou_var(*parseuse);
-        si opt_valeur.possède_valeur() {
+        si possède_valeur(opt_valeur) {
             résultat[nombre_valeurs] = opt_valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5113,7 +5113,7 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_boite(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5125,7 +5125,7 @@ parse_propriété_border_line_style :: fonc (value: []ComponentValue) -> Optionn
         consomme_espaces_blanches(*parseuse);
 
         style := parse_valeur_line_style(*parseuse);
-        si style.possède_valeur() {
+        si possède_valeur(style) {
             retourne style;
         }
 
@@ -5141,7 +5141,7 @@ parse_propriété_border_line_width :: fonc (value: []ComponentValue) -> Optionn
         consomme_espaces_blanches(*parseuse);
 
         width := parse_valeur_line_width(*parseuse);
-        si width.possède_valeur() {
+        si possède_valeur(width) {
             retourne width;
         }
 
@@ -5154,13 +5154,13 @@ parse_valeur_line_width :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionn
 {
     mots_clés := [PROP_thin, PROP_medium, PROP_thick];
 
-    tantque !parseuse.fini() {
-        parseuse.consomme_espaces_blanches();
+    tantque !fini(parseuse) {
+        consomme_espaces_blanches(parseuse);
 
-        lexème := parseuse.lexème_courant();
-        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        lexème := lexème_courant(parseuse);
+        si est_lexème_de_genre(lexème, GenreLexème.Ident) {
             valeur := parse_mot_clé(parseuse, mots_clés);
-            si valeur.possède_valeur() {
+            si possède_valeur(valeur) {
                 retourne valeur;
             }
 
@@ -5168,7 +5168,7 @@ parse_valeur_line_width :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionn
         }
 
         valeur := parse_valeur_length_positive(parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             retourne valeur;
         }
 
@@ -5180,13 +5180,13 @@ parse_valeur_line_width :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionn
 parse_valeur_line_style :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_none, PROP_hidden, PROP_dotted, PROP_dashed, PROP_solid, PROP_double, PROP_groove, PROP_ridge, PROP_inset, PROP_outset];
-    tantque !parseuse.fini() {
-        parseuse.consomme_espaces_blanches();
+    tantque !fini(parseuse) {
+        consomme_espaces_blanches(parseuse);
 
-        lexème := parseuse.lexème_courant();
-        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        lexème := lexème_courant(parseuse);
+        si est_lexème_de_genre(lexème, GenreLexème.Ident) {
             valeur := parse_mot_clé(parseuse, mots_clés);
-            si valeur.possède_valeur() {
+            si possède_valeur(valeur) {
                 retourne valeur;
             }
         }
@@ -5219,14 +5219,14 @@ parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthan
 
         /* <length-percentage> */
         valeur := parse_valeur_length_percentage_positive(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_de_valeurs] = valeur.Quelque;
             nombre_de_valeurs += 1;
             continue;
         }
 
         opt_variable := parse_variable(*parseuse);
-        si opt_variable.possède_valeur() {
+        si possède_valeur(opt_variable) {
             résultat[nombre_de_valeurs] = opt_variable.Quelque;
             nombre_de_valeurs += 1;
             continue;
@@ -5249,7 +5249,7 @@ parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthan
     }
 
     pour 4 {
-        ctx.ajoute_propriété(noms_propriétés[it], résultat[it]);
+        ajoute_propriété(ctx, noms_propriétés[it], résultat[it]);
     }
 
     retourne vrai;
@@ -5286,14 +5286,14 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
 
         /* <length-percentage> | auto */
         valeur := parse_valeur_length_percentage_ou_auto(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         valeur = parse_mot_clé_global_ou_var(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5306,7 +5306,7 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_boite(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5336,14 +5336,14 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
 
         /* <length-percentage> | auto */
         valeur := parse_valeur_length_percentage_ou_auto(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         valeur = parse_mot_clé_global_ou_var(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5356,7 +5356,7 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_logique(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5393,14 +5393,14 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
         consomme_espaces_blanches(*parseuse);
 
         valeur := parse_valeur_length_percentage_positive(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         opt_valeur := parse_mot_clé_global_ou_var(*parseuse);
-        si opt_valeur.possède_valeur() {
+        si possède_valeur(opt_valeur) {
             résultat[nombre_valeurs] = opt_valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5413,7 +5413,7 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_boite(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5443,14 +5443,14 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
 
         /* 	<length-percentage [0,∞]> */
         valeur := parse_valeur_length_percentage_positive(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         valeur = parse_mot_clé_global_ou_var(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5463,7 +5463,7 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_logique(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5493,7 +5493,7 @@ parse_propriété_height_width :: fonc (value: []ComponentValue) -> Optionnel(*V
         consomme_espaces_blanches(*parseuse);
 
         valeur := parse_valeur_length_percentage_positive_ou_auto(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             retourne valeur;
         }
 
@@ -5516,7 +5516,7 @@ parse_propriété_max_height_width :: fonc (value: []ComponentValue) -> Optionne
 
     /* none | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
     lexème := lexème_courant(*parseuse);
-    si lexème.est_mot_clé(PROP_none) {
+    si est_mot_clé(lexème, PROP_none) {
         retourne donne_valeur_none();
     }
 
@@ -5540,24 +5540,24 @@ parse_propriété_line_height :: fonc (value: []ComponentValue) -> Optionnel(*Va
 parse_valeur_line_height :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_length_positive(parseuse);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur;
     }
 
     valeur = parse_valeur_number_positive(parseuse);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur;
     }
 
     valeur = parse_valeur_percentage(parseuse);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur;
     }
 
-    lexème := parseuse.lexème_courant();
+    lexème := lexème_courant(parseuse);
 
-    si lexème.est_mot_clé(PROP_normal) {
-        parseuse.avance();
+    si est_mot_clé(lexème, PROP_normal) {
+        avance(parseuse);
         retourne donne_valeur_normal();
     }
 }
@@ -5602,14 +5602,14 @@ parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: 
 
         /* auto | <length-percentage> */
         valeur := parse_valeur_length_percentage_ou_auto(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         opt_valeur := parse_mot_clé_global_ou_var(*parseuse);
-        si opt_valeur.possède_valeur() {
+        si possède_valeur(opt_valeur) {
             résultat[nombre_valeurs] = opt_valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5619,7 +5619,7 @@ parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: 
     }
 
 
-    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_logique(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5640,14 +5640,14 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
 
         /* auto | <length-percentage> */
         valeur := parse_valeur_length_percentage_ou_auto(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         opt_valeur := parse_mot_clé_global_ou_var(*parseuse);
-        si opt_valeur.possède_valeur() {
+        si possède_valeur(opt_valeur) {
             résultat[nombre_valeurs] = opt_valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5660,7 +5660,7 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_boite(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5681,12 +5681,12 @@ parse_propriété_text_align :: fonc (ctx: *ContexteParsageShorthand, value: []C
     parseuse := initialise_une_parseuse(value);
     mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all];
     valeur := parse_mot_clé(*parseuse, mots_clés);
-    saufsi valeur.possède_valeur() {
+    saufsi possède_valeur(valeur) {
         retourne faux;
     }
 
     pour noms_propriétés {
-        ctx.ajoute_propriété(it, valeur.Quelque);
+        ajoute_propriété(ctx, it, valeur.Quelque);
     }
 
     retourne vrai;
@@ -5789,14 +5789,14 @@ parse_shorthand_overflow :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
         consomme_espaces_blanches(*parseuse);
 
         valeur := parse_valeur_overflow(*parseuse);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             résultat[nombre_valeurs] = valeur.Quelque;
             nombre_valeurs += 1;
             continue;
         }
 
         opt_valeur := parse_mot_clé_global_ou_var(*parseuse);
-        si opt_valeur.possède_valeur() {
+        si possède_valeur(opt_valeur) {
             résultat[nombre_valeurs] = opt_valeur.Quelque;
             nombre_valeurs += 1;
             continue;
@@ -5805,7 +5805,7 @@ parse_shorthand_overflow :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
         retourne faux;
     }
 
-    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms_propriétés);
+    ajoute_propriétés_logique(ctx, nombre_valeurs, résultat, noms_propriétés);
     retourne vrai;
 }
 
@@ -5835,12 +5835,12 @@ parse_propriété_justify_content :: fonc (value: []ComponentValue) -> Optionnel
     parseuse := initialise_une_parseuse(value);
 
     valeur_normal := parse_mot_clé(*parseuse, [PROP_normal]);
-    si valeur_normal.possède_valeur() {
+    si possède_valeur(valeur_normal) {
         retourne valeur_normal.Quelque;
     }
 
     content_distribution := parse_valeur_type_content_distribution(*parseuse);
-    si content_distribution.possède_valeur() {
+    si possède_valeur(content_distribution) {
         retourne content_distribution.Quelque;
     }
 
@@ -5860,7 +5860,7 @@ parse_propriété_flex_basis :: fonc (value: []ComponentValue) -> Optionnel(*Val
 
     lexème := lexème_courant(*parseuse);
 
-    si lexème.est_mot_clé(PROP_content) {
+    si est_mot_clé(lexème, PROP_content) {
         retourne donne_valeur_content();
     }
 
@@ -5931,7 +5931,7 @@ parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []Component
     eu_flex_shrink := faux;
     eu_flex_basis := faux;
 
-    si lexème.est_mot_clé(PROP_none) {
+    si est_mot_clé(lexème, PROP_none) {
         // flex: 0 0 auto
         flex_shrink = donne_valeur_number_zéro();
     }
@@ -5940,7 +5940,7 @@ parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []Component
             consomme_espaces_blanches(*parseuse);
             lexème = lexème_courant(*parseuse);
 
-            si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            si est_lexème_de_genre(lexème, GenreLexème.Number) {
                 /* flex-grow */
                 avance(*parseuse);
 
@@ -5964,7 +5964,7 @@ parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []Component
             }
 
             valeur := parse_valeur_length_percentage_ou_auto(*parseuse);
-            saufsi valeur.possède_valeur() {
+            saufsi possède_valeur(valeur) {
                 retourne faux;
             }
 
@@ -5984,16 +5984,16 @@ parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []Component
         flex_basis = donne_valeur_percentage_zéro();
     }
     sinon si eu_flex_basis && !eu_flex_shrink && !eu_flex_grow {
-        si flex_basis.est_auto() {
+        si est_auto(flex_basis) {
             // flex: auto -> 1 1 auto;
             flex_grow = donne_valeur_number_un();
             flex_shrink = donne_valeur_number_un();
         }
     }
 
-    ctx.ajoute_propriété(PROP_flex_grow, flex_grow);
-    ctx.ajoute_propriété(PROP_flex_shrink, flex_shrink);
-    ctx.ajoute_propriété(PROP_flex_basis, flex_basis);
+    ajoute_propriété(ctx, PROP_flex_grow, flex_grow);
+    ajoute_propriété(ctx, PROP_flex_shrink, flex_shrink);
+    ajoute_propriété(ctx, PROP_flex_basis, flex_basis);
     retourne vrai;
 }
 
@@ -6020,20 +6020,20 @@ parse_shorthand_flex_flow :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
         consomme_espaces_blanches(*parseuse);
 
         valeur_flex_direction := parse_valeur_flex_direction(*parseuse);
-        si valeur_flex_direction.possède_valeur() {
+        si possède_valeur(valeur_flex_direction) {
             flex_direction = valeur_flex_direction.Quelque;
             continue;
         }
 
         valeur_flex_wrap := parse_valeur_flex_wrap(*parseuse);
-        si valeur_flex_wrap.possède_valeur() {
+        si possède_valeur(valeur_flex_wrap) {
             flex_wrap = valeur_flex_wrap.Quelque;
             continue;
         }
     }
 
-    ctx.ajoute_propriété(PROP_flex_direction, flex_direction);
-    ctx.ajoute_propriété(PROP_flex_wrap, flex_wrap);
+    ajoute_propriété(ctx, PROP_flex_direction, flex_direction);
+    ajoute_propriété(ctx, PROP_flex_wrap, flex_wrap);
     retourne vrai;
 }
 
@@ -6106,12 +6106,12 @@ parse_propriété_align_content :: fonc (value: []ComponentValue) -> Optionnel(*
     /* normal | <baseline-position> | <content-distribution> | <overflow-position>? <content-position> */
     parseuse := initialise_une_parseuse(value);
     valeur_normal := parse_mot_clé(*parseuse, [PROP_normal]);
-    si valeur_normal.possède_valeur() {
+    si possède_valeur(valeur_normal) {
         retourne valeur_normal.Quelque;
     }
 
     content_distribution := parse_valeur_type_content_distribution(*parseuse);
-    si content_distribution.possède_valeur() {
+    si possède_valeur(content_distribution) {
         retourne content_distribution.Quelque;
     }
 
@@ -6148,7 +6148,7 @@ parse_propriété_align_items :: fonc (value: []ComponentValue) -> Optionnel(*Va
 
     mots_clés := [PROP_normal, PROP_stretch];
     valeur := parse_mot_clé(*parseuse, mots_clés);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur.Quelque;
     }
 
@@ -6170,7 +6170,7 @@ parse_propriété_align_self :: fonc (value: []ComponentValue) -> Optionnel(*Val
 
     mots_clés := [PROP_auto, PROP_normal, PROP_stretch];
     valeur := parse_mot_clé(*parseuse, mots_clés);
-    si valeur.possède_valeur() {
+    si possède_valeur(valeur) {
         retourne valeur.Quelque;
     }
 
@@ -6198,15 +6198,15 @@ parse_propriété_content :: fonc (value: []ComponentValue) -> Optionnel(*Valeur
     parseuse := initialise_une_parseuse(value);
 
     lexème := lexème_courant(*parseuse);
-    si lexème.est_mot_clé(PROP_none) {
+    si est_mot_clé(lexème, PROP_none) {
         retourne donne_valeur_none();
     }
 
-    si lexème.est_mot_clé(PROP_normal) {
+    si est_mot_clé(lexème, PROP_normal) {
         retourne donne_valeur_normal();
     }
 
-    si lexème.est_lexème_de_genre(GenreLexème.String) {
+    si est_lexème_de_genre(lexème, GenreLexème.String) {
         retourne crée_valeur_string(lexème.lexème.valeur);
     }
 }

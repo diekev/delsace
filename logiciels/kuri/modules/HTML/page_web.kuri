@@ -22,7 +22,7 @@ crée_page_web :: fonc (navigable: *TraversableNavigable) -> PageWeb
 donne_document :: fonc (page: *PageWeb) -> *Document
 {
     si page.navigable {
-        retourne page.navigable.donne_active_document();
+        retourne donne_active_document(page.navigable);
     }
     retourne nul;
 }
@@ -54,7 +54,7 @@ dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: 
         retourne nul;
     }
 
-    si document.is_render_blocked() {
+    si is_render_blocked(document) {
         retourne nul;
     }
 
@@ -167,7 +167,7 @@ redimensionne :: fonc (page: *PageWeb, largeur: z32, hauteur: z32)
 {
     document := donne_document(page);
     si document {
-        document.invalide_style_pour_redimensionnement(largeur, hauteur);
+        invalide_style_pour_redimensionnement(document, largeur, hauteur);
     }
 }
 
@@ -189,7 +189,7 @@ gère_mouvement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
     position_event := donne_position_décalée_par_défilement(page, position);
 
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y);
-    document.définis_noeud_survolé(élément);
+    définis_noeud_survolé(document, élément);
     si élément {
         envoie_mousemove(élément, position_event.x, position_event.y);
     }
@@ -205,7 +205,7 @@ gère_mouvement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
             ajourne_rendu |= CSS.décale_par(défilement, décalage);
         }
 
-        si défilement.rect.contient(position.x comme r32, position.y comme r32) {
+        si contient(défilement.rect, position.x comme r32, position.y comme r32) {
             saufsi défilement.est_survolé {
                 défilement.est_survolé = vrai;
                 ajourne_rendu = vrai;
@@ -244,12 +244,12 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *ClicSouris)
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y);
     si élément {
         si clic.bouton == BoutonSouris.PRIMAIRE {
-            élément.est_en_train_d_être_activé(vrai);
+            est_en_train_d_être_activé(élément, vrai);
         }
         sinon si clic.bouton == BoutonSouris.CONTEXTUEL {
-            user_agent := document.donne_user_agent();
+            user_agent := donne_user_agent(document);
             assert(user_agent != nul);
-            user_agent.affiche_menu_contextuel_pour(élément, clic);
+            affiche_menu_contextuel_pour(user_agent, élément, clic);
         }
         envoie_mousedown(élément, position_event.x, position_event.y);
     }
@@ -279,12 +279,12 @@ gère_relâchement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
 
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y);
     si élément {
-        élément.est_en_train_d_être_activé(faux);
+        est_en_train_d_être_activé(élément, faux);
         envoie_mouseup(élément, position_event.x, position_event.y);
     }
     si document.élément_en_cours_d_activation {
         si document.élément_en_cours_d_activation != élément {
-            document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux);
+            est_en_train_d_être_activé(document.élément_en_cours_d_activation, faux);
         }
         sinon {
             envoie_un_clic(élément, clic.bouton, position_event.x, position_event.y);
@@ -410,19 +410,19 @@ envoie_un_clic :: fonc (élément: *Element, bouton: BoutonSouris, position_x: z
 
 input_element_sur_pression_souris :: fonc (input: *HTMLInputElement)
 {
-    si input.is_text_entry_widget() {
-        input.crée_shadow_root_pour_édition();
-        user_agent := input.document.donne_user_agent();
+    si is_text_entry_widget(input) {
+        crée_shadow_root_pour_édition(input);
+        user_agent := donne_user_agent(input.document);
         assert(user_agent != nul);
-        user_agent.édition_text_input_requise(input);
+        édition_text_input_requise(user_agent, input);
         retourne;
     }
 }
 
 input_element_sur_clic :: fonc (input: *HTMLInputElement)
 {
-    si input.is_radio_button_widget() || input.is_checkbox_widget() {
-        input.définis_checkedness(!input.checkedness);
+    si is_radio_button_widget(input) || is_checkbox_widget(input) {
+        définis_checkedness(input, !input.checkedness);
 
         /* The dirty checkedness flag must be initially set to false when the element
          * is created, and must be set to true whenever the user interacts with the

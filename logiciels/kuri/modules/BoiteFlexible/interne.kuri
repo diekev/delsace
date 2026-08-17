@@ -47,8 +47,8 @@ donne_configuration_bordure_courante :: fonc () -> *ConfigurationBordure
     assert(__boite_courante != nul);
     emboiteuse := __boite_courante.emboiteuse;
 
-    saufsi __boite_courante.indice_bordure.est_valide() {
-        __boite_courante.indice_bordure = emboiteuse.ajoute_configuration_bordure(ConfigurationBordure());
+    saufsi est_valide(__boite_courante.indice_bordure) {
+        __boite_courante.indice_bordure = ajoute_configuration_bordure(emboiteuse, ConfigurationBordure());
     }
 
     config := *emboiteuse.bordures[__boite_courante.indice_bordure];
@@ -599,7 +599,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Flexible,
     boite_disposée.barre_de_défilement_horizontale = boite.barre_de_défilement_horizontale;
     boite_disposée.barre_de_défilement_verticale = boite.barre_de_défilement_verticale;
     boite_disposée.profondeur = boite.profondeur;
-    boite_disposée.est_flottante = boite.flottance.est_valide();
+    boite_disposée.est_flottante = est_valide(boite.flottance);
     boite_disposée.curseur = boite.curseur;
 
     dernier_enfant := -1;
@@ -618,7 +618,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Flexible,
             emboiteuse.boites_disposées[dernier_enfant].puiné = indice_enfant;
         }
 
-        si it.flottance.est_valide() {
+        si est_valide(it.flottance) {
             tableau_ajoute(*emboiteuse.boites_disposées_flottantes, indice_enfant);
         }
         
@@ -716,7 +716,7 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse, ignore_boite: *Boite_D
         si boite == ignore_boite {
             continue;
         }
-        si boite.rect.contient(emboiteuse.souris_x, emboiteuse.souris_y) {
+        si contient(boite.rect, emboiteuse.souris_x, emboiteuse.souris_y) {
             si boite.profondeur < profondeur_flottante {
                 boite_courante = boite;
                 profondeur_flottante = boite.profondeur;
@@ -732,7 +732,7 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse, ignore_boite: *Boite_D
         enfant := racine_boites_disposées + boite_courante.premier_enfant;
 
         boucle {
-            si enfant.rect.contient(emboiteuse.souris_x, emboiteuse.souris_y) {
+            si contient(enfant.rect, emboiteuse.souris_x, emboiteuse.souris_y) {
                 arrête;
             }
 
@@ -830,7 +830,7 @@ calcule_cotation_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direc
         }
 
         métriques := donne_métriques_fonte(boite.config_texte.fonte);
-        boite.hauteur = métriques.donne_hauteur_ligne() * (boite.dernier_fragment - boite.premier_fragment + 1) comme r32;
+        boite.hauteur = donne_hauteur_ligne(métriques) * (boite.dernier_fragment - boite.premier_fragment + 1) comme r32;
         boite.taille_min[direction] = boite.hauteur;
         retourne;
     }
@@ -844,7 +844,7 @@ calcule_cotation_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direc
         }
 
         métriques := donne_métriques_fonte(boite.config_texte.fonte);
-        boite.hauteur = métriques.donne_hauteur_ligne();
+        boite.hauteur = donne_hauteur_ligne(métriques);
         boite.taille_min[direction] = boite.hauteur;
         retourne;
     }
@@ -856,13 +856,13 @@ calcule_cotation_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direc
     pour boite.enfants {
         calcule_cotation_sur_direction(it, direction);
 
-        si it.flottance.est_valide() {
+        si est_valide(it.flottance) {
             continue;
         }
 
         nombre_enfants_non_flottants += 1;
 
-        taille_enfant := it.donne_taille(direction);
+        taille_enfant := donne_taille(it, direction);
 
         si boite.disposition.direction == direction {
             cotation += taille_enfant;
@@ -874,20 +874,20 @@ calcule_cotation_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direc
         }
     }
 
-    si boite.est_cotation_fixe(direction) {
-        cotation = boite.donne_cotation(direction) comme r32;
+    si est_cotation_fixe(boite, direction) {
+        cotation = donne_cotation(boite, direction) comme r32;
         boite.taille_min[direction] = cotation;
     }
-    sinon si boite.est_cotation_croissante(direction) {
+    sinon si est_cotation_croissante(boite, direction) {
         cotation = 0.0;
         boite.taille_min[direction] = cotation;
     }
     sinon {
-        cotation += boite.donne_rembourrage(direction);
+        cotation += donne_rembourrage(boite, direction);
         /* Inclus le rembourrage dans la taille minimale afin de ne pas souscoter
          * des boites qui ne contiennent que du texte.
          * (Ou alors il faudra noter que le texte doit être élidé). */
-        boite.taille_min[direction] += boite.donne_rembourrage(direction);
+        boite.taille_min[direction] += donne_rembourrage(boite, direction);
 
         si boite.disposition.direction == direction {
             espace_entre_enfants := (nombre_enfants_non_flottants - 1) comme r32 * boite.disposition.séparation_enfant;
@@ -895,7 +895,7 @@ calcule_cotation_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direc
             boite.taille_min[direction] += espace_entre_enfants;
         }
 
-        cotation = max(cotation, boite.donne_cotation(direction) comme r32);
+        cotation = max(cotation, donne_cotation(boite, direction) comme r32);
     }
 
     boite.taille_min[direction] = max(boite.taille_min[direction], donne_cotation_min(boite, direction) comme r32);
@@ -909,7 +909,7 @@ calcule_cotation_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direc
         cotation = cotation_max_spécifiée;
     }
 
-    boite.définis_taille(direction, cotation);
+    définis_taille(boite, direction, cotation);
 }
 
 résoud_cotation_croissante_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direction)
@@ -928,18 +928,18 @@ résoud_cotation_croissante_sur_direction :: fonc (boite: *Boite_Flexible, direc
 résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *Boite_Flexible, direction: Direction)
 {
     si boite.disposition.direction != direction {
-        espace_libre := boite.donne_taille(direction) - boite.donne_rembourrage(direction);
+        espace_libre := donne_taille(boite, direction) - donne_rembourrage(boite, direction);
 
         pour boite.enfants {
-            si it.flottance.est_valide() {
+            si est_valide(it.flottance) {
                 continue;
             }
-            si it.est_cotation_croissante(direction) {
-                it.agrandis_par(direction, espace_libre - it.donne_taille(direction));
+            si est_cotation_croissante(it, direction) {
+                agrandis_par(it, direction, espace_libre - donne_taille(it, direction));
             }
-            sinon saufsi it.est_cotation_fixe(direction) {
-                si it.donne_taille(direction) > espace_libre {
-                    it.définis_taille(direction, it.taille_min[direction]);
+            sinon saufsi est_cotation_fixe(it, direction) {
+                si donne_taille(it, direction) > espace_libre {
+                    définis_taille(it, direction, it.taille_min[direction]);
                 }
             }
         }
@@ -967,13 +967,13 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *Boite_Flexible, 
     décroissables.taille = 0;
 
     pour boite.enfants {
-        si it.flottance.est_valide() {
+        si est_valide(it.flottance) {
             continue;
         }
-        si it.est_cotation_croissante(direction) {
+        si est_cotation_croissante(it, direction) {
             tableau_ajoute(*croissables, it);
         }
-        sinon saufsi it.est_cotation_fixe(direction) {
+        sinon saufsi est_cotation_fixe(it, direction) {
             tableau_ajoute(*décroissables, it);
         }
     }
@@ -981,12 +981,12 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *Boite_Flexible, 
     R64_INFINITÉ : r64 : 0r7ff0000000000000;
 
     tantque croissables.taille > 0 && espace_libre > 0.0 {
-        petissime := croissables[0].donne_taille(direction);
+        petissime := donne_taille(croissables[0], direction);
         antepetissime := R64_INFINITÉ comme r32;
         largeur_à_ajouter := espace_libre;
 
         pour croissables {
-            taille_enfant := it.donne_taille(direction);
+            taille_enfant := donne_taille(it, direction);
             si taille_enfant < petissime {
                 antepetissime = petissime;
                 petissime = taille_enfant;
@@ -1000,20 +1000,20 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *Boite_Flexible, 
         largeur_à_ajouter = min(largeur_à_ajouter, espace_libre / croissables.taille comme r32);
 
         pour croissables {
-            si it.donne_taille(direction) == petissime {
-                it.agrandis_par(direction, largeur_à_ajouter);
+            si donne_taille(it, direction) == petissime {
+                agrandis_par(it, direction, largeur_à_ajouter);
                 espace_libre -= largeur_à_ajouter;
             }
         }
     }
 
     tantque décroissables.taille > 0 && espace_libre < 0.0 {
-        grandissime := décroissables[0].donne_taille(direction);
+        grandissime := donne_taille(décroissables[0], direction);
         antegrandissime := R64_INFINITÉ comme r32;
         largeur_à_ajouter := espace_libre;
 
         pour décroissables {
-            taille_enfant := it.donne_taille(direction);
+            taille_enfant := donne_taille(it, direction);
             si taille_enfant > grandissime {
                 antegrandissime = grandissime;
                 grandissime = taille_enfant;
@@ -1027,21 +1027,21 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *Boite_Flexible, 
         largeur_à_ajouter = min(largeur_à_ajouter, espace_libre / décroissables.taille comme r32);
 
         pour décroissables {
-            taille_initiale_enfant := it.donne_taille(direction);
+            taille_initiale_enfant := donne_taille(it, direction);
             si taille_initiale_enfant != grandissime {
                 continue;
             }
 
-            it.agrandis_par(direction, largeur_à_ajouter);
+            agrandis_par(it, direction, largeur_à_ajouter);
 
             supprime_décroissable := faux;
 
-            si it.donne_taille(direction) <= it.taille_min[direction] {
-                it.définis_taille(direction, it.taille_min[direction]);
+            si donne_taille(it, direction) <= it.taille_min[direction] {
+                définis_taille(it, direction, it.taille_min[direction]);
                 supprime_décroissable = vrai;
             }
 
-            espace_libre -= (it.donne_taille(direction) - taille_initiale_enfant);
+            espace_libre -= (donne_taille(it, direction) - taille_initiale_enfant);
 
             si supprime_décroissable {
                 tableau_supprime_indice(*décroissables, indice_it);
@@ -1111,8 +1111,8 @@ calcule_positions :: fonc (boite: *Boite_Flexible)
         orthogonale = Direction.Verticale;
     }
 
-    alignement_direction := boite.donne_alignement(boite.disposition.direction);
-    alignement_orthogonal := boite.donne_alignement(orthogonale);
+    alignement_direction := donne_alignement(boite, boite.disposition.direction);
+    alignement_orthogonal := donne_alignement(boite, orthogonale);
 
     si alignement_direction == AlignementEnfant.Milieu {
         espace := donne_espace_libre(boite, boite.disposition.direction == Direction.Verticale);
@@ -1136,7 +1136,7 @@ calcule_positions :: fonc (boite: *Boite_Flexible)
     }
 
     pour boite.enfants {
-        si it.flottance.est_valide() {
+        si est_valide(it.flottance) {
             flottance := boite.emboiteuse.flottances[it.flottance];
 
             it.position.x = boite.position.x;
@@ -1186,8 +1186,8 @@ calcule_positions :: fonc (boite: *Boite_Flexible)
         décalage_pour_enfant := décalage_enfants;
 
         si alignement_orthogonal != AlignementEnfant.Début {
-            espace_libre := boite.donne_taille(orthogonale) - boite.donne_rembourrage(orthogonale);
-            espace_libre -= it.donne_taille(orthogonale);
+            espace_libre := donne_taille(boite, orthogonale) - donne_rembourrage(boite, orthogonale);
+            espace_libre -= donne_taille(it, orthogonale);
 
             si alignement_orthogonal == AlignementEnfant.Milieu {
                 espace_libre *= 0.5;
@@ -1201,7 +1201,7 @@ calcule_positions :: fonc (boite: *Boite_Flexible)
 
         calcule_positions(it);
 
-        décalage_enfants[boite.disposition.direction] += it.donne_taille(boite.disposition.direction) + boite.disposition.séparation_enfant;
+        décalage_enfants[boite.disposition.direction] += donne_taille(it, boite.disposition.direction) + boite.disposition.séparation_enfant;
     }
 }
 
@@ -1212,7 +1212,7 @@ donne_espace_libre :: fonc (boite: *Boite_Flexible, axe_y: bool) -> r32
     nombre_enfants_non_flottants := 0;
 
     pour boite.enfants {
-        si it.flottance.est_valide() {
+        si est_valide(it.flottance) {
             continue;
         }
         nombre_enfants_non_flottants += 1;
@@ -1245,7 +1245,7 @@ donne_hauteur_enfants :: fonc (boite: *Boite_Flexible) -> r32
     dernier_enfant: *Boite_Flexible;
 
     pour boite.enfants {
-        si it.flottance.est_valide() {
+        si est_valide(it.flottance) {
             continue;
         }
         si premier_enfant == nul {
@@ -1286,16 +1286,16 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             boite_pour_ciselage := donne_boite_pour_ciselage(boite);
             si boite_pour_ciselage {
                 rect_ciselage := donne_rect_ciselage_défilage(boite_pour_ciselage);
-                commandes.débute_ciselage(rect_ciselage);
+                débute_ciselage(commandes, rect_ciselage);
             }
 
             discr boite.type {
                 Normale {
                     si boite.rectangle.rayon_coin != 0.0 {
-                        commandes.remplis_rectangle_arrondi(rect, boite.arrière_plan, boite.rectangle.rayon_coin);
+                        remplis_rectangle_arrondi(commandes, rect, boite.arrière_plan, boite.rectangle.rayon_coin);
                     }
                     sinon {
-                        commandes.remplis_rectangle(rect, boite.arrière_plan);
+                        remplis_rectangle(commandes, rect, boite.arrière_plan);
                     }
                 }
                 Texte {
@@ -1311,35 +1311,35 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
 
                         premier_fragment := boite.emboiteuse.fragments.données + boite.premier_fragment;
                         dernier_fragment := boite.emboiteuse.fragments.données + boite.dernier_fragment + 1;
-                        métriques := boite.config_texte.fonte.donne_métriques_fonte();
+                        métriques := donne_métriques_fonte(boite.config_texte.fonte);
 
-                        rect_texte.hauteur = métriques.donne_hauteur_ligne();
+                        rect_texte.hauteur = donne_hauteur_ligne(métriques);
 
                         tantque premier_fragment < dernier_fragment {
-                            commandes.dessine_texte(boite.config_texte.fonte, premier_fragment.texte, rect_texte, boite.config_texte.couleur);
+                            dessine_texte(commandes, boite.config_texte.fonte, premier_fragment.texte, rect_texte, boite.config_texte.couleur);
                             premier_fragment += 1;
 
-                            rect_texte.y += métriques.donne_hauteur_ligne();
+                            rect_texte.y += donne_hauteur_ligne(métriques);
                         }
                     }
                 }
                 TexteUTF32 {
-                    commandes.dessine_texte(boite.config_texte.fonte, boite.texte_utf32, rect, boite.config_texte.couleur);
+                    dessine_texte(commandes, boite.config_texte.fonte, boite.texte_utf32, rect, boite.config_texte.couleur);
                 }
                 Image {
-                    commandes.dessine_image(rect, boite.image, boite.teinte);
+                    dessine_image(commandes, rect, boite.image, boite.teinte);
                 }
                 Procédure {
-                    commandes.dessine_procédural(rect, boite.procédure, boite.données_procédure);
+                    dessine_procédural(commandes, rect, boite.procédure, boite.données_procédure);
                 }
             }
 
             si boite_pour_ciselage {
-                commandes.termine_ciselage();
+                termine_ciselage(commandes);
             }
 
             pour > boite.enfants {
-                si it.flottance.est_valide() {
+                si est_valide(it.flottance) {
                     continue;
                 }
                 tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille);
@@ -1378,22 +1378,22 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
 
                 barre.rect = rect_défilage;
 
-                commandes.remplis_rectangle(rect_défilage, couleur_barre);
+                remplis_rectangle(commandes, rect_défilage, couleur_barre);
             }
         }
 
-        si boite.indice_bordure.est_valide() {
+        si est_valide(boite.indice_bordure) {
             boite_pour_ciselage := donne_parent_avec_barre_défilage(boite);
             si boite_pour_ciselage {
                 rect_ciselage := donne_rect_ciselage_défilage(boite_pour_ciselage);
-                commandes.débute_ciselage(rect_ciselage);
+                débute_ciselage(commandes, rect_ciselage);
             }
 
             config := boite.emboiteuse.bordures[boite.indice_bordure];
-            commandes.dessine_bordure(rect, donne_couleurs_bordure(config), donne_largeurs_bordure(config), crée_rayons_rectangle(boite.rectangle.rayon_coin));
+            dessine_bordure(commandes, rect, donne_couleurs_bordure(config), donne_largeurs_bordure(config), crée_rayons_rectangle(boite.rectangle.rayon_coin));
 
             si boite_pour_ciselage {
-                commandes.termine_ciselage();
+                termine_ciselage(commandes);
             }
         }
 
@@ -1408,11 +1408,11 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             rect.hauteur = hauteur_disponible;
             
             couleur_barre := boite.couleur_curseur_texte;
-            commandes.remplis_rectangle(rect, couleur_barre);
+            remplis_rectangle(commandes, rect, couleur_barre);
         }
 
         pour > boite.enfants {
-            si it.flottance.est_valide() {
+            si est_valide(it.flottance) {
                 tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille);
                 tableau_ajoute(*emboiteuse.traversée_boites, it);
             }
@@ -1428,7 +1428,7 @@ donne_position_curseur :: fonc (boite: *Boite_Flexible, éditrice: *ÉditriceTex
     texte_avant_curseur := éditrice.texte_à_éditer;
     texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin;
 
-    curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur);
+    curseur_x := donne_largeur_texte(éditrice.fonte, texte_avant_curseur);
 
     curseur_x_corrigé := rect_x + boite.disposition.rembourrage.v[0] + curseur_x;
 

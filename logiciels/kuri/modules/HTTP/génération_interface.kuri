@@ -138,7 +138,7 @@ DonnéesCréationPointDEntréePage :: struct {
 
 nouvelle_ligne :: fonc (enchaineuse: *Enchaineuse)
 {
-    enchaineuse.ajoute_au_tampon("\n");
+    ajoute_au_tampon(enchaineuse, "\n");
 }
 
 construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *ParamètresGénérationInterface, données: *DonnéesCréationPointDEntréePage)
@@ -146,30 +146,30 @@ construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     infos_paramètres := données.infos_paramètres;
     possède_paramètres_routage := règles_ont_au_moins_un_paramètre(données.règles_routage);
 
-    enchaineuse.imprime_dans_enchaineuse("%_% :: fonc (prise: *Prise, message: *MessageClienteHTTP", données.méthode, données.nom_fonction);
+    imprime_dans_enchaineuse(enchaineuse, "%_% :: fonc (prise: *Prise, message: *MessageClienteHTTP", données.méthode, données.nom_fonction);
     si possède_paramètres_routage {
-        enchaineuse.imprime_dans_enchaineuse(", paramètres_routage: %", infos_paramètres.paramètres_route.type.nom);
+        imprime_dans_enchaineuse(enchaineuse, ", paramètres_routage: %", infos_paramètres.paramètres_route.type.nom);
     }
-    enchaineuse.ajoute_au_tampon(") -> MessageServeuseHTTP\n");
-    enchaineuse.ajoute_au_tampon("{\n");
+    ajoute_au_tampon(enchaineuse, ") -> MessageServeuseHTTP\n");
+    ajoute_au_tampon(enchaineuse, "{\n");
 
     // extrait les données de la prise
-    enchaineuse.imprime_dans_enchaineuse("\t% := prise.contexte_.données_utilisateur(%);\n", paramètres.nom_serveuse, paramètres.type_serveuse);
-    enchaineuse.ajoute_au_tampon("\tdonnées_prise := prise.données_utilisateur(", paramètres.type_données_prise, ");\n");
-    enchaineuse.nouvelle_ligne();
+    imprime_dans_enchaineuse(enchaineuse, "\t% := données_utilisateur(prise.contexte_, %);\n", paramètres.nom_serveuse, paramètres.type_serveuse);
+    ajoute_au_tampon(enchaineuse, "\tdonnées_prise := données_utilisateur(prise, ", paramètres.type_données_prise, ");\n");
+    nouvelle_ligne(enchaineuse);
 
-    enchaineuse.ajoute_au_tampon("\tinitialise_données_connexion_depuis_message(", paramètres.nom_serveuse, ", données_prise, message);\n");
-    enchaineuse.nouvelle_ligne();
+    ajoute_au_tampon(enchaineuse, "\tinitialise_données_connexion_depuis_message(", paramètres.nom_serveuse, ", données_prise, message);\n");
+    nouvelle_ligne(enchaineuse);
 
     si infos_paramètres.formulaire.type != nul {
         chn_type_formulaire := chaine_pour_type(infos_paramètres.formulaire.type);
-        enchaineuse.imprime_dans_enchaineuse("\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %);\n", chn_type_formulaire);
+        imprime_dans_enchaineuse(enchaineuse, "\trésultat_parsage, champs_renseignés, paramètres_post := parse_texte_format_url(message.contenu, %);\n", chn_type_formulaire);
         déloge(*chn_type_formulaire);
 
-        enchaineuse.ajoute_au_tampon("\tsaufsi résultat_parsage == RésultatParsageFormatURL.Succès {\n");
-        enchaineuse.ajoute_au_tampon("\t\tretourne mauvaise_requête();\n");
-        enchaineuse.ajoute_au_tampon("\t}\n");
-        enchaineuse.nouvelle_ligne();
+        ajoute_au_tampon(enchaineuse, "\tsaufsi résultat_parsage == RésultatParsageFormatURL.Succès {\n");
+        ajoute_au_tampon(enchaineuse, "\t\tretourne mauvaise_requête();\n");
+        ajoute_au_tampon(enchaineuse, "\t}\n");
+        nouvelle_ligne(enchaineuse);
     }
 
     si infos_paramètres.paramètres_requête.type != nul {
@@ -193,10 +193,10 @@ construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         }
         »;
 
-        enchaineuse.imprime_dans_enchaineuse(chaine_extraction_paramètres_requête, nom_type_paramètre_requête, nom_type_paramètre_requête);
+        imprime_dans_enchaineuse(enchaineuse, chaine_extraction_paramètres_requête, nom_type_paramètre_requête, nom_type_paramètre_requête);
     }
 
-    enchaineuse.ajoute_au_tampon("\tmessage_serveuse : MessageServeuseHTTP = ---;\n");
+    ajoute_au_tampon(enchaineuse, "\tmessage_serveuse : MessageServeuseHTTP = ---;\n");
 
     // appel la fonction
     paramètres_appel: [5]chaine;
@@ -227,17 +227,17 @@ construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         nombre_paramètres += 1;
     }
 
-    enchaineuse.imprime_dans_enchaineuse("\trésultat := %", données.nom_fonction);
+    imprime_dans_enchaineuse(enchaineuse, "\trésultat := %", données.nom_fonction);
     virgule := "(";
     pour nombre_paramètres {
-        enchaineuse.ajoute_au_tampon(virgule, paramètres_appel[it]);
+        ajoute_au_tampon(enchaineuse, virgule, paramètres_appel[it]);
         virgule = ", ";
     }
-    enchaineuse.ajoute_au_tampon(");");
-    enchaineuse.nouvelle_ligne();
+    ajoute_au_tampon(enchaineuse, ");");
+    nouvelle_ligne(enchaineuse);
 
     // À FAIRE : ce serait bien d'extraire ceci dans une fonction commune, mais les types résultat peuvent être uniques à cause des gabarits
-    enchaineuse.imprime_dans_enchaineuse("\tdiscr résultat {\n");
+    imprime_dans_enchaineuse(enchaineuse, "\tdiscr résultat {\n");
 
     pour données.type_résultat.rubriques {
         si it.drapeaux.EST_CONSTANTE {
@@ -246,39 +246,39 @@ construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
 
         type_rubrique := it.id;
 
-        enchaineuse.imprime_dans_enchaineuse("\t\t% {\n", it.nom);
-        enchaineuse.imprime_dans_enchaineuse("\t\t\t__valeur := résultat.%;\n", it.nom);
+        imprime_dans_enchaineuse(enchaineuse, "\t\t% {\n", it.nom);
+        imprime_dans_enchaineuse(enchaineuse, "\t\t\t__valeur := résultat.%;\n", it.nom);
 
         si est_type_structure_nommée(type_rubrique, "Redirection") {
             // crée une redirection
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = redirige(__valeur.chemin_redirection);\n");
+            imprime_dans_enchaineuse(enchaineuse, "\t\t\tmessage_serveuse = redirige(__valeur.chemin_redirection);\n");
         }
         sinon si est_type_rendu_page(paramètres, type_rubrique) {
             // rends les données pour une page HTML
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur);\n", paramètres.nom_serveuse);
+            imprime_dans_enchaineuse(enchaineuse, "\t\t\tmessage_serveuse = rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur);\n", paramètres.nom_serveuse);
         }
         sinon si est_type_structure_nommée(type_rubrique, "ErreurHTTP") {
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = message_depuis_erreur_http(__valeur);\n");
+            imprime_dans_enchaineuse(enchaineuse, "\t\t\tmessage_serveuse = message_depuis_erreur_http(__valeur);\n");
         }
         sinon si est_type_structure_nommée(type_rubrique, "CodeEtContenuHTPP") {
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = crée_message_avec_contenu(__valeur.code, __valeur.contenu);\n");
+            imprime_dans_enchaineuse(enchaineuse, "\t\t\tmessage_serveuse = crée_message_avec_contenu(__valeur.code, __valeur.contenu);\n");
         }
         sinon si est_type_structure_nommée(type_rubrique, "ChangementProtocole") {
-            enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = message_depuis_changement_protocole(__valeur);\n");
+            imprime_dans_enchaineuse(enchaineuse, "\t\t\tmessage_serveuse = message_depuis_changement_protocole(__valeur);\n");
         }
 
-        enchaineuse.imprime_dans_enchaineuse("\t\t}\n");
+        imprime_dans_enchaineuse(enchaineuse, "\t\t}\n");
     }
 
-    enchaineuse.imprime_dans_enchaineuse("\t\tsinon {\n");
-    enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = erreur_interne();\n");
-    enchaineuse.imprime_dans_enchaineuse("\t\t}\n");
-    enchaineuse.imprime_dans_enchaineuse("\t}\n");
-    enchaineuse.nouvelle_ligne();
+    imprime_dans_enchaineuse(enchaineuse, "\t\tsinon {\n");
+    imprime_dans_enchaineuse(enchaineuse, "\t\t\tmessage_serveuse = erreur_interne();\n");
+    imprime_dans_enchaineuse(enchaineuse, "\t\t}\n");
+    imprime_dans_enchaineuse(enchaineuse, "\t}\n");
+    nouvelle_ligne(enchaineuse);
 
-    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, *message_serveuse);\n");
-    enchaineuse.ajoute_au_tampon("\tretourne message_serveuse;\n");
-    enchaineuse.ajoute_au_tampon("}\n");
+    ajoute_au_tampon(enchaineuse, "\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, *message_serveuse);\n");
+    ajoute_au_tampon(enchaineuse, "\tretourne message_serveuse;\n");
+    ajoute_au_tampon(enchaineuse, "}\n");
 }
 
 est_résultat :: fonc (info: *InfoType) -> bool
@@ -705,7 +705,7 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         }
         génère_corps_fonction_appariement(enchaineuse, it);
     }
-    enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée();\n");
+    ajoute_au_tampon(enchaineuse, "\tretourne ressource_non_trouvée();\n");
     imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n");
 
     inutilisée = si nombre_routes_post == 0 {
@@ -723,7 +723,7 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         }
         génère_corps_fonction_appariement(enchaineuse, it);
     }
-    enchaineuse.ajoute_au_tampon("\tretourne ressource_non_trouvée();\n");
+    ajoute_au_tampon(enchaineuse, "\tretourne ressource_non_trouvée();\n");
     imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n");
 }
 

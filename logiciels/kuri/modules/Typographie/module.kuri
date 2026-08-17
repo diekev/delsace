@@ -153,7 +153,7 @@ donne_chemin_fonte_mono_défaut :: fonc () -> chaine
 donne_fonte :: fonc (nom: chaine, taille_police: r32) -> *Fonte
 {
     chemin_courant := #chemin_de_ce_fichier;
-    dossier := CheminFichier(chemin_courant).chemin_parent();
+    dossier := chemin_parent(CheminFichier(chemin_courant));
     diffère détruit_chemin(*dossier);
 
     tampon_chemin: TamponChemin;
@@ -265,7 +265,7 @@ donne_indice_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32
 
 donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16Unique) -> r32
 {
-    retourne donne_largeur_texte(fonte, texte.donne_chaine_utf16());
+    retourne donne_largeur_texte(fonte, donne_chaine_utf16(texte));
 }
 
 donne_largeur_glyph :: fonc (fonte: *Fonte, point_de_code: n32) -> Optionnel(r32)
@@ -303,7 +303,7 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: chaine) -> []*texture_glyph_t
         point_de_code := convertis_utf8_utf32(début, n) comme n32;
         début += n;
 
-        glyph := fonte.donne_glyphe(point_de_code);
+        glyph := donne_glyphe(fonte, point_de_code);
         si glyph == nul {
             continue;
         }
@@ -319,7 +319,7 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF16) -> []*texture_glyph_t
     fonte.glyphes.taille = 0;
 
     pour texte.unités {
-        glyph := fonte.donne_glyphe(it);
+        glyph := donne_glyphe(fonte, it);
         si glyph == nul {
             continue;
         }
@@ -335,7 +335,7 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF32) -> []*texture_glyph_t
     fonte.glyphes.taille = 0;
 
     pour texte.points_de_code {
-        glyph := fonte.donne_glyphe(it);
+        glyph := donne_glyphe(fonte, it);
         si glyph == nul {
             continue;
         }

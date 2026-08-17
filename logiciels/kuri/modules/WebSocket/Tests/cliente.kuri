@@ -12,12 +12,12 @@ principale :: fonc ()
 {
     boucle_évènements := crée_boucle();
     ctx := crée_contexte_vide(boucle_évènements, ClienteWebSocket);
-    ctx.mute_quand_ouverture(rappel_quand_ouverture);
-    ctx.mute_quand_données_reçues(rappel_quand_données_reçues);
-    ctx.mute_quand_fermeture(rappel_quand_fermeture);
-    ctx.mute_quand_écriture(rappel_quand_écriture);
+    mute_quand_ouverture(ctx, rappel_quand_ouverture);
+    mute_quand_données_reçues(ctx, rappel_quand_données_reçues);
+    mute_quand_fermeture(ctx, rappel_quand_fermeture);
+    mute_quand_écriture(ctx, rappel_quand_écriture);
 
-    cliente := ctx.données_utilisateur(ClienteWebSocket);
+    cliente := données_utilisateur(ctx, ClienteWebSocket);
     init_de(ClienteWebSocket)(cliente);
     cliente.boucle_évènements = boucle_évènements;
     cliente.ctx = ctx;
@@ -29,7 +29,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    boucle_évènements.lance();
+    lance(boucle_évènements);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -117,7 +117,7 @@ DonnéesPriseWebSocket :: struct {
 
 rappel_quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
-    données := prise.données_utilisateur(DonnéesPriseWebSocket);
+    données := données_utilisateur(prise, DonnéesPriseWebSocket);
     init_de(DonnéesPriseWebSocket)(données);
 
     données.extrémité = crée_extrémité(prise, vrai, sur_message_websocket);
@@ -129,7 +129,7 @@ rappel_quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
     cliente := données_utilisateur(ctx, ClienteWebSocket);
 
     message.méthode = "GET";
-    message.uri = cliente.donne_url();
+    message.uri = donne_url(cliente);
 
     ajoute_entête(*message, "Upgrade", "websocket");
     ajoute_entête(*message, "Connection", "keep-alive, Upgrade");
@@ -137,37 +137,37 @@ rappel_quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
     ajoute_entête(*message, "Sec-WebSocket-Version", "13");
 
     données.requête = chaine_pour_message_cliente(*message);
-    données.décalage_requête = prise.écris(données.requête);
+    données.décalage_requête = écris(prise, données.requête);
 }
 
 rappel_quand_écriture :: fonc (prise: *Prise)
 {
-    données := prise.données_utilisateur(DonnéesPriseWebSocket);
+    données := données_utilisateur(prise, DonnéesPriseWebSocket);
 
     requête := données.requête;
     requête.caractères += données.décalage_requête;
     requête.taille -= données.décalage_requête;
 
-    données.décalage_requête += prise.écris(requête);
+    données.décalage_requête += écris(prise, requête);
 }
 
 rappel_quand_fermeture :: fonc (prise: *Prise)
 {
-    données_connexion := prise.données_utilisateur(DonnéesPriseWebSocket);
+    données_connexion := données_utilisateur(prise, DonnéesPriseWebSocket);
     réinitialise(*données_connexion.parseuse);
     déloge(*données_connexion.requête);
 
     ctx := prise.contexte_;
     cliente := données_utilisateur(ctx, ClienteWebSocket);
 
-    cliente.avance_état();
+    avance_état(cliente);
 
     si cliente.état == ÉtatLancementTests.Terminé {
         cliente.boucle_évènements.stop = vrai;
         retourne;
     }
 
-    url := cliente.donne_url();
+    url := donne_url(cliente);
     nouvelle_prise := crée_prise_connexion(ctx, *url, DonnéesPriseWebSocket);
     saufsi nouvelle_prise {
         imprime("Impossible de créer une prise pour se connecter au serveur.\n");
@@ -177,7 +177,7 @@ rappel_quand_fermeture :: fonc (prise: *Prise)
 
 rappel_quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 {
-    données_connexion := prise.données_utilisateur(DonnéesPriseWebSocket);
+    données_connexion := données_utilisateur(prise, DonnéesPriseWebSocket);
     si données_connexion.est_connexion_websocket {
         sur_données_reçues_websocket(prise, données);
         retourne;
@@ -188,19 +188,19 @@ rappel_quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     réponse := chaine_depuis_tranche_octets(données);
     ajourne_données(parseuse, réponse);
 
-    si parseuse.message_est_erroné() {
-        prise.ferme();
+    si message_est_erroné(parseuse) {
+        ferme(prise);
         retourne;
     }
 
-    saufsi parseuse.message_prêt_pour_finalisation() {
+    saufsi message_prêt_pour_finalisation(parseuse) {
         retourne;
     }
 
     message := finalise_message(parseuse);
 
     saufsi accèpte_serrage_de_main(*données_connexion.extrémité, *message) {
-        prise.ferme();
+        ferme(prise);
         retourne;
     }
 
@@ -214,7 +214,7 @@ rappel_quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 
 sur_données_reçues_websocket :: fonc (prise: *Prise, données: []octet)
 {
-    données_utilisateur := prise.données_utilisateur(DonnéesPriseWebSocket);
+    données_utilisateur := données_utilisateur(prise, DonnéesPriseWebSocket);
     traite_données_reçues(*données_utilisateur.extrémité, données);
 }
 

@@ -83,8 +83,8 @@ dessine_fenêtre :: fonc (empl serveuse: *Serveuse, largeur: z32, hauteur: z32)
         peintre = crée_peintre_igumi(taille_canevas);
     }
 
-    peintre.définis_taille_canevas(taille_canevas);
-    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0));
+    définis_taille_canevas(peintre, taille_canevas);
+    efface_cible_rendu(peintre, CouleurRVBA(1.0, 1.0, 1.0, 1.0));
 
     commandes := crée_interface(serveuse, largeur, hauteur);
     dessine_commandes(peintre, *commandes);
@@ -458,7 +458,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
 
                 condensat := serveuse.état_mémoire.condensats_traces[it.id];
 
-                dispose_rectangle(id = condensat.donne_chaine());
+                dispose_rectangle(id = donne_chaine(condensat));
                 {
                     définis_arrière_plan(PEAU1);
                     définis_disposition(rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0);
@@ -503,7 +503,7 @@ dessine_trace :: fonc (serveuse: *Serveuse, trace: *InfoTraceAllocation, condens
         définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0);
         ajoute_défilage(ConfigurationDéfilage(vertical = Type_Défilage.AUTOMATIQUE));
 
-        hex := condensat.donne_chaine_hex();
+        hex := donne_chaine_hex(condensat);
         dispose_texte(imprime_chaine_temp("Condensat : %", hex), ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE));
         déloge(*hex);
 

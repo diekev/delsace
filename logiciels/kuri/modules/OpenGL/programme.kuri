@@ -14,14 +14,14 @@ compile_un_programme :: fonc (source_vertex: chaine, source_fragment: chaine) ->
 {
     /* Compile les sources. */
     opt_id_nuanceur_vertex := compile_source_nuanceur(source_vertex, GL_VERTEX_SHADER);
-    saufsi opt_id_nuanceur_vertex.possède_valeur() {
+    saufsi possède_valeur(opt_id_nuanceur_vertex) {
         retourne;
     }
     id_nuanceur_vertex := opt_id_nuanceur_vertex.Quelque;
     diffère détruit_nuanceur(id_nuanceur_vertex);
 
     opt_id_nuanceur_fragment := compile_source_nuanceur(source_fragment, GL_FRAGMENT_SHADER);
-    saufsi opt_id_nuanceur_fragment.possède_valeur() {
+    saufsi possède_valeur(opt_id_nuanceur_fragment) {
         retourne;
     }
     id_nuanceur_fragment := opt_id_nuanceur_fragment.Quelque;
@@ -387,7 +387,7 @@ active :: fonc (programme: *ProgrammeDeNuançage)
 
 définis_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, valeur: $T/TypeValeurUniforme)
 {
-    définis_uniforme(programme.donne_adresse_uniforme(nom), valeur);
+    définis_uniforme(donne_adresse_uniforme(programme, nom), valeur);
 }
 
 désactive :: fonc (programme: *ProgrammeDeNuançage @inutilisée)
@@ -465,7 +465,7 @@ donne_adresse_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine) -
 crée_programme_depuis_sources :: fonc (sources: SourcesGLSL) -> *ProgrammeDeNuançage
 {
     opt_programme := compile_un_programme(sources.vertex, sources.fragment);
-    saufsi opt_programme.possède_valeur() {
+    saufsi possède_valeur(opt_programme) {
         imprime("Impossible de compiler le programme\n");
         retourne nul;
     }
@@ -510,7 +510,7 @@ parse_attributs_et_uniformes_depuis :: fonc (lexeuse: *SimpleLexeuse, source: ch
             arrête;
         }
 
-        si lexème.est_mot_clé("layout") {
+        si est_mot_clé(lexème, "layout") {
             consomme_ponctuation(lexeuse, "(");
             consomme_symbole(lexeuse, "location");
             consomme_ponctuation(lexeuse, "=");
@@ -520,23 +520,23 @@ parse_attributs_et_uniformes_depuis :: fonc (lexeuse: *SimpleLexeuse, source: ch
             consomme_ponctuation(lexeuse, ")");
 
             lexème = donne_lexème_suivant(lexeuse);
-            si lexème.est_mot_clé("in") {
+            si est_mot_clé(lexème, "in") {
                 lexème_type := donne_mot_clé(lexeuse);
                 lexème_nom := donne_symbole(lexeuse);
 
-                programme.ajoute_attribut(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()), location);
+                ajoute_attribut(programme, donne_texte(lexème_nom), donne_type_pour_chaine(donne_texte(lexème_type)), location);
             }
-            sinon si lexème.est_mot_clé("out") {
+            sinon si est_mot_clé(lexème, "out") {
                 continue;
             }
 
             consomme_ponctuation(lexeuse, ";");
         }
-        sinon si lexème.est_mot_clé("uniform") {
+        sinon si est_mot_clé(lexème, "uniform") {
             lexème_type := donne_mot_clé(lexeuse);
             lexème_nom := donne_symbole(lexeuse);
 
-            programme.ajoute_uniforme(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()));
+            ajoute_uniforme(programme, donne_texte(lexème_nom), donne_type_pour_chaine(donne_texte(lexème_type)));
 
             consomme_ponctuation(lexeuse, ";");
         }
