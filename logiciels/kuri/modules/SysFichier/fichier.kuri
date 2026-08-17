@@ -84,7 +84,7 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -
 
     tampon: TamponChemin;
 
-    saufsi chemin.est_relatif() {
+    saufsi est_relatif(chemin) {
         _ := ajoute(*tampon, séparateur_chemin());
     }
 
@@ -324,7 +324,7 @@ lis_chaine :: fonc (fichier: *Fichier, taille: z64) -> chaine
 {
     résultat := loge_chaine(taille);
 
-    _ := fichier.lis(résultat);
+    _ := lis(fichier, résultat);
 
     retourne résultat;
 }

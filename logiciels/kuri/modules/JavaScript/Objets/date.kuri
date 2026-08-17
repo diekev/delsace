@@ -17,7 +17,7 @@ DateObject :: struct {
 
 crée_date :: fonc (tas_de_mémoire: *TasDeMémoire, date_prototype: *DatePrototype) -> *DateObject
 {
-    résultat := tas_de_mémoire.alloue(DateObject);
+    résultat := alloue(tas_de_mémoire, DateObject);
     résultat.prototype = date_prototype;
     retourne résultat;
 }
@@ -43,13 +43,13 @@ DateConstructor :: struct {
 
 crée_date_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, date_prototype: *DatePrototype) -> *DateConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(DateConstructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, DateConstructor);
     create_builtin_function(résultat, 7, STR_Date, realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = date_prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = date_prototype), DrapeauxPropriété.zéro);
 
-    date_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(date_prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }
@@ -59,7 +59,7 @@ crée_date_constructor :: fonc (realm: *Realm, function_prototype: *FunctionProt
 date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> Valeur
 {
     // 1. If NewTarget is undefined, then
-    si new_target.est_undefined() {
+    si est_undefined(new_target) {
         panique("non-implémenté");
         // a. Let now be the time value (UTC) identifying the current time.
         // b. Return ToDateString(now).
@@ -109,8 +109,8 @@ date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConst
     }
 
     // 6. Let O be ? OrdinaryCreateFromConstructor(NewTarget, "%Date.prototype%", « [[DateValue]] »).
-    realm := interpréteuse.donne_realm();
-    O := crée_date(realm.donne_tas_de_mémoire(), realm.intrinsics.date_prototype);
+    realm := donne_realm(interpréteuse);
+    O := crée_date(donne_tas_de_mémoire(realm), realm.intrinsics.date_prototype);
 
     // 7. Set O.[[DateValue]] to dv.
     O.date_value = dv;
@@ -138,10 +138,10 @@ DatePrototype :: struct {
 
 crée_date_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *DatePrototype
 {
-    résultat := tas_de_mémoire.alloue(DatePrototype);
+    résultat := alloue(tas_de_mémoire, DatePrototype);
     résultat.prototype = prototype;
-    résultat.ajoute_fonction_native(STR_getTime, date_prototype_get_time);
-    résultat.ajoute_fonction_native(STR_valueOf, date_prototype_value_of);
+    ajoute_fonction_native(résultat, STR_getTime, date_prototype_get_time);
+    ajoute_fonction_native(résultat, STR_valueOf, date_prototype_value_of);
     retourne résultat;
 }
 
@@ -150,15 +150,15 @@ crée_date_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Objec
 date_prototype_get_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let dateObject be the this value.
-    date_object := this_value.donne_objet() comme *DateObject;
+    date_object := donne_objet(this_value) comme *DateObject;
 
     // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-    saufsi date_object.donne_classe() == DateObject {
+    saufsi donne_classe(date_object) == DateObject {
         retourne lance_type_error(interpréteuse, "object is not a Date");
     }
 
     // 3. Return dateObject.[[DateValue]].
-    retourne date_object.date_value.millisecondes() comme r64;
+    retourne millisecondes(date_object.date_value) comme r64;
 }
 
 /* 21.4.4.44 Date.prototype.valueOf ( )
@@ -166,15 +166,15 @@ date_prototype_get_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 date_prototype_value_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let dateObject be the this value.
-    date_object := this_value.donne_objet() comme *DateObject;
+    date_object := donne_objet(this_value) comme *DateObject;
 
     // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-    saufsi date_object.donne_classe() == DateObject {
+    saufsi donne_classe(date_object) == DateObject {
         retourne lance_type_error(interpréteuse, "object is not a Date");
     }
 
     // 3. Return dateObject.[[DateValue]].
-    retourne date_object.date_value.millisecondes() comme r64;
+    retourne millisecondes(date_object.date_value) comme r64;
 }
 
 /** \} */

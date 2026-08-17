@@ -40,7 +40,7 @@ crée_tampon_texture :: fonc () -> *TamponTexture
     ";
 
     id_programme := compile_un_programme(source_vertex, source_fragment);
-    saufsi id_programme.possède_valeur() {
+    saufsi possède_valeur(id_programme) {
         retourne nul;
     }
 

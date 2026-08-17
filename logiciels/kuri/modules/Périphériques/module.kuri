@@ -182,16 +182,16 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> (RaccourciClavier, bool)
     résultat: RaccourciClavier;
 
     boucle {
-        si texte.commence_par("Ctrl-") || texte.commence_par("CTRL-") {
-            texte = texte.avance("Ctrl-".taille);
+        si commence_par(texte, "Ctrl-") || commence_par(texte, "CTRL-") {
+            texte = avance(texte, "Ctrl-".taille);
             résultat.modificateur.CONTROL = vrai;
         }
-        sinon si texte.commence_par("Alt-") || texte.commence_par("ALT-") {
-            texte = texte.avance("Alt-".taille);
+        sinon si commence_par(texte, "Alt-") || commence_par(texte, "ALT-") {
+            texte = avance(texte, "Alt-".taille);
             résultat.modificateur.ALT = vrai;
         }
-        sinon si texte.commence_par("Maj-") || texte.commence_par("MAJ-") {
-            texte = texte.avance("Maj-".taille);
+        sinon si commence_par(texte, "Maj-") || commence_par(texte, "MAJ-") {
+            texte = avance(texte, "Maj-".taille);
             résultat.modificateur.MAJUSCULE = vrai;
         }
         sinon {

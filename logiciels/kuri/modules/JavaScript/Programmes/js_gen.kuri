@@ -23,7 +23,7 @@ principale :: fonc ()
     parseuse.bloc = crée_bloc(*parseuse);
 
     pour lignes {
-        si it.commence_par("// ") {
+        si commence_par(it, "// ") {
             continue;
         }
 
@@ -68,7 +68,7 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
     lexème = donne_lexème_suivant(parseuse);
 
     si lexème == "Let" {
-        instruction := parseuse.crée_instruction(ligne, InstructionLet);
+        instruction := crée_instruction(parseuse, ligne, InstructionLet);
         instruction.variable = donne_lexème_suivant(parseuse);
 
         lexème = donne_lexème_suivant(parseuse);
@@ -82,7 +82,7 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
     }
 
     si lexème == "Assert" {
-        _ := parseuse.crée_instruction(ligne, InstructionVide);
+        _ := crée_instruction(parseuse, ligne, InstructionVide);
         retourne;
     }
 
@@ -92,27 +92,27 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
     }
 
     si lexème == "Return" {
-        return := parseuse.crée_instruction(ligne, InstructionReturn);
+        return := crée_instruction(parseuse, ligne, InstructionReturn);
         return.expression = parse_expression(parseuse);
         retourne;
     }
 
     si lexème == "Repeat" {
-        repeat := parseuse.crée_instruction(ligne, InstructionRepeat);
+        repeat := crée_instruction(parseuse, ligne, InstructionRepeat);
 
-        saufsi parseuse.consomme_caractère(',') {
-            parseuse.rapporte_erreur("attendu ','");
+        saufsi consomme_caractère(parseuse, ',') {
+            rapporte_erreur(parseuse, "attendu ','");
             retourne;
         }
 
         lexème = donne_lexème_suivant(parseuse);
         saufsi lexème == "while" {
-            parseuse.rapporte_erreur("attendu 'while'", lexème);
+            rapporte_erreur(parseuse, "attendu 'while'", lexème);
             retourne;
         }
 
         repeat.expression = parse_expression(parseuse);
-        repeat.instruction = parseuse.crée_bloc();
+        repeat.instruction = crée_bloc(parseuse);
         parseuse.bloc = repeat.instruction;
         retourne;
     }
@@ -121,24 +121,24 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
         instruction := parseuse.bloc.instructions[parseuse.bloc.instructions.taille - 1];
         assert(instruction.type == InstructionIf || instruction.type == InstructionElseIf);
 
-        bloc := parseuse.crée_bloc();
+        bloc := crée_bloc(parseuse);
 
-        lexème = parseuse.donne_lexème_suivant();
+        lexème = donne_lexème_suivant(parseuse);
         si lexème == "if" {
-            else_if := parseuse.crée_instruction(ligne, InstructionElseIf);
+            else_if := crée_instruction(parseuse, ligne, InstructionElseIf);
             else_if.bloc = bloc;
             else_if.expression = parse_expression(parseuse);
 
             saufsi consomme_caractère(parseuse, ',') {
-                rapporte_erreur(parseuse, "attendu ','", parseuse.donne_lexème_suivant());
+                rapporte_erreur(parseuse, "attendu ','", donne_lexème_suivant(parseuse));
                 retourne;
             }
 
-            parseuse.parse_bloc_if(else_if.bloc);
+            parse_bloc_if(parseuse, else_if.bloc);
             retourne;
         }
 
-        else := parseuse.crée_instruction(ligne, InstructionElse);
+        else := crée_instruction(parseuse, ligne, InstructionElse);
         else.bloc = bloc;
         parseuse.bloc = bloc;
         retourne;
@@ -150,7 +150,7 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
     }
 
     si lexème == "Perform" {
-        perform := parseuse.crée_instruction(ligne, InstructionPerform);
+        perform := crée_instruction(parseuse, ligne, InstructionPerform);
         perform.expression = parse_expression(parseuse);
         retourne;
     }
@@ -162,13 +162,13 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
 
 parse_instruction_if :: fonc (parseuse: *Parseuse, ligne: chaine) -> *InstructionIf
 {
-    instruction := parseuse.crée_instruction(ligne, InstructionIf);
+    instruction := crée_instruction(parseuse, ligne, InstructionIf);
 
     instruction.expression = parse_expression(parseuse);
-    instruction.bloc = parseuse.crée_bloc();
+    instruction.bloc = crée_bloc(parseuse);
 
     saufsi consomme_caractère(parseuse, ',') {
-        rapporte_erreur(parseuse, "attendu ','", parseuse.donne_lexème_suivant());
+        rapporte_erreur(parseuse, "attendu ','", donne_lexème_suivant(parseuse));
         retourne instruction;
     }
 
@@ -179,7 +179,7 @@ parse_instruction_if :: fonc (parseuse: *Parseuse, ligne: chaine) -> *Instructio
 
 parse_bloc_if :: fonc (parseuse: *Parseuse, bloc: *InstructionBloc)
 {
-    lexème := parseuse.donne_lexème_suivant();
+    lexème := donne_lexème_suivant(parseuse);
     si lexème == "then" {
         parseuse.bloc = bloc;
     }
@@ -196,18 +196,18 @@ parse_bloc_if :: fonc (parseuse: *Parseuse, bloc: *InstructionBloc)
     sinon si lexème == "throw" {
         throw := loge(InstructionThrow);
 
-        lexème = parseuse.donne_lexème_suivant();
+        lexème = donne_lexème_suivant(parseuse);
         si lexème != "a" {
             rapporte_erreur(parseuse, "attendu 'a' après 'throw'", lexème);
         }
 
-        lexème = parseuse.donne_lexème_suivant();
+        lexème = donne_lexème_suivant(parseuse);
         si lexème != "TypeError" {
             rapporte_erreur(parseuse, "type d'exception inconnue", lexème);
         }
         throw.type_exception = lexème;
 
-        lexème = parseuse.donne_lexème_suivant();
+        lexème = donne_lexème_suivant(parseuse);
         si lexème != "exception" {
             rapporte_erreur(parseuse, "attendu 'a' après 'throw'", lexème);
         }
@@ -221,15 +221,15 @@ parse_bloc_if :: fonc (parseuse: *Parseuse, bloc: *InstructionBloc)
 
 parse_instruction_set :: fonc (parseuse: *Parseuse, ligne: chaine) -> *InstructionSet
 {
-    variable := parseuse.donne_lexème_suivant();
+    variable := donne_lexème_suivant(parseuse);
 
-    lexème := parseuse.donne_lexème_suivant();
+    lexème := donne_lexème_suivant(parseuse);
     saufsi lexème == "to" {
         rapporte_erreur(parseuse, "attendu 'to'", lexème);
         retourne nul;
     }
 
-    résultat := parseuse.crée_instruction(ligne, InstructionSet);
+    résultat := crée_instruction(parseuse, ligne, InstructionSet);
     résultat.variable = variable;
     résultat.expression = parse_expression(parseuse);
     retourne résultat;
@@ -259,7 +259,7 @@ parse_expression :: fonc (parseuse: *Parseuse) -> *Expression
         retourne nul;
     }
 
-    parseuse.consomme_espaces_blanches();
+    consomme_espaces_blanches(parseuse);
 
     si apparie(parseuse, ".") {
         parseuse.début += 1;
@@ -271,7 +271,7 @@ parse_expression :: fonc (parseuse: *Parseuse) -> *Expression
     }
 
     pour __infos_expressions_binaire {
-        si parseuse.apparie(it.lexème) {
+        si apparie(parseuse, it.lexème) {
             parseuse.début += it.lexème.taille;
 
             opération := it.op;
@@ -352,7 +352,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
     }
 
     pour __infos_variables {
-        si parseuse.apparie(it.lexème_spécifié) {
+        si apparie(parseuse, it.lexème_spécifié) {
             parseuse.début += it.lexème_spécifié.taille;
             résultat := loge(ExpressionRéférence);
             résultat.texte = it.lexème_corrigé;
@@ -364,7 +364,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
     lexème := donne_lexème_suivant(parseuse);
 
-    si parseuse.consomme_caractère('(') {
+    si consomme_caractère(parseuse, '(') {
         parseuse.début = début;
         retourne parse_expression_appel(parseuse, 0);
     }
@@ -395,10 +395,10 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
 parse_expression_appel :: fonc (parseuse: *Parseuse, gestion_exception: z8) -> *ExpressionAppel
 {
-    fonction := parseuse.donne_lexème_suivant();
+    fonction := donne_lexème_suivant(parseuse);
 
-    si parseuse.apparie("of") {
-        _ := parseuse.donne_lexème_suivant();
+    si apparie(parseuse, "of") {
+        _ := donne_lexème_suivant(parseuse);
 
         résultat := loge(ExpressionAppel);
         résultat.fonction = fonction;
@@ -410,7 +410,7 @@ parse_expression_appel :: fonc (parseuse: *Parseuse, gestion_exception: z8) -> *
     }
 
     saufsi consomme_caractère(parseuse, '(') {
-        rapporte_erreur(parseuse, "attendu '('", parseuse.donne_lexème_suivant());
+        rapporte_erreur(parseuse, "attendu '('", donne_lexème_suivant(parseuse));
         retourne nul;
     }
 
@@ -425,19 +425,19 @@ parse_expression_appel :: fonc (parseuse: *Parseuse, gestion_exception: z8) -> *
 
         expression := parse_expression(parseuse);
         saufsi expression {
-            rapporte_erreur(parseuse, "attendu une expression", parseuse.donne_lexème_suivant());
+            rapporte_erreur(parseuse, "attendu une expression", donne_lexème_suivant(parseuse));
             arrête;
         }
 
         tableau_ajoute(*résultat.params, expression);
 
-        saufsi parseuse.consomme_caractère(',') {
+        saufsi consomme_caractère(parseuse, ',') {
             arrête;
         }
     }
 
     saufsi consomme_caractère(parseuse, ')') {
-        rapporte_erreur(parseuse, "attendu ')'", parseuse.donne_lexème_suivant());
+        rapporte_erreur(parseuse, "attendu ')'", donne_lexème_suivant(parseuse));
     }
 
     retourne résultat;
@@ -495,7 +495,7 @@ donne_lexème_suivant :: fonc (parseuse: *Parseuse) -> chaine
         retourne "";
     }
 
-    si parseuse.apparie("𝔽") {
+    si apparie(parseuse, "𝔽") {
         parseuse.début += "𝔽".taille;
         retourne "𝔽";
     }
@@ -517,7 +517,7 @@ donne_lexème_suivant :: fonc (parseuse: *Parseuse) -> chaine
         }
 
         si parseuse.début >= parseuse.fin || mémoire(parseuse.début) != '%' {
-            parseuse.rapporte_erreur("fin de fichier dans le parsage d'un symbole");
+            rapporte_erreur(parseuse, "fin de fichier dans le parsage d'un symbole");
             retourne "";
         }
 
@@ -753,69 +753,69 @@ imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instructi
         }
         InstructionBloc {
             bloc := base comme *InstructionBloc;
-            génératrice.commence_bloc();
+            commence_bloc(génératrice);
             pour bloc.instructions {
                 si it.ligne {
-                    génératrice.ajoute_chaine("// ", it.ligne);
-                    génératrice.ajoute_nouvelle_ligne();
+                    ajoute_chaine(génératrice, "// ", it.ligne);
+                    ajoute_nouvelle_ligne(génératrice);
                 }
                 imprime_instruction(génératrice, it);
                 si indice_it < bloc.instructions.taille - 1 {
-                    génératrice.ajoute_nouvelle_ligne();
+                    ajoute_nouvelle_ligne(génératrice);
                 }
             }
-            génératrice.termine_bloc();
+            termine_bloc(génératrice);
         }
         InstructionIf {
             if := base comme *InstructionIf;
-            génératrice.ajoute_chaine("si ");
+            ajoute_chaine(génératrice, "si ");
             imprime_expression(génératrice, if.expression);
-            génératrice.ajoute_chaine(" ");
+            ajoute_chaine(génératrice, " ");
             imprime_instruction(génératrice, if.bloc);
         }
         InstructionElseIf {
             else_if := base comme *InstructionElseIf;
-            génératrice.ajoute_chaine("sinon si ");
+            ajoute_chaine(génératrice, "sinon si ");
             imprime_expression(génératrice, else_if.expression);
-            génératrice.ajoute_chaine(" ");
+            ajoute_chaine(génératrice, " ");
             imprime_instruction(génératrice, else_if.bloc);
         }
         InstructionElse {
             else := base comme *InstructionElse;
-            génératrice.ajoute_chaine("sinon ");
+            ajoute_chaine(génératrice, "sinon ");
             imprime_instruction(génératrice, else.bloc);
         }
         InstructionLet {
             let := base comme *InstructionLet;
-            génératrice.ajoute_chaine(donne_nom_snake_case(let.variable), " := ");
+            ajoute_chaine(génératrice, donne_nom_snake_case(let.variable), " := ");
             imprime_expression(génératrice, let.expression);
             vérifie_exception(génératrice, let.expression);
         }
         InstructionSet {
             set := base comme *InstructionSet;
-            génératrice.ajoute_chaine(set.variable, " = ");
+            ajoute_chaine(génératrice, set.variable, " = ");
             imprime_expression(génératrice, set.expression);
             vérifie_exception(génératrice, set.expression);
         }
         InstructionRepeat {
             repeat := base comme *InstructionRepeat;
-            génératrice.ajoute_chaine("tantque ");
+            ajoute_chaine(génératrice, "tantque ");
             imprime_expression(génératrice, repeat.expression);
-            génératrice.ajoute_chaine(" ");
+            ajoute_chaine(génératrice, " ");
             imprime_instruction(génératrice, repeat.instruction);
         }
         InstructionReturn {
             instruction := base comme *InstructionReturn;
-            génératrice.ajoute_chaine("retourne");
+            ajoute_chaine(génératrice, "retourne");
             si instruction.expression {
-                génératrice.ajoute_chaine(" ");
+                ajoute_chaine(génératrice, " ");
                 imprime_expression(génératrice, instruction.expression);
             }
         }
         InstructionThrow {
             instruction := base comme *InstructionThrow;
             si instruction.type_exception == "TypeError" {
-                génératrice.ajoute_chaine("_ := lance_type_error(interpréteuse, message)");
+                ajoute_chaine(génératrice, "_ := lance_type_error(interpréteuse, message)");
             }
         }
         InstructionPerform {
@@ -836,18 +836,18 @@ vérifie_exception :: fonc (génératrice: *GénératriceCode, expression: *Expr
     appel := expression comme *ExpressionAppel;
     
     si appel.gestion_exception == '?' {
-        génératrice.ajoute_nouvelle_ligne();
-        génératrice.ajoute_chaine("si interpréteuse.possède_exception() ");
-        génératrice.commence_bloc();
-        génératrice.ajoute_chaine("retourne");
-        génératrice.termine_bloc();
+        ajoute_nouvelle_ligne(génératrice);
+        ajoute_chaine(génératrice, "si interpréteuse.possède_exception() ");
+        commence_bloc(génératrice);
+        ajoute_chaine(génératrice, "retourne");
+        termine_bloc(génératrice);
         retourne;
     }
 
     si appel.gestion_exception == '!' {
-        génératrice.ajoute_nouvelle_ligne();
-        génératrice.ajoute_chaine("assert(!interpréteuse.possède_exception())");
-        génératrice.ajoute_nouvelle_ligne();
+        ajoute_nouvelle_ligne(génératrice);
+        ajoute_chaine(génératrice, "assert(!interpréteuse.possède_exception())");
+        ajoute_nouvelle_ligne(génératrice);
         retourne;
     }
 }
@@ -931,7 +931,7 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
                 remplace_sans_copie(*texte, '.', '_');
             }
 
-            génératrice.ajoute_chaine(donne_nom_snake_case(texte));
+            ajoute_chaine(génératrice, donne_nom_snake_case(texte));
         }
         ExpressionBinaire {
             expression := base comme *ExpressionBinaire;
@@ -940,13 +940,13 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
                 either := expression.droite comme *ExpressionEither;
 
                 imprime_branche_either(génératrice, expression.gauche, either.gauche);
-                génératrice.ajoute_chaine(" || ");
+                ajoute_chaine(génératrice, " || ");
                 imprime_branche_either(génératrice, expression.gauche, either.droite);
             }
             sinon {
-                génératrice.imprime_expression(expression.gauche);
-                génératrice.ajoute_chaine(" ", expression.op, " ");
-                génératrice.imprime_expression(expression.droite);
+                imprime_expression(génératrice, expression.gauche);
+                ajoute_chaine(génératrice, " ", expression.op, " ");
+                imprime_expression(génératrice, expression.droite);
             }
         }
         ExpressionComparaisonType {
@@ -955,15 +955,15 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
             si expression.op == "!=" {
                 ajoute_chaine(génératrice, "!");
             }
-            génératrice.imprime_expression(expression.gauche);
+            imprime_expression(génératrice, expression.gauche);
             si expression.droite == "Object" {
-                génératrice.ajoute_chaine(".est_object()");
+                ajoute_chaine(génératrice, ".est_object()");
             }
             sinon si expression.droite == "Number" {
-                génératrice.ajoute_chaine(".est_nombre()");
+                ajoute_chaine(génératrice, ".est_nombre()");
             }
             sinon si expression.droite == "String" {
-                génératrice.ajoute_chaine(".est_chaine()");
+                ajoute_chaine(génératrice, ".est_chaine()");
             }
         }
         ExpressionVérificationException {
@@ -972,24 +972,24 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
             si expression.op == "!=" {
                 ajoute_chaine(génératrice, "!");
             }
-            génératrice.ajoute_chaine("possède_exception(interpréteuse)");
+            ajoute_chaine(génératrice, "possède_exception(interpréteuse)");
         }
         ExpressionAccèsRubrique {
             expression := base comme *ExpressionAccèsRubrique;
-            génératrice.imprime_expression(expression.gauche);
-            génératrice.ajoute_chaine(".", expression.droite);
+            imprime_expression(génératrice, expression.gauche);
+            ajoute_chaine(génératrice, ".", expression.droite);
         }
         ExpressionAppel {
             appel := base comme *ExpressionAppel;
 
-            génératrice.ajoute_chaine(donne_nom_snake_case(appel.fonction));
+            ajoute_chaine(génératrice, donne_nom_snake_case(appel.fonction));
 
             saufsi appel.params {
                 si appel.gestion_exception != 0 {
-                    génératrice.ajoute_chaine("(interpréteuse)");
+                    ajoute_chaine(génératrice, "(interpréteuse)");
                 }
                 sinon {
-                    génératrice.ajoute_chaine("()");
+                    ajoute_chaine(génératrice, "()");
                 }
             }
             sinon {
@@ -999,12 +999,12 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
                 }
 
                 pour appel.params {
-                    génératrice.ajoute_chaine(virgule);
+                    ajoute_chaine(génératrice, virgule);
                     imprime_expression(génératrice, it);
                     virgule = ", ";
                 }
 
-                génératrice.ajoute_chaine(")");
+                ajoute_chaine(génératrice, ")");
             }
         }
         ExpressionEither {
@@ -1019,17 +1019,17 @@ imprime_branche_either :: fonc (génératrice: *GénératriceCode, gauche: *Expr
     assert(droite.type == ExpressionRéférence);
     texte := (droite comme *ExpressionRéférence).texte;
 
-    génératrice.imprime_expression(gauche);
+    imprime_expression(génératrice, gauche);
 
     si texte == "undefined" {
-        génératrice.ajoute_chaine(".est_undefined()");
+        ajoute_chaine(génératrice, ".est_undefined()");
     }
     sinon si texte == "null" {
-        génératrice.ajoute_chaine(".est_nulle()");
+        ajoute_chaine(génératrice, ".est_nulle()");
     }
     sinon {
-        génératrice.ajoute_chaine(" == ");
-        génératrice.imprime_expression(droite);
+        ajoute_chaine(génératrice, " == ");
+        imprime_expression(génératrice, droite);
     }
 }
 

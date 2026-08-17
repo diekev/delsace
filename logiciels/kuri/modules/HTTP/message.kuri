@@ -152,7 +152,7 @@ entête :: fonc (message: *MessageHTTP, nom: chaine) -> *Entête
 
 fusionne_entête :: fonc (message: *MessageHTTP, nom: chaine, valeur: chaine)
 {
-    entête_existant := message.entête(nom);
+    entête_existant := entête(message, nom);
 
     si entête_existant {
         entête_existant.valeur = valeur;

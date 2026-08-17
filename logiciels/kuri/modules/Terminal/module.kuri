@@ -90,7 +90,7 @@ demande_utilisateur :: fonc (message: chaine)
 
 lis_réponse_utilisateur :: fonc () -> chaine
 {
-    réponse := entrée_standarde().lis_tout();
+    réponse := lis_tout(entrée_standarde());
     réponse = recule(réponse, 1);
     retourne réponse;
 }

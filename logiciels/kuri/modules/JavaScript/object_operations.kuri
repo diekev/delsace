@@ -31,16 +31,16 @@ get :: fonc (object: *Object, property_key: PropertyKey) -> Valeur
 {
     si is_array_index(property_key) {
         index := to_uint32(property_key);
-        retourne object.internal_get_by_index(index, Valeur(Object = object));
+        retourne internal_get_by_index(object, index, Valeur(Object = object));
     }
 
     // 1. Return ? O.[[Get]](P, O).
-    retourne object.internal_get(property_key, Valeur(Object = object));
+    retourne internal_get(object, property_key, Valeur(Object = object));
 }
 
 get_by_index :: fonc (object: *Object, index: n32) -> Valeur
 {
-    retourne object.internal_get_by_index(index, Valeur(Object = object));
+    retourne internal_get_by_index(object, index, Valeur(Object = object));
 }
 
 /* 7.3.3 GetV ( V, P )
@@ -49,12 +49,12 @@ get_v :: fonc (interpréteuse: *Interpréteuse, V: Valeur, P: PropertyKey) -> Va
 {
     // 1. Let O be ? ToObject(V)
     O := to_object(interpréteuse, V);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Return ? O.[[Get]](P, V)
-    retourne O.internal_get(P, V);
+    retourne internal_get(O, P, V);
 }
 
 /* 7.3.4 Set
@@ -62,8 +62,8 @@ get_v :: fonc (interpréteuse: *Interpréteuse, V: Valeur, P: PropertyKey) -> Va
 set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: bool)
 {
     // 1. Let success be ? O.[[Set]](P, V, O).
-    succès := object.internal_set(property_key, valeur, Valeur(Object = object));
-    si object.possède_exception() {
+    succès := internal_set(object, property_key, valeur, Valeur(Object = object));
+    si possède_exception(object) {
         retourne;
     }
 
@@ -96,7 +96,7 @@ create_data_property_or_throw :: fonc (object: *Object, property_key: PropertyKe
 {
     // 1. Let success be ? CreateDataProperty(O, P, V).
     success := create_data_property(object, property_key, valeur);
-    si object.possède_exception() {
+    si possède_exception(object) {
         retourne;
     }
 
@@ -114,7 +114,7 @@ define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, de
 {
     // 1. Let success be ? O.[[DefineOwnProperty]](P, desc).
     success := internal_define_own_property(object, property_key, desc);
-    si object.possède_exception() {
+    si possède_exception(object) {
         retourne;
     }
 
@@ -132,12 +132,12 @@ get_method :: fonc (interpréteuse: *Interpréteuse, V: Valeur, P: PropertyKey) 
 {
     // 1. Let func be ? GetV(V, P)
     func := get_v(interpréteuse, V, P);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. If func is either undefined or null, return undefined
-    si func.est_undefined() || func.est_nulle() {
+    si est_undefined(func) || est_nulle(func) {
         retourne js_undefined;
     }
 
@@ -164,11 +164,11 @@ has_property :: fonc (object: *Object, property_key: PropertyKey) -> bool
 has_own_property :: fonc (object: *Object, nom: PropertyKey) -> bool
 {
     desc := internal_get_own_property(object, nom);
-    si object.possède_exception() {
+    si possède_exception(object) {
         retourne faux;
     }
 
-    saufsi desc.possède_valeur() {
+    saufsi possède_valeur(desc) {
         retourne faux;
     }
 
@@ -193,10 +193,10 @@ call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeu
         retourne lance_type_error(interpréteuse, message);
     }
 
-    object := valeur.donne_objet();
+    object := donne_objet(valeur);
 
     // 3. Return ? F.[[Call]](V, argumentsList).
-    retourne object.internal_call(interpréteuse, this_value, arguments);
+    retourne internal_call(object, interpréteuse, this_value, arguments);
 }
 
 call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur) -> Valeur
@@ -234,8 +234,8 @@ construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Vale
     // Continuation de la version sans new_target.
     // 2. If argumentsList is not present, set argumentsList to a new empty List.
     // 3. Return ? F.[[Construct]](argumentsList, newTarget).
-    object := F.donne_objet();
-    retourne object.internal_construct(interpréteuse, arguments, new_target);
+    object := donne_objet(F);
+    retourne internal_construct(object, interpréteuse, arguments, new_target);
 }
 
 /* 7.3.18 LengthOfArrayLike ( obj )
@@ -244,7 +244,7 @@ length_of_array_like :: fonc (interpréteuse: *Interpréteuse, obj: *Object) -> 
 {
     // 1. Return ℝ(? ToLength(? Get(obj, "length"))).
     valeur := get(obj, STR_length);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne NaN;
     }
     retourne to_length(interpréteuse, valeur);
@@ -255,7 +255,7 @@ length_of_array_like :: fonc (interpréteuse: *Interpréteuse, obj: *Object) -> 
 ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Valeur) -> bool
 {
     // 1. If IsCallable(C) is false, return false.
-    si is_callable(C).est_false() {
+    si est_false(is_callable(C)) {
         retourne faux;
     }
 
@@ -264,23 +264,23 @@ ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Va
     //    b. Return ? InstanceofOperator(O, BC).
 
     // 3. If O is not an Object, return false.
-    saufsi O.est_object() {
+    saufsi est_object(O) {
         retourne faux;
     }
 
     // 4. Let P be ? Get(C, "prototype").
-    P := get(C.donne_objet(), STR_prototype);
-    si interpréteuse.possède_exception() {
+    P := get(donne_objet(C), STR_prototype);
+    si possède_exception(interpréteuse) {
         retourne faux;
     }
 
     // 5. If P is not an Object, throw a TypeError exception.
-    saufsi P.est_object() {
+    saufsi est_object(P) {
         _ := lance_type_error(interpréteuse, "prototype is not an Object");
         retourne faux;
     }
 
-    obj := O.donne_objet();
+    obj := donne_objet(O);
 
     // 6. Repeat,
     boucle {
@@ -293,7 +293,7 @@ ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Va
         }
 
         // c. If SameValue(P, O) is true, return true.
-        si same_value(P, Valeur(Object = obj)).est_true() {
+        si est_true(same_value(P, Valeur(Object = obj))) {
             retourne vrai;
         }
     }
@@ -306,7 +306,7 @@ ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Va
 copy_data_properties :: fonc (interpréteuse: *Interpréteuse, target: *Object, source: Valeur, excluded_items: []PropertyKey)
 {
     // 1. If source is either undefined or null, return unused.
-    si source.est_undefined() || source.est_nulle() {
+    si est_undefined(source) || est_nulle(source) {
         retourne;
     }
 
@@ -314,10 +314,10 @@ copy_data_properties :: fonc (interpréteuse: *Interpréteuse, target: *Object, 
     from := to_object(interpréteuse, source);
 
     // 3. Let keys be ? from.[[OwnPropertyKeys]]().
-    keys := from.internal_own_property_keys();
+    keys := internal_own_property_keys(from);
     diffère déloge(*keys);
 
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne;
     }
 
@@ -339,15 +339,15 @@ copy_data_properties :: fonc (interpréteuse: *Interpréteuse, target: *Object, 
         saufsi excluded {
             // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
             opt_desc := internal_get_own_property(from, next_key);
-            si interpréteuse.possède_exception() {
+            si possède_exception(interpréteuse) {
                 retourne;
             }
 
             // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-            si opt_desc.possède_valeur() && opt_desc.Quelque.enumerable.possède_valeur() && opt_desc.Quelque.enumerable.Quelque {
+            si possède_valeur(opt_desc) && possède_valeur(opt_desc.Quelque.enumerable) && opt_desc.Quelque.enumerable.Quelque {
                 // 1. Let propValue be ? Get(from, nextKey).
                 prop_value := get(from, next_key);
-                si interpréteuse.possède_exception() {
+                si possède_exception(interpréteuse) {
                     retourne;
                 }
 
@@ -458,7 +458,7 @@ private_get :: fonc (O: *Object, P: PrivateName) -> Valeur
     getter := entry.get;
 
     // 7. Return ? Call(getter, O).
-    mv := O.donne_tas_de_mémoire().donne_mv();
+    mv := donne_mv(donne_tas_de_mémoire(O));
     retourne call(mv, getter, O);
 }
 
@@ -505,7 +505,7 @@ private_set :: fonc (O: *Object, P: PrivateName, value: Valeur)
         argument.données = *value;
         argument.taille = 1;
 
-        mv := O.donne_tas_de_mémoire().donne_mv();
+        mv := donne_mv(donne_tas_de_mémoire(O));
         _ := call(mv, setter, O, argument);
     }
 
@@ -527,7 +527,7 @@ define_field :: fonc (interpréteuse: *Interpréteuse, receiver: *Object, field_
     si initializer {
         // a. Let initValue be ? Call(initializer, receiver).
         init_value = call(interpréteuse, Valeur(Function = initializer), receiver);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
     }
@@ -541,7 +541,7 @@ define_field :: fonc (interpréteuse: *Interpréteuse, receiver: *Object, field_
     si est_private_name(field_name) {
         // a. Perform ? PrivateFieldAdd(receiver, fieldName, initValue).
         private_field_add(interpréteuse, receiver, field_name.PrivateName, init_value);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
     }
@@ -552,7 +552,7 @@ define_field :: fonc (interpréteuse: *Interpréteuse, receiver: *Object, field_
 
         // b. Perform ? CreateDataPropertyOrThrow(receiver, fieldName, initValue).
         create_data_property_or_throw(receiver, donne_property_key(field_name), init_value);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
 
@@ -565,25 +565,25 @@ define_field :: fonc (interpréteuse: *Interpréteuse, receiver: *Object, field_
 initialize_instance_elements :: fonc (interpréteuse: *Interpréteuse, object: *Object, constructor: *Function)
 {
     // 1. Let methods be constructor.[[PrivateMethods]].
-    methods := constructor.donne_private_methods();
+    methods := donne_private_methods(constructor);
 
     // 2. For each PrivateElement method of methods, do
     pour method dans methods {
         // a. Perform ? PrivateMethodOrAccessorAdd(O, method).
         private_method_or_accessor_add(interpréteuse, object, method);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
     }
 
     // 3. Let fields be constructor.[[Fields]].
-    fields := constructor.donne_fields();
+    fields := donne_fields(constructor);
 
     // 4. For each element fieldRecord of fields, do
     pour field_record dans fields {
         // a. Perform ? DefineField(O, fieldRecord).
         define_field(interpréteuse, object, field_record);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
     }
@@ -617,7 +617,7 @@ get_iterator_direct :: fonc (interpréteuse: *Interpréteuse, obj: *Object) -> I
 {
     // 1. Let nextMethod be ? Get(obj, "next")
     next_method := get(obj, STR_next);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne Iterator();
     }
 
@@ -634,12 +634,12 @@ get_iterator_from_method :: fonc (interpréteuse: *Interpréteuse, obj: Valeur, 
 {
     // 1. Let iterator be ? Call(method, obj)
     iterator := call(interpréteuse, Valeur(Function = method), obj);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne Iterator();
     }
 
     // 2. If iterator is not an Object, throw a TypeError exception
-    saufsi iterator.est_object() {
+    saufsi est_object(iterator) {
         _ := lance_type_error(interpréteuse, "method is not an Object");
         retourne Iterator();
     }
@@ -658,27 +658,27 @@ get_iterator :: fonc (interpréteuse: *Interpréteuse, obj: Valeur, kind: Iterat
     si kind == IteratorKind.ASYNC {
         // a. Let method be ? GetMethod(obj, %Symbol.asyncIterator%)
         method = get_method(interpréteuse, obj, *Symbol_asyncIterator);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne Iterator();
         }
         
         // b. If method is undefined, then
-        si method.est_undefined() {
+        si est_undefined(method) {
             // i. Let syncMethod be ? GetMethod(obj, %Symbol.iterator%)
             sync_method := get_method(interpréteuse, obj, *Symbol_iterator);
-            si interpréteuse.possède_exception() {
+            si possède_exception(interpréteuse) {
                 retourne Iterator();
             }
             
             // ii. If syncMethod is undefined, throw a TypeError exception
-            si sync_method.est_undefined() {
+            si est_undefined(sync_method) {
                 _ := lance_type_error(interpréteuse, "unknown method %Symbol.iterator%");
                 retourne Iterator();
             }
             
             // iii. Let syncIteratorRecord be ? GetIteratorFromMethod(obj, syncMethod)
             /* sync_iterator_record */ _ := get_iterator_from_method(interpréteuse, obj, sync_method);
-            si interpréteuse.possède_exception() {
+            si possède_exception(interpréteuse) {
                 retourne Iterator();
             }
             
@@ -691,13 +691,13 @@ get_iterator :: fonc (interpréteuse: *Interpréteuse, obj: Valeur, kind: Iterat
     sinon {
         // a. Let method be ? GetMethod(obj, %Symbol.iterator%)
         method = get_method(interpréteuse, obj, *Symbol_iterator);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne Iterator();
         }
     }
     
     // 3. If method is undefined, throw a TypeError exception
-    si method.est_undefined() {
+    si est_undefined(method) {
         _ := lance_type_error(interpréteuse, "unknown method %Symbol.iterator%");
         retourne Iterator();
     }
@@ -725,7 +725,7 @@ iterator_next :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterat
     }
 
     // 3. If result is a throw completion, then
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         // a. Set iteratorRecord.[[Done]] to true.
         iterator_record.done = vrai;
 
@@ -736,7 +736,7 @@ iterator_next :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterat
     // 4. Set result to ! result.
 
     // 5. If result is not an Object, then
-    saufsi result.est_object() {
+    saufsi est_object(result) {
         // a. Set iteratorRecord.[[Done]] to true.
         iterator_record.done = vrai;
 
@@ -746,7 +746,7 @@ iterator_next :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterat
     }
 
     // 6. Return result.
-    retourne result.donne_objet();
+    retourne donne_objet(result);
 }
 
 /* 7.4.7 IteratorComplete ( iteratorResult )
@@ -772,7 +772,7 @@ iterator_step :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterat
 {
     // 1. Let result be ? IteratorNext(iteratorRecord).
     result := iterator_next(interpréteuse, iterator_record);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne nul, faux;
     }
 
@@ -780,7 +780,7 @@ iterator_step :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterat
     done := iterator_complete(result);
 
     // 3. If done is a throw completion, then
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         // a. Set iteratorRecord.[[Done]] to true.
         iterator_record.done = vrai;
         // b. Return ? done.
@@ -806,7 +806,7 @@ iterator_step_value :: fonc (interpréteuse: *Interpréteuse, iterator_record: *
 {
     // 1. Let result be ? IteratorStep(iteratorRecord).
     result, done := iterator_step(interpréteuse, iterator_record);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined, faux;
     }
 
@@ -820,7 +820,7 @@ iterator_step_value :: fonc (interpréteuse: *Interpréteuse, iterator_record: *
     value := iterator_value(result);
 
     // 4. If value is a throw completion, then
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         // a. Set iteratorRecord.[[Done]] to true.
         iterator_record.done = vrai;
     }

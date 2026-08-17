@@ -36,7 +36,7 @@ principale :: fonc ()
 
         largeur, hauteur = donne_taille_fenêtre(fenêtre);
         taille_canevas = Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur));
-        peintre.définis_taille_canevas(taille_canevas);
+        définis_taille_canevas(peintre, taille_canevas);
 
         dernière_souris := donne_état_souris(fenêtre);
 
@@ -53,7 +53,7 @@ principale :: fonc ()
         marque := donne_marque_stockage_temporaire();
         diffère définis_marque_stockage_temporaire(marque);
 
-        peintre.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0));
+        efface_cible_rendu(peintre, CouleurRVBA(0.09, 0.09, 0.09, 1.0));
 
         entrée_app: EntréeApplication;
         entrée_app.évènements = évènements;

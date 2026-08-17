@@ -135,8 +135,8 @@ parse_ligne_de_commande :: fonc ($T: type_de_données, args: []chaine) -> (succ�
             arrête;
         }
 
-        si arg.commence_par("-") {
-            si arg.commence_par("--") {
+        si commence_par(arg, "-") {
+            si commence_par(arg, "--") {
                 arg = avance(arg, 2);
             }
             sinon {
@@ -173,7 +173,7 @@ parse_ligne_de_commande :: fonc ($T: type_de_données, args: []chaine) -> (succ�
         valeur_renseignée := eini_depuis_info_rubrique(valeurs_renseignées, trouve_info_rubrique(infos_renseignements, rubrique_pour_arg.nom));
 
         // À FAIRE : tableaux, énums drapeaux, etc.
-        si valeur_renseignée.comme_bool() {
+        si comme_bool(valeur_renseignée) {
             imprimeln("Argument dupliqué pour '%'", rubrique_pour_arg.nom);
             succès = faux;
             arrête;
@@ -216,7 +216,7 @@ parse_ligne_de_commande :: fonc ($T: type_de_données, args: []chaine) -> (succ�
             arrête;
         }
 
-        valeur_renseignée.assigne_bool(vrai);
+        assigne_bool(valeur_renseignée, vrai);
     }
 
     retourne succès, résultat, valeurs_renseignées;
@@ -257,7 +257,7 @@ donne_rubrique_pour_argument_anonyme :: fonc (infos: *InfoTypeStructure, arg: ch
 {
     résultat: *InfoTypeRubriqueStructure;
     pour infos.rubriques {
-        saufsi it.possède_annotation("anonyme") {
+        saufsi possède_annotation(it, "anonyme") {
             continue;
         }
 

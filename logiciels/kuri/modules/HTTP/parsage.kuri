@@ -214,29 +214,29 @@ parse_état_status_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
     parseuse_chaine := *parseuse.parseuse_chaine;
 
-    saufsi parseuse_chaine.consomme("HTTP/1.1") {
+    saufsi consomme(parseuse_chaine, "HTTP/1.1") {
         retourne erreur_de_parsage("chaine de la version non supportée, ou chaine invalide");
     }
 
-    saufsi parseuse_chaine.consomme(' ') {
+    saufsi consomme(parseuse_chaine, ' ') {
         retourne erreur_de_parsage("pas d'espace après la version");
     }
 
-    saufsi parseuse_chaine.consomme_nombre(3) {
+    saufsi consomme_nombre(parseuse_chaine, 3) {
         retourne erreur_de_parsage("pas de nombre de 3 chiffres après la version");
     }
 
-    saufsi parseuse_chaine.consomme(' ') {
+    saufsi consomme(parseuse_chaine, ' ') {
         retourne erreur_de_parsage("pas d'espace après le code du status");
     }
 
-    pos_version := parseuse_chaine.trouve_prochain("\r\n");
+    pos_version := trouve_prochain(parseuse_chaine, "\r\n");
 
     si pos_version <= 0 {
         retourne RésultatParsage.MESSAGE_INCOMPLET;
     }
 
-    parseuse_chaine.positionne(pos_version + 2);
+    positionne(parseuse_chaine, pos_version + 2);
 
     parseuse.données_message.position_version = PositionChaine(0, 8);
     parseuse.données_message.code_état = parseuse_chaine.nombre;
@@ -315,7 +315,7 @@ parse_état_entêtes :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
 parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 {
-    message := parseuse.prépare_message_pour_parsage_contenu();
+    message := prépare_message_pour_parsage_contenu(parseuse);
 
     si possède_entête(*message, "Transfer-Encoding") {
         chn_transfer_encoding := entête(*message, "Transfer-Encoding").valeur;
@@ -497,7 +497,7 @@ finalise_message_base :: fonc (parseuse: *ParseuseHTTP) -> MessageHTTP
 
     // reprépare le message car nous avons potentiellement ajouter des choses
     // au tampon du message invalidant alors les pointeurs
-    message := parseuse.prépare_message_pour_parsage_contenu();
+    message := prépare_message_pour_parsage_contenu(parseuse);
 
     pour message.entêtes {
         si it.nom == "Cookie" {
@@ -537,13 +537,13 @@ ParseuseMessageClienteHTTP :: struct {
 
 réinitialise :: fonc (parseuse: *ParseuseMessageClienteHTTP)
 {
-    parseuse.réinitialise_base();
+    réinitialise_base(parseuse);
     init_de(ParseuseMessageClienteHTTP)(parseuse);
 }
 
 finalise_message :: fonc (parseuse: *ParseuseMessageClienteHTTP) -> MessageClienteHTTP
 {
-    message := parseuse.finalise_message_base();
+    message := finalise_message_base(parseuse);
 
     message_cliente := MessageClienteHTTP();
     initialise_depuis_message(*message_cliente, message);
@@ -572,13 +572,13 @@ ParseuseMessageServeuseHTTP :: struct {
 
 réinitialise :: fonc (parseuse: *ParseuseMessageServeuseHTTP)
 {
-    parseuse.réinitialise_base();
+    réinitialise_base(parseuse);
     init_de(ParseuseMessageServeuseHTTP)(parseuse);
 }
 
 finalise_message :: fonc (parseuse: *ParseuseMessageServeuseHTTP) -> MessageServeuseHTTP
 {
-    message := parseuse.finalise_message_base();
+    message := finalise_message_base(parseuse);
 
     message_serveuse := MessageServeuseHTTP();
     initialise_depuis_message(*message_serveuse, message);

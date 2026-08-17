@@ -24,7 +24,7 @@ eval_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
         retourne js_undefined;
     }
 
-    retourne perform_eval(interpréteuse, params.donne_argument(0), faux, faux);
+    retourne perform_eval(interpréteuse, donne_argument(params, 0), faux, faux);
 }
 
 /* 19.2.1.1 PerformEval ( x, strictCaller, direct )
@@ -35,13 +35,13 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     assert(direct == vrai || (direct == faux && strict_caller == faux));
 
     // 2. If x is not a String, return x.
-    saufsi x.est_chaine() {
+    saufsi est_chaine(x) {
         retourne x;
     }
 
     // 3. Let evalRealm be the current Realm Record.
     // 4. NOTE: In the case of a direct eval, evalRealm is the realm of both the caller of eval and of the eval function itself.
-    eval_realm := interpréteuse.donne_realm();
+    eval_realm := donne_realm(interpréteuse);
 
     // À FAIRE : 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
 
@@ -81,14 +81,14 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     diffère détruit_données_texte_source(*source);
 
     // a. Let script be ParseText(x, Script).
-    opt_script := parse_text(interpréteuse.donne_realm(), *source, GoalSymbol.Script);
+    opt_script := parse_text(donne_realm(interpréteuse), *source, GoalSymbol.Script);
 
     script: *NoeudScript;
     diffère détruit_arbre(script);
     discr opt_script {
         Erreur(e) {
             // b. If script is a List of errors, throw a SyntaxError exception.
-            interpréteuse.définis_exception(Valeur(Object = e));
+            définis_exception(interpréteuse, Valeur(Object = e));
             retourne js_undefined;
         }
         Ok(noeud) {
@@ -125,7 +125,7 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
 
     // 14. Let runningContext be the running execution context.
     // 15. NOTE: If direct is true, runningContext will be the execution context that performed the direct eval. If direct is false, runningContext will be the execution context for the invocation of the eval function.
-    running_context := interpréteuse.donne_running_execution_context();
+    running_context := donne_running_execution_context(interpréteuse);
 
     lex_env: *Environment;
     var_env: *Environment;
@@ -134,7 +134,7 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     // 16. If direct is true, then
     si direct {
         // a. Let lexEnv be NewDeclarativeEnvironment(runningContext's LexicalEnvironment).
-        lex_env = new_declarative_environment(interpréteuse.donne_tas_de_mémoire(), running_context.lexical_environment);
+        lex_env = new_declarative_environment(donne_tas_de_mémoire(interpréteuse), running_context.lexical_environment);
 
         // b. Let varEnv be runningContext's VariableEnvironment.
         var_env = running_context.variable_environment;
@@ -145,7 +145,7 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     // 17. Else,
     sinon {
         // a. Let lexEnv be NewDeclarativeEnvironment(evalRealm.[[GlobalEnv]]).
-        lex_env = new_declarative_environment(interpréteuse.donne_tas_de_mémoire(), eval_realm.global_environment);
+        lex_env = new_declarative_environment(donne_tas_de_mémoire(interpréteuse), eval_realm.global_environment);
 
         // b. Let varEnv be evalRealm.[[GlobalEnv]].
         var_env = eval_realm.global_environment;
@@ -161,10 +161,10 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
 
     // 19. If runningContext is not already suspended, suspend runningContext.
     mv := interpréteuse.mv;
-    mv.suspend_running_execution_context();
+    suspend_running_execution_context(mv);
 
     // 20. Let evalContext be a new ECMAScript code execution context.
-    eval_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire());
+    eval_context := crée_execution_context(donne_tas_de_mémoire(interpréteuse));
 
     // 21. Set evalContext's Function to null.
     eval_context.function = nul;
@@ -185,29 +185,29 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     eval_context.private_environment = private_env;
 
     // 27. Push evalContext onto the execution context stack; evalContext is now the running execution context.
-    mv.empile_execution_context(eval_context);
+    empile_execution_context(mv, eval_context);
 
     // À FAIRE : 28. Let result be Completion(EvalDeclarationInstantiation(body, varEnv, lexEnv, privateEnv, strictEval)).
     result := normal_completion(js_undefined);
 
     // 29. If result is a normal completion, then
-    si result.est_normal() {
+    si est_normal(result) {
         // a. Set result to Completion(Evaluation of body).
-        result = interpréteuse.exécute(body);
+        result = exécute(interpréteuse, body);
     }
 
     // 30. If result is a normal completion and result.[[Value]] is EMPTY, then
         // a. Set result to NormalCompletion(undefined).
 
     // 31. Suspend evalContext and remove it from the execution context stack.
-    mv.suspend_running_execution_context();
-    mv.dépile_execution_context();
+    suspend_running_execution_context(mv);
+    dépile_execution_context(mv);
 
     // À FAIRE : 32. Resume the context that is now on the top of the execution context stack as the running execution context.
 
     // 33. Return ? result.
-    si result.est_throw() {
-        interpréteuse.définis_exception(result);
+    si est_throw(result) {
+        définis_exception(interpréteuse, result);
         retourne js_undefined;
     }
     retourne result.valeur.V;
@@ -239,7 +239,7 @@ isnan_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let num be ? ToNumber(number).
     num := to_number(interpréteuse, donne_argument(params, 0));
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -324,8 +324,8 @@ crée_encode_uri_component :: fonc (realm: *Realm) -> *Function
 encode_uri_component_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let componentString be ? ToString(uriComponent).
-    component_string := to_string(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    component_string := to_string(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -341,7 +341,7 @@ encode_uri_component_sur_call :: fonc (empl params: *ParamètresObjectCall) -> V
 encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unescaped: ECMAString) -> Valeur
 {
     // 1. Let len be the length of string.
-    len := string.taille();
+    len := taille(string);
 
     // 2. Let R be the empty String.
     R: EnchaineuseUTF16;
@@ -358,7 +358,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
         ensemble_ajoute(*unescaped_set, it comme n16);
     }
 
-    unités_extra_unescaped := extra_unescaped.donne_chaine_utf16().unités;
+    unités_extra_unescaped := donne_chaine_utf16(extra_unescaped).unités;
     pour unités_extra_unescaped {
         ensemble_ajoute(*unescaped_set, it);
     }
@@ -367,7 +367,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
     k := 0;
 
     // 6. Repeat, while k < len,
-    string16 := string.donne_chaine_utf16();
+    string16 := donne_chaine_utf16(string);
     tantque k < len {
         // a. Let C be the code unit at index k within string.
         C := string16.unités[k];
@@ -387,7 +387,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
 
             // ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
             si cp.est_surrogate_sans_paire {
-                retourne interpréteuse.lance_uri_error("Invalid character in URI");
+                retourne lance_uri_error(interpréteuse, "Invalid character in URI");
             }
 
             // iii. Set k to k + cp.[[CodeUnitCount]].
@@ -415,7 +415,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
     résultat16 := chaine_depuis_enchaineuse(*R);
     // @fuite-de-mémoire ?
     résultat := crée_chaine_utf16_unique(*résultat16);
-    retourne crée_chaine(interpréteuse.donne_realm(), résultat);
+    retourne crée_chaine(donne_realm(interpréteuse), résultat);
 }
 
 donne_chaine_hex_pour_octet :: fonc (o: n8) -> [2]n16
@@ -443,7 +443,7 @@ InfoPointDeCode :: struct {
 code_point_at :: fonc (string: ChaineUTF16, position: z64) -> InfoPointDeCode
 {
     // 1. Let size be the length of string.
-    size := string.taille();
+    size := taille(string);
 
     // 2. Assert: position ≥ 0 and position < size.
     assert(position >= 0);
@@ -496,7 +496,7 @@ crée_json_object :: fonc (realm: *Realm)
     assert(realm.intrinsics.object_prototype != nul);
 
     résultat := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée);
-    résultat.ajoute_fonction_native(STR_parse, json_parse, 2);
+    ajoute_fonction_native(résultat, STR_parse, json_parse, 2);
 
     realm.intrinsics.json = résultat;
 }
@@ -508,14 +508,14 @@ crée_json_object :: fonc (realm: *Realm)
 json_parse :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let jsonString be ? ToString(text).
-    json_string := to_string(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    json_string := to_string(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Let unfiltered be ? ParseJSON(jsonString).
     unfiltered := parse_json(json_string, interpréteuse);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -536,7 +536,7 @@ parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> 
     // À FAIRE 1. If StringToCodePoints(text) is not a valid JSON text as specified in ECMA-404, throw a SyntaxError exception.
 
     // 2. Let scriptString be the string-concatenation of "(", text, and ");".
-    text_en_chaine_native := convertis_vers_chaine(text.texte.donne_chaine_utf16());
+    text_en_chaine_native := convertis_vers_chaine(donne_chaine_utf16(text.texte));
     diffère déloge(*text_en_chaine_native);
 
     script_string := enchaine("(", text_en_chaine_native, ")");
@@ -547,11 +547,11 @@ parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> 
     diffère détruit_données_texte_source(*source);
 
     script: *NoeudScript;
-    discr (parse_text(interpréteuse.donne_realm(), *source, GoalSymbol.Script)) {
+    discr (parse_text(donne_realm(interpréteuse), *source, GoalSymbol.Script)) {
         Erreur(e) {
             // À FAIRE : il est impossible d'avoir des erreurs ici,
             // mais il faut implémenter proprement cette fonction selon la spécification.
-            interpréteuse.définis_exception(e);
+            définis_exception(interpréteuse, e);
             retourne js_undefined;
         }
         Ok(noeud) {
@@ -566,7 +566,7 @@ parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> 
     // 5. Assert: script is a Parse Node.
 
     // 6. Let result be ! Evaluation of script.
-    result := interpréteuse.exécute(script);
+    result := exécute(interpréteuse, script);
 
     // 7. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
     // 8. Assert: result is either a String, a Number, a Boolean, an Object that is defined by either an ArrayLiteral or an ObjectLiteral, or null.

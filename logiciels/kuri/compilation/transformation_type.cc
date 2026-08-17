@@ -243,6 +243,9 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
                     return TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
                                               type_vers};
                 }
+                if (type_de->est_type_réel()) {
+                    return TransformationType{TypeTransformation::RÉEL_VERS_ENTIER, type_vers};
+                }
             }
             break;
         }

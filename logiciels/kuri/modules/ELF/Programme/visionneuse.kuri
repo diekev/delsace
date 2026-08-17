@@ -278,8 +278,7 @@ donne_image_visualisation_binaire :: fonc (visionneuse: *VisionneuseELF, onglet:
             pour compteurs {
                 si it >= 1 {
                     valeur := log(it comme r32) / log_compteur_max;
-                    // À FAIRE(langage) : permet de convertir r32 vers octet
-                    pixels[indice_it] = (valeur * 255.0 + 0.5) comme n8 comme octet;
+                    pixels[indice_it] = (valeur * 255.0 + 0.5) comme octet;
                 }
             }
         }
@@ -334,24 +333,24 @@ donne_tabuleuse_informations :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, t
             tabuleuse.alignements[0] = Alignement.GAUCHE;
             tabuleuse.alignements[1] = Alignement.DROITE;
 
-            ajoute_ligne(tabuleuse, "Classe", entête.donne_classe_fichier());
-            ajoute_ligne(tabuleuse, "Données", entête.donne_encodage_fichier());
-            ajoute_ligne(tabuleuse, "Version", entête.donne_version_fichier());
-            ajoute_ligne(tabuleuse, "OS/ABI", entête.donne_chaine_ABI());
-            ajoute_ligne(tabuleuse, "Version ABI", entête.donne_version_ABI());
-            ajoute_ligne(tabuleuse, "Type", entête.donne_type_fichier_objet());
-            ajoute_ligne(tabuleuse, "Machine", entête.donne_chaine_architecture_cible());
-            ajoute_ligne(tabuleuse, "Version Fichier", entête.donne_version_format_fichier_objet());
-            ajoute_ligne(tabuleuse, "Adresse du point d'entrée", entête.donne_adresse_point_d_entrée());
-            ajoute_ligne(tabuleuse, "Début des en-têtes de programme", entête.donne_début_entêtes_de_programme());
-            ajoute_ligne(tabuleuse, "Début des en-têtes de section", entête.donne_début_entêtes_de_section());
-            ajoute_ligne(tabuleuse, "Fanions", entête.donne_fanions_processeur());
-            ajoute_ligne(tabuleuse, "Taille de cet en-tête", entête.donne_taille_entête());
-            ajoute_ligne(tabuleuse, "Taille de l'en-tête du programme", entête.donne_taille_entête_programme());
-            ajoute_ligne(tabuleuse, "Nombre d'en-tête du programme", entête.donne_nombre_entête_programme());
-            ajoute_ligne(tabuleuse, "Taille des en-têtes de section", entête.donne_taille_entête_section());
-            ajoute_ligne(tabuleuse, "Nombre d'en-tête de section", entête.donne_nombre_entête_section());
-            ajoute_ligne(tabuleuse, "Table d'indice des chaînes d'en-tête de section", entête.donne_index_section_table_des_chaines());
+            ajoute_ligne(tabuleuse, "Classe", donne_classe_fichier(entête));
+            ajoute_ligne(tabuleuse, "Données", donne_encodage_fichier(entête));
+            ajoute_ligne(tabuleuse, "Version", donne_version_fichier(entête));
+            ajoute_ligne(tabuleuse, "OS/ABI", donne_chaine_ABI(entête));
+            ajoute_ligne(tabuleuse, "Version ABI", donne_version_ABI(entête));
+            ajoute_ligne(tabuleuse, "Type", donne_type_fichier_objet(entête));
+            ajoute_ligne(tabuleuse, "Machine", donne_chaine_architecture_cible(entête));
+            ajoute_ligne(tabuleuse, "Version Fichier", donne_version_format_fichier_objet(entête));
+            ajoute_ligne(tabuleuse, "Adresse du point d'entrée", donne_adresse_point_d_entrée(entête));
+            ajoute_ligne(tabuleuse, "Début des en-têtes de programme", donne_début_entêtes_de_programme(entête));
+            ajoute_ligne(tabuleuse, "Début des en-têtes de section", donne_début_entêtes_de_section(entête));
+            ajoute_ligne(tabuleuse, "Fanions", donne_fanions_processeur(entête));
+            ajoute_ligne(tabuleuse, "Taille de cet en-tête", donne_taille_entête(entête));
+            ajoute_ligne(tabuleuse, "Taille de l'en-tête du programme", donne_taille_entête_programme(entête));
+            ajoute_ligne(tabuleuse, "Nombre d'en-tête du programme", donne_nombre_entête_programme(entête));
+            ajoute_ligne(tabuleuse, "Taille des en-têtes de section", donne_taille_entête_section(entête));
+            ajoute_ligne(tabuleuse, "Nombre d'en-tête de section", donne_nombre_entête_section(entête));
+            ajoute_ligne(tabuleuse, "Table d'indice des chaînes d'en-tête de section", donne_index_section_table_des_chaines(entête));
 
             initialise_tailles_max_colonnes(tabuleuse, fonte);
         }
@@ -529,8 +528,8 @@ dessine_fenêtre :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, haute
         peintre = crée_peintre_igumi(taille_canevas);
     }
 
-    peintre.définis_taille_canevas(taille_canevas);
-    peintre.efface_cible_rendu();
+    définis_taille_canevas(peintre, taille_canevas);
+    efface_cible_rendu(peintre);
 
     commandes := crée_interface(visionneuse, largeur, hauteur);
     dessine_commandes(peintre, *commandes);
@@ -575,7 +574,7 @@ crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteu
                 ajoute_bordure_droite(2.0, COULEUR_FOND);
 
                 métriques := donne_métriques_fonte(config_texte_défaut.fonte);
-                hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+                hauteur_de_ligne := donne_hauteur_ligne(métriques) comme z32;
                 rembourrage := 8;
                 hauteur_de_ligne += rembourrage * 2;
 
@@ -658,7 +657,7 @@ dessine_panneau_fichier :: fonc (visionneuse: *VisionneuseELF, espace: EspaceDis
     fonte := config_texte.fonte;
 
     métriques := donne_métriques_fonte(fonte);
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_de_ligne := donne_hauteur_ligne(métriques) comme z32;
     rembourrage := 8;
     hauteur_de_ligne += rembourrage * 2;
 
@@ -713,7 +712,7 @@ dispose_entête_panneau :: fonc (fichier: *Fichier_Ouvert, texte: chaine, indice
     fonte := config_texte.fonte;
 
     métriques := donne_métriques_fonte(fonte);
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_de_ligne := donne_hauteur_ligne(métriques) comme z32;
     rembourrage := 8;
     hauteur_de_ligne += rembourrage * 2;
 
@@ -764,7 +763,7 @@ dessine_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabuleuse, 
     fonte := config_texte.fonte;
 
     métriques := donne_métriques_fonte(fonte);
-    hauteur_de_ligne := métriques.donne_hauteur_ligne();
+    hauteur_de_ligne := donne_hauteur_ligne(métriques);
     rembourrage := 8.0;
     hauteur_de_ligne += rembourrage;
 
@@ -827,7 +826,7 @@ dessine_ligne_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabul
     fonte := config_texte.fonte;
 
     métriques := donne_métriques_fonte(fonte);
-    hauteur_de_ligne := métriques.donne_hauteur_ligne();
+    hauteur_de_ligne := donne_hauteur_ligne(métriques);
     rembourrage := 8.0;
     hauteur_de_ligne += rembourrage;
 
@@ -1203,7 +1202,7 @@ donne_tabuleuse_sections :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabul
                          entête_section.sh_size,
                          entête_section.sh_addralign,
                          entête_section.sh_type,
-                         entête_section.donne_drapeaux());
+                         donne_drapeaux(entête_section));
 
             si entête_section.sh_size != 0 && donne_type_section(entête_section) != TypeSection.AucunBits {
                 définis_commande(tabuleuse, indice_ligne, 0, "affiche_données_section", nom_section);
@@ -1250,9 +1249,9 @@ donne_tabuleuse_symboles :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabul
             ajoute_ligne(tabuleuse,
                          it.st_value,
                          it.st_size,
-                         it.donne_type(),
-                         it.donne_liaison(),
-                         it.donne_visibilité(),
+                         donne_type(it),
+                         donne_liaison(it),
+                         donne_visibilité(it),
                          nom_section_symbole,
                          nom_symbole);
         }
