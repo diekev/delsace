@@ -77,7 +77,7 @@ principale :: fonc ()
 {
     symbole := "_KF9Fondation24imprime_nombre_rxC3xA9el_E2_11enchaineuse15KPKsEnchaineuse6format17KsFormatRxC3xA9el_S1_6Ksrien";
 
-    si symbole.commence_par("_KF") {
+    si commence_par(symbole, "_KF") {
         dénormalise_fonction(symbole);
     }
 }

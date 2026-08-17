@@ -22,7 +22,7 @@ importe SysFichier;
             "MétaprogrammeDéfaut",
         ];
 
-        nom_fichier := chemin.nom_fichier();
+        nom_fichier := nom_fichier(chemin);
 
         pour interdits {
             si it == nom_fichier {

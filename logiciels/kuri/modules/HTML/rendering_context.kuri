@@ -50,7 +50,7 @@ définis_fill_style :: fonc (ctx: *CanvasRenderingContext2D, style: DOMString)
 {
     // À FAIRE : standardise
     opt_couleur := CSS.parse_a_css_color(style, ctx.canvas);
-    saufsi opt_couleur.possède_valeur() {
+    saufsi possède_valeur(opt_couleur) {
         retourne;
     }
 
@@ -125,7 +125,7 @@ fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r6
     rect.largeur = w comme z32;
     rect.hauteur = h comme z32;
 
-    tampon := ctx.canvas.donne_tampon_de_rendu();
+    tampon := donne_tampon_de_rendu(ctx.canvas);
 
     peintre: PeintreDessin;
     initialise_peintre_dessin(*peintre);

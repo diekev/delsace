@@ -91,8 +91,8 @@ crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollection
             retourne faux;
         }
         filtre := base comme *ClassesFilter;
-        valeur := élément.donne_attribut(ATTR_class);
-        saufsi valeur.possède_valeur() {
+        valeur := donne_attribut(élément, ATTR_class);
+        saufsi possède_valeur(valeur) {
             retourne faux;
         }
 
@@ -221,7 +221,7 @@ initialise_collection_pour_filtre :: fonc (collection: *HTMLCollection)
 
 initialise_collection_pour_filtre_récursif :: fonc (racine: *Node, collection: *HTMLCollection)
 {
-    si racine.est_élément() {
+    si est_élément(racine) {
         élément := racine comme *Element;
 
         si collection.filter.sur_filtre(collection.filter, collection, élément) {

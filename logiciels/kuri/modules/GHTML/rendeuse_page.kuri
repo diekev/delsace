@@ -220,13 +220,13 @@ rappel_ajoute_fichier :: fonc (chemin: CheminFichier, rendeuse_page: *RendeusePa
         retourne;
     }
 
-    ext := chemin.extension();
+    ext := extension(chemin);
 
     si ext != ".html" {
         retourne;
     }
 
-    nom := chemin.nom_fichier();
+    nom := nom_fichier(chemin);
 
     // À FAIRE : chemin absolu
 

@@ -45,7 +45,7 @@ principale :: fonc ()
 
     contexte_formattage := initialise_contexte_formattage_minification();
     taille_minifiée := formatte_document(*contexte_formattage, parsat.document, sortie_standarde());
-    temps := début.temps_écoulé_microsecondes();
+    temps := temps_écoulé_microsecondes(début);
 
     imprime("\n");
     imprime("Taille originale : %o\n", FormatEntier(taille_contenu, séparation = 3));

@@ -111,7 +111,7 @@ allocatrice_stathüs :: fonc (params: *ParamètresAllocation, données: *BaseAll
             résultat := allocatrice.allocatrice(params, allocatrice.données_allocatrice);
             si params.nouvelle_taille != 0 || params.ancienne_taille != 0 {
                 /* Évite de spammer avec les logements de chaines ou de tableaux vides */
-                allocatrice.envoie_message(params, résultat);
+                envoie_message(allocatrice, params, résultat);
             }
             retourne résultat;
         }
@@ -119,7 +119,7 @@ allocatrice_stathüs :: fonc (params: *ParamètresAllocation, données: *BaseAll
             résultat := allocatrice.allocatrice(params, allocatrice.données_allocatrice);
             si params.nouvelle_taille != 0 || params.ancienne_taille != 0 {
                 /* Évite de spammer avec les délogements de chaines ou de tableaux vides */
-                allocatrice.envoie_message(params, nul);
+                envoie_message(allocatrice, params, nul);
             }
             retourne résultat;
         }

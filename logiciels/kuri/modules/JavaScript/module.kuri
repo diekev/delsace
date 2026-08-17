@@ -135,14 +135,14 @@ dépile_execution_context :: fonc (mv: *MachineVirtuelle)
             mv.interpréteuse.sur_execution_context(mv.interpréteuse, nul);
         }
         sinon {
-            mv.interpréteuse.sur_execution_context(mv.interpréteuse, mv.donne_running_execution_context());
+            mv.interpréteuse.sur_execution_context(mv.interpréteuse, donne_running_execution_context(mv));
         }
     }
 }
 
 suspend_running_execution_context :: fonc (mv: *MachineVirtuelle)
 {
-    suspend(mv.donne_running_execution_context());
+    suspend(donne_running_execution_context(mv));
 }
 
 donne_tas_de_mémoire :: fonc (mv: *MachineVirtuelle) -> *TasDeMémoire
@@ -167,19 +167,19 @@ rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
         ensemble_ajoute(racines, it);
     }
 
-    si mv.exception.est_cellule() {
-        ensemble_ajoute(racines, mv.exception.donne_cellule());
+    si est_cellule(mv.exception) {
+        ensemble_ajoute(racines, donne_cellule(mv.exception));
     }
 }
 
 possède_exception :: fonc (mv: *MachineVirtuelle) -> bool #enligne
 {
-    retourne mv.exception.est_valide();
+    retourne est_valide(mv.exception);
 }
 
 définis_exception :: fonc (mv: *MachineVirtuelle, completion: CompletionRecord)
 {
-    saufsi completion.est_throw() {
+    saufsi est_throw(completion) {
         retourne;
     }
     définis_exception(mv, completion.valeur.V);
@@ -187,7 +187,7 @@ définis_exception :: fonc (mv: *MachineVirtuelle, completion: CompletionRecord)
 
 définis_exception :: fonc (mv: *MachineVirtuelle, valeur: Valeur)
 {
-    si mv.possède_exception() {
+    si possède_exception(mv) {
         retourne;
     }
     mv.exception = valeur;
@@ -202,27 +202,27 @@ donne_exception :: fonc (mv: *MachineVirtuelle) -> Valeur
 
 possède_exception :: fonc (realm: *Realm) -> bool #enligne
 {
-    retourne possède_exception(realm.donne_tas_de_mémoire().mv);
+    retourne possède_exception(donne_tas_de_mémoire(realm).mv);
 }
 
 définis_exception :: fonc (realm: *Realm, valeur: Valeur)
 {
-    définis_exception(realm.donne_tas_de_mémoire().mv, valeur);
+    définis_exception(donne_tas_de_mémoire(realm).mv, valeur);
 }
 
 donne_exception :: fonc (realm: *Realm) -> Valeur #enligne
 {
-    retourne donne_exception(realm.donne_tas_de_mémoire().mv);
+    retourne donne_exception(donne_tas_de_mémoire(realm).mv);
 }
 
 possède_exception :: fonc (cellule: *Cellule) -> bool #enligne
 {
-    retourne possède_exception(cellule.donne_tas_de_mémoire().mv);
+    retourne possède_exception(donne_tas_de_mémoire(cellule).mv);
 }
 
 donne_exception :: fonc (cellule: *Cellule) -> Valeur #enligne
 {
-    retourne donne_exception(cellule.donne_tas_de_mémoire().mv);
+    retourne donne_exception(donne_tas_de_mémoire(cellule).mv);
 }
 
 /** \} */

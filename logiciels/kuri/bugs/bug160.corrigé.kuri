@@ -1,0 +1,24 @@
+/* Les références de rubriques ne sont pas parsées correctement à droit de « comme ».
+ * Catégorie : [parsage]
+ */
+
+importe Fondation;
+
+Struct :: struct {
+    Énum_Drapeau :: énum_drapeau {
+        VALEUR;
+    }
+
+    Énum :: énum n32 {
+        VALEUR;
+    }
+}
+
+principale :: fonc ()
+{
+    a := Struct.Énum_Drapeau.VALEUR;
+    imprimeln("%", a);
+
+    a ^= (1 << Struct.Énum.VALEUR comme n32) comme Struct.Énum_Drapeau;
+    imprimeln("%", a);
+}

@@ -23,11 +23,11 @@ donne_commande_pour_nom :: fonc (nom: chaine) -> fonc (anonyme: *Anonyme)
             continue;
         }
 
-        saufsi it.texte.commence_par("commande_") {
+        saufsi commence_par(it.texte, "commande_") {
             continue;
         }
 
-        nom_commande := it.texte.avance("commande_".taille);
+        nom_commande := avance(it.texte, "commande_".taille);
 
         ajoute_au_tampon(*enchaineuse, "    si nom == \"", nom_commande, "\" { retourne ", it.texte, "; }\n");
     }
