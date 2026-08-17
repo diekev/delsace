@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 struct Fichier;
 struct Lexème;
 
@@ -22,6 +24,9 @@ struct SiteSource {
      */
     int indice_colonne_min = -1;
     int indice_colonne_max = -1;
+
+    /* Décalage en octet depuis le début du fichier. */
+    int64_t décalage = -1;
 
     SiteSource() = default;
 

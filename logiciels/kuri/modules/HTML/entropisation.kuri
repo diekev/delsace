@@ -14,21 +14,21 @@ ContexteEntropisation :: struct {
 
 choisis_un_de :: fonc (gna: *GNA, tags: ...DOMString) -> DOMString
 {
-    indice := gna.uniforme(0.0, (tags.taille) comme r32) comme z64;
+    indice := uniforme(gna, 0.0, (tags.taille) comme r32) comme z64;
     retourne tags[indice];
 }
 
 tag_enfant_possible :: fonc (gna: *GNA, tag: DOMString) -> DOMString
 {
     si tag == TAG_head {
-        retourne gna.choisis_un_de(TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title, TAG_noscript);
+        retourne choisis_un_de(gna, TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title, TAG_noscript);
     }
 
     si tag == TAG_table {
         retourne TAG_tbody;
     }
 
-    retourne gna.choisis_un_de(TAG_script, TAG_aside, TAG_div, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table);
+    retourne choisis_un_de(gna, TAG_script, TAG_aside, TAG_div, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table);
 }
 
 nombre_enfants_possibles :: fonc (gna: *GNA, tag: DOMString) -> z32
@@ -37,7 +37,7 @@ nombre_enfants_possibles :: fonc (gna: *GNA, tag: DOMString) -> z32
         retourne 1;
     }
 
-    retourne gna.uniforme(0.0, 10.0) comme z32;
+    retourne uniforme(gna, 0.0, 10.0) comme z32;
 }
 
 génère_enfants_récusifs :: fonc (ctx_entropie: *ContexteEntropisation, parent: *Element)
@@ -52,7 +52,7 @@ génère_enfants_récusifs :: fonc (ctx_entropie: *ContexteEntropisation, parent
 
     gna := ctx_entropie.gna;
 
-    doit_faire_des_enfants := gna.uniforme(0.0, 1.0) >= (ctx_entropie.profondeur comme r32) * (1.0 / ctx_entropie.profondeur_max comme r32);
+    doit_faire_des_enfants := uniforme(gna, 0.0, 1.0) >= (ctx_entropie.profondeur comme r32) * (1.0 / ctx_entropie.profondeur_max comme r32);
     saufsi doit_faire_des_enfants {
         retourne;
     }
@@ -66,7 +66,7 @@ génère_enfants_récusifs :: fonc (ctx_entropie: *ContexteEntropisation, parent
 
     ctx_entropie.profondeur += 1;
     pour parent.enfants {
-        saufsi it.est_élément() {
+        saufsi est_élément(it) {
             continue;
         }
 
@@ -154,7 +154,7 @@ crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation, mv: *J
     ajoute_enfant(html, head);
     ajoute_enfant(html, body);
 
-    profondeur_max := gna.uniforme(0.0, paramètres.limite_haute_profondeur comme r32) comme z32;
+    profondeur_max := uniforme(gna, 0.0, paramètres.limite_haute_profondeur comme r32) comme z32;
 
     ctx_entropie: ContexteEntropisation;
     ctx_entropie.document = document;

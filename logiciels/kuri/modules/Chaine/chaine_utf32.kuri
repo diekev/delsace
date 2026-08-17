@@ -21,12 +21,12 @@ taille :: fonc (chn: ChaineUTF32) -> z64 #enligne
 
 est_vide :: fonc (chn: ChaineUTF32) -> bool #enligne
 {
-    retourne chn.taille() == 0;
+    retourne taille(chn) == 0;
 }
 
 avance :: fonc (chn: ChaineUTF32, n: z32) -> ChaineUTF32
 {
-    assert(chn.taille() >= n);
+    assert(taille(chn) >= n);
     résultat := chn;
     résultat.points_de_code.données += n;
     résultat.points_de_code.taille -= n;
@@ -123,7 +123,7 @@ opérateur == :: (a: ChaineUTF32, b: ChaineUTF32) -> bool
 
 opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
 {
-    si chn_utf32.taille() > chn_native.taille {
+    si taille(chn_utf32) > chn_native.taille {
         retourne faux;
     }
 
@@ -133,7 +133,7 @@ opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
     ptr_natif := chn_native.caractères;
 
     tantque curseur_chn_native < chn_native.taille {
-        si curseur_chn_utf32 >= chn_utf32.taille() {
+        si curseur_chn_utf32 >= taille(chn_utf32) {
             retourne faux;
         }
 

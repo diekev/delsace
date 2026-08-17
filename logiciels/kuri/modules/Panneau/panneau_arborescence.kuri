@@ -52,7 +52,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauArborescence)
 
     fonte := contexte.fonte;
     métriques := donne_métriques_fonte(fonte);
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_de_ligne := donne_hauteur_ligne(métriques) comme z32;
     hauteur_élément = hauteur_de_ligne + 10;
     espaçage := donne_largeur_texte(fonte, "0") comme z32;
 
@@ -115,12 +115,12 @@ dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *
 {
     // peintre.dessine_rectangle(élément.rect, couleur_rouge)
     saufsi élément.est_développé {
-        peintre.dessine_rectangle(élément.rect_bouton, couleur_vert);
+        dessine_rectangle(peintre, élément.rect_bouton, couleur_vert);
     }
     sinon {
-        peintre.remplis_rectangle(élément.rect_bouton, couleur_vert);
+        remplis_rectangle(peintre, élément.rect_bouton, couleur_vert);
     }
-    peintre.dessine_texte(fonte, élément.texte, élément.rect_texte, thème.couleur_texte);
+    dessine_texte(peintre, fonte, élément.texte, élément.rect_texte, thème.couleur_texte);
 }
 
 crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -> *PanneauArborescence
@@ -131,12 +131,12 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
 
     sur_clic_souris :: fonc (panneau_arborescence: *PanneauArborescence, clic: ClicSouris) -> bool
     {
-        saufsi panneau_arborescence.rect.contient(clic.état.où) {
+        saufsi contient(panneau_arborescence.rect, clic.état.où) {
             retourne faux;
         }
 
         pour panneau_arborescence.éléments_visibles {
-            saufsi it.rect_bouton.contient(clic.état.où) {
+            saufsi contient(it.rect_bouton, clic.état.où) {
                 continue;
             }
 
@@ -182,7 +182,7 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
         dessine_rectangle(peintre, panneau_arborescence.rect, thème.couleur_contour);
     }
 
-    résultat := ctx.crée_panneau(PanneauArborescence);
+    résultat := crée_panneau(ctx, PanneauArborescence);
     ajoute_enfant(parent, résultat);
 
     résultat.sur_déplacement_souris = sur_déplacement_souris;

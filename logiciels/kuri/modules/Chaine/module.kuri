@@ -407,7 +407,7 @@ remplace :: fonc (texte: chaine, motif: chaine, par: chaine) -> chaine
             ajoute_au_tampon(*enchaineuse, texte);
         }
         sinon {
-            ajoute_au_tampon(*enchaineuse, texte.sous_chaine(0, pos_motif));
+            ajoute_au_tampon(*enchaineuse, sous_chaine(texte, 0, pos_motif));
             ajoute_au_tampon(*enchaineuse, par);
 
             texte = avance(texte, pos_motif + motif.taille);
@@ -618,7 +618,7 @@ trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, indice_début : z6
     chn = avance(chn, indice_début);
 
     tantque chn.taille >= motif.taille {
-        si chn.commence_par(motif) {
+        si commence_par(chn, motif) {
             résultat = indice;
             arrête;
         }
@@ -888,7 +888,7 @@ apparie :: fonc (parseuse: *ParseuseChaine, c: z8) -> bool
 
 consomme :: fonc (parseuse: *ParseuseChaine, c: z8) -> bool
 {
-    si !parseuse.apparie(c) {
+    si !apparie(parseuse, c) {
         retourne faux;
     }
 
@@ -898,7 +898,7 @@ consomme :: fonc (parseuse: *ParseuseChaine, c: z8) -> bool
 
 consomme :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> bool
 {
-    si !parseuse.apparie(chn) {
+    si !apparie(parseuse, chn) {
         retourne faux;
     }
 
@@ -991,7 +991,7 @@ trouve_prochain :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> z64
 
 sous_chaine_jusque_indice :: fonc (parseuse: *ParseuseChaine, indice: z64) -> chaine
 {
-    si parseuse.fini() {
+    si fini(parseuse) {
         retourne "";
     }
 

@@ -388,11 +388,11 @@ fenêtre_donne_presse_papier :: fonc (fenêtre: Port_Fenêtre_Native, données_m
         presse_papier := QT_application_donne_clipboard();
         mimedata := QT_clipboard_donne_mimedata(presse_papier, QT_Clipboard_Mode.Clipboard);
 
-        saufsi mimedata && QT_mimedata_a_format(mimedata, données_mime.type.vers_qt()) {
+        saufsi mimedata && QT_mimedata_a_format(mimedata, vers_qt(données_mime.type)) {
             retourne;
         }
 
-        données := QT_mimedata_donne_donnee(mimedata, données_mime.type.vers_qt());
+        données := QT_mimedata_donne_donnee(mimedata, vers_qt(données_mime.type));
         diffère QT_byte_array_detruit(*données);
 
         chn := chaine(données.donnees comme *z8, données.taille_donnees comme z64);
@@ -1482,7 +1482,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
             dernière_souris = évènement.état_souris;
             évènement.id_fenêtre = id_port_fenêtre;
 
-            temps := maintenant_précis().millisecondes();
+            temps := millisecondes(maintenant_précis());
 
             si (temps - __temps_dernier_relâchement) < __temps_double_clic && __dernier_relâchement.bouton_souris == évènement.bouton_souris {
                 évènement.action_souris = ActionSouris.DOUBLE_CLIC;
@@ -1494,7 +1494,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
             dernière_souris = évènement.état_souris;
             évènement.id_fenêtre = id_port_fenêtre;
 
-            __temps_dernier_relâchement = maintenant_précis().millisecondes();
+            __temps_dernier_relâchement = millisecondes(maintenant_précis());
             __dernier_relâchement = mémoire(évènement);
         }
         sinon si event.type == ClientMessage {

@@ -51,7 +51,7 @@ accède_données_serveuse :: fonc (prise: *Prise, $T: type_de_données) -> *T
 mute_délai :: fonc (prise: *Prise, délai: z32)
 {
     prise.délai = délai;
-    prise.horodotage_délai = maintenant_précis().secondes() comme z32;
+    prise.horodotage_délai = secondes(maintenant_précis()) comme z32;
 }
 
 données_utilisateur :: fonc (prise: *Prise, $TypeDonnées: type_de_données) -> *TypeDonnées
@@ -64,7 +64,7 @@ données_utilisateur :: fonc (prise: *Prise, $TypeDonnées: type_de_données) ->
         retourne nul;
     }
 
-    si prise.est_prise_ssl() {
+    si est_prise_ssl(prise) {
         retourne ((prise comme *PriseSSL) + 1) comme *TypeDonnées;
     }
 
@@ -135,7 +135,7 @@ vide_données_lecture :: fonc (prise: *Prise)
 
 écris :: fonc (prise: *Prise, données: chaine) -> z32
 {
-    si prise.est_prise_ssl() {
+    si est_prise_ssl(prise) {
         retourne écris(prise comme *PriseSSL, données);
     }
 
@@ -144,7 +144,7 @@ vide_données_lecture :: fonc (prise: *Prise)
 
 écris :: fonc (prise: *Prise, enchaineuse: *Enchaineuse) -> z32
 {
-    si prise.est_prise_ssl() {
+    si est_prise_ssl(prise) {
         // À FAIRE : garde la mémoire jusqu'à ce que les données furent écris
         tampon := chaine_depuis_enchaineuse(enchaineuse);
         diffère déloge(*tampon);

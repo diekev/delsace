@@ -179,7 +179,7 @@ document_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) -> *Even
         retourne nul;
     }
 
-    retourne JS.vérifie_comme(document.donne_relevant_global_object(), EventTarget);
+    retourne JS.vérifie_comme(donne_relevant_global_object(document), EventTarget);
 }
 
 #portée_export
@@ -206,7 +206,7 @@ est_en_mode_quirks :: fonc (document: *Document) -> bool
 /* https://html.spec.whatwg.org/multipage/iframe-embed-object.html#an-iframe-srcdoc-document */
 est_iframe_srcdoc :: fonc (document: *Document) -> bool
 {
-    retourne document.url.est_about_srcdoc();
+    retourne est_about_srcdoc(document.url);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#fully-active */
@@ -215,13 +215,13 @@ est_fully_active :: fonc (document: *Document) -> bool
     /* A Document d is said to be fully active when d is the active document
      * of a navigable navigable, and either navigable is a top-level traversable
      * À FAIRE :  or navigable's container document is fully active. */
-    user_agent := document.donne_user_agent();
+    user_agent := donne_user_agent(document);
     saufsi user_agent {
         retourne faux;
     }
 
     pour user_agent.top_level_traversables {
-        si document == it.donne_active_document() {
+        si document == donne_active_document(it) {
             retourne vrai;
         }
     }
@@ -288,11 +288,11 @@ get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *
         noeud := traversée[traversée.taille - 1];
         traversée.taille -= 1;
 
-        si noeud.est_élément() {
+        si est_élément(noeud) {
             élément := noeud comme *Element;
-            name := élément.donne_attribut_ou_chaine_vide(ATTR_name);
+            name := donne_attribut_ou_chaine_vide(élément, ATTR_name);
             si name == element_name {
-                résultat.ajoute_noeud(élément);
+                ajoute_noeud(résultat, élément);
             }
         }
 
@@ -306,7 +306,7 @@ get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *
 
 donne_premier_élément_de_type :: fonc (noeud: *Node, tag: DOMString) -> *Element
 {
-    si noeud.est_élément_type(tag) {
+    si est_élément_type(noeud, tag) {
         retourne noeud comme *Element;
     }
 
@@ -324,7 +324,7 @@ donne_premier_élément_de_type :: fonc (noeud: *Node, tag: DOMString) -> *Eleme
 donne_élément_document :: fonc (document: *Document) -> *Element
 {
     pour document.enfants {
-        si it.est_élément() {
+        si est_élément(it) {
             retourne it comme *Element;
         }
     }
@@ -344,10 +344,10 @@ donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
 /* https://html.spec.whatwg.org/multipage/dom.html#the-head-element-2 */
 donne_head :: fonc (document: *Document) -> *Element
 {
-    élément_html := document.donne_élément_html();
+    élément_html := donne_élément_html(document);
     si élément_html {
         pour élément_html.enfants {
-            si it.est_élément_type(TAG_head) {
+            si est_élément_type(it, TAG_head) {
                 retourne it comme *Element;
             }
         }
@@ -358,10 +358,10 @@ donne_head :: fonc (document: *Document) -> *Element
 /* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
 donne_élément_body :: fonc (document: *Document) -> *Element
 {
-    élément_html := document.donne_élément_html();
+    élément_html := donne_élément_html(document);
     si élément_html {
         pour élément_html.enfants {
-            si it.est_élément_type(TAG_body) || it.est_élément_type(TAG_frameset) {
+            si est_élément_type(it, TAG_body) || est_élément_type(it, TAG_frameset) {
                 retourne it comme *Element;
             }
         }
@@ -454,7 +454,7 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Element)
         tantque noeud_courant != nul {
             noeud_courant.pseudo_classes.Hover = faux;
             parent := noeud_courant.parent;
-            saufsi parent.est_élément() {
+            saufsi est_élément(parent) {
                 arrête;
             }
             noeud_courant = parent comme *Element;
@@ -468,7 +468,7 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Element)
         tantque noeud_courant != nul {
             noeud_courant.pseudo_classes.Hover = vrai;
             parent := noeud_courant.parent;
-            saufsi parent.est_élément() {
+            saufsi est_élément(parent) {
                 arrête;
             }
             noeud_courant = parent comme *Element;
@@ -482,9 +482,9 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Element)
     assert(ancêtre != nul);
     invalide_style_depuis_élément(document, ancêtre);
 
-    user_agent := document.donne_user_agent();
+    user_agent := donne_user_agent(document);
     si user_agent {
-        user_agent.notifie_élément_survolé();
+        notifie_élément_survolé(user_agent);
     }
 }
 
@@ -498,7 +498,7 @@ donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
         }
 
         parent := noeud.parent;
-        saufsi parent.est_élément() {
+        saufsi est_élément(parent) {
             retourne nul;
         }
 
@@ -524,7 +524,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Element, b: *Element) -> *Element
     noeud := a;
     boucle {
         ensemble_ajoute(*ancêtres_de_a, noeud);
-        saufsi noeud.parent.est_élément() {
+        saufsi est_élément(noeud.parent) {
             arrête;
         }
         noeud = noeud.parent comme *Element;
@@ -537,7 +537,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Element, b: *Element) -> *Element
             retourne noeud;
         }
 
-        saufsi noeud.parent.est_élément() {
+        saufsi est_élément(noeud.parent) {
             arrête;
         }
         noeud = noeud.parent comme *Element;
@@ -549,7 +549,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Element, b: *Element) -> *Element
 /* Invalide le style de manière générale. */
 invalide_style :: fonc (document: *Document)
 {
-    document.définis_ajournement_arbre(CSS.AjournementArbre.Construction);
+    définis_ajournement_arbre(document, CSS.AjournementArbre.Construction);
 }
 
 /* Invalide le style suite à la modification d'une pseudo-classe. */
@@ -574,7 +574,7 @@ invalide_style_pour_redimensionnement :: fonc (document: *Document, largeur: z32
     }
 
     ajournement := CSS.donne_ajournement_pour_redimensionnement(document.résolveuse_style, largeur, hauteur);
-    document.définis_ajournement_arbre(ajournement);
+    définis_ajournement_arbre(document, ajournement);
 }
 
 /* Invalide le style suite au changement de la valeur de l'attribut "id". */
@@ -623,7 +623,7 @@ invalide_style_depuis_élément :: fonc (document: *Document, élément: *Elemen
     }
 
     ajournement := donne_ajournement_depuis_élément(document.résolveuse_style, élément);
-    document.définis_ajournement_arbre(ajournement);
+    définis_ajournement_arbre(document, ajournement);
 }
 
 invalide_style_pour_image :: fonc (document: *Document)
@@ -631,7 +631,7 @@ invalide_style_pour_image :: fonc (document: *Document)
     saufsi document.résolveuse_style {
         retourne;
     }
-    document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin);
+    définis_ajournement_arbre(document, CSS.AjournementArbre.Dessin);
 }
 
 requiers_redessin :: fonc (document: *Document)
@@ -639,7 +639,7 @@ requiers_redessin :: fonc (document: *Document)
     saufsi document.résolveuse_style {
         retourne;
     }
-    document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin);
+    définis_ajournement_arbre(document, CSS.AjournementArbre.Dessin);
 }
 
 donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element) -> CSS.AjournementArbre
@@ -652,7 +652,7 @@ donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, 
     }
 
     pour élément.enfants {
-        saufsi it.est_élément() {
+        saufsi est_élément(it) {
             continue;
         }
 
@@ -694,7 +694,7 @@ has_a_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> bool
     }
 
     // 2. If document's node navigable is null, then return false.
-    navigable := document.donne_node_navigable();
+    navigable := donne_node_navigable(document);
     si navigable == nul {
         retourne faux;
     }
@@ -750,7 +750,7 @@ create_element :: fonc (document: *Document, local_name: DOMString) -> *Element
 create_text_node :: fonc (document: *Document, data: DOMString) -> *Text
 {
     résultat := crée_noeud_texte(document);
-    src := data.donne_chaine_utf16();
+    src := donne_chaine_utf16(data);
     résultat.données = copie_chaine(src);
     retourne résultat;
 }
@@ -1065,7 +1065,7 @@ shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*Ev
      * path’s first struct’s invocation target; otherwise shadow root’s host. */
     invocation_target := event.path[0].invocation_target;
     
-    si event.composed == faux && invocation_target.est_node() && donne_racine(invocation_target comme *Node) == shadow_root {
+    si event.composed == faux && est_node(invocation_target) && donne_racine(invocation_target comme *Node) == shadow_root {
         retourne nul;
     }
 
@@ -1077,7 +1077,7 @@ shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*Ev
 /* https://dom.spec.whatwg.org/#concept-shadow-including-root */
 donne_racine_shadow_including :: fonc (noeud: *Node) -> *Node
 {
-    racine := noeud.donne_racine();
+    racine := donne_racine(noeud);
 
     si racine.genre == GenreNoeud.ShadowRoot {
         shadow_root := racine comme *ShadowRoot;

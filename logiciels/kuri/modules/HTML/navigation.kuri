@@ -85,16 +85,16 @@ opérateur == :: (ongoing: OngoingNavigationType, navigation_id: Optionnel(Navig
 {
     discr ongoing {
         NavigationID(id) {
-            si navigation_id.possède_valeur() {
+            si possède_valeur(navigation_id) {
                 retourne id == navigation_id.Quelque;
             }
             retourne faux;
         }
         Chaine {
-            retourne !navigation_id.possède_valeur();
+            retourne !possède_valeur(navigation_id);
         }
         sinon {
-            si navigation_id.possède_valeur() {
+            si possède_valeur(navigation_id) {
                 retourne faux;
             }
             retourne vrai;
@@ -218,7 +218,7 @@ snapshot_source_snapshot_params :: fonc (source_document: *Document) -> SourceSn
         // sandboxing flags = sourceDocument's active sandboxing flag set
         // allows downloading = false if sourceDocument's active sandboxing flag set has the sandboxed downloads browsing context flag set; otherwise true
         // fetch client = sourceDocument's relevant settings object
-        résultat.fetch_client = source_document.donne_relevant_settings_object();
+        résultat.fetch_client = donne_relevant_settings_object(source_document);
         // source policy container -> a clone of sourceDocument's policy container
 
         // À FAIRE : doit être fait lors de la création
@@ -239,7 +239,7 @@ TargetSnapshotParams :: struct {
 snapshot_target_snapshot_params :: fonc (target_navigable: *Navigable) -> TargetSnapshotParams
 {
     résultat: TargetSnapshotParams;
-    résultat.sandboxing_flags = détermine_drapeaux_sandboxing(target_navigable.donne_active_browsing_context(), target_navigable.donne_container());
+    résultat.sandboxing_flags = détermine_drapeaux_sandboxing(donne_active_browsing_context(target_navigable), donne_container(target_navigable));
     retourne résultat;
 }
 
@@ -321,7 +321,7 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
     // 8. If navigable's active document's unload counter is greater than 0, then
     //    invoke WebDriver BiDi navigation failed with a WebDriver BiDi navigation
     //    status whose id is navigationId, status is "canceled", and url is url, and return.
-    si navigable.donne_active_document().unload_counter > 0 {
+    si donne_active_document(navigable).unload_counter > 0 {
         navigation_status: WebDriverNavigationStatus;
         navigation_status.id = navigation_id;
         navigation_status.url = url;
@@ -335,7 +335,7 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
 
     // 11. If historyHandling is "auto", then:
     si history_handling == NavigationHistoryBehavior.AUTO {
-        active_document := navigable.donne_active_document();
+        active_document := donne_active_document(navigable);
 
         chn_url := url_serializer(url);
         diffère déloge(*chn_url);
@@ -356,7 +356,7 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
     }
 
     // 12. If the navigation must be a replace given url and navigable's active document, then set historyHandling to "replace".
-    si navigation_must_be_a_replace(url, navigable.donne_active_document()) {
+    si navigation_must_be_a_replace(url, donne_active_document(navigable)) {
         history_handling = NavigationHistoryBehavior.REPLACE;
     }
 
@@ -366,7 +366,7 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
     //     url equals navigable's active session history entry's URL with exclude fragments set to true; and
     //     url's fragment is non-null,
     //     then:
-    si url.fragment.possède_valeur() && equals(url, navigable.active_session_history_entry.url, vrai) {
+    si possède_valeur(url.fragment) && equals(url, navigable.active_session_history_entry.url, vrai) {
         // 1. Navigate to a fragment given navigable, url, historyHandling, userInvolvement, navigationAPIState, and navigationId.
         navigate_to_a_fragment(user_agent, navigable, url, history_handling, user_involvement, *navigation_id);
 
@@ -380,7 +380,7 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
     }
 
     // 15. Let targetBrowsingContext be navigable's active browsing context.
-    target_browsing_context := navigable.donne_active_browsing_context();
+    target_browsing_context := donne_active_browsing_context(navigable);
 
     // 16. Let targetSnapshotParams be the result of snapshotting target snapshot params given navigable.
     target_snapshot_params := snapshot_target_snapshot_params(navigable);
@@ -407,13 +407,13 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
     }
 
     // 19. Set the ongoing navigation for navigable to navigationId.
-    navigable.définis_ongoing_navigation(navigation_id);
+    définis_ongoing_navigation(navigable, navigation_id);
 
     // 20. If url's scheme is "javascript", then:
     si url.scheme == "javascript" {
         // 1. Queue a global task on the navigation and traversal task source given navigable's active window to navigate to a javascript: URL given navigable, url, historyHandling, initiatorOriginSnapshot, and cspNavigationType.
         tâche := crée_tâche_pour_navigate_to_javascript_url(user_agent, navigable, url, history_handling, initiator_origin_snapshot);
-        user_agent.queue_a_global_task(Task_Source.NavigationEtTraversée, navigable.donne_active_window(), tâche);
+        queue_a_global_task(user_agent, Task_Source.NavigationEtTraversée, donne_active_window(navigable), tâche);
 
         // 2. Return.
         retourne;
@@ -461,7 +461,7 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
     tâche.params.referrer_policy = referrer_policy;
     tâche.params.user_involvement = user_involvement;
 
-    user_agent.lance_en_parallèle(tâche);
+    lance_en_parallèle(user_agent, tâche);
 }
 
 NavigateParallelStepsParams :: struct {
@@ -589,7 +589,7 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
     tâche.history_entry = history_entry;
     tâche.user_involvement = user_involvement;
 
-    completion_steps := crée_tâche_pour_traversable(user_agent, tâche, navigable.donne_traversable_navigable());
+    completion_steps := crée_tâche_pour_traversable(user_agent, tâche, donne_traversable_navigable(navigable));
 
     history_entry_population_params: HistoryEntryPopulationParams;
     history_entry_population_params.user_agent = user_agent;
@@ -615,16 +615,16 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#finalize-a-cross-document-navigation */
 finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable: *Navigable, history_handling: NavigationHistoryBehavior, user_involvement: UserNavigationInvolvement, history_entry: *SessionHistoryEntry)
 {
-    traversable := navigable.donne_traversable_navigable();
+    traversable := donne_traversable_navigable(navigable);
 
     // 1. Assert: this is running on navigable's traversable navigable's session history traversal queue.
-    assert(user_agent.est_exécuté_sur_file_parallèle(traversable));
+    assert(est_exécuté_sur_file_parallèle(user_agent, traversable));
 
     // 2. Set navigable's is delaying load events to false.
     navigable.is_delaying_load_events = faux;
 
     // 3. If historyEntry's document is null, then return.
-    si history_entry.donne_document() == nul {
+    si donne_document(history_entry) == nul {
         retourne;
     }
 
@@ -748,16 +748,16 @@ evaluate_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Na
     diffère déloge(*url_string);
 
     // 2. Let encodedScriptSource be the result of removing the leading "javascript:" from urlString.
-    encoded_script_source := url_string.avance("javascript:".taille);
+    encoded_script_source := avance(url_string, "javascript:".taille);
 
     // À FAIRE : 3. Let scriptSource be the UTF-8 decoding of the percent-decoding of encodedScriptSource.
     script_source := encoded_script_source;
 
     // 4. Let settings be targetNavigable's active document's relevant settings object.
-    settings := target_navigable.donne_active_document().donne_relevant_settings_object();
+    settings := donne_relevant_settings_object(donne_active_document(target_navigable));
 
     // 5. Let baseURL be settings's API base URL.
-    base_url := settings.donne_api_base_url();
+    base_url := donne_api_base_url(settings);
 
     // 6. Let script be the result of creating a classic script given scriptSource, settings, baseURL, and the default script fetch options.
     options: OptionsFetchScript;
@@ -901,11 +901,11 @@ navigate_to_a_fragment :: fonc (user_agent: *UserAgent,
         // 3. Set scriptHistoryLength to scriptHistoryIndex + 1.
 
     // 12. Set navigable's active document's URL to url.
-    document := navigable.donne_active_document();
+    document := donne_active_document(navigable);
     document.url = copie_url(url);
 
     // 13. Set navigable's active session history entry to historyEntry.
-    navigable.définis_active_session_history_entry(history_entry);
+    définis_active_session_history_entry(navigable, history_entry);
 
     // 14. Update document for history step application given navigable's active document, historyEntry, true, scriptHistoryIndex, scriptHistoryLength, and historyHandling.
     // @specbug historyHandling n'est pas dans les paramètres
@@ -922,7 +922,7 @@ navigate_to_a_fragment :: fonc (user_agent: *UserAgent,
     scroll_to_the_fragment(user_agent, document);
 
     // 16. Let traversable be navigable's traversable navigable.
-    traversable := navigable.donne_traversable_navigable();
+    traversable := donne_traversable_navigable(navigable);
 
     // 17. Append the following session history synchronous navigation steps involving navigable to traversable:
     //      1. Finalize a same-document navigation given traversable, navigable, historyEntry, entryToReplace, historyHandling, and userInvolvement.
@@ -938,7 +938,7 @@ navigate_to_a_fragment :: fonc (user_agent: *UserAgent,
     params.user_involvement = user_involvement;
 
     tâche := crée_algorithm_pour_fonction(*params, finalize_a_same_document_navigation);
-    user_agent.lance_sur_file_parallèle(traversable, tâche);
+    lance_sur_file_parallèle(user_agent, traversable, tâche);
 }
 
 FinalizeSameDocumentNavigationParams :: struct {
@@ -955,7 +955,7 @@ FinalizeSameDocumentNavigationParams :: struct {
 finalize_a_same_document_navigation :: fonc (empl params: *FinalizeSameDocumentNavigationParams)
 {
     // 1. Assert: this is running on traversable's session history traversal queue.
-    assert(user_agent.est_exécuté_sur_file_parallèle(traversable));
+    assert(est_exécuté_sur_file_parallèle(user_agent, traversable));
 
     // 2. If targetNavigable's active session history entry is not targetEntry, then return.
     si target_navigable.active_session_history_entry != target_entry {
@@ -1026,11 +1026,11 @@ reload :: fonc (user_agent: *UserAgent, navigable: *Navigable, user_involvement 
     navigable.active_session_history_entry.document_state.reload_pending = vrai;
 
     // 3. Let traversable be navigable's traversable navigable.
-    traversable := navigable.donne_traversable_navigable();
+    traversable := donne_traversable_navigable(navigable);
 
     // 4. Append the following session history traversal steps to traversable:
     tâche := crée_tâche_pour_reload_history_step(user_agent, traversable);
-    user_agent.lance_sur_file_parallèle(traversable, tâche);
+    lance_sur_file_parallèle(user_agent, traversable, tâche);
 }
 
 crée_tâche_pour_reload_history_step :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable) -> *Algorithm
@@ -1049,7 +1049,7 @@ crée_tâche_pour_reload_history_step :: fonc (user_agent: *UserAgent, traversab
         // 1. Apply the reload history step to traversable.
         _ := apply_the_reload_history_step(tâche.user_agent, tâche.traversable);
 
-        _ := tâche.traversable.active_session_history_entry.donne_document();
+        _ := donne_document(tâche.traversable.active_session_history_entry);
     }
 
     tâche := crée_algorithm(sur_run, Tâche);
@@ -1073,7 +1073,7 @@ traverse_the_history_by_a_delta :: fonc (user_agent: *UserAgent, traversable: *T
         // À FAIRE : 1. Set sourceSnapshotParams to the result of snapshotting source snapshot params given sourceDocument.
 
         // 2. Set initiatorToCheck to sourceDocument's node navigable.
-        initiator_to_check = source_document.donne_node_navigable();
+        initiator_to_check = donne_node_navigable(source_document);
 
         // 3. Set userInvolvement to "none".
         user_involvement = UserNavigationInvolvement.None;
@@ -1081,7 +1081,7 @@ traverse_the_history_by_a_delta :: fonc (user_agent: *UserAgent, traversable: *T
 
     // 4. Append the following session history traversal steps to traversable:
     tâche := crée_tâche_pour_traverse_history_step(user_agent, traversable, source_snapshot_params, initiator_to_check, user_involvement, delta);
-    user_agent.lance_sur_file_parallèle(traversable, tâche);
+    lance_sur_file_parallèle(user_agent, traversable, tâche);
 }
 
 crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
@@ -1132,7 +1132,7 @@ crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
         // 5. Apply the traverse history step allSteps[targetStepIndex] to traversable, given sourceSnapshotParams, initiatorToCheck, and userInvolvement.
         _ := apply_the_traverse_history_step(user_agent, all_steps[target_step_index], traversable, tâche.source_snapshot_params, tâche.initiator_to_check, tâche.user_involvement);
 
-        _ := tâche.traversable.active_session_history_entry.donne_document();
+        _ := donne_document(tâche.traversable.active_session_history_entry);
     }
 
     tâche := crée_algorithm(sur_run, Tâche);
@@ -1182,7 +1182,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     user_involvement := params.user_involvement;
 
     // 1. Assert: this is running in parallel.
-    assert(user_agent.est_exécuté_en_parallèle());
+    assert(est_exécuté_en_parallèle(user_agent));
 
     // 2. Assert: if navigationParams is non-null, then navigationParams's response is non-null.
 
@@ -1255,7 +1255,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         save_extra_document_state := vrai;
 
         // 3. If navigationParams is a non-fetch scheme navigation params, then:
-        si navigation_params != nul && navigation_params.est_non_fetch_scheme() {
+        si navigation_params != nul && est_non_fetch_scheme(navigation_params) {
             panique("non-implémenté");
 
             // 1. Set entry's document state's document to the result of running attempt to create a non-fetch scheme document given navigationParams.
@@ -1287,7 +1287,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
                 // 2. Invoke WebDriver BiDi navigation failed with currentBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is navigationParams's response's URL.
         }
         // 5. Otherwise, if navigationParams's response has a `Content-Disposition` header specifying the attachment disposition type, then:
-        sinon si navigation_params.response.possède_entête("Content-Disposition", "attachment") {
+        sinon si possède_entête(navigation_params.response, "Content-Disposition", "attachment") {
             panique("non-implémenté");
 
             // 1. Let sourceAllowsDownloading be sourceSnapshotParams's allows downloading.
@@ -1335,7 +1335,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
             }
             
             // 3. If entry's document state's request referrer is "client", and navigationParams is a navigation params (i.e., neither null nor a non-fetch scheme navigation params), then:
-            si entry.document_state.request_referrer == "client" && navigation_params.est_navigation_params() {
+            si entry.document_state.request_referrer == "client" && est_navigation_params(navigation_params) {
                 // 1. Assert: navigationParams's request is not null.
                 assert(navigation_params.request != nul);
 
@@ -1360,7 +1360,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     tâche.user_involvement = user_involvement;
     tâche.réponse_si_erreur = réponse_si_erreur;
 
-    user_agent.queue_a_global_task(Task_Source.NavigationEtTraversée, navigable.donne_active_window(), tâche);
+    queue_a_global_task(user_agent, Task_Source.NavigationEtTraversée, donne_active_window(navigable), tâche);
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
@@ -1375,14 +1375,14 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               nav_timing_type: NavigationTimingType) -> (*NavigationParams, *Response)
 {
     // 1. Assert: this is running in parallel.
-    assert(user_agent.est_exécuté_en_parallèle());
+    assert(est_exécuté_en_parallèle(user_agent));
 
     // 2. Let documentResource be entry's document state's resource.
 
     // 3. Let request be a new request, with
     request := loge(Request);
     //     url                            entry's URL
-    request.définis_url(copie_url(entry.url));
+    définis_url(request, copie_url(entry.url));
     //     client                         sourceSnapshotParams's fetch client
     request.client = source_snapshot_params.fetch_client;
     //     destination                    "document"
@@ -1404,10 +1404,10 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     policy container               sourceSnapshotParams's source policy container
     request.policy_container = source_snapshot_params.source_policy_container;
     //     traversable for user prompts   navigable's top-level traversable
-    request.traversable_for_user_prompts = navigable.donne_top_level_traversable();
+    request.traversable_for_user_prompts = donne_top_level_traversable(navigable);
 
     // 4. If navigable is a top-level traversable, then set request's top-level navigation initiator origin to entry's document state's initiator origin.
-    si navigable.est_top_level_traversable() {
+    si est_top_level_traversable(navigable) {
         request.top_level_initiator_origin = entry.document_state.initiator_origin;
     }
 
@@ -1446,7 +1446,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     }
 
     // 10. If navigable's container is non-null:
-    navigable_container := navigable.donne_container();
+    navigable_container := donne_container(navigable);
     si navigable_container {
         // 1. If the navigable's container has a browsing context scope origin, then set request's origin to that browsing context scope origin.
         imprimeln("À FAIRE : [% : navigable_container]", #nom_de_cette_fonction);
@@ -1468,11 +1468,11 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     // 14. Let coopEnforcementResult be a new cross-origin opener policy enforcement result, with
     coop_enforcement_result: CrossOriginOpenerPolicyEnforcementResult;
     //     url navigable's active document's URL
-    coop_enforcement_result.url = navigable.donne_active_document().url;
+    coop_enforcement_result.url = donne_active_document(navigable).url;
     //     origin  navigable's active document's origin
-    coop_enforcement_result.origin = navigable.donne_active_document().origin;
+    coop_enforcement_result.origin = donne_active_document(navigable).origin;
     //     cross-origin opener policy  navigable's active document's cross-origin opener policy
-    coop_enforcement_result.cross_origin_opener_policy = navigable.donne_active_document().cross_origin_opener_policy;
+    coop_enforcement_result.cross_origin_opener_policy = donne_active_document(navigable).cross_origin_opener_policy;
     //     À FAIRE : current context is navigation source    true if navigable's active document's origin is same origin with entry's document state's initiator origin otherwise false
 
     // 15. Let finalSandboxFlags be an empty sandboxing flag set.
@@ -1488,7 +1488,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     location_url: *URL;
 
     // 19. Let currentURL be request's current URL.
-    current_url := request.donne_url_courant();
+    current_url := donne_url_courant(request);
 
     // 20. Let commitEarlyHints be null.
     commit_early_hints: *CommitEarlyHints;
@@ -1496,7 +1496,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     // 21. While true:
     boucle {
         // 1. If request's reserved client is not null and currentURL's origin is not the same as request's reserved client's creation URL's origin, then:
-        si request.reserved_client != nul && !sont_même_origine(current_url.donne_origin(), request.reserved_client.creation_url.donne_origin()) {
+        si request.reserved_client != nul && !sont_même_origine(donne_origin(current_url), donne_origin(request.reserved_client.creation_url)) {
             imprimeln("À FAIRE : [% : request.reserved_client != nul]", #nom_de_cette_fonction);
             // 1. Run the environment discarding steps for request's reserved client.
 
@@ -1516,9 +1516,9 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
             top_level_origin: Optionnel(Origin);
 
             // 3. If navigable is not a top-level traversable, then:
-            saufsi navigable.est_top_level_traversable() {
+            saufsi est_top_level_traversable(navigable) {
                 // 1. Let parentEnvironment be navigable's parent's active document's relevant settings object.
-                parent_environment := navigable.parent.donne_active_document().donne_relevant_settings_object();
+                parent_environment := donne_relevant_settings_object(donne_active_document(navigable.parent));
 
                 // 2. Set topLevelCreationURL to parentEnvironment's top-level creation URL.
                 top_level_creation_url = parent_environment.top_level_creation_url;
@@ -1533,7 +1533,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
             // À FAIRE : opaque string
             reserved_environment.id = imprime_chaine("%", reserved_environment);
             // ...target browsing context is navigable's active browsing context,
-            reserved_environment.target_browsing_context = navigable.donne_active_browsing_context();
+            reserved_environment.target_browsing_context = donne_active_browsing_context(navigable);
             // ...creation URL is currentURL,
             reserved_environment.creation_url = copie_url(current_url);
             // ...top-level creation URL is topLevelCreationURL,
@@ -1606,10 +1606,10 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         final_sandbox_flags: SandboxingFlags;
 
         // 11. Set responseOrigin to the result of determining the origin given response's URL, finalSandboxFlags, and entry's document state's initiator origin.
-        response_origin = détermine_origin(response.donne_url(), final_sandbox_flags, entry.document_state.initiator_origin);
+        response_origin = détermine_origin(donne_url(response), final_sandbox_flags, entry.document_state.initiator_origin);
 
         // 12. If navigable is a top-level traversable, then:
-        si navigable.est_top_level_traversable() {
+        si est_top_level_traversable(navigable) {
             imprime("À FAIRE : [navigation/COOP]\n");
             // 1. Set responseCOOP to the result of obtaining a cross-origin opener policy given response and request's reserved client.
 
@@ -1697,7 +1697,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
 
     // 25. Let resultPolicyContainer be the result of determining navigation params policy container
     //     given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
-    result_policy_container := determine_navigation_params_policy_container(response.donne_url(), entry.document_state.history_policy_container, source_snapshot_params.source_policy_container, nul, response_policy_container);
+    result_policy_container := determine_navigation_params_policy_container(donne_url(response), entry.document_state.history_policy_container, source_snapshot_params.source_policy_container, nul, response_policy_container);
 
     // 26. If navigable's container is an iframe, and response's timing allow passed flag is set, then set container's pending resource-timing start time to null.
 
@@ -1740,7 +1740,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
 load_a_document :: fonc (user_agent: *UserAgent, navigation_params: *NavigationParams, source_snapshot_params: SourceSnapshotParams @inutilisée, initiator_origin: Origin @inutilisée) -> *Document
 {
     // 1. Let type be the computed type of navigationParams's response.
-    mime_type := navigation_params.response.donne_mime_type();
+    mime_type := donne_mime_type(navigation_params.response);
 
     // 2. If the user agent has been configured to process resources of the given
     //    type using some mechanism other than rendering the content in a navigable,
@@ -1785,7 +1785,7 @@ load_a_document :: fonc (user_agent: *UserAgent, navigation_params: *NavigationP
 obtain_a_browsing_context_for_a_navigation_response :: fonc (user_agent: *UserAgent, browsing_context: *BrowsingContext, sandbox_flags: SandboxingFlags @inutilisée, navigation_coop: CrossOriginOpenerPolicy @inutilisée, coop_enforcement_result: CrossOriginOpenerPolicyEnforcementResult) -> *BrowsingContext
 {
     // 1. If browsingContext is not a top-level browsing context, then return browsingContext.
-    saufsi browsing_context.est_top_level_browsing_context() {
+    saufsi est_top_level_browsing_context(browsing_context) {
         retourne browsing_context;
     }
 
@@ -1888,7 +1888,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
                                 navigation_type: *NavigationType) -> HistoryApplication
 {
     // 1. Assert: This is running within traversable's session history traversal queue.
-    assert(user_agent.est_exécuté_sur_file_parallèle(traversable));
+    assert(est_exécuté_sur_file_parallèle(user_agent, traversable));
 
     // 2. Let targetStep be the result of getting the used step given traversable and step.
     target_step := get_the_used_step(user_agent, traversable, step);
@@ -1937,7 +1937,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         navigable.current_session_history_entry = target_entry;
 
         // 3. Set the ongoing navigation for navigable to "traversal".
-        navigable.définis_ongoing_navigation("traversal");
+        définis_ongoing_navigation(navigable, "traversal");
     }
 
     // 9. Let totalChangeJobs be the size of changingNavigables.
@@ -1953,7 +1953,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
     pour navigable dans changing_navigables {
         tâche := crée_tâche_pour_changing_navigable_continuations_steps(user_agent, navigable, traversable, navigation_type, source_snapshot_params, *changing_navigable_continuations);
-        user_agent.queue_a_global_task(Task_Source.NavigationEtTraversée, navigable.donne_active_window(), tâche);
+        queue_a_global_task(user_agent, Task_Source.NavigationEtTraversée, donne_active_window(navigable), tâche);
     }
 
     // 13. Let navigablesThatMustWaitBeforeHandlingSyncNavigation be an empty set.
@@ -2026,12 +2026,12 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         tâche_after_potential_unloads := crée_algorithm_pour_fonction(*after_potential_unloads_params, after_potential_unloads);
 
         // 10. If changingNavigableContinuation's update-only is true, or targetEntry's document is displayedDocument, then:
-        si changing_navigable_continuation.update_only || populated_target_entry.donne_document() == displayed_document {
+        si changing_navigable_continuation.update_only || donne_document(populated_target_entry) == displayed_document {
             // 1. Set the ongoing navigation for navigable to null.
             init_de(OngoingNavigationType)(*navigable.ongoing_navigation);
 
             // 2. Queue a global task on the navigation and traversal task source given navigable's active window to perform afterPotentialUnloads.
-            user_agent.queue_a_global_task(Task_Source.NavigationEtTraversée, navigable.donne_active_window(), tâche_after_potential_unloads);
+            queue_a_global_task(user_agent, Task_Source.NavigationEtTraversée, donne_active_window(navigable), tâche_after_potential_unloads);
         }
         // 11. Otherwise:
         sinon {
@@ -2114,7 +2114,7 @@ after_potential_unloads :: fonc (params: *AfterPotentialUnloadsParams)
     // 2. Let updateDocument be an algorithm step which performs update document for history step application given
     //    targetEntry's document, targetEntry, changingNavigableContinuation's update-only, scriptHistoryLength, scriptHistoryIndex, navigationType, entriesForNavigationAPI, and displayedEntry.
     document_update_params: DocumentUpdateParams;
-    document_update_params.document = target_entry.donne_document();
+    document_update_params.document = donne_document(target_entry);
     document_update_params.entry = target_entry;
     document_update_params.do_not_reactivate = params.changing_navigable_continuation.update_only;
     document_update_params.script_history_length = params.script_history_length;
@@ -2124,14 +2124,14 @@ after_potential_unloads :: fonc (params: *AfterPotentialUnloadsParams)
     document_update_params.previous_entry_for_activation = params.displayed_entry;
 
     // 3. If targetEntry's document is equal to displayedDocument, then perform updateDocument.
-    si target_entry.donne_document() == params.displayed_document {
+    si donne_document(target_entry) == params.displayed_document {
         update_document_for_history_step_application(*document_update_params);
     }
     // 4. Otherwise, queue a global task on the navigation and traversal task source given targetEntry's document's relevant global object to perform updateDocument.
     sinon {
         // À FAIRE : relevant global object
         tâche := crée_algorithm_pour_fonction(*document_update_params, update_document_for_history_step_application);
-        params.user_agent.queue_a_global_task(Task_Source.NavigationEtTraversée, target_entry.donne_document().donne_relevant_global_object(),  tâche);
+        queue_a_global_task(params.user_agent, Task_Source.NavigationEtTraversée, donne_relevant_global_object(donne_document(target_entry)),  tâche);
     }
 
     // 5. Increment completedChangeJobs.
@@ -2199,7 +2199,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
     //    navigable            navigable
     //    update-only          false
     changing_navigable_continuation: ChangingNavigableContinuationState;
-    changing_navigable_continuation.displayed_document = displayed_entry.donne_document();
+    changing_navigable_continuation.displayed_document = donne_document(displayed_entry);
     changing_navigable_continuation.target_entry = target_entry;
     changing_navigable_continuation.navigable = navigable;
     changing_navigable_continuation.update_only = faux;
@@ -2261,9 +2261,9 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
     }
 
     // 8. If targetEntry's document is null, or targetEntry's document state's reload pending is true, then:
-    si target_entry.donne_document() == nul || target_entry.document_state.reload_pending == vrai {
+    si donne_document(target_entry) == nul || target_entry.document_state.reload_pending == vrai {
         // 1. Let navTimingType be "back_forward" if targetEntry's document is null; otherwise "reload".
-        nav_timing_type := si target_entry.donne_document() == nul {
+        nav_timing_type := si donne_document(target_entry) == nul {
             NavigationTimingType.back_forward;
         }
         sinon {
@@ -2278,7 +2278,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
         
         // 4. If potentiallyTargetSpecificSourceSnapshotParams is null, then set it to the result of snapshotting source snapshot params given navigable's active document.
         si source_snapshot_params == nul {
-            potentially_target_specific_source_snapshot_params = snapshot_source_snapshot_params(navigable.donne_active_document());
+            potentially_target_specific_source_snapshot_params = snapshot_source_snapshot_params(donne_active_document(navigable));
         }
 
         // 5. Set targetEntry's document state's reload pending to false.
@@ -2301,7 +2301,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
         //   completionSteps set to queue a global task on the navigation and traversal task source given navigable's active window to run afterDocumentPopulated.
 
         tâche_after_document_populated := crée_tâche_pour_after_document_populated(populated_target_entry, vrai, navigable, changing_navigable_continuation, changing_navigable_continuations);
-        completion_steps := crée_tâche_pour_enfiler_tâche(user_agent, tâche_after_document_populated, Task_Source.NavigationEtTraversée, navigable.donne_active_window());
+        completion_steps := crée_tâche_pour_enfiler_tâche(user_agent, tâche_after_document_populated, Task_Source.NavigationEtTraversée, donne_active_window(navigable));
 
         history_entry_population_params: HistoryEntryPopulationParams;
         history_entry_population_params.user_agent = user_agent;
@@ -2314,7 +2314,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
         history_entry_population_params.nav_timing_type = nav_timing_type;
 
         tâche_pour_entry_population_attempt := crée_algorithm_pour_fonction(*history_entry_population_params, attempt_to_populate_the_history_entry_document);
-        user_agent.lance_en_parallèle(tâche_pour_entry_population_attempt);
+        lance_en_parallèle(user_agent, tâche_pour_entry_population_attempt);
         retourne;
     }
 
@@ -2370,7 +2370,7 @@ after_document_populated :: fonc (target_entry: *SessionHistoryEntry,
     changing_navigable_continuation.populated_cloned_target_entry = populated_cloned_target_entry;
 
     // 1. If targetEntry's document is null, then set changingNavigableContinuation's update-only to true.
-    si target_entry.donne_document() == nul {
+    si donne_document(target_entry) == nul {
         changing_navigable_continuation.update_only = vrai;
     }
 
@@ -2395,7 +2395,7 @@ deactivate_document_for_a_cross_document_navigation :: fonc (user_agent: *UserAg
                                                              after_potential_unloads: *Algorithm)
 {
     // 1. Let navigable be displayedDocument's node navigable.
-    navigable := displayed_document.donne_node_navigable();
+    navigable := donne_node_navigable(displayed_document);
 
     // 2. Let potentiallyTriggerViewTransition be false.
     potentially_trigger_view_transition := faux;
@@ -2416,7 +2416,7 @@ deactivate_document_for_a_cross_document_navigation :: fonc (user_agent: *UserAg
         init_de(OngoingNavigationType)(*navigable.ongoing_navigation);
 
         // 3. Unload a document and its descendants given displayedDocument, targetEntry's document, afterPotentialUnloads, and firePageSwapBeforeUnload.
-        unload_a_document_and_its_descendants(user_agent, displayed_document, target_entry.donne_document(), after_potential_unloads, fire_page_swap_steps);
+        unload_a_document_and_its_descendants(user_agent, displayed_document, donne_document(target_entry), after_potential_unloads, fire_page_swap_steps);
 
         retourne;
     }
@@ -2446,13 +2446,13 @@ activate_histroy_entry :: fonc (entry: *SessionHistoryEntry, navigable: *Navigab
     save_persisted_state(navigable.active_session_history_entry);
 
     // 2. Let newDocument be entry's document.
-    new_document := entry.donne_document();
+    new_document := donne_document(entry);
 
     // 3. Assert: newDocument's is initial about:blank is false, i.e., we never traverse back to the initial about:blank Document because it always gets replaced when we navigate away from it.
     assert(new_document.is_initial_about_blank == faux);
 
     // 4. Set navigable's active session history entry to entry.
-    navigable.définis_active_session_history_entry(entry);
+    définis_active_session_history_entry(navigable, entry);
 
     // 5. Make active newDocument.
     make_active(new_document);
@@ -2503,8 +2503,8 @@ get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: 
 
         // 3. If targetEntry's document is navigable's document, and targetEntry's document state's reload pending is false,
         //    then extend navigablesToCheck with the child navigables of navigable.
-        document_navigable := navigable.donne_active_document();
-        si document_navigable == target_entry.donne_document() && target_entry.document_state.reload_pending == faux {
+        document_navigable := donne_active_document(navigable);
+        si document_navigable == donne_document(target_entry) && target_entry.document_state.reload_pending == faux {
             pour navigable.enfants {
                 tableau_ajoute(*navigables_to_check, it);
             }
@@ -2578,7 +2578,7 @@ get_the_target_history_entry :: fonc (user_agent: *UserAgent, navigable: *Naviga
 clear_the_forward_session_history :: fonc (user_agent: *UserAgent, navigable: *TraversableNavigable)
 {
     // 1. Assert: this is running within navigable's session history traversal queue.
-    assert(user_agent.est_exécuté_sur_file_parallèle(navigable));
+    assert(est_exécuté_sur_file_parallèle(user_agent, navigable));
 
     // 2. Let step be the navigable's current session history step.
     step := navigable.current_session_history_entry_step;
@@ -2629,7 +2629,7 @@ clear_the_forward_session_history :: fonc (user_agent: *UserAgent, navigable: *T
 get_all_used_history_steps :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable) -> [..]n32
 {
     // 1. Assert: this is running within traversable's session history traversal queue.
-    assert(user_agent.est_exécuté_sur_file_parallèle(traversable));
+    assert(est_exécuté_sur_file_parallèle(user_agent, traversable));
 
     // 2. Let steps be an empty ordered set of non-negative integers.
     steps: [..]n32;
@@ -2685,8 +2685,8 @@ get_all_navigables_that_might_experience_a_cross_document_traversal :: fonc (use
         target_entry := get_the_target_history_entry(user_agent, navigable, target_step);
 
         // 2. If targetEntry's document is not navigable's document or targetEntry's document state's reload pending is true, then append navigable to results.
-        document_navigable := navigable.donne_active_document();
-        si document_navigable != target_entry.donne_document() || target_entry.document_state.reload_pending == vrai {
+        document_navigable := donne_active_document(navigable);
+        si document_navigable != donne_document(target_entry) || target_entry.document_state.reload_pending == vrai {
             tableau_ajoute(*results, navigable);
         }
         // 3. Otherwise, extend navigablesToCheck with navigable's child navigables.
@@ -2758,7 +2758,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
         // 4. If documentIsNew is false, then:
         saufsi document_is_new {
             // 1. Assert: navigationType is not null.
-            assert(navigation_type.possède_valeur());
+            assert(possède_valeur(navigation_type));
 
             // À FAIRE : 2. Update the navigation API entries for a same-document navigation given navigation, entry, and navigationType.
 
@@ -2785,7 +2785,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
     // navigationType is non-null; and
     // navigationType is "reload" or previousEntryForActivation's document is not document,
     // then:
-    si previous_entry_for_activation.possède_valeur() && navigation_type.possède_valeur() && (navigation_type.Quelque == NavigationType.reload || donne_document(previous_entry_for_activation.Quelque) != document) {
+    si possède_valeur(previous_entry_for_activation) && possède_valeur(navigation_type) && (navigation_type.Quelque == NavigationType.reload || donne_document(previous_entry_for_activation.Quelque) != document) {
         // À FAIRE : 1. If navigation's activation is null, then set navigation's activation to a new NavigationActivation object in navigation's relevant realm.
 
         // 2. Let previousEntryIndex be the result of getting the navigation API entry index of previousEntryForActivation within navigation.
@@ -2827,7 +2827,7 @@ restore_the_history_object_state :: fonc (document: *Document @inutilisée, entr
 make_active :: fonc (document: *Document)
 {
     // 1. Let window be document's relevant global object.
-    window := document.donne_relevant_global_object() comme *Window;
+    window := donne_relevant_global_object(document) comme *Window;
 
     // 2. Set document's browsing context's WindowProxy's [[Window]] internal slot value to window.
     document.browsing_context.window_proxy.window = window;
@@ -2837,7 +2837,7 @@ make_active :: fonc (document: *Document)
     // 4. Queue a new VisibilityStateEntry whose visibility state is document's visibility state and whose timestamp is zero.
 
     // 5. Set window's relevant settings object's execution ready flag.
-    settings := window.donne_relevant_settings_object();
+    settings := donne_relevant_settings_object(window);
     settings.execution_ready = vrai;
 }
 
@@ -2851,7 +2851,7 @@ make_active :: fonc (document: *Document)
 scroll_to_the_fragment :: fonc (user_agent: *UserAgent, document: *Document)
 {
     // 1. If document's indicated part is null, then set document's target element to null.
-    indicated_part := document.donne_indicated_part();
+    indicated_part := donne_indicated_part(document);
     saufsi indicated_part {
         document.target_element = nul;
         retourne;
@@ -2864,7 +2864,7 @@ scroll_to_the_fragment :: fonc (user_agent: *UserAgent, document: *Document)
 
         // 2. Scroll to the beginning of the document for document. [CSSOMVIEW]
         // À FAIRE : utilise CSSOMVIEW
-        user_agent.défile_page_vers_fragment();
+        défile_page_vers_fragment(user_agent);
 
         // 3. Return.
         retourne;
@@ -2885,7 +2885,7 @@ scroll_to_the_fragment :: fonc (user_agent: *UserAgent, document: *Document)
     // 5. Run the ancestor hidden-until-found revealing algorithm on target.
 
     // 6. Scroll target into view, with behavior set to "auto", block set to "start", and inline set to "nearest". [CSSOMVIEW]
-    user_agent.défile_page_vers_fragment();
+    défile_page_vers_fragment(user_agent);
 
     // 7. Run the focusing steps for target, with the Document's viewport as the fallback target.
 
@@ -2916,7 +2916,7 @@ select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Element
     }
 
     // 2. Let fragment be url's fragment.
-    fragment := url.donne_fragment_ou_chaine_vide();
+    fragment := donne_fragment_ou_chaine_vide(url);
 
     // 3. If fragment is the empty string, then return the special value top of the document.
     saufsi fragment {
@@ -2956,19 +2956,19 @@ find_a_potential_indicated_element :: fonc (document: *Document, fragment: chain
     tantque !est_vide(*pile) {
         noeud := dépile(*pile);
 
-        si noeud.est_élément() {
+        si est_élément(noeud) {
             élément := noeud comme *Element;
 
             // 1. If there is an element in the document tree whose root is document and
             //    that has an ID equal to fragment, then return the first such element in tree order.
-            si élément.id.donne_chaine_utf16() == fragment {
+            si donne_chaine_utf16(élément.id) == fragment {
                 retourne élément;
             }
 
             // 2. If there is an a element in the document tree whose root is document that has a
             //    name attribute whose value is equal to fragment, then return the first such element
             //    in tree order.
-            si élément.local_name == TAG_a && donne_attribut_ou_chaine_vide(élément, ATTR_name).donne_chaine_utf16() == fragment {
+            si élément.local_name == TAG_a && donne_chaine_utf16(donne_attribut_ou_chaine_vide(élément, ATTR_name)) == fragment {
                 retourne élément;
             }
         }
@@ -3012,7 +3012,7 @@ restore_persisted_state :: fonc (entry: *SessionHistoryEntry @inutilisée)
 create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: chaine,  content_type: chaine, navigation_params: *NavigationParams) -> *Document
 {
     // 1. Let browsingContext be navigationParams's navigable's active browsing context.
-    browsing_context := navigation_params.navigable.donne_active_browsing_context();
+    browsing_context := donne_active_browsing_context(navigation_params.navigable);
 
     // 2. Set browsingContext to the result of the obtaining a browsing context to use for a navigation response given browsingContext, navigationParams's final sandboxing flag set, navigationParams's cross-origin opener policy, and navigationParams's COOP enforcement result.
     browsing_context = obtain_a_browsing_context_for_a_navigation_response(user_agent, browsing_context, navigation_params.final_sandboxing_flag, navigation_params.cross_origin_opener_policy, navigation_params.COOP_enforcement_result);
@@ -3023,11 +3023,11 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     permissions_policy := create_a_permissions_policy_for_a_navigable_from_response(container, navigation_params.origin, navigation_params.response);
 
     // 4. Let creationURL be navigationParams's response's URL.
-    creation_url := navigation_params.response.donne_url();
+    creation_url := donne_url(navigation_params.response);
 
     // 5. If navigationParams's request is non-null, then set creationURL to navigationParams's request's current URL.
     si navigation_params.request {
-        creation_url = navigation_params.request.donne_url_courant();
+        creation_url = donne_url_courant(navigation_params.request);
     }
 
     // 6. Let window be null.
@@ -3036,8 +3036,8 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     // 7. If browsingContext's active document's is initial about:blank is true, and
     //    À FAIRE browsingContext's active document's origin is same origin-domain with navigationParams's origin,
     //    then set window to browsingContext's active window.
-    si browsing_context.donne_active_document().is_initial_about_blank {
-        window = browsing_context.donne_active_window();
+    si donne_active_document(browsing_context).is_initial_about_blank {
+        window = donne_active_window(browsing_context);
     }
     // 8. Otherwise:
     sinon {
@@ -3111,7 +3111,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     // À FAIRE 9. Let loadTimingInfo be a new document load timing info with its navigation start time set to navigationParams's response's timing info's start time.
 
     // 10. Let document be a new Document, with
-    document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), window.realm);
+    document := crée_noeud_document(donne_tas_de_mémoire(user_agent), window.realm);
     // type type
     document.type = type;
     // content type contentType
@@ -3199,13 +3199,13 @@ populate_with_html_head_body :: fonc (document: *Document)
     body := crée_un_élément(nul, document, TAG_body, EspaceDeNom_HTML);
 
     // 4. Append html to document.
-    document.ajoute_enfant(html);
+    ajoute_enfant(document, html);
 
     // 5. Append head to html.
-    html.ajoute_enfant(head);
+    ajoute_enfant(html, head);
 
     // 6. Append body to html.
-    html.ajoute_enfant(body);
+    ajoute_enfant(html, body);
 }
 
 /** \} */
@@ -3224,12 +3224,12 @@ load_an_html_document :: fonc (user_agent: *UserAgent, navigation_params: *Navig
     document := create_and_initialize_a_document_object(user_agent, "html", "text/html", navigation_params);
 
     // 2. If document's URL is about:blank, then populate with html/head/body given document.
-    si document.url.est_about_blank() {
+    si est_about_blank(document.url) {
         populate_with_html_head_body(document);
     }
     // 3. Otherwise, create an HTML parser and associate it with the document. Each task that the networking task source places on the task queue while fetching runs must then fill the parser's input byte stream with the fetched bytes and cause the HTML parser to perform the appropriate processing of the input stream.
     sinon {
-        parseuse := initialise_parseuse(user_agent.donne_tas_de_mémoire(), response.body.Quelque, document);
+        parseuse := initialise_parseuse(donne_tas_de_mémoire(user_agent), response.body.Quelque, document);
         diffère détruit_parseuse(*parseuse);
 
         // début := maintenant_précis()
@@ -3265,12 +3265,12 @@ load_a_text_document :: fonc (user_agent: *UserAgent, navigation_params: *Naviga
     body := donne_élément_body(document);
 
     pre := crée_un_élément(nul, document, TAG_pre, EspaceDeNom_HTML);
-    body.ajoute_enfant(pre);
+    ajoute_enfant(body, pre);
 
     noeud_texte := crée_noeud_texte(document);
     noeud_texte.données = Chaine.crée_chaine_utf16(response.body);
 
-    pre.ajoute_enfant(noeud_texte);
+    ajoute_enfant(pre, noeud_texte);
 
     // 4. Return document.
     retourne document;
@@ -3389,7 +3389,7 @@ unload_a_document :: fonc (user_agent: *UserAgent, old_document: *Document @inut
 
     // 1. Assert: this is running as part of a task queued on oldDocument's relevant agent's event loop.
     // À FAIRE : oldDocument's relevant agent's event loop
-    assert(user_agent.est_exécuté_sur_fil_principal());
+    assert(est_exécuté_sur_fil_principal(user_agent));
 
     // 2. Let unloadTimingInfo be a new document unload timing info.
 
@@ -3444,8 +3444,8 @@ unload_a_document :: fonc (user_agent: *UserAgent, old_document: *Document @inut
 unload_a_document_and_its_descendants :: fonc (user_agent: *UserAgent, document: *Document, new_document : *Document = nul, after_all_unloads : *Algorithm = nul, fire_page_swap_steps : *Algorithm = nul)
 {
     // 1. Assert: this is running within document's node navigable's traversable navigable's session history traversal queue.
-    traversable := document.donne_node_navigable().donne_traversable_navigable();
-    assert(user_agent.est_exécuté_sur_file_parallèle(traversable));
+    traversable := donne_traversable_navigable(donne_node_navigable(document));
+    assert(est_exécuté_sur_file_parallèle(user_agent, traversable));
 
     // 2. Let childNavigables be document's child navigables.
     child_navigables := traversable.enfants;
@@ -3456,8 +3456,8 @@ unload_a_document_and_its_descendants :: fonc (user_agent: *UserAgent, document:
     // 4. For each childNavigable of childNavigables,
     pour child_navigable dans child_navigables {
         // queue a global task on the navigation and traversal task source given childNavigable's active window to perform the following steps:
-        tâche := crée_tâche_unload_étape_4(user_agent, child_navigable.donne_active_document(), *number_unloaded);
-        user_agent.queue_a_global_task(Task_Source.NavigationEtTraversée, child_navigable.donne_active_window(), tâche);
+        tâche := crée_tâche_unload_étape_4(user_agent, donne_active_document(child_navigable), *number_unloaded);
+        queue_a_global_task(user_agent, Task_Source.NavigationEtTraversée, donne_active_window(child_navigable), tâche);
     }
 
     // 5. Wait until numberUnloaded equals childNavigable's size.
@@ -3467,7 +3467,7 @@ unload_a_document_and_its_descendants :: fonc (user_agent: *UserAgent, document:
 
     // 6. Queue a global task on the navigation and traversal task source given document's relevant global object to perform the following steps:
     tâche := crée_tâche_unload_étape_6(user_agent, document, new_document, after_all_unloads, fire_page_swap_steps);
-    user_agent.queue_a_global_task(Task_Source.NavigationEtTraversée, document.donne_relevant_global_object(), tâche);
+    queue_a_global_task(user_agent, Task_Source.NavigationEtTraversée, donne_relevant_global_object(document), tâche);
 }
 
 crée_tâche_unload_étape_4 :: fonc (user_agent: *UserAgent, document: *Document, number_unloaded: *z32) -> *Algorithm

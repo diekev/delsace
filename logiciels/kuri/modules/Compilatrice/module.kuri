@@ -259,7 +259,7 @@ génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *
 
         /* Essaie un chemin relatif au fichier principal de compilation. */
         tmp_chemin_module := CheminFichier(chemin_module);
-        discr tmp_chemin_module.chemin_relatif_à(liste.chemin_racine_compilation) {
+        discr chemin_relatif_à(tmp_chemin_module, liste.chemin_racine_compilation) {
             Ok(chemin_relatif) {
                 ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\";\n");
                 détruit_chemin(*chemin_relatif);

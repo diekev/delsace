@@ -139,7 +139,7 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
         // 5. If element is not null and element has a form owner, let form owner be that form owner. Otherwise, let form owner be null.
 
         // 6. Let settings object be the relevant settings object of document.
-        settings_object := document.donne_relevant_settings_object();
+        settings_object := donne_relevant_settings_object(document);
 
         // 7. If body is not parsable as FunctionBody or if parsing detects an early error, then follow these substeps:
         // @fuite-de-mémoire
@@ -166,7 +166,7 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
         }
 
         // 8. Push settings object's realm execution context onto the JavaScript execution context stack; it is now the running JavaScript execution context.
-        execution_context := settings_object.donne_realm_execution_context();
+        execution_context := donne_realm_execution_context(settings_object);
         mv := JS.donne_mv(realm);
         JS.empile_execution_context(mv, execution_context);
 
@@ -217,7 +217,7 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
         scope: *JS.Environment;
         {
             // 1. Let realm be settings object's realm.
-            scope_realm := settings_object.donne_realm();
+            scope_realm := donne_realm(settings_object);
 
             // 2. Let scope be realm.[[GlobalEnv]].
             scope = scope_realm.global_environment;
@@ -271,7 +271,7 @@ determine_the_target_of_an_event_handler :: fonc (event_target: *EventTarget, na
     // }
 
     // 4. Return eventTarget's node document's relevant global object.
-    global := donne_relevant_settings_object(event_target).donne_global_object();
+    global := donne_global_object(donne_relevant_settings_object(event_target));
     retourne JS.vérifie_comme(global, EventTarget);
 }
 

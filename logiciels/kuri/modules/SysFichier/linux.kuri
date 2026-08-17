@@ -571,7 +571,7 @@ système_chemin_pour_variable_environnement :: fonc (variable: chaine) -> Option
 système_chemin_répertoire_personnel :: fonc () -> CheminFichier
 {
     // À FAIRE : erreur
-    retourne système_chemin_pour_variable_environnement("HOME").valeur_ou(CheminFichier());
+    retourne valeur_ou(système_chemin_pour_variable_environnement("HOME"), CheminFichier());
 }
 
 /* Chemin vers le dossier de données des programmes de l'utilisateur.
@@ -616,11 +616,11 @@ système_chemin_pour_dossier_runtime_utilisateur :: fonc () -> Optionnel(CheminF
 système_chemin_utilisateur_ou_replis :: fonc (variable: chaine, replis: chaine) -> Optionnel(CheminFichier)
 {
     chemin_potentiel := système_chemin_pour_variable_environnement(variable);
-    si chemin_potentiel.possède_valeur() {
+    si possède_valeur(chemin_potentiel) {
         chemin := chemin_potentiel.Quelque;
 
         /* Le chemin doit être absolu, sinon selon la spécification nous pouvons l'ignorer. */
-        si chemin.est_absolu() {
+        si est_absolu(chemin) {
             retourne chemin;
         }
     }
