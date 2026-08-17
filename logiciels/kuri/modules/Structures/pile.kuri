@@ -17,7 +17,7 @@ empile :: fonc (pile: *Pile(T = $T), valeur: T) -> rien
 
 dépile :: fonc (pile: *Pile(T = $T)) -> T #enligne
 {
-    ret := pile.tête();
+    ret := tête(pile);
     pile.données.taille -= 1;
     retourne ret;
 }

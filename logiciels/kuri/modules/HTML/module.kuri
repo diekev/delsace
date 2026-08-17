@@ -77,7 +77,7 @@ donne_chemin_fichier_css_quirks :: fonc () -> CheminFichier
 donne_chemin_fichier_css :: fonc (chemin: chaine) -> CheminFichier
 {
     chemin_courant := CheminFichier(#chemin_de_ce_fichier);
-    chemin_parent := chemin_courant.chemin_parent();
+    chemin_parent := chemin_parent(chemin_courant);
     diffère détruit_chemin(*chemin_parent);
     résultat := crée_chemin_absolu(chemin_parent, CheminFichier(chemin));
     assert(est_un_fichier_régulier(résultat));
@@ -231,7 +231,7 @@ parse_document :: fonc (realm: *JS.Realm, source: chaine) -> ParsatHTML
 
     début := maintenant_précis();
     parse(*parseuse);
-    temps := début.temps_écoulé_microsecondes();
+    temps := temps_écoulé_microsecondes(début);
 
     parsat: ParsatHTML;
     parsat.document = parseuse.document;
@@ -247,7 +247,7 @@ parse_document :: fonc (tas_de_mémoire: *JS.TasDeMémoire, document: chaine) ->
 
     début := maintenant_précis();
     parse(*parseuse);
-    temps := début.temps_écoulé_microsecondes();
+    temps := temps_écoulé_microsecondes(début);
 
     parsat: ParsatHTML;
     parsat.document = parseuse.document;
@@ -263,5 +263,5 @@ est_fichier_html :: fonc (chn: chaine) -> bool
 
 est_fichier_html :: fonc (chm: CheminFichier) -> bool
 {
-    retourne chm.extension() == ".html";
+    retourne extension(chm) == ".html";
 }

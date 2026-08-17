@@ -192,10 +192,10 @@ visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procéd
         pour ExploratriceFichier(dossier_courant) {
             // À FAIRE : eu_erreur
             info.chemin = it.chn;
-            info.nom = it.nom_fichier_avec_extension();
+            info.nom = nom_fichier_avec_extension(it);
 
-            si it.est_un_dossier() {
-                si it.nom_fichier() == "." || it.nom_fichier() == ".." {
+            si est_un_dossier(it) {
+                si nom_fichier(it) == "." || nom_fichier(it) == ".." {
                     continue;
                 }
 
@@ -217,7 +217,7 @@ visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procéd
                 continue;
             }
 
-            si fichiers_à_visiter.Fichiers && it.est_un_fichier_régulier() {
+            si fichiers_à_visiter.Fichiers && est_un_fichier_régulier(it) {
                 info.est_dossier = faux;
                 // À FAIRE : symlink
                 _ := procédure(info, données);

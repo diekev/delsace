@@ -107,7 +107,7 @@ resolve_a_blob_url :: fonc (user_agent: *UserAgent, url: *URL) -> *BlobURLEntry
     diffère déloge(*url_string);
 
     // 4. If store[url string] exists, return store[url string]; otherwise return failure.
-    retourne store.donne_entrée_pour(url_string);
+    retourne donne_entrée_pour(store, url_string);
 }
 
 /** \} */

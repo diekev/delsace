@@ -98,8 +98,8 @@ number_exponentiate :: fonc (b: Valeur, e: Valeur) -> Valeur
 number_multiply :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
     // À FAIRE : standardise
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     retourne Valeur(Number = gauche.Number * droite.Number);
 }
 
@@ -108,8 +108,8 @@ number_multiply :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 number_divide :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
     // À FAIRE : standardise
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     retourne Valeur(Number = gauche.Number / droite.Number);
 }
 
@@ -117,8 +117,8 @@ number_divide :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-remainder */
 number_remainder :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     retourne Valeur(Number = mod(gauche.Number, droite.Number));
 }
 
@@ -126,8 +126,8 @@ number_remainder :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-add */
 number_add :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     retourne Valeur(Number = gauche.Number + droite.Number);
 }
 
@@ -135,8 +135,8 @@ number_add :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-subtract */
 number_subtract :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     retourne Valeur(Number = gauche.Number - droite.Number);
 }
 
@@ -144,8 +144,8 @@ number_subtract :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-leftShift */
 number_left_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     g := gauche.Number comme z32;
     d := droite.Number comme z32;
     r := g << d;
@@ -156,8 +156,8 @@ number_left_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-signedRightShift */
 number_signed_right_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     g := gauche.Number comme z32;
     d := droite.Number comme z32;
     r := g >> d;
@@ -168,8 +168,8 @@ number_signed_right_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-unsignedRightShift */
 number_unsigned_right_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     g := gauche.Number comme n32;
     d := droite.Number comme n32;
     r := g >> d;
@@ -286,8 +286,8 @@ number_same_value_zero :: fonc (vx: Valeur, vy: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseAND */
 number_bitwise_and :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     g := gauche.Number comme z32;
     d := droite.Number comme z32;
     r := g & d;
@@ -298,8 +298,8 @@ number_bitwise_and :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseXOR */
 number_bitwise_xor :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     g := gauche.Number comme z32;
     d := droite.Number comme z32;
     r := g ^ d;
@@ -310,8 +310,8 @@ number_bitwise_xor :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseOR */
 number_bitwise_or :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre());
-    assert(droite.est_nombre());
+    assert(est_nombre(gauche));
+    assert(est_nombre(droite));
     g := gauche.Number comme z32;
     d := droite.Number comme z32;
     r := g | d;
@@ -524,7 +524,7 @@ is_private_reference :: fonc (reference_record: *ReferenceRecord) -> bool
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
 get_value :: fonc (interpréteuse: *Interpréteuse, valeur: ValeurCompletion) -> Valeur
 {
-    retourne get_value(interpréteuse.donne_realm(), valeur);
+    retourne get_value(donne_realm(interpréteuse), valeur);
 }
 
 get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> Valeur
@@ -541,7 +541,7 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> Valeur
 
 get_value :: fonc (interpréteuse: *Interpréteuse, valeur: ReferenceRecord) -> Valeur
 {
-    retourne get_value(interpréteuse.donne_realm(), valeur);
+    retourne get_value(donne_realm(interpréteuse), valeur);
 }
 
 get_value :: fonc (realm: *Realm, V: ReferenceRecord) -> Valeur
@@ -558,7 +558,7 @@ get_value :: fonc (realm: *Realm, V: ReferenceRecord) -> Valeur
     si is_property_reference(V) {
         // a. Let baseObj be ? ToObject(V.[[Base]]).
         base_object := to_object(realm, V.base.V);
-        si realm.possède_exception() {
+        si possède_exception(realm) {
             retourne js_undefined;
         }
 
@@ -571,21 +571,21 @@ get_value :: fonc (realm: *Realm, V: ReferenceRecord) -> Valeur
 
         si is_array_key(V.referenced_name) {
             index := to_uint32(V.referenced_name.valeur);
-            retourne base_object.internal_get_by_index(index, get_this_value(V));
+            retourne internal_get_by_index(base_object, index, get_this_value(V));
         }
 
         // c. If V.[[ReferencedName]] is not a property key, then
         saufsi is_property_key(V.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
             property_key := to_property_key(realm, V.referenced_name.valeur);
-            si realm.possède_exception() {
+            si possède_exception(realm) {
                 retourne js_undefined;
             }
-            V.referenced_name = property_key.donne_valeur(realm);
+            V.referenced_name = donne_valeur(property_key, realm);
         }
 
         // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
-        retourne base_object.internal_get(V.referenced_name.donne_property_key(), get_this_value(V));
+        retourne internal_get(base_object, donne_property_key(V.referenced_name), get_this_value(V));
     }
 
     // 4. Else,
@@ -594,14 +594,14 @@ get_value :: fonc (realm: *Realm, V: ReferenceRecord) -> Valeur
     base := V.base.E;
     // b. Assert: base is an Environment Record.
 
-    si V.coordonnée.possède_valeur() {
+    si possède_valeur(V.coordonnée) {
         coordonnée := V.coordonnée.Quelque;
-        declarative_environment := base.vérifie_comme(DeclarativeEnvironment);
+        declarative_environment := vérifie_comme(base, DeclarativeEnvironment);
         retourne declarative_environment.bindings[coordonnée.indice].valeur;
     }
 
     // c. Return ? base.GetBindingValue(V.[[ReferencedName]], V.[[Strict]]) (see 9.1).
-    retourne base.get_binding_value(realm, V.referenced_name.donne_property_key(), V.strict);
+    retourne get_binding_value(base, realm, donne_property_key(V.referenced_name), V.strict);
 }
 
 /* 6.2.5.6 PutValue
@@ -611,7 +611,7 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
     // 1. If V is not a Reference Record, throw a ReferenceError exception.
     saufsi est_reference_record(référence) {
         message := imprime_chaine("'%' is not assignable", référence);
-        retourne lance_reference_error(interpréteuse.donne_realm(), message);
+        retourne lance_reference_error(donne_realm(interpréteuse), message);
     }
 
     record := référence.R;
@@ -628,8 +628,8 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
         global_obj := get_global_object(interpréteuse);
 
         // c. Perform ? Set(globalObj, V.[[ReferencedName]], W, false).
-        set(global_obj, record.referenced_name.donne_property_key(), valeur, faux);
-        si interpréteuse.possède_exception() {
+        set(global_obj, donne_property_key(record.referenced_name), valeur, faux);
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -640,8 +640,8 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
     // 3. If IsPropertyReference(V) is true, then
     si is_property_reference(record) {
         // a. Let baseObj be ? ToObject(V.[[Base]]).
-        base_obj := to_object(interpréteuse.donne_realm(), record.base.V);
-        si interpréteuse.possède_exception() {
+        base_obj := to_object(donne_realm(interpréteuse), record.base.V);
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -656,30 +656,30 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
 
         si is_array_key(record.referenced_name) {
             index := to_uint32(record.referenced_name.valeur);
-            succeeded = base_obj.internal_set_by_index(index, valeur, get_this_value(record));
+            succeeded = internal_set_by_index(base_obj, index, valeur, get_this_value(record));
         }
         sinon {
             // c. If V.[[ReferencedName]] is not a property key, then
             saufsi is_property_key(record.referenced_name) {
                 // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-                property_key := to_property_key(interpréteuse.donne_realm(), record.referenced_name.valeur);
-                si interpréteuse.possède_exception() {
+                property_key := to_property_key(donne_realm(interpréteuse), record.referenced_name.valeur);
+                si possède_exception(interpréteuse) {
                     retourne js_undefined;
                 }
-                record.referenced_name = property_key.donne_valeur(interpréteuse.donne_realm());
+                record.referenced_name = donne_valeur(property_key, donne_realm(interpréteuse));
             }
 
-            succeeded = base_obj.internal_set(record.referenced_name.donne_property_key(), valeur, get_this_value(record));
+            succeeded = internal_set(base_obj, donne_property_key(record.referenced_name), valeur, get_this_value(record));
         }
 
         // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
         // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
         si succeeded == faux && record.strict {
-            retourne lance_type_error(interpréteuse.donne_realm(), "cannot add property on type");
+            retourne lance_type_error(donne_realm(interpréteuse), "cannot add property on type");
         }
         // f. Return UNUSED.
         retourne js_undefined;
@@ -690,15 +690,15 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
     base := record.base.E;
     // b. Assert: base is an Environment Record.
 
-    si record.coordonnée.possède_valeur() {
+    si possède_valeur(record.coordonnée) {
         coordonnée := record.coordonnée.Quelque;
-        declarative_environment := base.vérifie_comme(DeclarativeEnvironment);
+        declarative_environment := vérifie_comme(base, DeclarativeEnvironment);
         declarative_environment.bindings[coordonnée.indice].valeur = valeur;
         retourne vrai;
     }
 
     // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
-    base.set_mutable_binding(interpréteuse.donne_realm(), record.referenced_name.donne_property_key(), valeur, record.strict);
+    set_mutable_binding(base, donne_realm(interpréteuse), donne_property_key(record.referenced_name), valeur, record.strict);
     retourne vrai;
 }
 
@@ -728,7 +728,7 @@ initialize_reference_binding :: fonc (reference: ReferenceRecord, valeur: Valeur
     // 3. Assert: base is an Environment Record.
 
     // 4. Return ? base.InitializeBinding(V.[[ReferencedName]], W).
-    base.initialize_binding(reference.referenced_name.valeur.String.texte, valeur);
+    initialize_binding(base, reference.referenced_name.valeur.String.texte, valeur);
 }
 
 /* 6.2.5.9 MakePrivateReference ( baseValue, privateIdentifier )
@@ -787,25 +787,25 @@ initialise_property_descriptor :: fonc (desc: *PropertyDescriptor, valeur: Valeu
 
 est_vide :: fonc (desc: *PropertyDescriptor) -> bool
 {
-    retourne !(desc.value.possède_valeur() || desc.get.possède_valeur() || desc.set.possède_valeur() || desc.writable.possède_valeur() || desc.enumerable.possède_valeur() || desc.configurable.possède_valeur());
+    retourne !(possède_valeur(desc.value) || possède_valeur(desc.get) || possède_valeur(desc.set) || possède_valeur(desc.writable) || possède_valeur(desc.enumerable) || possède_valeur(desc.configurable));
 }
 
 donne_drapeaux_propriétés :: fonc (desc: *PropertyDescriptor) -> DrapeauxPropriété
 {
     drapeaux: DrapeauxPropriété;
-    si desc.writable.possède_valeur() {
+    si possède_valeur(desc.writable) {
         writable := desc.writable.Quelque;
         si writable {
             drapeaux.WRITABLE = vrai;
         }
     }
-    si desc.configurable.possède_valeur() {
+    si possède_valeur(desc.configurable) {
         configurable := desc.configurable.Quelque;
         si configurable {
             drapeaux.CONFIGURABLE = vrai;
         }
     }
-    si desc.enumerable.possède_valeur() {
+    si possède_valeur(desc.enumerable) {
         enumerable := desc.enumerable.Quelque;
         si enumerable {
             drapeaux.ENUMERABLE = vrai;
@@ -821,11 +821,11 @@ is_accessor_descriptor :: fonc (desc: *PropertyDescriptor) -> bool
     // À FAIRE 1. If Desc is undefined, return false.
 
     // 2. If Desc has a [[Get]] field, return true.
-    si desc.get.possède_valeur() {
+    si possède_valeur(desc.get) {
         retourne vrai;
     }
     // 3. If Desc has a [[Set]] field, return true.
-    si desc.set.possède_valeur() {
+    si possède_valeur(desc.set) {
         retourne vrai;
     }
     // 4. Return false.
@@ -839,11 +839,11 @@ is_data_descriptor :: fonc (desc: *PropertyDescriptor) -> bool
     // À FAIRE 1. If Desc is undefined, return false.
 
     // 2. If Desc has a [[Value]] field, return true.
-    si desc.value.possède_valeur() {
+    si possède_valeur(desc.value) {
         retourne vrai;
     }
     // 3. If Desc has a [[Writable]] field, return true.
-    si desc.writable.possède_valeur() {
+    si possède_valeur(desc.writable) {
         retourne vrai;
     }
     // 4. Return false.
@@ -1083,12 +1083,12 @@ opérateur == :: (p1: PropertyKey, p2: PropertyKey) -> bool
 /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
 is_array_index :: fonc (property_key: PropertyKey) -> bool
 {
-    saufsi property_key.est_chaine() {
+    saufsi est_chaine(property_key) {
         retourne faux;
     }
 
     /* À FAIRE */
-    texte := property_key.String.donne_chaine_utf16();
+    texte := donne_chaine_utf16(property_key.String);
 
     texte_utf8 := convertis_vers_chaine(texte);
     diffère déloge(*texte_utf8);
@@ -1102,7 +1102,7 @@ is_array_index :: fonc (property_key: PropertyKey) -> bool
 
 to_uint32 :: fonc (property_key: PropertyKey) -> n32
 {
-    texte := property_key.String.donne_chaine_utf16();
+    texte := donne_chaine_utf16(property_key.String);
 
     /* À FAIRE */
     texte_utf8 := convertis_vers_chaine(texte);
@@ -1168,8 +1168,8 @@ crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
         }
     }
 
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(PrimitiveChaine);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, PrimitiveChaine);
     résultat.texte = texte;
     tableau_ajoute(*realm.chaines, résultat);
     retourne résultat;
@@ -1177,15 +1177,15 @@ crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
 
 crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
 {
-    résultat := tas_de_mémoire.alloue(PrimitiveChaine);
+    résultat := alloue(tas_de_mémoire, PrimitiveChaine);
     résultat.texte = texte;
     retourne résultat;
 }
 
 concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
 {
-    chn1 := str_gauche.texte.donne_chaine_utf16();
-    chn2 := str_droite.texte.donne_chaine_utf16();
+    chn1 := donne_chaine_utf16(str_gauche.texte);
+    chn2 := donne_chaine_utf16(str_droite.texte);
 
     enchaineuse: EnchaineuseUTF16;
     initialise_enchaineuse(*enchaineuse);

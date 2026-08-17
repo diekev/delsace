@@ -48,14 +48,14 @@ principale :: fonc ()
         taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur));
         saufsi peintre {
             peintre = crée_peintre_igumi(taille_canevas);
-            peintre.définis_taille_canevas(taille_canevas);
+            définis_taille_canevas(peintre, taille_canevas);
         }
 
-        peintre.efface_cible_rendu(CouleurRVBA(0.0, 0.0, 0.0, 1.0));
+        efface_cible_rendu(peintre, CouleurRVBA(0.0, 0.0, 0.0, 1.0));
         
         dessine_chemin(peintre, chemin);
 
-        peintre.termine_dessin();
+        termine_dessin(peintre);
         permute_tampons_fenêtre(fenêtre);
     }
 }
