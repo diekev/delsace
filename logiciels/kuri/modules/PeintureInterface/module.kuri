@@ -236,7 +236,7 @@ dessine_segment :: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: Couleu
 dessine_segments :: fonc (peintre: *Peintre, lignes: []Ligne($T), couleur: CouleurPeintre) -> rien #enligne
 {
     pour lignes {
-        peintre.dessine_segment(it, couleur);
+        dessine_segment(peintre, it, couleur);
     }
 }
 
@@ -355,7 +355,7 @@ dessine_grille :: fonc (peintre: *Peintre, rect: RectanglePosDim(r32), lignes: n
         décalage_hauteur := rect.hauteur / lignes comme r32;
         h := décalage_hauteur;
         pour lignes - 1 {
-            peintre.dessine_segment(rect.x, rect.y + h, rect.x + rect.largeur, rect.y + h, couleur);
+            dessine_segment(peintre, rect.x, rect.y + h, rect.x + rect.largeur, rect.y + h, couleur);
             h += décalage_hauteur;
         }
     }
@@ -365,7 +365,7 @@ dessine_grille :: fonc (peintre: *Peintre, rect: RectanglePosDim(r32), lignes: n
         l := décalage_largeur;
 
         pour colonnes - 1 {
-            peintre.dessine_segment(rect.x + l, rect.y, rect.x + l, rect.y + rect.hauteur, couleur);
+            dessine_segment(peintre, rect.x + l, rect.y, rect.x + l, rect.y + rect.hauteur, couleur);
             l += décalage_largeur;
         }
     }
@@ -1044,7 +1044,7 @@ dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
 
     rayon_double := rayon * 2.0;
     si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
-        position := rectangle.position_interne(0.5, 0.5);
+        position := position_interne(rectangle, 0.5, 0.5);
         cercle_immédiat(position.x, position.y, rayon, couleur, faux);
         retourne;
     }

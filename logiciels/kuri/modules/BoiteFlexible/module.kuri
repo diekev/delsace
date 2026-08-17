@@ -87,7 +87,7 @@ commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z3
 
     emboiteuse.hauteur_racine = hauteur comme r32;
 
-    racine := emboiteuse.crée_boite();
+    racine := crée_boite(emboiteuse);
     racine.disposition.cotation.largeur = FIXE(largeur);
     racine.disposition.cotation.hauteur = FIXE(hauteur);
 
@@ -151,26 +151,26 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: *Évènement)
         }
 
         si évènement.action_souris == ActionSouris.ROULEMENT {
-            sur_évènement_souris(emboiteuse, SUR_MOLETTE_SOURIS, évènement.donne_clic_souris());
+            sur_évènement_souris(emboiteuse, SUR_MOLETTE_SOURIS, donne_clic_souris(évènement));
             retourne;
         }
 
         si évènement.action_souris == ActionSouris.PRESSÉE {
-            sur_évènement_souris(emboiteuse, SUR_PRESSION_SOURIS, évènement.donne_clic_souris());
+            sur_évènement_souris(emboiteuse, SUR_PRESSION_SOURIS, donne_clic_souris(évènement));
             retourne;
         }
 
         si évènement.action_souris == ActionSouris.DOUBLE_CLIC {
-            sur_évènement_souris(emboiteuse, SUR_DOUBLE_CLIC_SOURIS, évènement.donne_clic_souris());
+            sur_évènement_souris(emboiteuse, SUR_DOUBLE_CLIC_SOURIS, donne_clic_souris(évènement));
             retourne;
         }
 
         si évènement.action_souris == ActionSouris.RELACHÉE {
-            sur_évènement_souris(emboiteuse, SUR_RELÂCHEMENT_SOURIS, évènement.donne_clic_souris());
+            sur_évènement_souris(emboiteuse, SUR_RELÂCHEMENT_SOURIS, donne_clic_souris(évènement));
 
             si emboiteuse.boite_interagit[SUR_PRESSION_SOURIS] == emboiteuse.boite_interagit[SUR_RELÂCHEMENT_SOURIS] {
                 boite := donne_boite_disposée_pour_id(emboiteuse, emboiteuse.boite_interagit[SUR_RELÂCHEMENT_SOURIS]);
-                _ := appel_rappel(emboiteuse, boite, SUR_CLIC_SOURIS, évènement.donne_clic_souris());
+                _ := appel_rappel(emboiteuse, boite, SUR_CLIC_SOURIS, donne_clic_souris(évènement));
             }
 
             emboiteuse.boite_interagit[SUR_PRESSION_SOURIS] = 0;
@@ -315,7 +315,7 @@ dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), conf
 {
     assert(__boite_courante != nul);
 
-    boite := __boite_courante.ajoute_enfant();
+    boite := ajoute_enfant(__boite_courante);
 
     si id {
         boite.id = calcule_empreinte_djb2(id);
@@ -350,7 +350,7 @@ dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
 {
     assert(__boite_courante != nul);
 
-    boite := __boite_courante.ajoute_texte(nul, texte);
+    boite := ajoute_texte(__boite_courante, nul, texte);
     boite.config_texte = config;
 }
 
@@ -358,14 +358,14 @@ dispose_texte :: fonc (texte: ChaineUTF32, config := ConfigurationTexte())
 {
     assert(__boite_courante != nul);
 
-    boite := __boite_courante.ajoute_texte(nul, texte);
+    boite := ajoute_texte(__boite_courante, nul, texte);
     boite.config_texte = config;
 }
 
 dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 {
     assert(__boite_courante != nul);
-    boite := __boite_courante.ajoute_image(image);
+    boite := ajoute_image(__boite_courante, image);
     boite.disposition.cotation = cotation;
     boite.teinte = teinte;
 }
@@ -373,7 +373,7 @@ dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := Coule
 dispose_procédure :: fonc (procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien, id := "", cotation := Cotation(), pos := #position_code_source)
 {
     assert(__boite_courante != nul);
-    boite := __boite_courante.ajoute_procédure(procédure, données_procédure);
+    boite := ajoute_procédure(__boite_courante, procédure, données_procédure);
     boite.disposition.cotation = cotation;
     si id {
         boite.id = calcule_empreinte_djb2(id);
@@ -699,14 +699,14 @@ définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0, ancrage := A
     assert(__boite_courante != nul);
     emboiteuse := __boite_courante.emboiteuse;
 
-    si __boite_courante.flottance.est_valide() {
+    si est_valide(__boite_courante.flottance) {
         config := *emboiteuse.flottances[__boite_courante.flottance];
         config.ancrage = ancrage;
         config.décalage_x = décalage_x;
         config.décalage_y = décalage_y;
     }
     sinon {
-        __boite_courante.flottance = emboiteuse.ajoute_flottance(Flottance(ancrage, décalage_x, décalage_y));
+        __boite_courante.flottance = ajoute_flottance(emboiteuse, Flottance(ancrage, décalage_x, décalage_y));
     }
 }
 
@@ -817,7 +817,7 @@ dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurR
 
         si éditrice.curseur.ligne < lignes_pour_rendu.taille {
             métriques := donne_métriques_fonte(éditrice.fonte);
-            hauteur_ligne := métriques.donne_hauteur_ligne() comme z32;
+            hauteur_ligne := donne_hauteur_ligne(métriques) comme z32;
             largeur_caractère := métriques.largeur_moyenne;
 
             rembourrage := donne_rembourrage();
@@ -834,12 +834,12 @@ dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurR
                 texte_avant_curseur.points_de_code.taille = éditrice.curseur.début;
 
                 texte_sous_curseur := avance(texte_ligne, éditrice.curseur.début comme z32);
-                si texte_sous_curseur.taille() {
+                si taille(texte_sous_curseur) {
                     texte_sous_curseur.points_de_code.taille = 1;
                     dispose_texte(texte_sous_curseur, ConfigurationTexte(éditrice.fonte, couleur_texte));
                 }
 
-                position_curseur := éditrice.fonte.donne_largeur_texte(texte_avant_curseur);
+                position_curseur := donne_largeur_texte(éditrice.fonte, texte_avant_curseur);
                 décalage_flottance_x := rembourrage_x + position_curseur;
                 décalage_flottance_y := rembourrage_y + (éditrice.curseur.ligne * hauteur_ligne) comme r32;
 
@@ -876,7 +876,7 @@ ajoute_rembourrage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> Espace
 dispose_séparateur_horizontal :: fonc (largeur: n32 = 0, hauteur := 0)
 {
     assert(__boite_courante != nul);
-    séparateur := __boite_courante.ajoute_enfant();
+    séparateur := ajoute_enfant(__boite_courante);
     si largeur != 0 {
         séparateur.disposition.cotation.largeur = FIXE(largeur);
     }

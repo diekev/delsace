@@ -52,16 +52,16 @@ donne_paramètres_box_sizing_pour_hauteur :: fonc (propriétés: *PropriétésDe
 {
     résultat: ParamètresBoxSizing;
 
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing);
-    si box_sizing.est_mot_clé(PROP_border_box) {
+    box_sizing := donne_valeur_calculée(propriétés, IDPropriété.BoxSizing);
+    si est_mot_clé(box_sizing, PROP_border_box) {
         résultat.applique_delta = vrai;
 
-        border_top_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop);
-        padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop);
-        padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom);
-        border_bottom_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom);
+        border_top_width := donne_valeur_calculée(propriétés, IDPropriété.BorderWidthTop);
+        padding_top := donne_valeur_calculée(propriétés, IDPropriété.PaddingTop);
+        padding_bottom := donne_valeur_calculée(propriétés, IDPropriété.PaddingBottom);
+        border_bottom_width := donne_valeur_calculée(propriétés, IDPropriété.BorderWidthBottom);
 
-        résultat.delta = border_top_width.donne_pixels() + padding_top.donne_pixels() + padding_bottom.donne_pixels() + border_bottom_width.donne_pixels();
+        résultat.delta = donne_pixels(border_top_width) + donne_pixels(padding_top) + donne_pixels(padding_bottom) + donne_pixels(border_bottom_width);
     }
 
     retourne résultat;
@@ -71,24 +71,24 @@ donne_paramètres_box_sizing_pour_largeur :: fonc (propriétés: *PropriétésDe
 {
     résultat: ParamètresBoxSizing;
 
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing);
-    si box_sizing.est_mot_clé(PROP_border_box) {
+    box_sizing := donne_valeur_calculée(propriétés, IDPropriété.BoxSizing);
+    si est_mot_clé(box_sizing, PROP_border_box) {
         résultat.applique_delta = vrai;
 
-        border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft);
-        padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft);
-        padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight);
-        border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight);
+        border_left_width := donne_valeur_calculée(propriétés, IDPropriété.BorderWidthLeft);
+        padding_left := donne_valeur_calculée(propriétés, IDPropriété.PaddingLeft);
+        padding_right := donne_valeur_calculée(propriétés, IDPropriété.PaddingRight);
+        border_right_width := donne_valeur_calculée(propriétés, IDPropriété.BorderWidthRight);
 
         // À FAIRE : détermine quand résoudre ceci (joelonsoftware)
-        si padding_left.est_percentage() {
+        si est_percentage(padding_left) {
             padding_left = donne_valeur_pixels_zéro();
         }
-        si padding_right.est_percentage() {
+        si est_percentage(padding_right) {
             padding_right = donne_valeur_pixels_zéro();
         }
 
-        résultat.delta = border_left_width.donne_pixels() + padding_left.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels();
+        résultat.delta = donne_pixels(border_left_width) + donne_pixels(padding_left) + donne_pixels(padding_right) + donne_pixels(border_right_width);
     }
 
     retourne résultat;
@@ -96,7 +96,7 @@ donne_paramètres_box_sizing_pour_largeur :: fonc (propriétés: *PropriétésDe
 
 applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: *ValeurDeStyle, ignore_plancher: bool) -> *ValeurDeStyle
 {
-    saufsi valeur.est_pixels() {
+    saufsi est_pixels(valeur) {
         retourne copie_valeur(valeur);
     }
 
@@ -104,7 +104,7 @@ applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: *ValeurDeSty
         retourne copie_valeur(valeur);
     }
 
-    pixels := valeur.donne_pixels() - params.delta;
+    pixels := donne_pixels(valeur) - params.delta;
     si ignore_plancher == faux && pixels < 0.0 {
         valeur = donne_valeur_pixels_zéro();
     }
@@ -130,13 +130,13 @@ ajourne_boite_pour_calcul_largeur :: fonc (box: *Box)
 {
     propriétés := box.propriétés;
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels_ou_zéro_si_auto() comme r32;
-    border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).donne_pixels() comme r32;
-    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).donne_pixels() comme r32;
-    width := propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels() comme r32;
-    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).donne_pixels() comme r32;
-    border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).donne_pixels() comme r32;
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels_ou_zéro_si_auto() comme r32;
+    margin_left := donne_pixels_ou_zéro_si_auto(donne_valeur_utilisée(propriétés, IDPropriété.MarginLeft)) comme r32;
+    border_left_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthLeft)) comme r32;
+    padding_left := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingLeft)) comme r32;
+    width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.Width)) comme r32;
+    padding_right := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingRight)) comme r32;
+    border_right_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthRight)) comme r32;
+    margin_right := donne_pixels_ou_zéro_si_auto(donne_valeur_utilisée(propriétés, IDPropriété.MarginRight)) comme r32;
 
     x := box.modèle_de_boite.marge.x;
 
@@ -157,13 +157,13 @@ ajourne_boite_pour_calcul_hauteur :: fonc (box: *Box)
 {
     propriétés := box.propriétés;
 
-    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).donne_pixels() comme r32;
-    border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).donne_pixels() comme r32;
-    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).donne_pixels() comme r32;
-    height := propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels() comme r32;
-    padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).donne_pixels() comme r32;
-    border_bottom_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).donne_pixels() comme r32;
-    margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).donne_pixels() comme r32;
+    margin_top := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.MarginTop)) comme r32;
+    border_top_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthTop)) comme r32;
+    padding_top := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingTop)) comme r32;
+    height := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.Height)) comme r32;
+    padding_bottom := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingBottom)) comme r32;
+    border_bottom_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthBottom)) comme r32;
+    margin_bottom := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.MarginBottom)) comme r32;
 
     y := box.modèle_de_boite.marge.y;
 
@@ -186,9 +186,9 @@ ajourne_boite_pour_calcul_hauteur_auto :: fonc (box: *Box)
 {
     propriétés := box.propriétés;
 
-    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).donne_pixels() comme r32;
-    border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).donne_pixels() comme r32;
-    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).donne_pixels() comme r32;
+    margin_top := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.MarginTop)) comme r32;
+    border_top_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthTop)) comme r32;
+    padding_top := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingTop)) comme r32;
 
     y := box.modèle_de_boite.marge.y;
 
@@ -246,8 +246,8 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (box: *BlockBox) -> r6
     tantque !est_vide(*pile) {
         enfant := dépile(*pile);
 
-        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position);
-        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+        position := donne_valeur_utilisée(enfant.propriétés, IDPropriété.Position);
+        si est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_fixed) {
             continue;
         }
 
@@ -276,8 +276,8 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (box: *BlockBox) -> r6
         min_y_it := modèle_de_boite.marge.y;
         max_y_it := modèle_de_boite.marge.y + modèle_de_boite.marge.hauteur;
 
-        si it.propriétés.donne_valeur_calculée(IDPropriété.Position).est_mot_clé(PROP_relative) {
-            décalage := it.donne_décalage_top_pour_relative();
+        si est_mot_clé(donne_valeur_calculée(it.propriétés, IDPropriété.Position), PROP_relative) {
+            décalage := donne_décalage_top_pour_relative(it);
             min_y_it -= décalage;
             max_y_it -= décalage;
         }
@@ -346,45 +346,45 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     définis_propriétés(ctx.ctx_calcul_style, box.propriétés);
     args.width_of_containing_block = donne_largeur(*args.containing_block);
 
-    width := box.propriétés.donne_valeur_calculée(IDPropriété.Width);
+    width := donne_valeur_calculée(box.propriétés, IDPropriété.Width);
 
     params_box_sizing := donne_paramètres_box_sizing_pour_largeur(box.propriétés);
 
     tmp_args := mémoire(args);
-    si outrepas_largeur.possède_valeur() {
+    si possède_valeur(outrepas_largeur) {
         outrepas := outrepas_largeur.Quelque;
         si outrepas.est_affecté_par_box_sizing {
             width = applique_box_sizing(*params_box_sizing, outrepas.valeur, ignore_plancher_border_box);
-            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.donne_pixels());
+            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(donne_pixels(width));
         }
     }
-    sinon saufsi width.est_auto() {
-        width = width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
+    sinon saufsi est_auto(width) {
+        width = calcule_pourcentage(width, ctx.ctx_calcul_style, width_of_containing_block);
         width = applique_box_sizing(*params_box_sizing, width, ignore_plancher_border_box);
-        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.donne_pixels());
+        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(donne_pixels(width));
     }
 
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(box);
     calcule_largeur_et_marges(*tmp_args, fonction_de_calcul);
 
     saufsi ignore_min_max {
-        width = box.propriétés.donne_valeur_utilisée(IDPropriété.Width);
-        max_width := box.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth);
-        max_width = max_width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
+        width = donne_valeur_utilisée(box.propriétés, IDPropriété.Width);
+        max_width := donne_valeur_calculée(box.propriétés, IDPropriété.MaxWidth);
+        max_width = calcule_pourcentage(max_width, ctx.ctx_calcul_style, width_of_containing_block);
         max_width = applique_box_sizing(*params_box_sizing, max_width, ignore_plancher_border_box);
-        si max_width.est_pixels() && (width.donne_pixels() > max_width.donne_pixels()) {
+        si est_pixels(max_width) && (donne_pixels(width) > donne_pixels(max_width)) {
             tmp_args = mémoire(args);
-            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(max_width.donne_pixels());
+            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(donne_pixels(max_width));
             calcule_largeur_et_marges(*tmp_args, fonction_de_calcul);
         }
 
-        width = box.propriétés.donne_valeur_utilisée(IDPropriété.Width);
-        min_width := box.propriétés.donne_valeur_calculée(IDPropriété.MinWidth);
-        min_width = min_width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
+        width = donne_valeur_utilisée(box.propriétés, IDPropriété.Width);
+        min_width := donne_valeur_calculée(box.propriétés, IDPropriété.MinWidth);
+        min_width = calcule_pourcentage(min_width, ctx.ctx_calcul_style, width_of_containing_block);
         min_width = applique_box_sizing(*params_box_sizing, min_width, ignore_plancher_border_box);
-        si min_width.est_pixels() && min_width.donne_pixels() > 0.0 && (width.donne_pixels() < min_width.donne_pixels()) {
+        si est_pixels(min_width) && donne_pixels(min_width) > 0.0 && (donne_pixels(width) < donne_pixels(min_width)) {
             tmp_args = mémoire(args);
-            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(min_width.donne_pixels());
+            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(donne_pixels(min_width));
             calcule_largeur_et_marges(*tmp_args, fonction_de_calcul);
         }
     }
@@ -416,35 +416,35 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     résoud_pourcentage_insets(box, ctx);
 
     pl : PropriétésLargeur = ---;
-    pl.left = propriétés.donne_valeur_calculée(IDPropriété.Left).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.margin_left = propriétés.donne_valeur_calculée(IDPropriété.MarginLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.border_left_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.padding_left = propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.width = propriétés.donne_valeur_calculée(IDPropriété.Width).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.padding_right = propriétés.donne_valeur_calculée(IDPropriété.PaddingRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.border_right_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
+    pl.left = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.Left), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.margin_left = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.MarginLeft), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.border_left_width = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.BorderWidthLeft), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.padding_left = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.PaddingLeft), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.width = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.Width), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.padding_right = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.PaddingRight), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.border_right_width = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.BorderWidthRight), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.margin_right = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.MarginRight), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.right = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.Right), ctx.ctx_calcul_style, width_of_containing_block);
 
-    si outrepas_largeur.possède_valeur() {
+    si possède_valeur(outrepas_largeur) {
         pl.width = outrepas_largeur.Quelque.valeur;
     }
 
     fonction_de_calcul(args, *pl);
 
-    si ignore_plancher_border_box == faux && pl.width.donne_pixels() < 0.0 {
+    si ignore_plancher_border_box == faux && donne_pixels(pl.width) < 0.0 {
         pl.width = donne_valeur_pixels_zéro();
     }
 
-    propriétés.définis_valeur_utilisée(IDPropriété.Left, pl.left);
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, pl.margin_left);
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, pl.border_left_width);
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, pl.padding_left);
-    propriétés.définis_valeur_utilisée(IDPropriété.Width, pl.width);
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, pl.padding_right);
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, pl.border_right_width);
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, pl.margin_right);
-    propriétés.définis_valeur_utilisée(IDPropriété.Right, pl.right);
+    définis_valeur_utilisée(propriétés, IDPropriété.Left, pl.left);
+    définis_valeur_utilisée(propriétés, IDPropriété.MarginLeft, pl.margin_left);
+    définis_valeur_utilisée(propriétés, IDPropriété.BorderWidthLeft, pl.border_left_width);
+    définis_valeur_utilisée(propriétés, IDPropriété.PaddingLeft, pl.padding_left);
+    définis_valeur_utilisée(propriétés, IDPropriété.Width, pl.width);
+    définis_valeur_utilisée(propriétés, IDPropriété.PaddingRight, pl.padding_right);
+    définis_valeur_utilisée(propriétés, IDPropriété.BorderWidthRight, pl.border_right_width);
+    définis_valeur_utilisée(propriétés, IDPropriété.MarginRight, pl.margin_right);
+    définis_valeur_utilisée(propriétés, IDPropriété.Right, pl.right);
 
     ajourne_boite_pour_calcul_largeur(box);
 }
@@ -452,9 +452,9 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 donne_fonction_calcul_largeur_et_marges :: fonc (box: *Box) -> TypeFonctionCalculLargeur
 {
     propriétés := box.propriétés;
-    display := propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display();
-    float := propriétés.donne_valeur_utilisée(IDPropriété.Float);
-    position := propriétés.donne_valeur_utilisée(IDPropriété.Position);
+    display := donne_display(donne_valeur_calculée(propriétés, IDPropriété.Display));
+    float := donne_valeur_utilisée(propriétés, IDPropriété.Float);
+    position := donne_valeur_utilisée(propriétés, IDPropriété.Position);
 
     si box.table_virtuelle.type == ReplacedBox {
         // 10.3.2 Inline, replaced elements
@@ -464,12 +464,12 @@ donne_fonction_calcul_largeur_et_marges :: fonc (box: *Box) -> TypeFonctionCalcu
         }
 
         // 10.3.6 Floating, replaced elements
-        saufsi float.est_none() {
+        saufsi est_none(float) {
             retourne calcule_largeur_et_marges_float_replaced_element;
         }
 
         // 10.3.8 Absolutely positioned, replaced elements
-        si position.est_mot_clé(PROP_absolute) {
+        si est_mot_clé(position, PROP_absolute) {
             retourne calcule_largeur_et_marges_absolutely_positionned_replaced_element;
         }
 
@@ -487,12 +487,12 @@ donne_fonction_calcul_largeur_et_marges :: fonc (box: *Box) -> TypeFonctionCalcu
     }
 
     // 10.3.7 Absolutely positioned, non-replaced elements
-    si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+    si est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_fixed) {
         retourne calcule_largeur_et_marges_absolutely_positionned_non_replaced_element;
     }
 
     // 10.3.5 Floating, non-replaced elements
-    saufsi float.est_none() {
+    saufsi est_none(float) {
         retourne calcule_largeur_et_marges_floated_non_replaced_element;
     }
 
@@ -502,16 +502,16 @@ donne_fonction_calcul_largeur_et_marges :: fonc (box: *Box) -> TypeFonctionCalcu
 
 calcule_pourcentage :: fonc (valeur: *ValeurDeStyle, référence: r64) -> *ValeurDeStyle
 {
-    saufsi valeur.est_percentage() {
+    saufsi est_percentage(valeur) {
         retourne copie_valeur(valeur);
     }
 
-    retourne crée_valeur_pixels(valeur.donne_percentage() * référence / 100.0);
+    retourne crée_valeur_pixels(donne_percentage(valeur) * référence / 100.0);
 }
 
 résoud_pourcentage_largeurs :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: *ContainingBlock)
 {
-    width_of_containing_block := containing_block.donne_largeur();
+    width_of_containing_block := donne_largeur(containing_block);
 
     définis_propriétés(ctx.ctx_calcul_style, box.propriétés);
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MinWidth, width_of_containing_block);
@@ -531,15 +531,15 @@ résoud_pourcentage_largeur_border_radius :: fonc (box: *Box)
     empl IDPropriété;
 
     pour [BorderBottomLeftRadius, BorderBottomRightRadius, BorderTopLeftRadius, BorderTopRightRadius] {
-        propriétés.résoud_pourcentage(it, largeur);
-        propriétés.copie_valeur_calculée_vers_utilisée(it);
+        résoud_pourcentage(propriétés, it, largeur);
+        copie_valeur_calculée_vers_utilisée(propriétés, it);
     }
 }
 
 résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: *ContainingBlock)
 {
-    width_of_containing_block := containing_block.donne_largeur();
-    height_of_containing_block := containing_block.donne_hauteur();
+    width_of_containing_block := donne_largeur(containing_block);
+    height_of_containing_block := donne_hauteur(containing_block);
 
     propriétés := box.propriétés;
     définis_propriétés(ctx.ctx_calcul_style, propriétés);
@@ -551,15 +551,15 @@ résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, cont
     /* Selon CSS2.1 10.5, les pourcentages sur la hauteur deviennent « auto » si le contenant
      * a une hauteur auto et que la boite n'est pas positionné absolument.
      * https://www.w3.org/TR/CSS2/visudet.html#the-height-property */
-    prop_height_contenant := containing_block.box.propriétés.donne_valeur_calculée(IDPropriété.Height);
-    contenant_dépend_sur_contenu := prop_height_contenant.est_auto();
+    prop_height_contenant := donne_valeur_calculée(containing_block.box.propriétés, IDPropriété.Height);
+    contenant_dépend_sur_contenu := est_auto(prop_height_contenant);
 
-    position := propriétés.donne_valeur_calculée(IDPropriété.Position);
-    est_absolu := position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed);
+    position := donne_valeur_calculée(propriétés, IDPropriété.Position);
+    est_absolu := est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_fixed);
 
-    prop_height := propriétés.donne_valeur_calculée(IDPropriété.Height);
-    si prop_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
-        propriétés.définis_valeur_calculée(IDPropriété.Height, donne_valeur_auto());
+    prop_height := donne_valeur_calculée(propriétés, IDPropriété.Height);
+    si est_percentage(prop_height) && contenant_dépend_sur_contenu && !est_absolu {
+        définis_valeur_calculée(propriétés, IDPropriété.Height, donne_valeur_auto());
     }
     sinon {
         résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Height, height_of_containing_block);
@@ -568,17 +568,17 @@ résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, cont
     /* Selon CSS2.1 10.7, les pourcentages sur min-height deviennent « 0 » et sur max-height « none »
      * si le contenant a une hauteur auto et que la boite n'est pas positionné absolument.
      * https://www.w3.org/TR/CSS2/visudet.html#min-max-heights */
-    prop_min_height := propriétés.donne_valeur_calculée(IDPropriété.MinHeight);
-    si prop_min_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
-        propriétés.définis_valeur_calculée(IDPropriété.MinHeight, donne_valeur_pixels_zéro());
+    prop_min_height := donne_valeur_calculée(propriétés, IDPropriété.MinHeight);
+    si est_percentage(prop_min_height) && contenant_dépend_sur_contenu && !est_absolu {
+        définis_valeur_calculée(propriétés, IDPropriété.MinHeight, donne_valeur_pixels_zéro());
     }
     sinon {
         résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MinHeight, height_of_containing_block);
     }
 
-    prop_max_height := propriétés.donne_valeur_calculée(IDPropriété.MaxHeight);
-    si prop_max_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
-        propriétés.définis_valeur_calculée(IDPropriété.MaxHeight, donne_valeur_none());
+    prop_max_height := donne_valeur_calculée(propriétés, IDPropriété.MaxHeight);
+    si est_percentage(prop_max_height) && contenant_dépend_sur_contenu && !est_absolu {
+        définis_valeur_calculée(propriétés, IDPropriété.MaxHeight, donne_valeur_none());
     }
     sinon {
         résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MaxHeight, height_of_containing_block);
@@ -598,7 +598,7 @@ résoud_pourcentage_insets :: fonc (box: *Box, ctx: *ContexteDeFormattage)
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Right, donne_largeur(*containing_block));
 
     pour [IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right] {
-        box.propriétés.définis_valeur_utilisée(it, box.propriétés.donne_valeur_calculée(it));
+        définis_valeur_utilisée(box.propriétés, it, donne_valeur_calculée(box.propriétés, it));
     }
 }
 
@@ -613,20 +613,20 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
 
     fonction_de_calcul := donne_fonction_calcul_hauteur_et_marges(box);
 
-    height := box.propriétés.donne_valeur_calculée(IDPropriété.Height);
-    saufsi height.est_auto() {
+    height := donne_valeur_calculée(box.propriétés, IDPropriété.Height);
+    saufsi est_auto(height) {
         init_de(Optionnel(OutrepasCotation))(*outrepas_hauteur);
     }
 
     params_box_sizing := donne_paramètres_box_sizing_pour_hauteur(box.propriétés);
 
     tmp_args := mémoire(args);
-    si outrepas_hauteur.possède_valeur() {
+    si possède_valeur(outrepas_hauteur) {
         /* N'applique pas box-sizing à l'outrepas : ce peut être la taille du contenu. */
     }
-    sinon saufsi height.est_auto() {
+    sinon saufsi est_auto(height) {
         height = applique_box_sizing(*params_box_sizing, height, ignore_plancher_border_box);
-        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(height.donne_pixels());
+        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(donne_pixels(height));
     }
 
     résultat := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul);
@@ -636,21 +636,21 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
     }
 
     saufsi ignore_min_max {
-        height = box.propriétés.donne_valeur_utilisée(IDPropriété.Height);
-        max_height := box.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight);
+        height = donne_valeur_utilisée(box.propriétés, IDPropriété.Height);
+        max_height := donne_valeur_calculée(box.propriétés, IDPropriété.MaxHeight);
         max_height = applique_box_sizing(*params_box_sizing, max_height, ignore_plancher_border_box);
-        si max_height.est_pixels() && (height.donne_pixels() > max_height.donne_pixels()) {
+        si est_pixels(max_height) && (donne_pixels(height) > donne_pixels(max_height)) {
             tmp_args = mémoire(args);
-            tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(max_height.donne_pixels());
+            tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(donne_pixels(max_height));
             _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul);
         }
 
-        height = box.propriétés.donne_valeur_utilisée(IDPropriété.Height);
-        min_height := box.propriétés.donne_valeur_calculée(IDPropriété.MinHeight);
+        height = donne_valeur_utilisée(box.propriétés, IDPropriété.Height);
+        min_height := donne_valeur_calculée(box.propriétés, IDPropriété.MinHeight);
         min_height = applique_box_sizing(*params_box_sizing, min_height, ignore_plancher_border_box);
-        si min_height.est_pixels() && (height.donne_pixels() < min_height.donne_pixels()) {
+        si est_pixels(min_height) && (donne_pixels(height) < donne_pixels(min_height)) {
             tmp_args = mémoire(args);
-            tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(min_height.donne_pixels());
+            tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(donne_pixels(min_height));
             _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul);
         }
     }
@@ -679,34 +679,34 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     propriétés := box.propriétés;
 
     ph : PropriétésHauteur = ---;
-    ph.top = propriétés.donne_valeur_calculée(IDPropriété.Top);
-    ph.margin_top = propriétés.donne_valeur_calculée(IDPropriété.MarginTop);
-    ph.border_top_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop);
-    ph.padding_top = propriétés.donne_valeur_calculée(IDPropriété.PaddingTop);
-    ph.height = propriétés.donne_valeur_calculée(IDPropriété.Height);
-    si outrepas_hauteur.possède_valeur() {
+    ph.top = donne_valeur_calculée(propriétés, IDPropriété.Top);
+    ph.margin_top = donne_valeur_calculée(propriétés, IDPropriété.MarginTop);
+    ph.border_top_width = donne_valeur_calculée(propriétés, IDPropriété.BorderWidthTop);
+    ph.padding_top = donne_valeur_calculée(propriétés, IDPropriété.PaddingTop);
+    ph.height = donne_valeur_calculée(propriétés, IDPropriété.Height);
+    si possède_valeur(outrepas_hauteur) {
         ph.height = outrepas_hauteur.Quelque.valeur;
     }
-    ph.padding_bottom = propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom);
-    ph.border_bottom_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom);
-    ph.margin_bottom = propriétés.donne_valeur_calculée(IDPropriété.MarginBottom);
-    ph.bottom = propriétés.donne_valeur_calculée(IDPropriété.Bottom);
+    ph.padding_bottom = donne_valeur_calculée(propriétés, IDPropriété.PaddingBottom);
+    ph.border_bottom_width = donne_valeur_calculée(propriétés, IDPropriété.BorderWidthBottom);
+    ph.margin_bottom = donne_valeur_calculée(propriétés, IDPropriété.MarginBottom);
+    ph.bottom = donne_valeur_calculée(propriétés, IDPropriété.Bottom);
 
     résultat := fonction_de_calcul(args, *ph);
 
-    si ignore_plancher_border_box == faux && ph.height.est_pixels() && ph.height.donne_pixels() < 0.0 {
+    si ignore_plancher_border_box == faux && est_pixels(ph.height) && donne_pixels(ph.height) < 0.0 {
         ph.height = donne_valeur_pixels_zéro();
     }
 
-    propriétés.définis_valeur_utilisée(IDPropriété.Top, ph.top);
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, ph.margin_top);
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, ph.border_top_width);
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, ph.padding_top);
-    propriétés.définis_valeur_utilisée(IDPropriété.Height, ph.height);
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, ph.padding_bottom);
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, ph.border_bottom_width);
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, ph.margin_bottom);
-    propriétés.définis_valeur_utilisée(IDPropriété.Bottom, ph.bottom);
+    définis_valeur_utilisée(propriétés, IDPropriété.Top, ph.top);
+    définis_valeur_utilisée(propriétés, IDPropriété.MarginTop, ph.margin_top);
+    définis_valeur_utilisée(propriétés, IDPropriété.BorderWidthTop, ph.border_top_width);
+    définis_valeur_utilisée(propriétés, IDPropriété.PaddingTop, ph.padding_top);
+    définis_valeur_utilisée(propriétés, IDPropriété.Height, ph.height);
+    définis_valeur_utilisée(propriétés, IDPropriété.PaddingBottom, ph.padding_bottom);
+    définis_valeur_utilisée(propriétés, IDPropriété.BorderWidthBottom, ph.border_bottom_width);
+    définis_valeur_utilisée(propriétés, IDPropriété.MarginBottom, ph.margin_bottom);
+    définis_valeur_utilisée(propriétés, IDPropriété.Bottom, ph.bottom);
 
     si résultat == ÉtatCalculHauteur.HauteurDépendSurContenu {
         ajourne_boite_pour_calcul_hauteur_auto(box);
@@ -718,12 +718,12 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 donne_fonction_calcul_hauteur_et_marges :: fonc (box: *Box) -> TypeFonctionCalculHauteur
 {
     propriétés := box.propriétés;
-    display := propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display();
-    position := propriétés.donne_valeur_utilisée(IDPropriété.Position);
+    display := donne_display(donne_valeur_calculée(propriétés, IDPropriété.Display));
+    position := donne_valeur_utilisée(propriétés, IDPropriété.Position);
 
     si box.table_virtuelle.type == ReplacedBox {
         // 10.6.5 Absolutely positioned, replaced elements
-        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+        si est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_fixed) {
             retourne calcule_hauteur_et_marges_absolutely_positionned_replaced_element;
         }
 
@@ -737,7 +737,7 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (box: *Box) -> TypeFonctionCalcu
     }
 
     // 10.6.4 Absolutely positioned, non-replaced elements
-    si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+    si est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_fixed) {
         retourne calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element;
     }
 
@@ -745,8 +745,8 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (box: *Box) -> TypeFonctionCalcu
     // À FAIRE : Block-level, non-replaced elements in normal flow when 'overflow' does not compute to 'visible' (except if the 'overflow' property's value has been propagated to the viewport).
     // 'Inline-block', non-replaced elements.
     // Floating, non-replaced elements.
-    float := propriétés.donne_valeur_utilisée(IDPropriété.Float);
-    si !float.est_none() || (display.outer_type == Display.Type.Inline && display.inner_type == Display.Type.FlowRoot) {
+    float := donne_valeur_utilisée(propriétés, IDPropriété.Float);
+    si !est_none(float) || (display.outer_type == Display.Type.Inline && display.inner_type == Display.Type.FlowRoot) {
         retourne calcule_hauteur_et_marges_complicated_cases;
     }
 
@@ -758,14 +758,14 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (box: *Box) -> TypeFonctionCalcu
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#normal-block */
 calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
-    si margin_top.est_auto() {
+    si est_auto(margin_top) {
         margin_top = donne_valeur_pixels_zéro();
     }
-    si margin_bottom.est_auto() {
+    si est_auto(margin_bottom) {
         margin_bottom = donne_valeur_pixels_zéro();
     }
 
-    si height.est_auto() {
+    si est_auto(height) {
         saufsi args.calcul_hauteur_après_contenu {
             retourne ÉtatCalculHauteur.HauteurDépendSurContenu;
         }
@@ -817,8 +817,8 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
                 // 3. the bottom border edge of the last in-flow child whose top margin doesn't collapse with the element's bottom margin
 
                 position_bord_bas_fragment := enfant.modèle_de_boite.marge.y + enfant.modèle_de_boite.marge.hauteur;
-                si enfant.propriétés.donne_valeur_calculée(IDPropriété.Position).est_mot_clé(PROP_relative) {
-                    position_bord_bas_fragment -= enfant.donne_décalage_top_pour_relative();
+                si est_mot_clé(donne_valeur_calculée(enfant.propriétés, IDPropriété.Position), PROP_relative) {
+                    position_bord_bas_fragment -= donne_décalage_top_pour_relative(enfant);
                 }
                 height = crée_valeur_pixels(position_bord_bas_fragment - position_bord_haut_contenu);
             }
@@ -841,7 +841,7 @@ donne_dernier_enfant_in_flow :: fonc (box: *Box) -> *Box
             continue;
         }
 
-        saufsi it.est_in_flow() {
+        saufsi est_in_flow(it) {
             continue;
         }
 
@@ -858,26 +858,26 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     // + 'border-right-width' (plus any of 'margin-left' or 'margin-right' that are not 'auto') is
     // larger than the width of the containing block, then any 'auto' values for 'margin-left' or
     // 'margin-right' are, for the following rules, treated as zero.
-    saufsi width.est_auto() {
+    saufsi est_auto(width) {
         tmp : r64 = 0.0;
-        tmp += border_left_width.donne_pixels();
-        tmp += padding_left.donne_pixels();
-        tmp += width.donne_pixels();
-        tmp += padding_right.donne_pixels();
-        tmp += border_right_width.donne_pixels();
+        tmp += donne_pixels(border_left_width);
+        tmp += donne_pixels(padding_left);
+        tmp += donne_pixels(width);
+        tmp += donne_pixels(padding_right);
+        tmp += donne_pixels(border_right_width);
 
-        saufsi margin_left.est_auto() {
-            tmp += margin_left.donne_pixels();
+        saufsi est_auto(margin_left) {
+            tmp += donne_pixels(margin_left);
         }
-        saufsi margin_right.est_auto() {
-            tmp += margin_right.donne_pixels();
+        saufsi est_auto(margin_right) {
+            tmp += donne_pixels(margin_right);
         }
 
         si tmp > width_of_containing_block {
-            si margin_left.est_auto() {
+            si est_auto(margin_left) {
                 margin_left = donne_valeur_pixels_zéro();
             }
-            si margin_right.est_auto() {
+            si est_auto(margin_right) {
                 margin_right = donne_valeur_pixels_zéro();
             }
         }
@@ -889,20 +889,20 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     // 'margin-right' is ignored and the value is calculated so as to make the equality true.
     // If the value of 'direction' is 'rtl', this happens to 'margin-left' instead.
     surcontraint := 0;
-    surcontraint += margin_left.est_auto() comme z32;
-    surcontraint += border_left_width.est_auto() comme z32;
-    surcontraint += padding_left.est_auto() comme z32;
-    surcontraint += width.est_auto() comme z32;
-    surcontraint += padding_right.est_auto() comme z32;
-    surcontraint += border_right_width.est_auto() comme z32;
-    surcontraint += margin_right.est_auto() comme z32;
+    surcontraint += est_auto(margin_left) comme z32;
+    surcontraint += est_auto(border_left_width) comme z32;
+    surcontraint += est_auto(padding_left) comme z32;
+    surcontraint += est_auto(width) comme z32;
+    surcontraint += est_auto(padding_right) comme z32;
+    surcontraint += est_auto(border_right_width) comme z32;
+    surcontraint += est_auto(margin_right) comme z32;
 
     margin_right_pour_équation := margin_right;
     si surcontraint == 0 {
         /* https://html.spec.whatwg.org/multipage/rendering.html#align-descendants
          * Nous n'alignons que lors du formattage final ("normal") afin que les marges
          * n'interviennent pas dans le calcul des largeurs minimales et maximales. */
-        si mode == ModeDeFormattage.Normal && ctx.doit_aligner_les_descendants.possède_valeur() {
+        si mode == ModeDeFormattage.Normal && possède_valeur(ctx.doit_aligner_les_descendants) {
             margin_left = donne_valeur_auto();
             margin_right = donne_valeur_auto();
         }
@@ -914,64 +914,64 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
 
     // If there is exactly one value specified as 'auto', its used value follows from the equality.
     si surcontraint == 1 {
-        si margin_left.est_auto() {
-            résultat := width_of_containing_block - (border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels());
+        si est_auto(margin_left) {
+            résultat := width_of_containing_block - (donne_pixels(border_left_width) + donne_pixels(padding_left) + donne_pixels(width) + donne_pixels(padding_right) + donne_pixels(border_right_width) + donne_pixels(margin_right_pour_équation));
             margin_left = crée_valeur_pixels(résultat);
         }
-        sinon si border_left_width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels());
+        sinon si est_auto(border_left_width) {
+            résultat := width_of_containing_block - (donne_pixels(margin_left) + donne_pixels(padding_left) + donne_pixels(width) + donne_pixels(padding_right) + donne_pixels(border_right_width) + donne_pixels(margin_right_pour_équation));
             border_left_width = crée_valeur_pixels(résultat);
         }
-        sinon si padding_left.est_auto() {
-            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels());
+        sinon si est_auto(padding_left) {
+            résultat := width_of_containing_block - (donne_pixels(margin_left) + donne_pixels(border_left_width) + donne_pixels(width) + donne_pixels(padding_right) + donne_pixels(border_right_width) + donne_pixels(margin_right_pour_équation));
             padding_left = crée_valeur_pixels(résultat);
         }
-        sinon si width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels());
+        sinon si est_auto(width) {
+            résultat := width_of_containing_block - (donne_pixels(margin_left) + donne_pixels(border_left_width) + donne_pixels(padding_left) + donne_pixels(padding_right) + donne_pixels(border_right_width) + donne_pixels(margin_right_pour_équation));
             width = crée_valeur_pixels(résultat);
         }
-        sinon si padding_right.est_auto() {
-            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels());
+        sinon si est_auto(padding_right) {
+            résultat := width_of_containing_block - (donne_pixels(margin_left) + donne_pixels(border_left_width) + donne_pixels(padding_left) + donne_pixels(width) + donne_pixels(border_right_width) + donne_pixels(margin_right_pour_équation));
             padding_right = crée_valeur_pixels(résultat);
         }
-        sinon si border_right_width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + margin_right_pour_équation.donne_pixels());
+        sinon si est_auto(border_right_width) {
+            résultat := width_of_containing_block - (donne_pixels(margin_left) + donne_pixels(border_left_width) + donne_pixels(padding_left) + donne_pixels(width) + donne_pixels(padding_right) + donne_pixels(margin_right_pour_équation));
             border_right_width = crée_valeur_pixels(résultat);
         }
-        sinon si margin_right.est_auto() {
-            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels());
+        sinon si est_auto(margin_right) {
+            résultat := width_of_containing_block - (donne_pixels(margin_left) + donne_pixels(border_left_width) + donne_pixels(padding_left) + donne_pixels(width) + donne_pixels(padding_right) + donne_pixels(border_right_width));
             margin_right = crée_valeur_pixels(résultat);
         }
     }
 
     // If 'width' is set to 'auto', any other 'auto' values become '0' and 'width' follows from the resulting equality.
-    si width.est_auto() {
-        si margin_left.est_auto() {
+    si est_auto(width) {
+        si est_auto(margin_left) {
             margin_left = donne_valeur_pixels_zéro();
         }
-        si border_left_width.est_auto() {
+        si est_auto(border_left_width) {
             border_left_width = donne_valeur_pixels_zéro();
         }
-        si padding_left.est_auto() {
+        si est_auto(padding_left) {
             padding_left = donne_valeur_pixels_zéro();
         }
-        si padding_right.est_auto() {
+        si est_auto(padding_right) {
             padding_right = donne_valeur_pixels_zéro();
         }
-        si border_right_width.est_auto() {
+        si est_auto(border_right_width) {
             border_right_width = donne_valeur_pixels_zéro();
         }
-        si margin_right.est_auto() {
+        si est_auto(margin_right) {
             margin_right = donne_valeur_pixels_zéro();
         }
 
-        résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right.donne_pixels());
+        résultat := width_of_containing_block - (donne_pixels(margin_left) + donne_pixels(border_left_width) + donne_pixels(padding_left) + donne_pixels(padding_right) + donne_pixels(border_right_width) + donne_pixels(margin_right));
         width = crée_valeur_pixels(résultat);
     }
 
     // If both 'margin-left' and 'margin-right' are 'auto', their used values are equal.
     // This horizontally centers the element with respect to the edges of the containing block.
-    si margin_left.est_auto() && margin_right.est_auto() {
+    si est_auto(margin_left) && est_auto(margin_right) {
         si mode != ModeDeFormattage.Normal {
             /* Non-spécifié. Si nous calculons une disposition minimale, n'ajustons pas les marges. */
             margin_left = donne_valeur_pixels_zéro();
@@ -979,7 +979,7 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
             retourne;
         }
 
-        résultat := width_of_containing_block - (border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels());
+        résultat := width_of_containing_block - (donne_pixels(border_left_width) + donne_pixels(padding_left) + donne_pixels(width) + donne_pixels(padding_right) + donne_pixels(border_right_width));
         résultat *= 0.5;
 
         margin_left = crée_valeur_pixels(résultat);
@@ -995,30 +995,30 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     // element establishing the static-position containing block is 'ltr' set 'left' to the
     // static position and apply rule number three below; otherwise, set 'right' to the static
     // position and apply rule number one below.
-    si left.est_auto() && right.est_auto() && width.est_auto() {
+    si est_auto(left) && est_auto(right) && est_auto(width) {
         // À FAIRE : direction
-        si margin_left.est_auto() {
+        si est_auto(margin_left) {
             margin_left = donne_valeur_pixels_zéro();
         }
-        si margin_right.est_auto() {
+        si est_auto(margin_right) {
             margin_right = donne_valeur_pixels_zéro();
         }
 
         left = crée_valeur_pixels(pos_x_statique - containing_block.rect.x);
 
         right = donne_valeur_pixels_zéro();
-        available_width := width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels();
+        available_width := width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right);
         width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width));
-        right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels());
+        right = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right));
     }
-    sinon si !left.est_auto() && !right.est_auto() && !width.est_auto() {
+    sinon si !est_auto(left) && !est_auto(right) && !est_auto(width) {
         // If none of the three is 'auto': If both 'margin-left' and 'margin-right' are 'auto',
         // solve the equation under the extra constraint that the two margins get equal values,
         // unless this would make them negative, in which case when direction of the containing
         // block is 'ltr' ('rtl'), set 'margin-left' ('margin-right') to zero and solve for
         // 'margin-right' ('margin-left').
-        si margin_left.est_auto() && margin_right.est_auto() {
-            taille_marges := width_of_containing_block - left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - right.donne_pixels();
+        si est_auto(margin_left) && est_auto(margin_right) {
+            taille_marges := width_of_containing_block - donne_pixels(left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(right);
             si taille_marges < 0.0 {
                 // À FAIRE : direction
                 margin_left = donne_valeur_pixels_zéro();
@@ -1032,65 +1032,65 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             }
         }
         // If one of 'margin-left' or 'margin-right' is 'auto', solve the equation for that value.
-        sinon si margin_left.est_auto() {
-            margin_left = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels());
+        sinon si est_auto(margin_left) {
+            margin_left = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right));
         }
-        sinon si margin_right.est_auto() {
-            margin_right = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - right.donne_pixels());
+        sinon si est_auto(margin_right) {
+            margin_right = crée_valeur_pixels(width_of_containing_block - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(right));
         }
         // If the values are over-constrained, ignore the value for 'left' (in case the 'direction'
         // property of the containing block is 'rtl') or 'right' (in case 'direction' is 'ltr') and
         // solve for that value.
         sinon {
             // À FAIRE : direction
-            left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels());
+            left = crée_valeur_pixels(width_of_containing_block - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right));
         }
     }
     sinon {
-        si margin_left.est_auto() {
+        si est_auto(margin_left) {
             margin_left = donne_valeur_pixels_zéro();
         }
-        si margin_right.est_auto() {
+        si est_auto(margin_right) {
             margin_right = donne_valeur_pixels_zéro();
         }
 
         // 1. 'left' and 'width' are 'auto' and 'right' is not 'auto', then the width is shrink-to-fit.
         //     Then solve for 'left'
-        si left.est_auto() && width.est_auto() && !right.est_auto() {
-            available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels();
+        si est_auto(left) && est_auto(width) && !est_auto(right) {
+            available_width := width_of_containing_block - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right);
             width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width));
-            left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels());
+            left = crée_valeur_pixels(width_of_containing_block - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right));
         }
 
         // 2. 'left' and 'right' are 'auto' and 'width' is not 'auto', then if the 'direction' property of
         //    the element establishing the static-position containing block is 'ltr' set 'left' to the static position, otherwise set 'right' to the static position. Then solve for 'left' (if 'direction is 'rtl') or 'right' (if 'direction' is 'ltr').
-        sinon si left.est_auto() && right.est_auto() && !width.est_auto() {
+        sinon si est_auto(left) && est_auto(right) && !est_auto(width) {
             // À FAIRE : direction
             left = crée_valeur_pixels(pos_x_statique - containing_block.rect.x);
-            right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels());
+            right = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right));
         }
 
         // 3. 'width' and 'right' are 'auto' and 'left' is not 'auto', then the width is shrink-to-fit.
         //    Then solve for 'right'
-        sinon si width.est_auto() && right.est_auto() && !left.est_auto() {
-            available_width := width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels();
+        sinon si est_auto(width) && est_auto(right) && !est_auto(left) {
+            available_width := width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right);
             width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width));
-            right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels());
+            right = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right));
         }
 
         // 4. 'left' is 'auto', 'width' and 'right' are not 'auto', then solve for 'left'
-        sinon si left.est_auto() && !width.est_auto() && !right.est_auto() {
-            left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels());
+        sinon si est_auto(left) && !est_auto(width) && !est_auto(right) {
+            left = crée_valeur_pixels(width_of_containing_block - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right));
         }
         
         // 5. 'width' is 'auto', 'left' and 'right' are not 'auto', then solve for 'width'
-        sinon si width.est_auto() && !left.est_auto() && !right.est_auto() {
-            width = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels());
+        sinon si est_auto(width) && !est_auto(left) && !est_auto(right) {
+            width = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right));
         }
         
         // 6. 'right' is 'auto', 'left' and 'width' are not 'auto', then solve for 'right'
-        sinon si right.est_auto() && !left.est_auto() && !width.est_auto() {
-            right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels());
+        sinon si est_auto(right) && !est_auto(left) && !est_auto(width) {
+            right = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right));
         }
     }
 }
@@ -1104,13 +1104,13 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     // 'top' + 'margin-top' + 'border-top-width' + 'padding-top' + 'height' + 'padding-bottom' + 'border-bottom-width' + 'margin-bottom' + 'bottom' = height of containing block
 
     // If all three of 'top', 'height', and 'bottom' are auto, set 'top' to the static position and apply rule number three below.
-    si top.est_auto() && height.est_auto() && bottom.est_auto() {
+    si est_auto(top) && est_auto(height) && est_auto(bottom) {
         top = crée_valeur_pixels(pos_y_statique - containing_block.rect.y);
 
-        si margin_top.est_auto() {
+        si est_auto(margin_top) {
             margin_top = donne_valeur_pixels_zéro();
         }
-        si margin_bottom.est_auto() {
+        si est_auto(margin_bottom) {
             margin_bottom = donne_valeur_pixels_zéro();
         }
 
@@ -1119,26 +1119,26 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         }
 
         height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(box comme *BlockBox));
-        bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels());
+        bottom = crée_valeur_pixels(height_of_containing_block - donne_pixels(top) - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom));
     }
     // If none of the three are 'auto': If both 'margin-top' and 'margin-bottom' are 'auto',
     // solve the equation under the extra constraint that the two margins get equal values.
     // If one of 'margin-top' or 'margin-bottom' is 'auto', solve the equation for that value.
     // If the values are over-constrained, ignore the value for 'bottom' and solve for that value.
-    sinon si !top.est_auto() && !height.est_auto() && !bottom.est_auto() {
-        si margin_top.est_auto() && margin_bottom.est_auto() {
-            marges := height_of_containing_block - top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - bottom.donne_pixels();
+    sinon si !est_auto(top) && !est_auto(height) && !est_auto(bottom) {
+        si est_auto(margin_top) && est_auto(margin_bottom) {
+            marges := height_of_containing_block - donne_pixels(top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(bottom);
             margin_top = crée_valeur_pixels(marges * 0.5);
             margin_bottom = crée_valeur_pixels(marges * 0.5);
         }
-        sinon si margin_top.est_auto() {
-            margin_top = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels());
+        sinon si est_auto(margin_top) {
+            margin_top = crée_valeur_pixels(height_of_containing_block - donne_pixels(top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom) - donne_pixels(bottom));
         }
-        sinon si margin_bottom.est_auto() {
-            margin_bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - bottom.donne_pixels());
+        sinon si est_auto(margin_bottom) {
+            margin_bottom = crée_valeur_pixels(height_of_containing_block - donne_pixels(top) - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(bottom));
         }
         sinon {
-            bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels());
+            bottom = crée_valeur_pixels(height_of_containing_block - donne_pixels(top) - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom));
         }
     }
     sinon {
@@ -1146,11 +1146,11 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 
         // 1. 'top' and 'height' are 'auto' and 'bottom' is not 'auto',
         // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'top'
-        si top.est_auto() && height.est_auto() && !bottom.est_auto() {
-            si margin_top.est_auto() {
+        si est_auto(top) && est_auto(height) && !est_auto(bottom) {
+            si est_auto(margin_top) {
                 margin_top = donne_valeur_pixels_zéro();
             }
-            si margin_bottom.est_auto() {
+            si est_auto(margin_bottom) {
                 margin_bottom = donne_valeur_pixels_zéro();
             }
 
@@ -1159,27 +1159,27 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             }
 
             height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(box comme *BlockBox));
-            top = crée_valeur_pixels(height_of_containing_block - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels());
+            top = crée_valeur_pixels(height_of_containing_block - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom) - donne_pixels(bottom));
         }
         // 2. 'top' and 'bottom' are 'auto' and 'height' is not 'auto',
         // then set 'top' to the static position, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
-        sinon si top.est_auto() && !height.est_auto() && bottom.est_auto() {
-            si margin_top.est_auto() {
+        sinon si est_auto(top) && !est_auto(height) && est_auto(bottom) {
+            si est_auto(margin_top) {
                 margin_top = donne_valeur_pixels_zéro();
             }
-            si margin_bottom.est_auto() {
+            si est_auto(margin_bottom) {
                 margin_bottom = donne_valeur_pixels_zéro();
             }
             top = crée_valeur_pixels(pos_y_statique - containing_block.rect.y);
-            bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels());
+            bottom = crée_valeur_pixels(height_of_containing_block - donne_pixels(top) - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom));
         }
         // 3. 'height' and 'bottom' are 'auto' and 'top' is not 'auto',
         // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
-        sinon si !top.est_auto() && height.est_auto() && bottom.est_auto() {
-            si margin_top.est_auto() {
+        sinon si !est_auto(top) && est_auto(height) && est_auto(bottom) {
+            si est_auto(margin_top) {
                 margin_top = donne_valeur_pixels_zéro();
             }
-            si margin_bottom.est_auto() {
+            si est_auto(margin_bottom) {
                 margin_bottom = donne_valeur_pixels_zéro();
             }
 
@@ -1188,40 +1188,40 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             }
 
             height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(box comme *BlockBox));
-            bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels());
+            bottom = crée_valeur_pixels(height_of_containing_block - donne_pixels(top) - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom));
         }
         // 4. 'top' is 'auto', 'height' and 'bottom' are not 'auto',
         // then set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'top'
-        sinon si top.est_auto() && !height.est_auto() && !bottom.est_auto() {
-            si margin_top.est_auto() {
+        sinon si est_auto(top) && !est_auto(height) && !est_auto(bottom) {
+            si est_auto(margin_top) {
                 margin_top = donne_valeur_pixels_zéro();
             }
-            si margin_bottom.est_auto() {
+            si est_auto(margin_bottom) {
                 margin_bottom = donne_valeur_pixels_zéro();
             }
-            top = crée_valeur_pixels(height_of_containing_block - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels());
+            top = crée_valeur_pixels(height_of_containing_block - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom) - donne_pixels(bottom));
         }
         // 5. 'height' is 'auto', 'top' and 'bottom' are not 'auto',
         // then 'auto' values for 'margin-top' and 'margin-bottom' are set to 0 and solve for 'height'
-        sinon si !top.est_auto() && height.est_auto() && !bottom.est_auto() {
-            si margin_top.est_auto() {
+        sinon si !est_auto(top) && est_auto(height) && !est_auto(bottom) {
+            si est_auto(margin_top) {
                 margin_top = donne_valeur_pixels_zéro();
             }
-            si margin_bottom.est_auto() {
+            si est_auto(margin_bottom) {
                 margin_bottom = donne_valeur_pixels_zéro();
             }
-            height = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels());
+            height = crée_valeur_pixels(height_of_containing_block - donne_pixels(top) - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom) - donne_pixels(bottom));
         }
         // 6. 'bottom' is 'auto', 'top' and 'height' are not 'auto',
         // then set 'auto' values for 'margin-top' and 'margin-bottom' to 0 and solve for 'bottom'
-        sinon si !top.est_auto() && !height.est_auto() && bottom.est_auto() {
-            si margin_top.est_auto() {
+        sinon si !est_auto(top) && !est_auto(height) && est_auto(bottom) {
+            si est_auto(margin_top) {
                 margin_top = donne_valeur_pixels_zéro();
             }
-            si margin_bottom.est_auto() {
+            si est_auto(margin_bottom) {
                 margin_bottom = donne_valeur_pixels_zéro();
             }
-            bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels());
+            bottom = crée_valeur_pixels(height_of_containing_block - donne_pixels(top) - donne_pixels(margin_top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(margin_bottom));
         }
     }
 
@@ -1241,23 +1241,23 @@ calcule_hauteur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     height = copie_ph.height;
 
     // 2. If both 'top' and 'bottom' have the value 'auto', replace 'top' with the element's static position.
-    si top.est_auto() && bottom.est_auto() {
+    si est_auto(top) && est_auto(bottom) {
         top = crée_valeur_pixels(pos_y_statique - containing_block.rect.y);
     }
 
     // 3. If 'bottom' is 'auto', replace any 'auto' on 'margin-top' or 'margin-bottom' with '0'.
-    si bottom.est_auto() {
-        si margin_bottom.est_auto() {
+    si est_auto(bottom) {
+        si est_auto(margin_bottom) {
             margin_bottom = donne_valeur_pixels_zéro();
         }
-        si margin_top.est_auto() {
+        si est_auto(margin_top) {
             margin_top = donne_valeur_pixels_zéro();
         }
     }
 
     // 4. If at this point both 'margin-top' and 'margin-bottom' are still 'auto', solve the equation under the extra constraint that the two margins must get equal values.
-    si margin_top.est_auto() && margin_bottom.est_auto() {
-        marges := height_of_containing_block - top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - bottom.donne_pixels();
+    si est_auto(margin_top) && est_auto(margin_bottom) {
+        marges := height_of_containing_block - donne_pixels(top) - donne_pixels(border_top_width) - donne_pixels(padding_top) - donne_pixels(height) - donne_pixels(padding_bottom) - donne_pixels(border_bottom_width) - donne_pixels(bottom);
         margin_top = crée_valeur_pixels(marges * 0.5);
         margin_bottom = crée_valeur_pixels(marges * 0.5);
     }
@@ -1273,15 +1273,15 @@ calcule_hauteur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
 calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
     // If 'margin-left', or 'margin-right' are computed as 'auto', their used value is '0'.
-    si margin_left.est_auto() {
+    si est_auto(margin_left) {
         margin_left = donne_valeur_pixels_zéro();
     }
-    si margin_right.est_auto() {
+    si est_auto(margin_right) {
         margin_right = donne_valeur_pixels_zéro();
     }
 
     // If 'width' is computed as 'auto', the used value is the "shrink-to-fit" width.
-    si width.est_auto() {
+    si est_auto(width) {
         // Calculation of the shrink-to-fit width is similar to calculating the width of a table
         // cell using the automatic table layout algorithm. Roughly: calculate the preferred width
         // by formatting the content without breaking lines other than where explicit line breaks
@@ -1291,7 +1291,7 @@ calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *Argu
         // block minus the used values of 'margin-left', 'border-left-width', 'padding-left',
         // 'padding-right', 'border-right-width', 'margin-right', and the widths of any relevant
         // scroll bars.
-        available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels();
+        available_width := width_of_containing_block - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right);
         width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width));
     }
 }
@@ -1303,37 +1303,37 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 
     propriétés := box.propriétés;
 
-    height := propriétés.donne_valeur_calculée(IDPropriété.Height);
+    height := donne_valeur_calculée(propriétés, IDPropriété.Height);
 
     // A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'.
-    si margin_left.est_auto() {
+    si est_auto(margin_left) {
         margin_left = donne_valeur_pixels_zéro();
     }
-    si margin_right.est_auto() {
+    si est_auto(margin_right) {
         margin_right = donne_valeur_pixels_zéro();
     }
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic width, then that intrinsic width is the used value of 'width'.
-    si width.est_auto() && height.est_auto() && replaced_box.possède_largeur_intrinsèque() {
-        width = crée_valeur_pixels(replaced_box.donne_largeur_intrinsèque());
+    si est_auto(width) && est_auto(height) && possède_largeur_intrinsèque(replaced_box) {
+        width = crée_valeur_pixels(donne_largeur_intrinsèque(replaced_box));
     }
     // If 'height' and 'width' both have computed values of 'auto' and the element has no
     // intrinsic width, but does have an intrinsic height and intrinsic ratio;
     // or if 'width' has a computed value of 'auto', 'height' has some other computed value,
     // and the element does have an intrinsic ratio; then the used value of 'width' is:
     //     (used height) * (intrinsic ratio)
-    sinon si (width.est_auto() && height.est_auto() && !replaced_box.possède_largeur_intrinsèque() && replaced_box.possède_ratio_intrinsèque()) ||
-             (width.est_auto() && !height.est_auto() && replaced_box.possède_ratio_intrinsèque()) {
-        si height.est_auto() {
-            width = crée_valeur_pixels(replaced_box.donne_hauteur_intrinsèque() * replaced_box.donne_ratio_intrinsèque());
+    sinon si (est_auto(width) && est_auto(height) && !possède_largeur_intrinsèque(replaced_box) && possède_ratio_intrinsèque(replaced_box)) ||
+             (est_auto(width) && !est_auto(height) && possède_ratio_intrinsèque(replaced_box)) {
+        si est_auto(height) {
+            width = crée_valeur_pixels(donne_hauteur_intrinsèque(replaced_box) * donne_ratio_intrinsèque(replaced_box));
         }
-        sinon si height.est_percentage() {
+        sinon si est_percentage(height) {
             /* À FAIRE : résoud les pourcentages pour la hauteur plus tôt. */
-            width = crée_valeur_pixels(height.donne_percentage() * donne_hauteur(*containing_block) * replaced_box.donne_ratio_intrinsèque());
+            width = crée_valeur_pixels(donne_percentage(height) * donne_hauteur(*containing_block) * donne_ratio_intrinsèque(replaced_box));
         }
         sinon {
-            width = crée_valeur_pixels(height.donne_pixels() * replaced_box.donne_ratio_intrinsèque());
+            width = crée_valeur_pixels(donne_pixels(height) * donne_ratio_intrinsèque(replaced_box));
         }
     }
 
@@ -1346,14 +1346,14 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 
     // Otherwise, if 'width' has a computed value of 'auto', and the element has an intrinsic width,
     // then that intrinsic width is the used value of 'width'.
-    sinon si width.est_auto() && replaced_box.possède_largeur_intrinsèque() {
-        width = crée_valeur_pixels(replaced_box.donne_largeur_intrinsèque());
+    sinon si est_auto(width) && possède_largeur_intrinsèque(replaced_box) {
+        width = crée_valeur_pixels(donne_largeur_intrinsèque(replaced_box));
     }
     // Otherwise, if 'width' has a computed value of 'auto', but none of the conditions above are met,
     // then the used value of 'width' becomes 300px.
     // If 300px is too wide to fit the device, UAs should use the width of the largest rectangle that
     // has a 2:1 ratio and fits the device instead.
-    sinon si width.est_auto() {
+    sinon si est_auto(width) {
         width = crée_valeur_pixels(300.0);
     }
 }
@@ -1364,42 +1364,42 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     replaced_box := box comme *ReplacedBox;
     propriétés := box.propriétés;
 
-    width := propriétés.donne_valeur_calculée(IDPropriété.Width);
+    width := donne_valeur_calculée(propriétés, IDPropriété.Width);
 
     // If 'margin-top', or 'margin-bottom' are 'auto', their used value is 0.
-    si margin_top.est_auto() {
+    si est_auto(margin_top) {
         margin_top = donne_valeur_pixels_zéro();
     }
-    si margin_bottom.est_auto() {
+    si est_auto(margin_bottom) {
         margin_bottom = donne_valeur_pixels_zéro();
     }
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic height, then that intrinsic height is the used value of 'height'.
-    si width.est_auto() && height.est_auto() && replaced_box.possède_hauteur_intrinsèque() {
-        height = crée_valeur_pixels(replaced_box.donne_hauteur_intrinsèque());
+    si est_auto(width) && est_auto(height) && possède_hauteur_intrinsèque(replaced_box) {
+        height = crée_valeur_pixels(donne_hauteur_intrinsèque(replaced_box));
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic
     // ratio then the used value of 'height' is:
     //      (used width) / (intrinsic ratio)
-    sinon si height.est_auto() && replaced_box.possède_ratio_intrinsèque() {
-        largeur_utilisée := propriétés.donne_valeur_utilisée(IDPropriété.Width);
-        height = crée_valeur_pixels(largeur_utilisée.donne_pixels() / replaced_box.donne_ratio_intrinsèque());
+    sinon si est_auto(height) && possède_ratio_intrinsèque(replaced_box) {
+        largeur_utilisée := donne_valeur_utilisée(propriétés, IDPropriété.Width);
+        height = crée_valeur_pixels(donne_pixels(largeur_utilisée) / donne_ratio_intrinsèque(replaced_box));
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic height,
     // then that intrinsic height is the used value of 'height'.
-    sinon si height.est_auto() && replaced_box.possède_hauteur_intrinsèque() {
-        height = crée_valeur_pixels(replaced_box.donne_hauteur_intrinsèque());
+    sinon si est_auto(height) && possède_hauteur_intrinsèque(replaced_box) {
+        height = crée_valeur_pixels(donne_hauteur_intrinsèque(replaced_box));
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', but none of the conditions above are met,
     // then the used value of 'height' must be set to the height of the largest rectangle that has a
     // 2:1 ratio, has a height not greater than 150px, and has a width not greater than the device width.
-    sinon si height.est_auto() {
-        largeur_utilisée := propriétés.donne_valeur_utilisée(IDPropriété.Width);
-        height = crée_valeur_pixels(largeur_utilisée.donne_pixels() * 0.5);
+    sinon si est_auto(height) {
+        largeur_utilisée := donne_valeur_utilisée(propriétés, IDPropriété.Width);
+        height = crée_valeur_pixels(donne_pixels(largeur_utilisée) * 0.5);
     }
 
     retourne ÉtatCalculHauteur.HauteurRésolue;
@@ -1421,24 +1421,24 @@ calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     //    If 'margin-left' or 'margin-right' is specified as 'auto' its used value
     //    is determined by the rules below.
     calcule_largeur_et_marges_inline_replaced_element(args, pl);
-    width = crée_valeur_pixels(pl.width.donne_pixels());
+    width = crée_valeur_pixels(donne_pixels(pl.width));
 
     // 2. If both 'left' and 'right' have the value 'auto', then if the 'direction'
     //    property of the element establishing the static-position containing block
     //    is 'ltr', set 'left' to the static position; else if 'direction' is 'rtl',
     //    set 'right' to the static position.
     // À FAIRE : direction
-    si left.est_auto() && right.est_auto() {
+    si est_auto(left) && est_auto(right) {
         left = donne_valeur_pixels_zéro();
     }
 
     // 3. If 'left' or 'right' are 'auto', replace any 'auto' on 'margin-left' or
     //    'margin-right' with '0'.
-    si left.est_auto() || right.est_auto() {
-        si margin_left.est_auto() {
+    si est_auto(left) || est_auto(right) {
+        si est_auto(margin_left) {
             margin_left = donne_valeur_pixels_zéro();
         }
-        si margin_right.est_auto() {
+        si est_auto(margin_right) {
             margin_right = donne_valeur_pixels_zéro();
         }
     }
@@ -1448,25 +1448,25 @@ calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     //    equal values, unless this would make them negative, in which case when the
     //    direction of the containing block is 'ltr' ('rtl'), set 'margin-left'
     //    ('margin-right') to zero and solve for 'margin-right' ('margin-left').
-    si margin_left.est_auto() && margin_right.est_auto() {
-        taille_marges := width_of_containing_block - left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - right.donne_pixels();
+    si est_auto(margin_left) && est_auto(margin_right) {
+        taille_marges := width_of_containing_block - donne_pixels(left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(right);
         taille_marges *= 0.5;
         margin_left = crée_valeur_pixels(taille_marges);
         margin_right = crée_valeur_pixels(taille_marges);
     }
 
     // 5. If at this point there is an 'auto' left, solve the equation for that value.
-    si left.est_auto() {
-        left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels());
+    si est_auto(left) {
+        left = crée_valeur_pixels(width_of_containing_block - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right));
     }
-    sinon si right.est_auto() {
-        right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels());
+    sinon si est_auto(right) {
+        right = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right));
     }
-    sinon si margin_right.est_auto() {
-        margin_right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - right.donne_pixels());
+    sinon si est_auto(margin_right) {
+        margin_right = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(right));
     }
-    sinon si margin_left.est_auto() {
-        margin_left = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels());
+    sinon si est_auto(margin_left) {
+        margin_left = crée_valeur_pixels(width_of_containing_block - donne_pixels(left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(width) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right) - donne_pixels(right));
     }
 
     // 6. If at this point the values are over-constrained, ignore the value for either
@@ -1483,23 +1483,23 @@ calcule_largeur_et_marges_block_level_replaced_element :: fonc (empl args: *Argu
 
     // Then the rules for non-replaced block-level elements are applied to determine the margins.
     tmp_args := mémoire(args);
-    tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(pl.width.donne_pixels());
+    tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(donne_pixels(pl.width));
     calcule_largeur_et_marges_block_level_normal_flow(*tmp_args, pl);
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-width */
 calcule_largeur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsDimensionnement @inutilisée, empl pl: *PropriétésLargeur)
 {
-    si margin_left.est_auto() {
+    si est_auto(margin_left) {
         margin_left = donne_valeur_pixels_zéro();
     }
 
-    si margin_right.est_auto() {
+    si est_auto(margin_right) {
         margin_right = donne_valeur_pixels_zéro();
     }
 
     /* width ne s'applique pas, mais pour éviter des problèmes plus tard, remettons la valeur à zéro */
-    si width.est_auto() {
+    si est_auto(width) {
         width = donne_valeur_pixels_zéro();
     }
 }
@@ -1508,16 +1508,16 @@ calcule_largeur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsD
 calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsDimensionnement @inutilisée, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
     // À FAIRE : ceci est une copie des calculs pour la largeur
-    si margin_top.est_auto() {
+    si est_auto(margin_top) {
         margin_top = donne_valeur_pixels_zéro();
     }
 
-    si margin_bottom.est_auto() {
+    si est_auto(margin_bottom) {
         margin_bottom = donne_valeur_pixels_zéro();
     }
 
     /* height ne s'applique pas, mais pour éviter des problèmes plus tard, remettons la valeur à zéro */
-    si height.est_auto() {
+    si est_auto(height) {
         height = donne_valeur_pixels_zéro();
     }
 
@@ -1528,19 +1528,19 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsD
 calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
     /* A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'. */
-    si margin_left.est_auto() {
+    si est_auto(margin_left) {
         margin_left = donne_valeur_pixels_zéro();
     }
-    si margin_right.est_auto() {
+    si est_auto(margin_right) {
         margin_right = donne_valeur_pixels_zéro();
     }
 
     /* If 'width' is 'auto', the used value is the shrink-to-fit width as for floating elements. */
-    si width.est_auto() {
-        box.propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left);
-        box.propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right);
+    si est_auto(width) {
+        définis_valeur_utilisée(box.propriétés, IDPropriété.MarginLeft, margin_left);
+        définis_valeur_utilisée(box.propriétés, IDPropriété.MarginRight, margin_right);
 
-        available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels();
+        available_width := width_of_containing_block - donne_pixels(margin_left) - donne_pixels(border_left_width) - donne_pixels(padding_left) - donne_pixels(padding_right) - donne_pixels(border_right_width) - donne_pixels(margin_right);
         width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width));
     }
 }
@@ -1549,15 +1549,15 @@ calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: 
 calcule_hauteur_et_marges_complicated_cases :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
     // If 'margin-top', or 'margin-bottom' are 'auto', their used value is 0.
-    si margin_top.est_auto() {
+    si est_auto(margin_top) {
         margin_top = donne_valeur_pixels_zéro();
     }
-    si margin_bottom.est_auto() {
+    si est_auto(margin_bottom) {
         margin_bottom = donne_valeur_pixels_zéro();
     }
 
     //  If 'height' is 'auto', the height depends on the element's descendants per 10.6.7.
-    si height.est_auto() {
+    si est_auto(height) {
         saufsi args.calcul_hauteur_après_contenu {
             retourne ÉtatCalculHauteur.HauteurDépendSurContenu;
         }
@@ -1729,12 +1729,12 @@ calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, box: *Box, avai
 /* NOTE: This is called the “shrink-to-fit” width in CSS2.1§10.3.5 and CSS Multi-column Layout § 3.4. */
 calcule_fit_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box, available: AvailableSize) -> r64
 {
-    si available.est_min_content() {
+    si est_min_content(available) {
         retourne calcule_min_content_width(ctx, box);
     }
 
-    saufsi available.est_definite() {
-        assert(available.est_max_content() || available.est_indefinite());
+    saufsi est_definite(available) {
+        assert(est_max_content(available) || est_indefinite(available));
         retourne calcule_max_content_width(ctx, box);
     }
 
@@ -1746,7 +1746,7 @@ calcule_fit_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box, availa
 /* NOTE : This is called the “preferred minimum width” in CSS2.1§10.3.5 and the “minimum content width” in CSS2.1§17.5.2.2. */
 calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 {
-    si box.mémoire_vive.min_content_width.possède_valeur() {
+    si possède_valeur(box.mémoire_vive.min_content_width) {
         retourne box.mémoire_vive.min_content_width.Quelque;
     }
 
@@ -1755,7 +1755,7 @@ calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
     available.height = crée_indefinite_size();
 
     formatte_intérieur(box comme *BlockBox, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, available);
-    résultat := box.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels();
+    résultat := donne_pixels(donne_valeur_utilisée(box.propriétés, IDPropriété.Width));
     box.mémoire_vive.min_content_width = résultat;
     retourne résultat;
 }
@@ -1763,7 +1763,7 @@ calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 /* This is called the “preferred width” in CSS2.1§10.3.5 and the “maximum cell width” in CSS2.1§17.5.2.2. */
 calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 {
-    si box.mémoire_vive.max_content_width.possède_valeur() {
+    si possède_valeur(box.mémoire_vive.max_content_width) {
         retourne box.mémoire_vive.max_content_width.Quelque;
     }
 
@@ -1773,7 +1773,7 @@ calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 
     /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
     formatte_intérieur(box comme *BlockBox, ctx, ModeDeFormattage.BrisureDeLigneExplicite, available);
-    résultat := box.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels();
+    résultat := donne_pixels(donne_valeur_utilisée(box.propriétés, IDPropriété.Width));
     box.mémoire_vive.max_content_width = résultat;
     retourne résultat;
 }

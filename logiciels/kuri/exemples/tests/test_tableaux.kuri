@@ -2,8 +2,44 @@ importe Fondation;
 
 principale :: fonc ()
 {
+    démontre_rubriques_tableaux_fixes();
+    démontre_initialisation_construction_typée();
+}
+
+démontre_rubriques_tableaux_fixes :: fonc ()
+{
+    tableau := [0, 1, 2, 3];
+
+    /* Les tableaeux fixes ont deux rubriques en lecture seule :
+     * - taille : qui donne le nombre d'éléments dans le tableau
+     * - données : qui donne l'adresse du premier élément, et est
+     *   donc l'équivalent de *tableau[0]
+     */
+
+    assert(tableau.taille == 4);
+
+    adresse_par_indexage := *tableau[0];
+    adresse_par_rubrique := tableau.données;
+
+    assert(adresse_par_indexage == adresse_par_rubrique);
+}
+
+démontre_initialisation_construction_typée :: fonc ()
+{
+    /* Les expression de tableaux constants peuvent être préfixées par
+     * un type qui sera utilisé pour le typage des éléments du tableau.
+     */
+
     tableau_z32 := z32.[ 0, 1, 2, 3 ];
-    imprime("%\n", tableau_z32);
+    vérifie_éléments_tableau(tableau_z32);
+
     tableau_r64 := r64.[ 0, 1, 2, 3 ];
-    imprime("%\n", tableau_r64);
+    vérifie_éléments_tableau(tableau_r64);
+}
+
+vérifie_éléments_tableau :: fonc (tableau: []$T)
+{
+    pour tableau {
+        assert(it == indice_it comme T);
+    }
 }

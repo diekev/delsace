@@ -337,7 +337,7 @@ initialise_première_ligne :: fonc (empl constructrice: *ConstructriceMéthodeEl
     pour * ligne_courante {
         init_de(ConstructriceMéthodeEller.Cellule)(it);
 
-        it.groupe = constructrice.crée_groupe();
+        it.groupe = crée_groupe(constructrice);
         tableau_ajoute(*it.groupe.cellules, it);
 
         si indice_it == 0 {
@@ -381,7 +381,7 @@ avance_ligne_suivante :: fonc (empl constructrice: *ConstructriceMéthodeEller)
         si it.position_mur.BAS == vrai {
             /* Supprime la cellule de son groupe, et ajoute-là dans son propre groupe. */
             tableau_supprime_valeur(*it.groupe.cellules, it);
-            it.groupe = constructrice.crée_groupe();
+            it.groupe = crée_groupe(constructrice);
             tableau_ajoute(*it.groupe.cellules, it);
         }
 
@@ -405,7 +405,7 @@ crée_mur_entre_cellules :: fonc (empl constructrice: *ConstructriceMéthodeElle
         cx1 := *ligne_courante[x];
 
         si cx0.groupe != cx1.groupe {
-            xi := entropie.aléatoire_unilatérale();
+            xi := aléatoire_unilatérale(entropie);
             si xi < 0.5 {
                 // ajoutons un mur
                 cx0.position_mur.DROITE = vrai;
@@ -448,7 +448,7 @@ crée_chemin_sortie_cellules :: fonc (empl constructrice: *ConstructriceMéthode
         nombre_de_cellules_avec_sortie := 0;
 
         pour groupe.cellules {
-            xi := entropie.aléatoire_unilatérale();
+            xi := aléatoire_unilatérale(entropie);
             si xi < 0.5 {
                 /* Ajoutons un mur. */
                 it.position_mur.BAS = vrai;

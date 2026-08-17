@@ -489,27 +489,27 @@ dessine_chemin :: fonc (peintre: *Peintre, chemin: Chemin, couleur := CouleurRVB
     pour chemin.sous_chemins {
         pour noeud, indice_noeud dans it.noeuds {
             {
-                peintre.dessine_segment(noeud.controle_arrière, noeud.ancre, couleur);
+                dessine_segment(peintre, noeud.controle_arrière, noeud.ancre, couleur);
 
-                peintre.dessine_segment(noeud.ancre, noeud.controle_avant, couleur);
+                dessine_segment(peintre, noeud.ancre, noeud.controle_avant, couleur);
 
                 rect: RectanglePosDim(r32);
                 rect.x = noeud.ancre.x - RAYON_NOEUD;
                 rect.y = noeud.ancre.y - RAYON_NOEUD;
                 rect.largeur = 2.0 * RAYON_NOEUD;
                 rect.hauteur = 2.0 * RAYON_NOEUD;
-                peintre.remplis_rectangle(rect, couleur);
+                remplis_rectangle(peintre, rect, couleur);
 
                 cercle: Cercle(r32);
                 cercle.centre_x = noeud.controle_arrière.x;
                 cercle.centre_y = noeud.controle_arrière.y;
                 cercle.rayon = RAYON_NOEUD;
-                peintre.dessine_cercle(cercle, couleur);
+                dessine_cercle(peintre, cercle, couleur);
 
                 cercle.centre_x = noeud.controle_avant.x;
                 cercle.centre_y = noeud.controle_avant.y;
                 cercle.rayon = RAYON_NOEUD;
-                peintre.dessine_cercle(cercle, couleur);
+                dessine_cercle(peintre, cercle, couleur);
             }
 
             noeud_suivant: SousChemin.Noeud;
@@ -529,13 +529,13 @@ dessine_chemin :: fonc (peintre: *Peintre, chemin: Chemin, couleur := CouleurRVB
             
             échantillonne_courbe_bézier(noeud, noeud_suivant, échantillons);
 
-            peintre.dessine_segment(p0, échantillons[0], couleur);
+            dessine_segment(peintre, p0, échantillons[0], couleur);
 
             pour i dans échantillons.taille - 1 {
-                peintre.dessine_segment(échantillons[i], échantillons[i + 1], couleur);
+                dessine_segment(peintre, échantillons[i], échantillons[i + 1], couleur);
             }
 
-            peintre.dessine_segment(échantillons[échantillons.taille - 1], p1, couleur);
+            dessine_segment(peintre, échantillons[échantillons.taille - 1], p1, couleur);
         }
     }
 }

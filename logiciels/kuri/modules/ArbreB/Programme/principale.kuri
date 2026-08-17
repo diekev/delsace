@@ -14,7 +14,7 @@ principale :: fonc ()
 
     pages_à_référencer := [ 1, 2, 3, 1, 4, 5 ];
     pour pages_à_référencer {
-        file.référence_page(hash, it);
+        référence_page(file, hash, it);
     }
 
     imprime_file(file);
@@ -105,7 +105,7 @@ est_vide :: fonc (file: *File) -> bool
 
 défile :: fonc (file: *File) -> rien
 {
-    si file.est_vide() {
+    si est_vide(file) {
         retourne;
     }
 
@@ -150,7 +150,7 @@ enfile :: fonc (file: *File, hash: *Hash, numéro_page: z32) -> rien
     temp := crée_noeud(numéro_page);
     temp.suivant = file.front;
 
-    si file.est_vide() {
+    si est_vide(file) {
         file.cul = temp;
         file.front = temp;
     }
@@ -280,8 +280,8 @@ cherche_clé :: fonc (arbre: *ArbreB($C), clé: z32) -> rien
 
 supprime_et_traverse :: fonc (arbre: *ArbreB($C), clé: z32) -> rien
 {
-    arbre.supprime(clé);
+    supprime(arbre, clé);
     imprime("Traverse de l'arbre après la suppression de %:\n", clé);
-    arbre.traverse();
+    traverse(arbre);
     imprime("\n");
 }
