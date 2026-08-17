@@ -219,7 +219,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
         }
 
         chm := CheminFichier(chemin);
-        type_mime = type_mime_pour_extension(chm.extension());
+        type_mime = type_mime_pour_extension(extension(chm));
     }
 
     si type_mime == "image/webp" {
@@ -415,7 +415,7 @@ crée_icone_pour_image_invalide :: fonc (taille_icone: z32) -> NouvelleImage
 {
     desc := DescriptriceImage(taille_icone comme n32, taille_icone comme n32, FormatPixel.RVB_32);
     résultat := crée_image(*desc);
-    remplis_tampon(résultat.donne_tampon_spectre(), Spectre(1.0, 0.0, 1.0));
+    remplis_tampon(donne_tampon_spectre(résultat), Spectre(1.0, 0.0, 1.0));
     retourne résultat;
 }
 

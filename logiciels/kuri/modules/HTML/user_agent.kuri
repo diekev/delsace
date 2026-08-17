@@ -344,7 +344,7 @@ donne_taille_écran :: fonc (user_agent: *UserAgent) -> TailleÉcranExposéWeb
 
 édition_text_input_requise :: fonc (user_agent: *UserAgent, input: *HTMLInputElement)
 {
-    assert(input.is_text_entry_widget());
+    assert(is_text_entry_widget(input));
     rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_édition_text_input_requise {
         retourne;
@@ -436,7 +436,7 @@ crée_tâche_pour_traversable :: fonc (user_agent: *UserAgent, tâche_à_enfiler
         tâche_à_enfiler := tâche.tâche_à_enfiler;
         traversable := tâche.traversable;
 
-        user_agent.lance_sur_file_parallèle(traversable, tâche_à_enfiler);
+        lance_sur_file_parallèle(user_agent, traversable, tâche_à_enfiler);
     }
 
     tâche := crée_algorithm(sur_run, Tâche);
@@ -467,7 +467,7 @@ enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *Use
     tâche.élément = élément;
     tâche.nom = nom;
 
-    user_agent.queue_an_element_task(Task_Source.ManipulationDOM, élément, tâche);
+    queue_an_element_task(user_agent, Task_Source.ManipulationDOM, élément, tâche);
 }
 
 queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent, élément: *Element)

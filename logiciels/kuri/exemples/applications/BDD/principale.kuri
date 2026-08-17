@@ -25,7 +25,7 @@ lance_boucle_exécution :: fonc ()
 
         entrée: chaine;
         pousse_contexte nouveau_contexte {
-            entrée = entrée_standarde().lis_ligne();
+            entrée = lis_ligne(entrée_standarde());
         }
 
         asa := parse(entrée);

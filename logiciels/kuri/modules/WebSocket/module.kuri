@@ -322,15 +322,15 @@ traite_données_reçues :: fonc (extrémité: *Extrémité($TypePrise, $est_clie
                         doit_fermer_la_prise = vrai;
                     }
                     sinon {
-                        saufsi message_à_continuer.ajoute_frame(frame, données_frame) {
+                        saufsi ajoute_frame(message_à_continuer, frame, données_frame) {
                             code : n16 = 1007;
                             commute_boutisme(*code);
                             réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente);
                             doit_fermer_la_prise = vrai;
                         }
                         sinon {
-                            données_message := message_à_continuer.donne_données_finales();
-                            opcode := message_à_continuer.donne_opcode_pour_réponse();
+                            données_message := donne_données_finales(message_à_continuer);
+                            opcode := donne_opcode_pour_réponse(message_à_continuer);
 
                             réponse = extrémité.sur_message(prise, opcode, données_message);
                             détruit_message(message_à_continuer);
@@ -361,7 +361,7 @@ traite_données_reçues :: fonc (extrémité: *Extrémité($TypePrise, $est_clie
                     extrémité.message_à_continuer = message_à_continuer;
                 }
 
-                saufsi message_à_continuer.ajoute_frame(frame, données_frame) {
+                saufsi ajoute_frame(message_à_continuer, frame, données_frame) {
                     code : n16 = 1007;
                     commute_boutisme(*code);
                     réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente);
@@ -379,12 +379,12 @@ traite_données_reçues :: fonc (extrémité: *Extrémité($TypePrise, $est_clie
 
     pour réponses {
         chaine_réponse := chaine_depuis_tranche_octets(it);
-        _ := prise.écris(chaine_réponse);
+        _ := écris(prise, chaine_réponse);
     }
 
     si doit_fermer_la_prise {
         détruit_message(extrémité.message_à_continuer);
-        prise.ferme();
+        ferme(prise);
     }
 }
 
@@ -997,13 +997,13 @@ calcul_clé_serrage_de_main :: fonc (clé_donnée: chaine) -> chaine
     sha1 := crée_sha1();
     diffère détruit(*sha1);
 
-    sha1.ajourne(tmp);
+    ajourne(sha1, tmp);
 
-    rés_sha1 := sha1.donne_condensat();
+    rés_sha1 := donne_condensat(sha1);
     diffère détruit_données(*rés_sha1);
 
     // @fuite-de-mémoire quand on les passe aux MessageHTTP
-    retourne encode_base64(rés_sha1.donne_chaine());
+    retourne encode_base64(donne_chaine(rés_sha1));
 }
 
 crée_valeur_sec_websocket_key :: fonc () -> [24]octet

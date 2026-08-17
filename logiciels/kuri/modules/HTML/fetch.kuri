@@ -544,13 +544,13 @@ Response :: struct {
 crée_réponse :: fonc (requête: *Request) -> *Response
 {
     résultat := loge(Response);
-    résultat.définis_url(requête.donne_url_courant());
+    définis_url(résultat, donne_url_courant(requête));
     retourne résultat;
 }
 
 détruit_response :: fonc (response: *Response)
 {
-    si response.body.possède_valeur() {
+    si possède_valeur(response.body) {
         body := response.body.Quelque;
         déloge(*body);
     }
@@ -646,10 +646,10 @@ aborted_network_error :: fonc (requête: *Request) -> *Response
 appropriate_network_error :: fonc (fetch_params: *FetchParams) -> *Response
 {
     // 1. Assert: fetchParams is canceled.
-    assert(fetch_params.is_canceled());
+    assert(is_canceled(fetch_params));
 
     // 2. Return an aborted network error if fetchParams is aborted; otherwise return a network error.
-    si fetch_params.is_aborted() {
+    si is_aborted(fetch_params) {
         retourne aborted_network_error(fetch_params.request);
     }
 
@@ -683,13 +683,13 @@ donne_location_url :: fonc (response: *Response, user_agent: *UserAgent, fragmen
     }
 
     // 3. If location is a header value, then set location to the result of parsing location with response’s URL.
-    location := url_parser(user_agent, location_url, response.donne_url());
+    location := url_parser(user_agent, location_url, donne_url(response));
     si location == nul {
         retourne nul;
     }
 
     // 4. If location is a URL whose fragment is null, then set location’s fragment to requestFragment.
-    saufsi location.fragment.possède_valeur() {
+    saufsi possède_valeur(location.fragment) {
         location.fragment = fragment;
     }
 
@@ -723,7 +723,7 @@ donne_unsafe_response :: fonc (response: *Response) -> *Response
 
 crée_réponse_pour_hôte_introuvable :: fonc (request: *Request) -> *Response
 {
-    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    chemin_parent_ci_fichier := chemin_parent(CheminFichier(#chemin_de_ce_fichier));
     diffère détruit_chemin(*chemin_parent_ci_fichier);
 
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-introuvable.html";
@@ -747,7 +747,7 @@ crée_réponse_pour_hôte_ferma_connexion :: fonc (request: *Request) -> *Respon
 
 crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine) -> *Response
 {
-    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    chemin_parent_ci_fichier := chemin_parent(CheminFichier(#chemin_de_ce_fichier));
     diffère détruit_chemin(*chemin_parent_ci_fichier);
 
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-inconnue.html";
@@ -764,7 +764,7 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
 
 crée_réponse_pour_trop_de_redirections :: fonc (request: *Request) -> *Response
 {
-    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    chemin_parent_ci_fichier := chemin_parent(CheminFichier(#chemin_de_ce_fichier));
     diffère détruit_chemin(*chemin_parent_ci_fichier);
 
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-trop-de-redirections.html";
@@ -1114,7 +1114,7 @@ fetch :: fonc (user_agent: *UserAgent,
 populate_request_from_client :: fonc (request: *Request)
 {
     // 1. If request’s traversable for user prompts is "client":
-    si request.traversable_for_user_prompts.est_client() {
+    si est_client(request.traversable_for_user_prompts) {
 
         // 1. Set request’s traversable for user prompts to "no-traversable".
         request.traversable_for_user_prompts = RequestTraversable.NoTraversable;
@@ -1129,19 +1129,19 @@ populate_request_from_client :: fonc (request: *Request)
     }
 
     // 2. If request’s origin is "client":
-    si request.origin.est_client() {
+    si est_client(request.origin) {
         // 1. Assert: request’s client is non-null.
         assert(request.client != nul);
 
         // 2. Set request’s origin to request’s client’s origin.
-        request.origin = request.client.donne_origin();
+        request.origin = donne_origin(request.client);
     }
 
     // 3. If request’s policy container is "client":
     si request.policy_container == "client" {
         // 1. If request’s client is non-null, then set request’s policy container to a clone of request’s client’s policy container. [HTML]
         si request.client != nul {
-            request.policy_container = clone(request.client.donne_policy_container());
+            request.policy_container = clone(donne_policy_container(request.client));
         }
         // 2. Otherwise, set request’s policy container to a new policy container.
         sinon {
@@ -1172,7 +1172,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     response: *Response;
 
     // 3. If request’s local-URLs-only flag is set and request’s current URL is not local, then set response to a network error.
-    si request.drapeaux.LOCAL_URLS_ONLY && !is_local(request.donne_url_courant()) {
+    si request.drapeaux.LOCAL_URLS_ONLY && !is_local(donne_url_courant(request)) {
         response = network_error(request);
     }
 
@@ -1187,7 +1187,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     // 8. If request’s referrer policy is the empty string, then set request’s
     //    referrer policy to request’s policy container’s referrer policy.
     si request.referrer_policy == ReferrerPolicy.EmptyString {
-        request.referrer_policy = request.policy_container.donne_referrer_policy();
+        request.referrer_policy = donne_referrer_policy(request.policy_container);
     }
 
     // 9. If request’s referrer is not "no-referrer", then set request’s referrer to the result of invoking determine request’s referrer. [REFERRER]
@@ -1207,7 +1207,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
 
     saufsi recursive {
         tâche := crée_algorithm_pour_fonction(*params, main_fetch_parallel_steps);
-        user_agent.lance_en_parallèle(tâche);
+        lance_en_parallèle(user_agent, tâche);
         retourne;
     }
 
@@ -1239,7 +1239,7 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
         // request’s current URL’s origin is same origin with request’s origin, and request’s response tainting is "basic"
         // request’s current URL’s scheme is "data"
         // request’s mode is "navigate" or "websocket"
-        si (request.donne_url_courant().scheme == "data") ||
+        si (donne_url_courant(request).scheme == "data") ||
            (request.mode == Request.Mode.Navigate || request.mode == Request.Mode.WebSocket) {
             // Set request’s response tainting to "basic".
             request.response_tainting = Request.ResponseTainting.Basic;
@@ -1270,7 +1270,7 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
         }
 
         // request’s current URL’s scheme is not an HTTP(S) scheme
-        sinon si !is_http_scheme(request.donne_url_courant().scheme) {
+        sinon si !is_http_scheme(donne_url_courant(request).scheme) {
             // Return a network error.
             response = network_error(request);
         }
@@ -1420,11 +1420,11 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
         response;
     }
     sinon {
-        response.donne_internal_response();
+        donne_internal_response(response);
     };
 
     // 7. If internalResponse’s body is null, then run processResponseEndOfBody.
-    saufsi internal_response.body.possède_valeur() {
+    saufsi possède_valeur(internal_response.body) {
         process_response_end_of_body(user_agent, fetch_params, internal_response);
     }
     // 8. Otherwise:
@@ -1449,7 +1449,7 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
 
         // 4. Otherwise, fully read internalResponse’s body given processBody, processBodyError, and fetchParams’s task destination.
         null_or_bytes: Optionnel([]octet);
-        si internal_response.body.possède_valeur() {
+        si possède_valeur(internal_response.body) {
             bytes : []octet = internal_response.body.Quelque;
             null_or_bytes = bytes;
         }
@@ -1529,7 +1529,7 @@ queue_a_fetch_task :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, task_
 scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
 {
     // 1. If fetchParams is canceled, then retun the appropriate network error for fetchParams.
-    si fetch_params.is_canceled() {
+    si is_canceled(fetch_params) {
         retourne appropriate_network_error(fetch_params);
     }
 
@@ -1537,7 +1537,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
     request := fetch_params.request;
 
     // 3. Switch on request’s current URL’s scheme and run the associated steps:
-    schéma := request.donne_url_courant().scheme;
+    schéma := donne_url_courant(request).scheme;
 
     si schéma == "about" {
         panique("about non-implémenté");
@@ -1547,10 +1547,10 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
     }
     sinon si schéma == "data" {
         // 1. Let dataURLStruct be the result of running the data: URL processor on request’s current URL.
-        opt_data_url_struct := data_url_processor(request.donne_url_courant());
+        opt_data_url_struct := data_url_processor(donne_url_courant(request));
 
         // 2. If dataURLStruct is failure, then return a network error.
-        saufsi opt_data_url_struct.possède_valeur() {
+        saufsi possède_valeur(opt_data_url_struct) {
             retourne network_error(request);
         }
 
@@ -1576,7 +1576,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         retourne response;
     }
     sinon si schéma == "file" {
-        chaine_chemin := donne_chaine_chemin(request.donne_url_courant());
+        chaine_chemin := donne_chaine_chemin(donne_url_courant(request));
         diffère déloge(*chaine_chemin);
 
         chaine_chemin_ := résoud_échappement_url(chaine_chemin);
@@ -1585,7 +1585,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         chemin := CheminFichier(chaine_chemin_);
 
         saufsi fichier_existe(chemin) {
-            chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+            chemin_parent_ci_fichier := chemin_parent(CheminFichier(#chemin_de_ce_fichier));
             diffère détruit_chemin(*chemin_parent_ci_fichier);
 
             chemin_erreur_404 := chemin_parent_ci_fichier / "Fichiers/erreur-404.html";
@@ -1620,7 +1620,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
 crée_réponse_pour_fichier :: fonc (request: *Request, chemin: CheminFichier, status: z32) -> *Response
 {
-    type_mime := type_mime_pour_extension(chemin.extension());
+    type_mime := type_mime_pour_extension(extension(chemin));
     _, contenu := contenu_fichier_texte(chemin);
     retourne crée_réponse_pour_fichier(request, type_mime, contenu, status);
 }
@@ -1643,10 +1643,10 @@ crée_réponse_pour_fichier :: fonc (request: *Request, type_mime: chaine, conte
 scheme_fetch_blob :: fonc (request: *Request) -> *Response
 {
     // 1. Let blobURLEntry be request’s current URL’s blob URL entry.
-    blob_url_entry := request.donne_url_courant().blob_url_entry;
+    blob_url_entry := donne_url_courant(request).blob_url_entry;
 
     // 2. If request’s method is not `GET`, blobURLEntry is null, or blobURLEntry’s object is not a Blob object, then return a network error. [FILEAPI]
-    si request.method != "GET" || blob_url_entry == nul || !blob_url_entry.object.est_blob() {
+    si request.method != "GET" || blob_url_entry == nul || !est_blob(blob_url_entry.object) {
         retourne network_error(request);
     }
 
@@ -1839,7 +1839,7 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
     internal_reponse := response;
 
     // 3. Let locationURL be internalResponse’s location URL given request’s current URL’s fragment.
-    current_url := request.donne_url_courant();
+    current_url := donne_url_courant(request);
     location_url := donne_location_url(internal_reponse, user_agent, current_url.fragment);
 
     // 4. If locationURL is null, then return response.
@@ -1891,7 +1891,7 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
     // 17. If timingInfo’s redirect start time is 0, then set timingInfo’s redirect start time to timingInfo’s start time.
 
     // 18. Append locationURL to request’s URL list.
-    request.définis_url(location_url);
+    définis_url(request, location_url);
 
     // 19. Invoke set request’s referrer policy on redirect on request and internalResponse. [REFERRER]
 
@@ -1994,7 +1994,7 @@ data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
     si position_virgule == -1 {
         position_virgule = input.taille;
     }
-    mimetype := input.sous_chaine(position, position_virgule);
+    mimetype := sous_chaine(input, position, position_virgule);
     position = position_virgule;
 
     // 6. Strip leading and trailing ASCII whitespace from mimeType.
@@ -2059,7 +2059,7 @@ mime_type_fini_par_base64 :: fonc (mime_type: chaine) -> bool
         retourne faux;
     }
 
-    dernier_paramètre := mime_type.sous_chaine(position_point_virgule + 1, mime_type.taille);
+    dernier_paramètre := sous_chaine(mime_type, position_point_virgule + 1, mime_type.taille);
     dernier_paramètre = supprime_espaces_blanches_au_début(dernier_paramètre);
     retourne compare_ascii_insensible_à_la_casse(dernier_paramètre, "base64");
 }

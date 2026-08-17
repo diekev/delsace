@@ -46,11 +46,11 @@ détruit_données_observable :: fonc (observable: *Observable)
 
     /* Prévient les observatrices que nous sommes terminés. */
     pour observable.observatrices {
-        it.reçoie_message(*message);
+        reçoie_message(it, *message);
     }
 
     pour observable.observatrices {
-        it.supprime_observable(observable);
+        supprime_observable(it, observable);
     }
 
     déloge(*observable.observatrices);
@@ -65,7 +65,7 @@ ajoute_observatrice :: fonc (observable: *Observable, observatrice: *Observatric
     }
 
     tableau_ajoute(*observable.observatrices, observatrice);
-    observatrice.ajoute_observable(observable);
+    ajoute_observable(observatrice, observable);
 }
 
 supprime_observatrice :: fonc (observable: *Observable, observatrice: *Observatrice)
@@ -73,7 +73,7 @@ supprime_observatrice :: fonc (observable: *Observable, observatrice: *Observatr
     pour observable.observatrices {
         si it == observatrice {
             tableau_supprime_indice(*observable.observatrices, indice_it);
-            it.supprime_observable(observable);
+            supprime_observable(it, observable);
             retourne;
         }
     }
@@ -94,7 +94,7 @@ envoie_message :: fonc (observable: *Observable, message: MessageObservable)
             continue;
         }
 
-        it.reçoie_message(*message);
+        reçoie_message(it, *message);
     }
 }
 
@@ -118,7 +118,7 @@ détruit_données_observatrice :: fonc (observatrice: *Observatrice)
      * NOTE : supprime_observatrice appelera supprime_observable qui modifiera la taille du tableau... */
     tantque observatrice.observables.taille != 0 {
         it := observatrice.observables[0];
-        it.supprime_observatrice(observatrice);
+        supprime_observatrice(it, observatrice);
     }
 
     déloge(*observatrice.observables);

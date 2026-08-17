@@ -165,7 +165,7 @@ donne_position_écran_vers_monde :: fonc (caméra: *Caméra2D, x: r32, y: r32) -
     yr := (y / (caméra.hauteur comme r32)) * 2.0 - 1.0;
 
     // À FAIRE : supprime l'inversion
-    mvp := caméra.modèle_vue_projection();
+    mvp := modèle_vue_projection(caméra);
     mvp_inv := inverse(mvp);
 
     résultat := transforme(mvp_inv, Vec3(xr, yr));
@@ -174,7 +174,7 @@ donne_position_écran_vers_monde :: fonc (caméra: *Caméra2D, x: r32, y: r32) -
 
 donne_position_sur_écran :: fonc (caméra: *Caméra2D, x: r32, y: r32) -> Point2D(r32)
 {
-    mvp := caméra.modèle_vue_projection();
+    mvp := modèle_vue_projection(caméra);
     v := transforme(mvp, Vec3(x, y, 0.0));
 
     v *= 0.5;

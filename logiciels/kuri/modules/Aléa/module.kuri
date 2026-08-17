@@ -64,7 +64,7 @@ choisit :: fonc (gna: *GNA, tableau: []$T) -> T
 mélange_tableau :: fonc (gna: *GNA, tableau: []$T)
 {
     pour tableau.taille {
-        nouvel_index := gna.uniforme(0.0, (tableau.taille - 1) comme r32) comme z64;
+        nouvel_index := uniforme(gna, 0.0, (tableau.taille - 1) comme r32) comme z64;
 
         si nouvel_index == indice_it {
             continue;
@@ -114,20 +114,20 @@ génère_données_aléatoires :: fonc (génératrice: *GénératriceDonnéesAlé
 
 chaine_aléatoire :: fonc (gna: *GNA, alphabet: *Alphabet.Alphabet, taille_min: z32, taille_max: z32) -> chaine
 {
-    nombre_de_caractères := alphabet.taille_alphabet();
+    nombre_de_caractères := taille_alphabet(alphabet);
 
     min_r32 := 0.0;
     max_r32 := (nombre_de_caractères - 1) comme r32;
 
-    taille := gna.uniforme(taille_min comme r32, taille_max comme r32) comme z32;
+    taille := uniforme(gna, taille_min comme r32, taille_max comme r32) comme z32;
 
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
     pour taille {
-        index_r32 := gna.uniforme(min_r32, max_r32);
+        index_r32 := uniforme(gna, min_r32, max_r32);
         index_z32 := index_r32 comme z32;
-        caractère := alphabet.caractère_pour_index(index_z32);
+        caractère := caractère_pour_index(alphabet, index_z32);
 
         ajoute_au_tampon(*enchaineuse, caractère);
     }
@@ -239,7 +239,7 @@ aléatoire_unilatérale :: fonc (série: *SérieAléatoire) -> r32
 
 aléatoire_bilatérale :: fonc (série: *SérieAléatoire) -> r32
 {
-    retourne bilatéral_de(série.aléatoire_unilatérale());
+    retourne bilatéral_de(aléatoire_unilatérale(série));
 }
 
 choix_aléatoire :: fonc (série: *SérieAléatoire, compte: $T) -> T
@@ -254,17 +254,17 @@ choix_aléatoire :: fonc (série: *SérieAléatoire, valeurs: []$T) -> T
 
 vec3_aléatoire_unilatéral :: fonc (série: *SérieAléatoire) -> Vec3
 {
-    retourne Vec3(série.aléatoire_unilatérale(), série.aléatoire_unilatérale(), série.aléatoire_unilatérale());
+    retourne Vec3(aléatoire_unilatérale(série), aléatoire_unilatérale(série), aléatoire_unilatérale(série));
 }
 
 vec3_aléatoire :: fonc (série: *SérieAléatoire) -> Vec3
 {
-    retourne Vec3(série.aléatoire_bilatérale(), série.aléatoire_bilatérale(), série.aléatoire_bilatérale());
+    retourne Vec3(aléatoire_bilatérale(série), aléatoire_bilatérale(série), aléatoire_bilatérale(série));
 }
 
 aléatoire_entre :: fonc (série: *SérieAléatoire, min: $T, max: T) -> T
 {
-    résultat := série.aléatoire_unilatérale();
+    résultat := aléatoire_unilatérale(série);
     retourne (résultat * ((max - min) comme r32)) comme T + min;
 }
 

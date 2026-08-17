@@ -28,11 +28,11 @@ PanneauDossier :: struct {
 
 crée_panneau_dossier :: fonc (contexte: *ContexteInterface, parent: *Panneau) -> *PanneauDossier
 {
-    résultat := contexte.crée_panneau(PanneauDossier);
+    résultat := crée_panneau(contexte, PanneauDossier);
     résultat.sur_dessin = sur_dessin_panneau_dossier;
     résultat.sur_clic_souris = sur_clic_souris_panneau_dossier;
     résultat.sur_déplacement_souris = sur_déplacement_souris_panneau_dossier;
-    parent.ajoute_enfant(résultat);
+    ajoute_enfant(parent, résultat);
     retourne résultat;
 }
 
@@ -81,7 +81,7 @@ sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *Context
                 Ligne(z32)(pos_rect_élément[1], pos_rect_central[2])
             ];
 
-            peintre.dessine_segments(segments, thème.couleur_contour);
+            dessine_segments(peintre, segments, thème.couleur_contour);
         }
     }
 }
@@ -92,7 +92,7 @@ sur_déplacement_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier @
 
 sur_clic_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clic: ClicSouris) -> bool
 {
-    saufsi rect.contient(clic.état.où) {
+    saufsi contient(rect, clic.état.où) {
         retourne faux;
     }
 
@@ -101,7 +101,7 @@ sur_clic_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clic: Cl
     }
 
     pour éléments {
-        saufsi it.rect.contient(clic.état.où) {
+        saufsi contient(it.rect, clic.état.où) {
             continue;
         }
 
@@ -133,7 +133,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauDossier)
     fonte := contexte.fonte;
     métriques := donne_métriques_fonte(fonte);
 
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_de_ligne := donne_hauteur_ligne(métriques) comme z32;
     hauteur_onglets := hauteur_de_ligne + 10;
     espaçage_élément := donne_largeur_texte(fonte, "0") comme z32;
 
@@ -181,7 +181,7 @@ ajoute_onglet :: fonc (empl panneau: *PanneauDossier, nom: chaine, panneau_ongle
     élément.panneau = panneau_onglet;
 
     si enfants.taille == 0 {
-        panneau.ajoute_enfant(panneau_onglet);
+        ajoute_enfant(panneau, panneau_onglet);
     }
 }
 

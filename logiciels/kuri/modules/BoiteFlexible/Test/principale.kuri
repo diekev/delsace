@@ -123,8 +123,8 @@ dessine_fenêtre :: fonc (empl app: *App, largeur: z32, hauteur: z32)
         peintre = crée_peintre_igumi(taille_canevas);
     }
 
-    peintre.définis_taille_canevas(taille_canevas);
-    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0));
+    définis_taille_canevas(peintre, taille_canevas);
+    efface_cible_rendu(peintre, CouleurRVBA(1.0, 1.0, 1.0, 1.0));
 
     commandes := crée_interface(app, largeur, hauteur);
     dessine_commandes(peintre, *commandes);

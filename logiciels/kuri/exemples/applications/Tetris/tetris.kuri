@@ -202,7 +202,7 @@ traite_touche_clavier :: fonc (tetris: *Tetris, touche_clavier: ToucheClavier)
 
 ajourne_dessin_fenêtre :: fonc (tetris: *Tetris)
 {
-    dt := temps_début_frame.temps_écoulé_millisecondes() comme r32 / 1000.0;
+    dt := temps_écoulé_millisecondes(temps_début_frame) comme r32 / 1000.0;
     temps_début_frame = maintenant_précis();
 
     si dt > MAX_DT {

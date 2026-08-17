@@ -124,7 +124,7 @@ prépare_pour_écriture :: fonc (canal: *Base_Canal)
 {
     /* Si nous voulons écrire dans un canal, la partie lectrice de celui-ci
      * doit utiliser son entrée standarde pour lire. */
-    canal.lis_avec_entrée_standarde();
+    lis_avec_entrée_standarde(canal);
 }
 
 écris :: fonc (canal: *Base_Canal, texte: chaine)
