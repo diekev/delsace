@@ -134,65 +134,65 @@ donne_tampon_texte_natif :: fonc (éditrice: *ÉditriceTexte) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
-sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavier)
+sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: Info_Touche_Clavier)
 {
-    si touche.type == ToucheClavier.DÉBUT {
-        si touche.modificateur == ModificateurClavier.MAJUSCULE {
+    si touche.type == Touche_Clavier.DÉBUT {
+        si touche.modificateur == Modificateur_Clavier.MAJUSCULE {
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, 0);
         }
-        sinon si touche.modificateur == ModificateurClavier.zéro {
+        sinon si touche.modificateur == Modificateur_Clavier.zéro {
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0);
         }
         retourne;
     }
 
-    si touche.type == ToucheClavier.FIN {
-        si touche.modificateur == ModificateurClavier.MAJUSCULE {
+    si touche.type == Touche_Clavier.FIN {
+        si touche.modificateur == Modificateur_Clavier.MAJUSCULE {
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, taille(éditrice.texte_à_éditer));
         }
-        sinon si touche.modificateur == ModificateurClavier.zéro {
+        sinon si touche.modificateur == Modificateur_Clavier.zéro {
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, taille(éditrice.texte_à_éditer));
         }
         retourne;
     }
 
-    si touche.type == ToucheClavier.FLÈCHE_GAUCHE {
-        si touche.modificateur == ModificateurClavier.MAJUSCULE {
+    si touche.type == Touche_Clavier.FLÈCHE_GAUCHE {
+        si touche.modificateur == Modificateur_Clavier.MAJUSCULE {
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, éditrice.curseur.début - 1);
         }
-        sinon si touche.modificateur == ModificateurClavier.CONTROL {
+        sinon si touche.modificateur == Modificateur_Clavier.CONTROL {
             position := donne_position_mot_précédent(*éditrice.curseur);
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, position);
         }
-        sinon si touche.modificateur == ModificateurClavier.CTRL_MAJ {
+        sinon si touche.modificateur == Modificateur_Clavier.CTRL_MAJ {
             position := donne_position_mot_précédent(*éditrice.curseur);
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position);
         }
-        sinon si touche.modificateur == ModificateurClavier.zéro {
+        sinon si touche.modificateur == Modificateur_Clavier.zéro {
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début - 1);
         }
         retourne;
     }
 
-    si touche.type == ToucheClavier.FLÈCHE_DROITE {
-        si touche.modificateur == ModificateurClavier.MAJUSCULE {
+    si touche.type == Touche_Clavier.FLÈCHE_DROITE {
+        si touche.modificateur == Modificateur_Clavier.MAJUSCULE {
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, éditrice.curseur.fin + 1);
         }
-        sinon si touche.modificateur == ModificateurClavier.CONTROL {
+        sinon si touche.modificateur == Modificateur_Clavier.CONTROL {
             position := donne_position_mot_suivant(*éditrice.curseur);
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, position);
         }
-        sinon si touche.modificateur == ModificateurClavier.CTRL_MAJ {
+        sinon si touche.modificateur == Modificateur_Clavier.CTRL_MAJ {
             position := donne_position_mot_suivant(*éditrice.curseur);
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position);
         }
-        sinon si touche.modificateur == ModificateurClavier.zéro {
+        sinon si touche.modificateur == Modificateur_Clavier.zéro {
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1);
         }
         retourne;
     }
 
-    si touche.type == ToucheClavier.FLÈCHE_HAUT && éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
+    si touche.type == Touche_Clavier.FLÈCHE_HAUT && éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
         éditrice.curseur.ligne = restreint(0 comme z64, éditrice.curseur.ligne - 1, éditrice.lignes.taille - 1);
         ligne := donne_ligne_courante(*éditrice.curseur);
         éditrice.curseur.début = restreint(0 comme z64, éditrice.curseur.début, ligne.points_de_code.taille);
@@ -200,7 +200,7 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
         retourne;
     }
 
-    si touche.type == ToucheClavier.FLÈCHE_BAS && éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
+    si touche.type == Touche_Clavier.FLÈCHE_BAS && éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
         éditrice.curseur.ligne = restreint(0 comme z64, éditrice.curseur.ligne + 1, éditrice.lignes.taille - 1);
         ligne := donne_ligne_courante(*éditrice.curseur);
         éditrice.curseur.début = restreint(0 comme z64, éditrice.curseur.début, ligne.points_de_code.taille);
@@ -208,31 +208,31 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
         retourne;
     }
 
-    si touche.type == ToucheClavier.EFFACE {
-        si touche.modificateur == ModificateurClavier.CONTROL {
+    si touche.type == Touche_Clavier.EFFACE {
+        si touche.modificateur == Modificateur_Clavier.CONTROL {
             position := donne_position_mot_précédent(*éditrice.curseur);
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position);
             efface(*éditrice.curseur);
         }
-        sinon si touche.modificateur == ModificateurClavier.zéro {
+        sinon si touche.modificateur == Modificateur_Clavier.zéro {
             efface(*éditrice.curseur);
         }
         retourne;
     }
 
-    si touche.type == ToucheClavier.SUPPRIMER {
-        si touche.modificateur == ModificateurClavier.CONTROL {
+    si touche.type == Touche_Clavier.SUPPRIMER {
+        si touche.modificateur == Modificateur_Clavier.CONTROL {
             position := donne_position_mot_suivant(*éditrice.curseur);
             définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position);
             supprime(*éditrice.curseur);
         }
-        sinon si touche.modificateur == ModificateurClavier.zéro {
+        sinon si touche.modificateur == Modificateur_Clavier.zéro {
             supprime(*éditrice.curseur);
         }
         retourne;
     }
 
-    si touche.type == ToucheClavier.C && touche.modificateur == ModificateurClavier.CONTROL && éditrice.sur_copier {
+    si touche.type == Touche_Clavier.C && touche.modificateur == Modificateur_Clavier.CONTROL && éditrice.sur_copier {
         texte_à_copier := donne_texte_sélectionné(*éditrice.curseur);
         si texte_à_copier {
             éditrice.sur_copier(éditrice.données_copie_colle, texte_à_copier);
@@ -240,7 +240,7 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
         retourne;
     }
 
-    si touche.type == ToucheClavier.X && touche.modificateur == ModificateurClavier.CONTROL {
+    si touche.type == Touche_Clavier.X && touche.modificateur == Modificateur_Clavier.CONTROL {
         texte_à_copier := donne_texte_sélectionné(*éditrice.curseur);
         si texte_à_copier && éditrice.sur_copier {
             éditrice.sur_copier(éditrice.données_copie_colle, texte_à_copier);
@@ -249,7 +249,7 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
         retourne;
     }
 
-    si touche.type == ToucheClavier.V && touche.modificateur == ModificateurClavier.CONTROL && éditrice.sur_coller {
+    si touche.type == Touche_Clavier.V && touche.modificateur == Modificateur_Clavier.CONTROL && éditrice.sur_coller {
         texte_à_coller := éditrice.sur_coller(éditrice.données_copie_colle);
         diffère déloge_si_logée(*texte_à_coller);
         si texte_à_coller {

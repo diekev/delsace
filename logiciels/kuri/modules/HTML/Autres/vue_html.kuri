@@ -56,7 +56,7 @@ principale :: fonc ()
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour * évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
@@ -108,7 +108,7 @@ principale :: fonc ()
 
         dessine_fenêtre(*vue_html, largeur, hauteur);
 
-        curseur := TypeCurseurSystème.FLÈCHE;
+        curseur := Type_Curseur_Système.FLÈCHE;
 
         si vue_html.page_est_survolée {
             document := donne_document(*vue_html.page_web);
@@ -118,7 +118,7 @@ principale :: fonc ()
                     curseur_css := CSS.donne_curseur(élément.box);
                     si curseur_css == CSS.CursorType.auto {
                         si élément.local_name == HTML.TAG_input && is_text_entry_widget(élément comme *HTMLInputElement) {
-                            curseur = TypeCurseurSystème.TEXTE_VERTICAL;
+                            curseur = Type_Curseur_Système.TEXTE_VERTICAL;
                         }
                     }
                     sinon {
@@ -445,7 +445,7 @@ crée_interface :: fonc (vue_html: *VueHTML, largeur: z32, hauteur: z32) -> Comm
             sur_molette_souris(sur_molette_souris_page, vue_html, 0);
 
             si est_survolée() {
-                souris: ClicSouris;
+                souris: Clic_Souris;
                 corrige_souris_pour_page(vue_html, *souris);
                 _ := gère_mouvement_souris(*vue_html.page_web, *souris);
                 vue_html.page_est_survolée = vrai;
@@ -458,10 +458,10 @@ crée_interface :: fonc (vue_html: *VueHTML, largeur: z32, hauteur: z32) -> Comm
     retourne termine_disposition(emboiteuse);
 }
 
-sur_pression_bouton_reculer :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_bouton_reculer :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
-    si souris.bouton == BoutonSouris.PRIMAIRE {
+    si souris.bouton == Bouton_Souris.PRIMAIRE {
         page_web := vue_html.page_web;
         traversable := page_web.navigable;
         traverse_the_history_by_a_delta(vue_html, traversable, -1);
@@ -471,10 +471,10 @@ sur_pression_bouton_reculer :: fonc (vue_html: *VueHTML, souris: ClicSouris, id:
     retourne résultat;
 }
 
-sur_pression_bouton_avancer :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_bouton_avancer :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
-    si souris.bouton == BoutonSouris.PRIMAIRE {
+    si souris.bouton == Bouton_Souris.PRIMAIRE {
         page_web := vue_html.page_web;
         traversable := page_web.navigable;
         traverse_the_history_by_a_delta(vue_html, traversable, 1);
@@ -484,10 +484,10 @@ sur_pression_bouton_avancer :: fonc (vue_html: *VueHTML, souris: ClicSouris, id:
     retourne résultat;
 }
 
-sur_pression_bouton_recharger :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_bouton_recharger :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
-    si souris.bouton == BoutonSouris.PRIMAIRE {
+    si souris.bouton == Bouton_Souris.PRIMAIRE {
         page_web := vue_html.page_web;
         traversable := page_web.navigable;
         reload(vue_html, traversable, UserNavigationInvolvement.BrowserUI);
@@ -552,7 +552,7 @@ dessine_page :: fonc (vue_html: *VueHTML, rect: RectanglePosDim(r32))
     }
 }
 
-sur_pression_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.CONSOMMÉ;
     corrige_souris_pour_page(vue_html, *souris);
@@ -560,7 +560,7 @@ sur_pression_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n6
     retourne résultat;
 }
 
-sur_relâchement_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_relâchement_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
     corrige_souris_pour_page(vue_html, *souris);
@@ -570,7 +570,7 @@ sur_relâchement_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id
     retourne résultat;
 }
 
-sur_molette_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_molette_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
     corrige_souris_pour_page(vue_html, *souris);
@@ -580,7 +580,7 @@ sur_molette_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64
     retourne résultat;
 }
 
-corrige_souris_pour_page :: fonc (vue_html: *VueHTML, souris: *ClicSouris)
+corrige_souris_pour_page :: fonc (vue_html: *VueHTML, souris: *Clic_Souris)
 {
     position := donne_position_souris(*vue_html.emboiteuse, vrai);
     position.x -= vue_html.rect_page.x;
@@ -642,10 +642,10 @@ dispose_bouton :: fonc (fonte: *Fonte, couleur: CouleurRVBA, texte: chaine, coul
 /** \nom Édition Texte Navigation
  * \{ */
 
-démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
+démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
-    si souris.bouton == BoutonSouris.PRIMAIRE {
+    si souris.bouton == Bouton_Souris.PRIMAIRE {
         rappels_édition_texte := loge(RappelsÉditionTexteNavigation);
         rappels_édition_texte.sur_édition = sur_édition_texte_navigation;
         rappels_édition_texte.sur_fin_édition = sur_fin_édition_texte_navigation;

@@ -42,7 +42,7 @@ Thème :: struct {
 thème: Thème;
 
 RaccourciCommande :: struct {
-    raccourci: RaccourciClavier;
+    raccourci: Raccourci_Clavier;
     commande: fonc (anonyme: *Anonyme);
     contexte: chaine;
 }
@@ -505,19 +505,19 @@ principale :: fonc ()
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour * évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
 
-            si it.type == TypeÉvènement.Clavier {
+            si it.type == Type_Évènement.CLAVIER {
                 si it.touche_pressée {
                     raccourci_commande := donne_raccourci_pour_évènement(*anonyme, it, donne_contexte_pour_raccourci(*anonyme));
                     si raccourci_commande {
                         raccourci_commande.commande(*anonyme);
                     }
                     sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER || anonyme.état == Anonyme.État.OUVERTURE_PROJET {
-                        si it.touche == ToucheClavier.ENTRÉE {
+                        si it.touche == Touche_Clavier.ENTRÉE {
                             continue;
                         }
                         sur_touche_clavier(*anonyme.éditrice_sélection_fichier, donne_info_touche(it));
@@ -754,7 +754,7 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
     termine_rectangle();
 }
 
-déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id: n64, indice_chaine: z32 @inutilisée) -> ÉtatÉvènement
+déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: Clic_Souris, id: n64, indice_chaine: z32 @inutilisée) -> ÉtatÉvènement
 {
     rect := donne_rect(*emboiteuse, id);
 

@@ -33,7 +33,7 @@ PanneauBarreDeMenu :: struct {
 
 crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
 {
-    sur_clic_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, clic: Clic_Souris) -> bool
     {
         retourne observe_clic(panneau_menu, clic);
     }
@@ -151,13 +151,13 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
     }
 }
 
-observe_clic :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ClicSouris) -> bool
+observe_clic :: fonc (empl panneau: *PanneauBarreDeMenu, souris: Clic_Souris) -> bool
 {
     saufsi contient(rect, souris.état.où) {
         retourne faux;
     }
 
-    si souris.action != ActionSouris.PRESSÉE {
+    si souris.action != Action_Souris.PRESSÉE {
         retourne vrai;
     }
 
@@ -173,7 +173,7 @@ observe_clic :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ClicSouris) -> 
     retourne vrai;
 }
 
-donne_élément_sous_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris) -> z64
+donne_élément_sous_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: État_Souris) -> z64
 {
     pour éléments {
         rect_élément := donne_rect_élément_pour_clic(panneau, indice_it);
@@ -294,12 +294,12 @@ GuetteuseBarreDeMenu :: struct {
     sur_déplacement_souris = guetteuse_barre_de_menu_sur_déplacement_souris;
 }
 
-guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
+guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -> ÉtatÉvènement
 {
     guetteuse := base comme *GuetteuseBarreDeMenu;
     panneau := guetteuse.barre_de_menu;
 
-    si clic.action == ActionSouris.PRESSÉE {
+    si clic.action == Action_Souris.PRESSÉE {
         indice_élément := donne_élément_sous_souris(panneau, clic.état);
         si indice_élément == -1 {
             pour panneau.menus_affichés {
@@ -309,7 +309,7 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) ->
             }
         }
     }
-    sinon si clic.action == ActionSouris.RELACHÉE {
+    sinon si clic.action == Action_Souris.RELACHÉE {
         indice_élément := donne_élément_sous_souris(panneau, clic.état);
         si indice_élément != -1 {
             retourne ÉtatÉvènement.PASSE_AU_PARENT;
@@ -332,7 +332,7 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) ->
     retourne ÉtatÉvènement.PASSE_AU_PARENT;
 }
 
-guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
+guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: État_Souris) -> ÉtatÉvènement
 {
     guetteuse := base comme *GuetteuseBarreDeMenu;
     panneau := guetteuse.barre_de_menu;
@@ -395,23 +395,23 @@ PanneauMenu :: struct {
 
 crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
 {
-    sur_déplacement_souris :: fonc (panneau_menu: *PanneauMenu, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_menu: *PanneauMenu, souris: État_Souris)
     {
         observe_souris(panneau_menu, souris);
     }
 
-    sur_clic_souris :: fonc (empl panneau_menu: *PanneauMenu, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (empl panneau_menu: *PanneauMenu, clic: Clic_Souris) -> bool
     {
         saufsi contient(rect, clic.état.où) {
             retourne faux;
         }
 
-        si clic.action == ActionSouris.PRESSÉE {
+        si clic.action == Action_Souris.PRESSÉE {
             état.élément_pressé = état.élément_survolé;
             retourne vrai;
         }
 
-        si clic.action == ActionSouris.RELACHÉE {
+        si clic.action == Action_Souris.RELACHÉE {
             si état.élément_pressé == -1 && état.élément_survolé != -1 {
                 état.élément_pressé = état.élément_survolé;
             }
@@ -626,7 +626,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
     dessine_rectangle(ctx.peintre, rect_corrigé, thème.couleur_contour);
 }
 
-observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
+observe_souris :: fonc (empl panneau: *PanneauMenu, souris: État_Souris)
 {
     saufsi contient(rect, souris.où) {
         saufsi menu_fut_affiché {

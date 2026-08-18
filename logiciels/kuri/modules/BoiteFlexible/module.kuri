@@ -135,12 +135,12 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: *Évènement)
         retourne;
     }
 
-    si évènement.type == TypeÉvènement.Souris {
+    si évènement.type == Type_Évènement.SOURIS {
         empl Type_Rappel_Utilisateur;
         
         position := évènement.état_souris.où;
 
-        si évènement.action_souris == ActionSouris.DÉPLACÉE {
+        si évènement.action_souris == Action_Souris.DÉPLACÉE {
             définis_position_souris(emboiteuse, position.x comme r32, position.y comme r32);
 
             pour * emboiteuse.barres_de_défilement {
@@ -150,22 +150,22 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: *Évènement)
             retourne;
         }
 
-        si évènement.action_souris == ActionSouris.ROULEMENT {
+        si évènement.action_souris == Action_Souris.ROULEMENT {
             sur_évènement_souris(emboiteuse, SUR_MOLETTE_SOURIS, donne_clic_souris(évènement));
             retourne;
         }
 
-        si évènement.action_souris == ActionSouris.PRESSÉE {
+        si évènement.action_souris == Action_Souris.PRESSÉE {
             sur_évènement_souris(emboiteuse, SUR_PRESSION_SOURIS, donne_clic_souris(évènement));
             retourne;
         }
 
-        si évènement.action_souris == ActionSouris.DOUBLE_CLIC {
+        si évènement.action_souris == Action_Souris.DOUBLE_CLIC {
             sur_évènement_souris(emboiteuse, SUR_DOUBLE_CLIC_SOURIS, donne_clic_souris(évènement));
             retourne;
         }
 
-        si évènement.action_souris == ActionSouris.RELACHÉE {
+        si évènement.action_souris == Action_Souris.RELACHÉE {
             sur_évènement_souris(emboiteuse, SUR_RELÂCHEMENT_SOURIS, donne_clic_souris(évènement));
 
             si emboiteuse.boite_interagit[SUR_PRESSION_SOURIS] == emboiteuse.boite_interagit[SUR_RELÂCHEMENT_SOURIS] {
@@ -185,15 +185,15 @@ définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
     emboiteuse.souris_y = y;
 }
 
-définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
+définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: Clic_Souris)
 {
     emboiteuse.souris_x = souris.état.où.x comme r32;
     emboiteuse.souris_y = souris.état.où.y comme r32;
 }
 
-donne_curseur :: fonc (emboiteuse: *Emboiteuse) -> TypeCurseurSystème
+donne_curseur :: fonc (emboiteuse: *Emboiteuse) -> Type_Curseur_Système
 {
-    résultat := TypeCurseurSystème.FLÈCHE;
+    résultat := Type_Curseur_Système.FLÈCHE;
     boite := donne_boite_sous_souris(emboiteuse);
     si boite {
         résultat = boite.curseur;
@@ -395,7 +395,7 @@ termine_procédure :: fonc ()
 /** \nom Évènements
  * \{ */
 
-TypeRappelSouris :: fonc (données: *rien, clic: ClicSouris, id_boite: n64, indice: z32) -> ÉtatÉvènement;
+TypeRappelSouris :: fonc (données: *rien, clic: Clic_Souris, id_boite: n64, indice: z32) -> ÉtatÉvènement;
 
 sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
@@ -751,7 +751,7 @@ est_pressée :: fonc () -> bool
     retourne __boite_courante.id == emboiteuse.boite_interagit[Type_Rappel_Utilisateur.SUR_PRESSION_SOURIS];
 }
 
-définis_curseur :: fonc (curseur: TypeCurseurSystème)
+définis_curseur :: fonc (curseur: Type_Curseur_Système)
 {
     assert(__boite_courante != nul);
     __boite_courante.curseur = curseur;

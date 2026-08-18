@@ -98,7 +98,7 @@ Boite_Flexible :: struct {
     config_texte: ConfigurationTexte;
     indice_bordure := CONFIG_BORDURE_INVALIDE;
 
-    curseur := TypeCurseurSystème.FLÈCHE;
+    curseur := Type_Curseur_Système.FLÈCHE;
 
     /* Valeurs pour les différents types. */
     arrière_plan: CouleurRVBA;
@@ -307,9 +307,9 @@ définis_rappel :: fonc (boite: *Boite_Flexible, type: Type_Rappel_Utilisateur, 
     }
 }
 
-rappel_molette_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+rappel_molette_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, souris: Clic_Souris, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
-    assert(souris.bouton == BoutonSouris.MOLETTE);
+    assert(souris.bouton == Bouton_Souris.MOLETTE);
 
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
 
@@ -327,11 +327,11 @@ rappel_molette_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, 
     retourne résultat;
 }
 
-rappel_pression_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+rappel_pression_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, souris: Clic_Souris, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
 
-    si souris.bouton == BoutonSouris.PRIMAIRE {
+    si souris.bouton == Bouton_Souris.PRIMAIRE {
         si indice >= 0 && indice < emboiteuse.barres_de_défilement.taille {
             barre := *emboiteuse.barres_de_défilement[indice];
             si barre.est_survolée {
@@ -394,12 +394,12 @@ Boite_Disposée :: struct {
     barre_de_défilement_horizontale := INDICE_BARRE_DÉFILEMENT_INVALIDE;
     est_flottante: bool;
 
-    curseur: TypeCurseurSystème;
+    curseur: Type_Curseur_Système;
 
     rappels: [Type_Rappel_Utilisateur.nombre_éléments]n32;
 }
 
-appel_rappel :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Disposée, type: Type_Rappel_Utilisateur, souris: ClicSouris) -> Optionnel(ÉtatÉvènement)
+appel_rappel :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Disposée, type: Type_Rappel_Utilisateur, souris: Clic_Souris) -> Optionnel(ÉtatÉvènement)
 {
     résultat: Optionnel(ÉtatÉvènement);
 
@@ -448,7 +448,7 @@ guetteuse_barre_défilage_sur_termine_guettage :: fonc (base: *Guetteuse)
     emboiteuse.guetteuse_courante = nul;
 }
 
-guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
+guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: État_Souris) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *Guetteuse_Barre_Défilage;
 
@@ -470,14 +470,14 @@ guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, sou
     retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
-guetteuse_barre_défilage_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
+guetteuse_barre_défilage_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *Guetteuse_Barre_Défilage;
 
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
 
-    si clic.bouton == BoutonSouris.PRIMAIRE {
-        si clic.action == ActionSouris.RELACHÉE {
+    si clic.bouton == Bouton_Souris.PRIMAIRE {
+        si clic.action == Action_Souris.RELACHÉE {
             termine_guettage(guetteuse);
             résultat = ÉtatÉvènement.CONSOMMÉ;
         }
@@ -660,7 +660,7 @@ enregistre_barre_de_défilement :: fonc (boite: *Boite_Flexible)
     ajourne_ratio(barre, hauteur_disponible, hauteur_enfants);
 }
 
-sur_évènement_souris :: fonc (emboiteuse: *Emboiteuse, type: Type_Rappel_Utilisateur, souris: ClicSouris)
+sur_évènement_souris :: fonc (emboiteuse: *Emboiteuse, type: Type_Rappel_Utilisateur, souris: Clic_Souris)
 {
     définis_position_souris(emboiteuse, souris);
 

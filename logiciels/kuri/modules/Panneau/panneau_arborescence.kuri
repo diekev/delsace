@@ -125,11 +125,11 @@ dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *
 
 crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -> *PanneauArborescence
 {
-    sur_déplacement_souris :: fonc (panneau_arborescence: *PanneauArborescence @inutilisée, souris: ÉtatSouris @inutilisée)
+    sur_déplacement_souris :: fonc (panneau_arborescence: *PanneauArborescence @inutilisée, souris: État_Souris @inutilisée)
     {
     }
 
-    sur_clic_souris :: fonc (panneau_arborescence: *PanneauArborescence, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_arborescence: *PanneauArborescence, clic: Clic_Souris) -> bool
     {
         saufsi contient(panneau_arborescence.rect, clic.état.où) {
             retourne faux;
@@ -140,7 +140,7 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
                 continue;
             }
 
-            si clic.action == ActionSouris.RELACHÉE {
+            si clic.action == Action_Souris.RELACHÉE {
                 it.est_développé = !it.est_développé;
                 panneau_arborescence.besoin_ajournement_disposition = vrai;
             }

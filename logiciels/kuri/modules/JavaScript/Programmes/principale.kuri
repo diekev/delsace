@@ -45,14 +45,14 @@ principale :: fonc ()
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour * évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
 
             évènement_géré := faux;
             si it.touche_pressée {
-                si it.modificateurs == ModificateurClavier.CONTROL && it.touche == ToucheClavier.S && !it.est_répétée {
+                si it.modificateurs == Modificateur_Clavier.CONTROL && it.touche == Touche_Clavier.S && !it.est_répétée {
                     sauvegarde_texte(*application);
                     évènement_géré = vrai;
                 }

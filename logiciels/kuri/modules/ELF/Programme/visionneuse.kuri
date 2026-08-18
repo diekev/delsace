@@ -70,12 +70,12 @@ principale :: fonc ()
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour * évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
 
-            si it.type == TypeÉvènement.Déposage {
+            si it.type == Type_Évènement.DÉPOSAGE {
                 pour mime dans it.mimes {
                     si mime.type == "text/uri-list" {
                         fichiers := divise(mime.données, "\r\n");
@@ -633,10 +633,10 @@ crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteu
     retourne termine_disposition(*emboiteuse);
 }
 
-définis_fichier_courant :: fonc (vionneuse: *VisionneuseELF, souris: ClicSouris, id: n64 @inutilisée, indice_fichier: z32) -> ÉtatÉvènement
+définis_fichier_courant :: fonc (vionneuse: *VisionneuseELF, souris: Clic_Souris, id: n64 @inutilisée, indice_fichier: z32) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
-    si souris.bouton == BoutonSouris.PRIMAIRE {
+    si souris.bouton == Bouton_Souris.PRIMAIRE {
         si indice_fichier >= 0 && indice_fichier < vionneuse.fichiers.taille {
             vionneuse.fichier_courant = indice_fichier;
             résultat = ÉtatÉvènement.CONSOMMÉ;
@@ -734,10 +734,10 @@ dispose_entête_panneau :: fonc (fichier: *Fichier_Ouvert, texte: chaine, indice
     termine_rectangle();
 }
 
-définis_panneau_courant :: fonc (fichier: *Fichier_Ouvert, souris: ClicSouris, id: n64 @inutilisée, indice_panneau: z32) -> ÉtatÉvènement
+définis_panneau_courant :: fonc (fichier: *Fichier_Ouvert, souris: Clic_Souris, id: n64 @inutilisée, indice_panneau: z32) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
-    si souris.bouton == BoutonSouris.PRIMAIRE {
+    si souris.bouton == Bouton_Souris.PRIMAIRE {
         si indice_panneau >= 0 && indice_panneau < fichier.onglets.taille {
             fichier.onglet_courant = indice_panneau;
             résultat = ÉtatÉvènement.CONSOMMÉ;
@@ -859,7 +859,7 @@ dessine_ligne_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabul
                 si it.commande {
                     si est_survolée() {
                         config.couleur = COULEUR_TEXTE_SURVOLÉ;
-                        définis_curseur(TypeCurseurSystème.MAIN_POINTANT);
+                        définis_curseur(Type_Curseur_Système.MAIN_POINTANT);
                     }
 
                     info_commande := loge(*visionneuse.arène_transiente, InfoCommande);
@@ -878,11 +878,11 @@ dessine_ligne_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabul
     termine_rectangle();
 }
 
-sur_pression_entête_section :: fonc (empl info: *InfoCommande, clic: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_entête_section :: fonc (empl info: *InfoCommande, clic: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
 
-    si clic.bouton == BoutonSouris.PRIMAIRE {
+    si clic.bouton == Bouton_Souris.PRIMAIRE {
         si commande == "affiche_données_section" {
             fichier := donne_fichier_courant(visionneuse);
             pour fichier.onglets {
