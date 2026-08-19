@@ -733,7 +733,7 @@ QT_détruit_tampon_rappels :: fonc ()
 importe Guettage;
 
 PlateformeGuettageQt :: struct {
-    empl base: PlateformeGuettage;
+    empl base: Plateforme_Guettage;
     sur_commence_guettage = plateforme_qt_commence_guettage;
     sur_termine_guettage = plateforme_qt_termine_guettage;
 
@@ -741,7 +741,7 @@ PlateformeGuettageQt :: struct {
     objet_à_filtrer: *QT_Object;
 }
 
-plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *Guetteuse)
+plateforme_qt_commence_guettage :: fonc (base: *Plateforme_Guettage, guetteuse: *Guetteuse)
 {
     plateforme := base comme *PlateformeGuettageQt;
 
@@ -760,19 +760,19 @@ plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *
         si type == QT_Event_Type.MouseMove && rappels.guetteuse.sur_déplacement_souris {
             clic := donne_clic_souris_depuis_évènement(event.mouse_event, Action_Souris.DÉPLACÉE);
             résultat := rappels.guetteuse.sur_déplacement_souris(rappels.guetteuse, clic.état);
-            retourne résultat == ÉtatÉvènement.CONSOMMÉ;
+            retourne résultat == État_Évènement.CONSOMMÉ;
         }
 
         si type == QT_Event_Type.MouseButtonPress && rappels.guetteuse.sur_clic {
             clic := donne_clic_souris_depuis_évènement(event.mouse_event, Action_Souris.PRESSÉE);
             résultat := rappels.guetteuse.sur_clic(rappels.guetteuse, clic);
-            retourne résultat == ÉtatÉvènement.CONSOMMÉ;
+            retourne résultat == État_Évènement.CONSOMMÉ;
         }
 
         si type == QT_Event_Type.MouseButtonRelease && rappels.guetteuse.sur_clic {
             clic := donne_clic_souris_depuis_évènement(event.mouse_event, Action_Souris.RELACHÉE);
             résultat := rappels.guetteuse.sur_clic(rappels.guetteuse, clic);
-            retourne résultat == ÉtatÉvènement.CONSOMMÉ;
+            retourne résultat == État_Évènement.CONSOMMÉ;
         }
 
         si type == QT_Event_Type.KeyPress && rappels.guetteuse.sur_touche_clavier {
@@ -785,7 +785,7 @@ plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *
             touche.texte = texte;
 
             résultat := rappels.guetteuse.sur_touche_clavier(rappels.guetteuse, touche);
-            retourne résultat == ÉtatÉvènement.CONSOMMÉ;
+            retourne résultat == État_Évènement.CONSOMMÉ;
         }
 
         retourne faux;
@@ -806,7 +806,7 @@ plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *
     _ := QT_Event_Loop_exec(event_loop);
 }
 
-plateforme_qt_termine_guettage :: fonc (base: *PlateformeGuettage)
+plateforme_qt_termine_guettage :: fonc (base: *Plateforme_Guettage)
 { 
     plateforme := base comme *PlateformeGuettageQt;
     QT_Event_Loop_exit(plateforme.event_loop_guettage);

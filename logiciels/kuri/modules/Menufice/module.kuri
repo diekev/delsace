@@ -491,15 +491,15 @@ dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_ra
     termine_rectangle();
 }
 
-sur_élément_menu_cliqué :: fonc (menu: *Menu, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+sur_élément_menu_cliqué :: fonc (menu: *Menu, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> État_Évènement
 {
     si indice < 0 || indice >= menu.éléments.taille {
-        retourne ÉtatÉvènement.PASSE_AU_PARENT;
+        retourne État_Évènement.PASSE_AU_PARENT;
     }
 
     gère_clic_souris(menu.éléments[indice]);
     ferme(menu);
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
 /** \} */

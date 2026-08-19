@@ -46,7 +46,7 @@ principale :: fonc ()
                 arrête;
             }
 
-            si app.guetteuse && gère_évènement(app.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
+            si app.guetteuse && gère_évènement(app.guetteuse, it) == État_Évènement.CONSOMMÉ {
                 continue;
             }
 
@@ -91,18 +91,18 @@ App :: struct {
     document_courant: z32;
 }
 
-définis_document_courant :: fonc (app: *App, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+définis_document_courant :: fonc (app: *App, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> État_Évènement
 {
     si indice < 0 && indice >= app.documents.taille {
-        retourne ÉtatÉvènement.PASSE_AU_PARENT;
+        retourne État_Évènement.PASSE_AU_PARENT;
     }
 
     si indice == app.document_courant {
-        retourne ÉtatÉvènement.PASSE_AU_PARENT;
+        retourne État_Évènement.PASSE_AU_PARENT;
     }
 
     app.document_courant = indice;
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
 dessine_fenêtre :: fonc (empl app: *App, largeur: z32, hauteur: z32)
@@ -472,7 +472,7 @@ sur_fin_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: 
     déloge(*rappels);
 }
 
-démarre_édition_texte :: fonc (app: *App, clic: Clic_Souris @inutilisée, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
+démarre_édition_texte :: fonc (app: *App, clic: Clic_Souris @inutilisée, id: n64, indice: z32 @inutilisée) -> État_Évènement
 {
     rappels_édition_texte := loge(RappelsÉditionTexteApp);
     rappels_édition_texte.sur_édition = sur_édition_texte_qt;
@@ -489,16 +489,16 @@ démarre_édition_texte :: fonc (app: *App, clic: Clic_Souris @inutilisée, id: 
     rappels_édition_texte.id_boite = id;
     définis_éditrice_texte(emboiteuse, id, *rappels_édition_texte.éditrice);
 
-    guetteuse := loge(GuetteuseÉditionTexte);
+    guetteuse := loge(Guetteuse_Édition_Texte);
     initialise_guetteuse_édition_texte(guetteuse, *rappels_édition_texte.éditrice, rectz, rectz);
     guetteuse.sur_destruction = guetteuse_édition_texte_sur_destruction;
     app.guetteuse = guetteuse;
 
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
-// :GuetteuseÉditionTexte
-guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionTexte)
+// :Guetteuse_Édition_Texte
+guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *Guetteuse_Édition_Texte)
 {
     déloge(*guetteuse);
 }

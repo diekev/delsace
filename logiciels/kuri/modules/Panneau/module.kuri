@@ -89,7 +89,7 @@ détruit :: fonc (chronomètre: *Chronomètre)
  * curseur doit être définis.
  */
 ContexteInterface :: struct {
-    empl base: PlateformeGuettage;
+    empl base: Plateforme_Guettage;
 
     fonte: *Fonte;
 

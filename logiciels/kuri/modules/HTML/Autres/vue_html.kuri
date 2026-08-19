@@ -68,7 +68,7 @@ principale :: fonc ()
                     corrige_souris_pour_page(*vue_html, *clic);
                     it.état_souris = clic.état;
                 }
-                si gère_évènement(vue_html.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
+                si gère_évènement(vue_html.guetteuse, it) == État_Évènement.CONSOMMÉ {
                     continue;
                 }
                 it = évènement_sauvagardé;
@@ -458,41 +458,41 @@ crée_interface :: fonc (vue_html: *VueHTML, largeur: z32, hauteur: z32) -> Comm
     retourne termine_disposition(emboiteuse);
 }
 
-sur_pression_bouton_reculer :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_bouton_reculer :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> État_Évènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
+    résultat := État_Évènement.PASSE_AU_PARENT;
     si souris.bouton == Bouton_Souris.PRIMAIRE {
         page_web := vue_html.page_web;
         traversable := page_web.navigable;
         traverse_the_history_by_a_delta(vue_html, traversable, -1);
 
-        résultat = ÉtatÉvènement.CONSOMMÉ;
+        résultat = État_Évènement.CONSOMMÉ;
     }
     retourne résultat;
 }
 
-sur_pression_bouton_avancer :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_bouton_avancer :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> État_Évènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
+    résultat := État_Évènement.PASSE_AU_PARENT;
     si souris.bouton == Bouton_Souris.PRIMAIRE {
         page_web := vue_html.page_web;
         traversable := page_web.navigable;
         traverse_the_history_by_a_delta(vue_html, traversable, 1);
 
-        résultat = ÉtatÉvènement.CONSOMMÉ;
+        résultat = État_Évènement.CONSOMMÉ;
     }
     retourne résultat;
 }
 
-sur_pression_bouton_recharger :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_bouton_recharger :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> État_Évènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
+    résultat := État_Évènement.PASSE_AU_PARENT;
     si souris.bouton == Bouton_Souris.PRIMAIRE {
         page_web := vue_html.page_web;
         traversable := page_web.navigable;
         reload(vue_html, traversable, UserNavigationInvolvement.BrowserUI);
 
-        résultat = ÉtatÉvènement.CONSOMMÉ;
+        résultat = État_Évènement.CONSOMMÉ;
     }
     retourne résultat;
 }
@@ -552,30 +552,30 @@ dessine_page :: fonc (vue_html: *VueHTML, rect: RectanglePosDim(r32))
     }
 }
 
-sur_pression_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_pression_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> État_Évènement
 {
-    résultat := ÉtatÉvènement.CONSOMMÉ;
+    résultat := État_Évènement.CONSOMMÉ;
     corrige_souris_pour_page(vue_html, *souris);
     gère_pression_souris(*vue_html.page_web, *souris);
     retourne résultat;
 }
 
-sur_relâchement_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_relâchement_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> État_Évènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
+    résultat := État_Évènement.PASSE_AU_PARENT;
     corrige_souris_pour_page(vue_html, *souris);
     si gère_relâchement_souris(*vue_html.page_web, *souris) {
-        résultat = ÉtatÉvènement.CONSOMMÉ;
+        résultat = État_Évènement.CONSOMMÉ;
     }
     retourne résultat;
 }
 
-sur_molette_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+sur_molette_souris_page :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64 @inutilisée, indice: z32 @inutilisée) -> État_Évènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
+    résultat := État_Évènement.PASSE_AU_PARENT;
     corrige_souris_pour_page(vue_html, *souris);
     si gère_molette_souris(*vue_html.page_web, *souris) {
-        résultat = ÉtatÉvènement.CONSOMMÉ;
+        résultat = État_Évènement.CONSOMMÉ;
     }
     retourne résultat;
 }
@@ -642,9 +642,9 @@ dispose_bouton :: fonc (fonte: *Fonte, couleur: CouleurRVBA, texte: chaine, coul
 /** \nom Édition Texte Navigation
  * \{ */
 
-démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
+démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: Clic_Souris, id: n64, indice: z32 @inutilisée) -> État_Évènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
+    résultat := État_Évènement.PASSE_AU_PARENT;
     si souris.bouton == Bouton_Souris.PRIMAIRE {
         rappels_édition_texte := loge(RappelsÉditionTexteNavigation);
         rappels_édition_texte.sur_édition = sur_édition_texte_navigation;
@@ -672,7 +672,7 @@ démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: Clic_Sou
         vue_html.guetteuse = guetteuse;
         vue_html.guetteuse_est_dans_page = faux;
 
-        résultat = ÉtatÉvènement.CONSOMMÉ;
+        résultat = État_Évènement.CONSOMMÉ;
     }
     retourne résultat;
 }
@@ -714,7 +714,7 @@ sur_fin_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNa
 }
 
 GuetteuseÉditionTexteVueHTML :: struct {
-    empl get: GuetteuseÉditionTexte;
+    empl get: Guetteuse_Édition_Texte;
 
     vue_html: *VueHTML;
     rappels: *RappelsÉditionTexteNavigation;

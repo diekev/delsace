@@ -527,7 +527,7 @@ dispose_bouton :: fonc (serveuse: *Serveuse, texte: chaine, rappel_sur_clic: Typ
     termine_rectangle();
 }
 
-sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> État_Évènement
 {
     si indice == 0 {
         serveuse.dessine_allocations = vrai;
@@ -536,23 +536,23 @@ sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: C
         serveuse.dessine_allocations = faux;
     }
 
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
-définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> État_Évènement
 {
     assert(indice >= 0);
     assert(indice < serveuse.état_mémoire.allocations.taille);
 
     serveuse.état_mémoire.allocation_sélectionnée = indice;
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
-définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: Clic_Souris @inutilisée, id: n64 @inutilisée, indice: z32) -> État_Évènement
 {
     assert(indice >= 0);
     assert(indice < serveuse.état_mémoire.traces_triées.taille);
 
     serveuse.état_mémoire.trace_sélectionnée = indice;
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }

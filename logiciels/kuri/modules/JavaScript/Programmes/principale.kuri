@@ -32,7 +32,7 @@ principale :: fonc ()
 
     rect: RectanglePosDim(z32);
     initialise_guetteuse_édition_texte(*application.guetteuse_édition_texte, *application.éditrice_texte, rect, rect);
-    application.guetteuse_édition_texte.état = ÉtatGuettageÉditionTexte.EnÉdition;
+    application.guetteuse_édition_texte.état = État_Guettage_Édition_Texte.EnÉdition;
     démarre_édition(*application.éditrice_texte);
 
     fenêtre := crée_fenêtre(800, 600, "ECMAScript", vrai);
@@ -59,7 +59,7 @@ principale :: fonc ()
             }
 
             saufsi évènement_géré {
-                saufsi gère_évènement(*application.guetteuse_édition_texte, it) == ÉtatÉvènement.CONSOMMÉ {
+                saufsi gère_évènement(*application.guetteuse_édition_texte, it) == État_Évènement.CONSOMMÉ {
                     gère_évènement(*application.emboiteuse, it);
                 }
             }
@@ -88,7 +88,7 @@ Application :: struct {
     lignes: [..]chaine;
 
     éditrice_texte: ÉditriceTexte;
-    guetteuse_édition_texte: GuetteuseÉditionTexte;
+    guetteuse_édition_texte: Guetteuse_Édition_Texte;
 }
 
 /** \} */

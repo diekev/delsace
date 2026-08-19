@@ -754,14 +754,14 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
     termine_rectangle();
 }
 
-déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: Clic_Souris, id: n64, indice_chaine: z32 @inutilisée) -> ÉtatÉvènement
+déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: Clic_Souris, id: n64, indice_chaine: z32 @inutilisée) -> État_Évènement
 {
     rect := donne_rect(*emboiteuse, id);
 
     où_relatif_x := souris.état.où.x comme r32 - rect.x;
     où_relatif_y := souris.état.où.y comme r32 - rect.y;
     si où_relatif_x < 0.0 || où_relatif_y < 0.0 {
-        retourne ÉtatÉvènement.PASSE_AU_PARENT;
+        retourne État_Évènement.PASSE_AU_PARENT;
     }
 
     métriques := donne_métriques_fonte(fonte);
@@ -784,7 +784,7 @@ déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: Clic_Souris, id
     éditeur.cx = cx;
     éditeur.cy = cy;
 
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
 dessine_barre_status :: fonc (anonyme: *Anonyme)

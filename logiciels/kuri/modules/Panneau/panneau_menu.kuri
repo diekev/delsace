@@ -294,7 +294,7 @@ GuetteuseBarreDeMenu :: struct {
     sur_déplacement_souris = guetteuse_barre_de_menu_sur_déplacement_souris;
 }
 
-guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -> ÉtatÉvènement
+guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -> État_Évènement
 {
     guetteuse := base comme *GuetteuseBarreDeMenu;
     panneau := guetteuse.barre_de_menu;
@@ -304,7 +304,7 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -
         si indice_élément == -1 {
             pour panneau.menus_affichés {
                 si gère_clic_souris(it, clic) {
-                    retourne ÉtatÉvènement.CONSOMMÉ;
+                    retourne État_Évènement.CONSOMMÉ;
                 }
             }
         }
@@ -312,7 +312,7 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -
     sinon si clic.action == Action_Souris.RELACHÉE {
         indice_élément := donne_élément_sous_souris(panneau, clic.état);
         si indice_élément != -1 {
-            retourne ÉtatÉvènement.PASSE_AU_PARENT;
+            retourne État_Évènement.PASSE_AU_PARENT;
         }
 
         pour panneau.menus_affichés {
@@ -321,7 +321,7 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -
             }
         }
         sansarrêt {
-            retourne ÉtatÉvènement.PASSE_AU_PARENT;
+            retourne État_Évènement.PASSE_AU_PARENT;
         }
     }
 
@@ -329,10 +329,10 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -
     définis_élément_pressé(panneau, -1, vrai);
     détruit_panneau_menu(panneau);
     termine_guettage(guetteuse);
-    retourne ÉtatÉvènement.PASSE_AU_PARENT;
+    retourne État_Évènement.PASSE_AU_PARENT;
 }
 
-guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: État_Souris) -> ÉtatÉvènement
+guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: État_Souris) -> État_Évènement
 {
     guetteuse := base comme *GuetteuseBarreDeMenu;
     panneau := guetteuse.barre_de_menu;
@@ -348,7 +348,7 @@ guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souri
         }
     }
 
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
 /** \} */
