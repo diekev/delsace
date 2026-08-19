@@ -16,7 +16,7 @@ charge "interne";
 
 Éditrice_Texte_Pour_Id :: struct {
     id: n64;
-    éditrice_texte: *ÉditriceTexte;
+    éditrice_texte: *Éditrice_Texte;
 }
 
 Emboiteuse :: struct {
@@ -763,7 +763,7 @@ définis_curseur :: fonc (curseur: Type_Curseur_Système)
 /** \nom Édition Texte
  * \{ */
 
-définis_éditrice_texte :: fonc (éditrice_texte: *ÉditriceTexte)
+définis_éditrice_texte :: fonc (éditrice_texte: *Éditrice_Texte)
 {
     assert(__boite_courante != nul);
     emboiteuse := __boite_courante.emboiteuse;
@@ -779,7 +779,7 @@ définis_éditrice_texte :: fonc (éditrice_texte: *ÉditriceTexte)
     }
 }
 
-définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *ÉditriceTexte)
+définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *Éditrice_Texte)
 {
     pour * emboiteuse.éditrices_textes {
         si it.id != id {
@@ -799,7 +799,7 @@ définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_te
     tableau_ajoute(*emboiteuse.éditrices_textes, Éditrice_Texte_Pour_Id(id, éditrice_texte));
 }
 
-donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTexte
+donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *Éditrice_Texte
 {
     pour * emboiteuse.éditrices_textes {
         si it.id == id {
@@ -810,7 +810,7 @@ donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTe
     retourne nul;
 }
 
-dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurRVBA, couleur_texte: CouleurRVBA)
+dispose_curseur_éditrice :: fonc (éditrice: *Éditrice_Texte, couleur: CouleurRVBA, couleur_texte: CouleurRVBA)
 {
     si éditrice.curseur_est_affiché {
         lignes_pour_rendu := donne_lignes_pour_rendu(éditrice);

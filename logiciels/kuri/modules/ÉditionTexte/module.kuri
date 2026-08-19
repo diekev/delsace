@@ -6,45 +6,45 @@ importe Typographie;
 importe Unicode;
 
 /* ------------------------------------------------------------------------- */
-/** \nom RappelsÉditionTexte
+/** \nom Rappels_Édition_Texte
  * Rappels pour être notifié du changement du texte lors de l'édition.
  * \{ */
 
-RappelsÉditionTexte :: struct {
+Rappels_Édition_Texte :: struct {
     /* Appelé à chaque changement. */
-    sur_édition: fonc (rappels: *RappelsÉditionTexte, chn: chaine);
+    sur_édition: fonc (rappels: *Rappels_Édition_Texte, chn: chaine);
     /* Appelé lors de la fin de l'édition. */
-    sur_fin_édition: fonc (rappels: *RappelsÉditionTexte, chn: chaine, fut_causée_par_touche_entrée: bool);
+    sur_fin_édition: fonc (rappels: *Rappels_Édition_Texte, chn: chaine, fut_causée_par_touche_entrée: bool);
     /* Appelé au début de l'édition de texte.
      * Ceci permets aux applications clientes de démarrer un chronomètre
      * pour faire clignoter le curseur, via Éditrice.curseur_est_affiché.
      * Optionnel. */
-    sur_démarre_clignotage_curseur: fonc (rappels: *RappelsÉditionTexte, éditrice: *ÉditriceTexte);
+    sur_démarre_clignotage_curseur: fonc (rappels: *Rappels_Édition_Texte, éditrice: *Éditrice_Texte);
     /* Appelé à la fin de l'édition de texte pour terminer le choronomètre de
      * clignotage associé.
      * Optionnel, mais obligatoire si sur_démarre_clignotage_curseur existe. */
-    sur_termine_clignotage_curseur: fonc (rappels: *RappelsÉditionTexte, éditrice: *ÉditriceTexte);
+    sur_termine_clignotage_curseur: fonc (rappels: *Rappels_Édition_Texte, éditrice: *Éditrice_Texte);
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ÉditriceTexte
+/** \nom Éditrice_Texte
  * \{ */
 
-ModeÉditionTexte :: énum {
+Mode_Édition_Texte :: énum {
     UNE_SEULE_LIGNE;
     PLUSIEURS_LIGNES;
 }
 
-ÉditriceTexte :: struct {
+Éditrice_Texte :: struct {
     texte_à_éditer: ChaineUTF32;
     lignes: [..]ChaineUTF32;
-    mode: ModeÉditionTexte;
+    mode: Mode_Édition_Texte;
 
     fonte: *Fonte;
-    rappels: *RappelsÉditionTexte;
-    curseur: CurseurTexte;
+    rappels: *Rappels_Édition_Texte;
+    curseur: Curseur_Texte;
     en_édition: bool;
     curseur_est_affiché: bool;
 
@@ -56,7 +56,7 @@ ModeÉditionTexte :: énum {
     données_copie_colle: eini;
 }
 
-initialise_éditrice :: fonc (éditrice: *ÉditriceTexte, fonte: *Fonte, texte: chaine, rappels: *RappelsÉditionTexte, mode := ModeÉditionTexte.UNE_SEULE_LIGNE)
+initialise_éditrice :: fonc (éditrice: *Éditrice_Texte, fonte: *Fonte, texte: chaine, rappels: *Rappels_Édition_Texte, mode := Mode_Édition_Texte.UNE_SEULE_LIGNE)
 {
     éditrice.texte_à_éditer = crée_chaine_utf32(texte);
     éditrice.curseur.éditrice = éditrice;
@@ -64,7 +64,7 @@ initialise_éditrice :: fonc (éditrice: *ÉditriceTexte, fonte: *Fonte, texte: 
     éditrice.fonte = fonte;
     éditrice.mode = mode;
 
-    si éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
+    si éditrice.mode == Mode_Édition_Texte.PLUSIEURS_LIGNES {
         lignes := divise(texte, '\n');
         pour lignes {
             tableau_ajoute(*éditrice.lignes, crée_chaine_utf32(it));
@@ -72,7 +72,7 @@ initialise_éditrice :: fonc (éditrice: *ÉditriceTexte, fonte: *Fonte, texte: 
     }
 }
 
-détruit_données :: fonc (éditrice: *ÉditriceTexte)
+détruit_données :: fonc (éditrice: *Éditrice_Texte)
 {
     détruit_chaine(*éditrice.texte_à_éditer);
 
@@ -82,7 +82,7 @@ détruit_données :: fonc (éditrice: *ÉditriceTexte)
     déloge(*éditrice.lignes);
 }
 
-démarre_édition :: fonc (éditrice: *ÉditriceTexte)
+démarre_édition :: fonc (éditrice: *Éditrice_Texte)
 {
     éditrice.en_édition = vrai;
     éditrice.curseur_est_affiché = vrai;
@@ -92,7 +92,7 @@ démarre_édition :: fonc (éditrice: *ÉditriceTexte)
     }
 }
 
-termine_édition :: fonc (empl éditrice: *ÉditriceTexte, fut_causée_par_touche_entrée: bool)
+termine_édition :: fonc (empl éditrice: *Éditrice_Texte, fut_causée_par_touche_entrée: bool)
 {
     en_édition = faux;
     curseur_est_affiché = faux;
@@ -112,14 +112,14 @@ termine_édition :: fonc (empl éditrice: *ÉditriceTexte, fut_causée_par_touch
     rappels.sur_termine_clignotage_curseur(rappels, éditrice);
 }
 
-donne_lignes_pour_rendu :: fonc (éditrice: *ÉditriceTexte) -> []ChaineUTF32
+donne_lignes_pour_rendu :: fonc (éditrice: *Éditrice_Texte) -> []ChaineUTF32
 {
     retourne éditrice.lignes;
 }
 
-donne_tampon_texte_natif :: fonc (éditrice: *ÉditriceTexte) -> chaine
+donne_tampon_texte_natif :: fonc (éditrice: *Éditrice_Texte) -> chaine
 {
-    si éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+    si éditrice.mode == Mode_Édition_Texte.UNE_SEULE_LIGNE {
         retourne convertis_vers_chaine(éditrice.texte_à_éditer);
     }
 
@@ -134,84 +134,84 @@ donne_tampon_texte_natif :: fonc (éditrice: *ÉditriceTexte) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
-sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: Info_Touche_Clavier)
+sur_touche_clavier :: fonc (éditrice: *Éditrice_Texte, touche: Info_Touche_Clavier)
 {
     si touche.type == Touche_Clavier.DÉBUT {
         si touche.modificateur == Modificateur_Clavier.MAJUSCULE {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, 0);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, 0);
         }
         sinon si touche.modificateur == Modificateur_Clavier.zéro {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, 0);
         }
         retourne;
     }
 
     si touche.type == Touche_Clavier.FIN {
         si touche.modificateur == Modificateur_Clavier.MAJUSCULE {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, taille(éditrice.texte_à_éditer));
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, taille(éditrice.texte_à_éditer));
         }
         sinon si touche.modificateur == Modificateur_Clavier.zéro {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, taille(éditrice.texte_à_éditer));
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, taille(éditrice.texte_à_éditer));
         }
         retourne;
     }
 
     si touche.type == Touche_Clavier.FLÈCHE_GAUCHE {
         si touche.modificateur == Modificateur_Clavier.MAJUSCULE {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, éditrice.curseur.début - 1);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, éditrice.curseur.début - 1);
         }
         sinon si touche.modificateur == Modificateur_Clavier.CONTROL {
             position := donne_position_mot_précédent(*éditrice.curseur);
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, position);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, position);
         }
         sinon si touche.modificateur == Modificateur_Clavier.CTRL_MAJ {
             position := donne_position_mot_précédent(*éditrice.curseur);
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, position);
         }
         sinon si touche.modificateur == Modificateur_Clavier.zéro {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début - 1);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, éditrice.curseur.début - 1);
         }
         retourne;
     }
 
     si touche.type == Touche_Clavier.FLÈCHE_DROITE {
         si touche.modificateur == Modificateur_Clavier.MAJUSCULE {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, éditrice.curseur.fin + 1);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, éditrice.curseur.fin + 1);
         }
         sinon si touche.modificateur == Modificateur_Clavier.CONTROL {
             position := donne_position_mot_suivant(*éditrice.curseur);
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, position);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, position);
         }
         sinon si touche.modificateur == Modificateur_Clavier.CTRL_MAJ {
             position := donne_position_mot_suivant(*éditrice.curseur);
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, position);
         }
         sinon si touche.modificateur == Modificateur_Clavier.zéro {
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, éditrice.curseur.fin + 1);
         }
         retourne;
     }
 
-    si touche.type == Touche_Clavier.FLÈCHE_HAUT && éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
+    si touche.type == Touche_Clavier.FLÈCHE_HAUT && éditrice.mode == Mode_Édition_Texte.PLUSIEURS_LIGNES {
         éditrice.curseur.ligne = restreint(0 comme z64, éditrice.curseur.ligne - 1, éditrice.lignes.taille - 1);
         ligne := donne_ligne_courante(*éditrice.curseur);
         éditrice.curseur.début = restreint(0 comme z64, éditrice.curseur.début, ligne.points_de_code.taille);
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début);
+        définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, éditrice.curseur.début);
         retourne;
     }
 
-    si touche.type == Touche_Clavier.FLÈCHE_BAS && éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
+    si touche.type == Touche_Clavier.FLÈCHE_BAS && éditrice.mode == Mode_Édition_Texte.PLUSIEURS_LIGNES {
         éditrice.curseur.ligne = restreint(0 comme z64, éditrice.curseur.ligne + 1, éditrice.lignes.taille - 1);
         ligne := donne_ligne_courante(*éditrice.curseur);
         éditrice.curseur.début = restreint(0 comme z64, éditrice.curseur.début, ligne.points_de_code.taille);
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début);
+        définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, éditrice.curseur.début);
         retourne;
     }
 
     si touche.type == Touche_Clavier.EFFACE {
         si touche.modificateur == Modificateur_Clavier.CONTROL {
             position := donne_position_mot_précédent(*éditrice.curseur);
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, position);
             efface(*éditrice.curseur);
         }
         sinon si touche.modificateur == Modificateur_Clavier.zéro {
@@ -223,7 +223,7 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: Info_Touche_Clav
     si touche.type == Touche_Clavier.SUPPRIMER {
         si touche.modificateur == Modificateur_Clavier.CONTROL {
             position := donne_position_mot_suivant(*éditrice.curseur);
-            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position);
+            définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, position);
             supprime(*éditrice.curseur);
         }
         sinon si touche.modificateur == Modificateur_Clavier.zéro {
@@ -287,7 +287,7 @@ est_séparation_mot :: fonc (rune: n32) -> bool
     retourne faux;
 }
 
-ajoute_ligne :: fonc (éditrice: *ÉditriceTexte)
+ajoute_ligne :: fonc (éditrice: *Éditrice_Texte)
 {
     si éditrice.lignes {
         ligne := éditrice.lignes[éditrice.curseur.ligne];
@@ -305,34 +305,34 @@ ajoute_ligne :: fonc (éditrice: *ÉditriceTexte)
         éditrice.lignes[éditrice.curseur.ligne].points_de_code.taille = éditrice.curseur.début;
 
         éditrice.curseur.ligne += 1;
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0);
+        définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, 0);
     }
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom CurseurTexte
+/** \nom Curseur_Texte
  * \{ */
 
-CurseurTexte :: struct {
+Curseur_Texte :: struct {
     ligne: z64;
     début: z64;
     fin: z64;
     ancre: z64;
     texte: *ChaineUTF32;
-    éditrice: *ÉditriceTexte;
+    éditrice: *Éditrice_Texte;
     fut_modifié: bool;
 }
 
-ModeDéplacementCurseur :: énum {
-    GardeAncre;
-    DéplaceAncre;
+Mode_Déplacement_Curseur :: énum {
+    GARDE_ANCRE;
+    DÉPLACE_ANCRE;
 }
 
-donne_texte_sélectionné :: fonc (curseur: *CurseurTexte) -> chaine
+donne_texte_sélectionné :: fonc (curseur: *Curseur_Texte) -> chaine
 {
-    si curseur.éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+    si curseur.éditrice.mode == Mode_Édition_Texte.UNE_SEULE_LIGNE {
         si curseur.début == curseur.fin {
             retourne "";
         }
@@ -349,16 +349,16 @@ donne_texte_sélectionné :: fonc (curseur: *CurseurTexte) -> chaine
     retourne "";
 }
 
-donne_ligne_courante :: fonc (curseur: *CurseurTexte) -> *ChaineUTF32
+donne_ligne_courante :: fonc (curseur: *Curseur_Texte) -> *ChaineUTF32
 {
-    si curseur.éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+    si curseur.éditrice.mode == Mode_Édition_Texte.UNE_SEULE_LIGNE {
         retourne *curseur.éditrice.texte_à_éditer;
     }
 
     retourne *curseur.éditrice.lignes[curseur.ligne];
 }
 
-donne_position_mot_précédent :: fonc (curseur: *CurseurTexte) -> z64
+donne_position_mot_précédent :: fonc (curseur: *Curseur_Texte) -> z64
 {
     ligne := mémoire(donne_ligne_courante(curseur));
     position := curseur.début;
@@ -393,7 +393,7 @@ donne_position_mot_précédent :: fonc (curseur: *CurseurTexte) -> z64
     retourne position;
 }
 
-donne_position_mot_suivant :: fonc (curseur: *CurseurTexte) -> z64
+donne_position_mot_suivant :: fonc (curseur: *Curseur_Texte) -> z64
 {
     ligne := mémoire(donne_ligne_courante(curseur));
     position := curseur.début;
@@ -415,17 +415,17 @@ donne_position_mot_suivant :: fonc (curseur: *CurseurTexte) -> z64
     retourne position;
 }
 
-déplace_vers :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur, position: z64)
+déplace_vers :: fonc (curseur: *Curseur_Texte, mode: Mode_Déplacement_Curseur, position: z64)
 {
     définis_position(curseur, mode, position);
 }
 
-définis_position :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur, position: z64)
+définis_position :: fonc (curseur: *Curseur_Texte, mode: Mode_Déplacement_Curseur, position: z64)
 {
     position = restreint_position(curseur, position);
 
     discr mode {
-        GardeAncre {
+        GARDE_ANCRE {
             si position < curseur.ancre {
                 curseur.début = position;
                 curseur.fin = curseur.ancre;
@@ -435,7 +435,7 @@ définis_position :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur
                 curseur.fin = position;
             }
         }
-        DéplaceAncre {
+        DÉPLACE_ANCRE {
             curseur.début = position;
             curseur.fin = position;
             curseur.ancre = position;
@@ -443,7 +443,7 @@ définis_position :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur
     }
 }
 
-restreint_position :: fonc (curseur: *CurseurTexte, position: z64) -> z64
+restreint_position :: fonc (curseur: *Curseur_Texte, position: z64) -> z64
 {
     texte := donne_ligne_courante(curseur);
 
@@ -456,7 +456,7 @@ restreint_position :: fonc (curseur: *CurseurTexte, position: z64) -> z64
     retourne position;
 }
 
-efface :: fonc (curseur: *CurseurTexte)
+efface :: fonc (curseur: *Curseur_Texte)
 {
     texte := donne_ligne_courante(curseur);
 
@@ -468,7 +468,7 @@ efface :: fonc (curseur: *CurseurTexte)
                 curseur.ligne -= 1;
                 ligne_précédente := donne_ligne_courante(curseur);
                 curseur.début = ligne_précédente.points_de_code.taille;
-                définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1);
+                définis_position(curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, curseur.début - 1);
 
                 tableau_ajoute(*ligne_précédente.points_de_code, ...texte.points_de_code);
 
@@ -480,17 +480,17 @@ efface :: fonc (curseur: *CurseurTexte)
         }
 
         tableau_supprime_indice(*texte.points_de_code, curseur.début - 1);
-        définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1);
+        définis_position(curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, curseur.début - 1);
     }
     sinon {
         tableau_supprime_entre(*texte.points_de_code, curseur.début, curseur.fin);
-        définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début);
+        définis_position(curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, curseur.début);
     }
 
     notifie_changement(curseur);
 }
 
-supprime :: fonc (curseur: *CurseurTexte)
+supprime :: fonc (curseur: *Curseur_Texte)
 {
     texte := donne_ligne_courante(curseur);
 
@@ -505,11 +505,11 @@ supprime :: fonc (curseur: *CurseurTexte)
         tableau_supprime_entre(*texte.points_de_code, curseur.début, curseur.fin);
     }
 
-    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début);
+    définis_position(curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, curseur.début);
     notifie_changement(curseur);
 }
 
-insère :: fonc (curseur: *CurseurTexte, texte_à_insérer: chaine)
+insère :: fonc (curseur: *Curseur_Texte, texte_à_insérer: chaine)
 {
     texte := donne_ligne_courante(curseur);
 
@@ -524,11 +524,11 @@ insère :: fonc (curseur: *CurseurTexte, texte_à_insérer: chaine)
         position += 1;
     }
 
-    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, position);
+    définis_position(curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, position);
     notifie_changement(curseur);
 }
 
-insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
+insère :: fonc (curseur: *Curseur_Texte, point_de_code: n32)
 {
     texte := donne_ligne_courante(curseur);
 
@@ -540,11 +540,11 @@ insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
         tableau_supprime_entre(*texte.points_de_code, curseur.début + 1, curseur.fin);
     }
 
-    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début + 1);
+    définis_position(curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, curseur.début + 1);
     notifie_changement(curseur);
 }
 
-notifie_changement :: fonc (curseur: *CurseurTexte)
+notifie_changement :: fonc (curseur: *Curseur_Texte)
 {
     curseur.fut_modifié = vrai;
 
@@ -559,7 +559,7 @@ notifie_changement :: fonc (curseur: *CurseurTexte)
     éditrice.rappels.sur_édition(éditrice.rappels, chn);
 }
 
-notifie_fin_édition :: fonc (curseur: *CurseurTexte, fut_causée_par_touche_entrée: bool)
+notifie_fin_édition :: fonc (curseur: *Curseur_Texte, fut_causée_par_touche_entrée: bool)
 {
     saufsi curseur.fut_modifié {
         retourne;

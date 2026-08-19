@@ -5,11 +5,11 @@ importe Unicode;
 /** \nom PanneauÉditionTexte.
  * \{ */
 
-RappelsÉditionTexte :: struct {
+Rappels_Édition_Texte :: struct {
     /* Appelé à chaque changement. */
-    sur_édition: fonc (rappels: *RappelsÉditionTexte, texte: chaine);
+    sur_édition: fonc (rappels: *Rappels_Édition_Texte, texte: chaine);
     /* Appelé lors de la fin de l'édition. */
-    sur_fin_édition: fonc (rappels: *RappelsÉditionTexte, texte: chaine);
+    sur_fin_édition: fonc (rappels: *Rappels_Édition_Texte, texte: chaine);
 }
 
 PanneauÉditionTexte :: struct {
@@ -26,7 +26,7 @@ PanneauÉditionTexte :: struct {
 
     curseur: CurseurTexte;
 
-    rappels: *RappelsÉditionTexte;
+    rappels: *Rappels_Édition_Texte;
 }
 
 crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chaine, parent: *Panneau, lieutenant := "") -> *PanneauÉditionTexte

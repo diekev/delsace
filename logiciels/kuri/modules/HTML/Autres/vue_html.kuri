@@ -654,7 +654,7 @@ démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: Clic_Sou
         rect := donne_rect(*vue_html.emboiteuse, id);
         rectz := convertis_type(rect, z32);
 
-        éditrice := loge(ÉditriceTexte);
+        éditrice := loge(Éditrice_Texte);
         initialise_éditrice(éditrice, vue_html.fonte, vue_html.adresse_courante, rappels_édition_texte);
 
         définis_éditrice_texte(*vue_html.emboiteuse, id, éditrice);
@@ -678,7 +678,7 @@ démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: Clic_Sou
 }
 
 RappelsÉditionTexteNavigation :: struct {
-    empl base: RappelsÉditionTexte;
+    empl base: Rappels_Édition_Texte;
 
     vue_html: *VueHTML;
 }

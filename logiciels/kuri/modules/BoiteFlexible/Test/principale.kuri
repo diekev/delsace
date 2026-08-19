@@ -447,9 +447,9 @@ dessine_interface_édition_texte :: fonc (app: *App)
 }
 
 RappelsÉditionTexteApp :: struct {
-    empl base: RappelsÉditionTexte;
+    empl base: Rappels_Édition_Texte;
 
-    éditrice: ÉditriceTexte;
+    éditrice: Éditrice_Texte;
     id_boite: n64;
     app: *App;
 }

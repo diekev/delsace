@@ -133,7 +133,7 @@ guetteuse_consomme_touche_clavier :: fonc (guetteuse: *Guetteuse @inutilisée, i
 Guetteuse_Édition_Texte :: struct {
     empl base: Guetteuse;
 
-    éditrice: *ÉditriceTexte;
+    éditrice: *Éditrice_Texte;
     rect: RectanglePosDim(z32);
     rect_texte: RectanglePosDim(z32);
 
@@ -146,7 +146,7 @@ Guetteuse_Édition_Texte :: struct {
     sur_touche_clavier = guetteuse_édition_texte_sur_touche_clavier;
 }
 
-initialise_guetteuse_édition_texte :: fonc (guetteuse: *Guetteuse_Édition_Texte, éditrice: *ÉditriceTexte, rect: RectanglePosDim(z32), rect_texte: RectanglePosDim(z32))
+initialise_guetteuse_édition_texte :: fonc (guetteuse: *Guetteuse_Édition_Texte, éditrice: *Éditrice_Texte, rect: RectanglePosDim(z32), rect_texte: RectanglePosDim(z32))
 {
     guetteuse.éditrice = éditrice;
     guetteuse.rect = rect;
@@ -168,7 +168,7 @@ guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, sour
     }
 
     indice := donne_position_curseur_pour_souris(guetteuse, souris);
-    déplace_vers(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, indice);
+    déplace_vers(*éditrice.curseur, Mode_Déplacement_Curseur.GARDE_ANCRE, indice);
     retourne État_Évènement.CONSOMMÉ;
 }
 
@@ -181,7 +181,7 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
     }
 
     si touche.type == Touche_Clavier.ENTRÉE {
-        si éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+        si éditrice.mode == Mode_Édition_Texte.UNE_SEULE_LIGNE {
             guetteuse.fin_guettage_fut_causé_par_touche_entrée = vrai;
             termine_guettage(guetteuse);
         }
@@ -237,7 +237,7 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) 
 définis_position_curseur_pour_clic :: fonc (empl guetteuse: *Guetteuse_Édition_Texte, souris: État_Souris)
 {
     position := donne_position_curseur_pour_souris(guetteuse, souris);
-    définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, position);
+    définis_position(*éditrice.curseur, Mode_Déplacement_Curseur.DÉPLACE_ANCRE, position);
 }
 
 donne_position_curseur_pour_souris :: fonc (empl guetteuse: *Guetteuse_Édition_Texte, souris: État_Souris) -> z64

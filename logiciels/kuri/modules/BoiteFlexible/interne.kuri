@@ -1420,7 +1420,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
     }
 }
 
-donne_position_curseur :: fonc (boite: *Boite_Flexible, éditrice: *ÉditriceTexte) -> (résultat: r32, delta: r32)
+donne_position_curseur :: fonc (boite: *Boite_Flexible, éditrice: *Éditrice_Texte) -> (résultat: r32, delta: r32)
 {
     rect_x := boite.position.x;
     rect_largeur := boite.largeur;

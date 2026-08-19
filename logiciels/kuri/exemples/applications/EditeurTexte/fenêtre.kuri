@@ -345,7 +345,7 @@ Anonyme :: struct {
     lexeuse: SimpleLexeuse;
 
     /* Pour la sélection de fichier. */
-    éditrice_sélection_fichier: ÉditriceTexte;
+    éditrice_sélection_fichier: Éditrice_Texte;
     rappels_édition_texte: RappelsÉditionTexteSélecteurFichier;
     sélecteur_fichier_projet: SélecteurFichier;
     sélecteur_projet: SélecteurFichier;
@@ -832,7 +832,7 @@ dessine_barre_message :: fonc (anonyme: *Anonyme)
 }
 
 RappelsÉditionTexteSélecteurFichier :: struct {
-    empl base: RappelsÉditionTexte;
+    empl base: Rappels_Édition_Texte;
 
     anonyme: *Anonyme;
 }

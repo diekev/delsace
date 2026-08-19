@@ -28,7 +28,7 @@ principale :: fonc ()
 
     application.fonte = donne_fonte_mono_défaut(14.0);
 
-    initialise_éditrice(*application.éditrice_texte, application.fonte, contenu, nul, ModeÉditionTexte.PLUSIEURS_LIGNES);
+    initialise_éditrice(*application.éditrice_texte, application.fonte, contenu, nul, Mode_Édition_Texte.PLUSIEURS_LIGNES);
 
     rect: RectanglePosDim(z32);
     initialise_guetteuse_édition_texte(*application.guetteuse_édition_texte, *application.éditrice_texte, rect, rect);
@@ -87,7 +87,7 @@ Application :: struct {
 
     lignes: [..]chaine;
 
-    éditrice_texte: ÉditriceTexte;
+    éditrice_texte: Éditrice_Texte;
     guetteuse_édition_texte: Guetteuse_Édition_Texte;
 }
 
