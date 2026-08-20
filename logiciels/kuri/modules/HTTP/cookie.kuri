@@ -17,13 +17,15 @@ Cookie :: struct {
     est_sécurisé: bool;  // n'envoie que si https
     http_seulement: bool; // empêche JavaScript d'accéder au cookie
 
-    PolitiqueMêmeSite :: énum {
+    /* Les identifiants des valeurs de cette énumération doivent pouvoir être utilisés tels-quels
+     * dans les attributs de "Set-Cookie". */
+    Politique_Même_Site :: énum {
         None;
         Lax;
         Strict;
     }
 
-    même_site: PolitiqueMêmeSite;
+    même_site: Politique_Même_Site;
 }
 
 est_nom_valide :: fonc (nom: chaine) -> bool
@@ -140,7 +142,7 @@ imprime_cookie_pour_entête_http :: fonc (enchaineuse: *Enchaineuse, cookie: Coo
         imprime_dans_enchaineuse(enchaineuse, "; HttpOnly");
     }
 
-    si cookie.même_site != Cookie.PolitiqueMêmeSite.None {
+    si cookie.même_site != Cookie.Politique_Même_Site.None {
         imprime_dans_enchaineuse(enchaineuse, "; SameSite=%", cookie.même_site);
     }
 }
@@ -338,13 +340,13 @@ parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
             valeur := sous_chaine_jusque_indice(*parseuse, pos);
 
             si valeur == "None" {
-                résultat.même_site = Cookie.PolitiqueMêmeSite.None;
+                résultat.même_site = Cookie.Politique_Même_Site.None;
             }
             sinon si valeur == "Strict" {
-                résultat.même_site = Cookie.PolitiqueMêmeSite.Strict;
+                résultat.même_site = Cookie.Politique_Même_Site.Strict;
             }
             sinon si valeur == "Lax" {
-                résultat.même_site = Cookie.PolitiqueMêmeSite.Lax;
+                résultat.même_site = Cookie.Politique_Même_Site.Lax;
             }
             sinon {
                 // À FAIRE: erreur parsage cookie
@@ -454,17 +456,16 @@ fusionne_cookie :: fonc (cookies: *[..]Cookie, cookie: Cookie) -> bool
     retourne faux;
 }
 
-
-ContexteParsageEntête :: struct {
+Contexte_Parsage_Entête :: struct {
     uri: URI;
 }
 
-ClienteEntête :: struct {
-    sur_reception_cookie: fonc (cliente: *ClienteEntête, nom: chaine, valeur: chaine, attributs: AttributsCookie);
+Cliente_Entête :: struct {
+    sur_reception_cookie: fonc (cliente: *Cliente_Entête, nom: chaine, valeur: chaine, attributs: Attributs_Cookie);
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2 */
-parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
+parse_entête_set_cookie :: fonc (ctx: *Contexte_Parsage_Entête, chn: chaine)
 {
     parseuse := ParseuseChaine(chn = chn);
 
@@ -487,7 +488,7 @@ parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
         retourne;
     }
 
-    attributs: AttributsCookie;
+    attributs: Attributs_Cookie;
 
     /* Parse les attributs du cookie. */
     positionne(*parseuse, pos_point_virgule);
@@ -519,7 +520,7 @@ parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
     }
 }
 
-AttributsCookie :: struct {
+Attributs_Cookie :: struct {
     expires: Optionnel(Date);
     max_age: Optionnel(z64);
     domain: Optionnel(chaine);
@@ -528,7 +529,7 @@ AttributsCookie :: struct {
     secure: Optionnel(bool);
 }
 
-parse_attribut_cookie :: fonc (ctx: *ContexteParsageEntête, nom: chaine, valeur: chaine, résultat: *AttributsCookie)
+parse_attribut_cookie :: fonc (ctx: *Contexte_Parsage_Entête, nom: chaine, valeur: chaine, résultat: *Attributs_Cookie)
 {
     si compare_ascii_insensible_à_la_casse(nom, "Expires") {
         parse_attribut_cookie_expires(ctx, valeur, résultat);
@@ -564,7 +565,7 @@ parse_attribut_cookie :: fonc (ctx: *ContexteParsageEntête, nom: chaine, valeur
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.1 */
-parse_attribut_cookie_expires :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
+parse_attribut_cookie_expires :: fonc (ctx: *Contexte_Parsage_Entête @inutilisée, valeur: chaine, résultat: *Attributs_Cookie)
 {
     opt_date := parse_date_cookie(valeur);
     si opt_date.possède_valeur() {
@@ -809,7 +810,7 @@ est_production_mois :: fonc (token: chaine) -> z32
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.2 */
-parse_attribut_cookie_max_age :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
+parse_attribut_cookie_max_age :: fonc (ctx: *Contexte_Parsage_Entête @inutilisée, valeur: chaine, résultat: *Attributs_Cookie)
 {
     si valeur == "" || (valeur[0] != '-' && !est_nombre_décimal(valeur[0])) {
         retourne;
@@ -831,7 +832,7 @@ parse_attribut_cookie_max_age :: fonc (ctx: *ContexteParsageEntête @inutilisée
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.3 */
-parse_attribut_cookie_domain :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
+parse_attribut_cookie_domain :: fonc (ctx: *Contexte_Parsage_Entête @inutilisée, valeur: chaine, résultat: *Attributs_Cookie)
 {
     si valeur == "" {
         retourne;
@@ -846,7 +847,7 @@ parse_attribut_cookie_domain :: fonc (ctx: *ContexteParsageEntête @inutilisée,
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.4 */
-parse_attribut_cookie_path :: fonc (ctx: *ContexteParsageEntête, valeur: chaine, résultat: *AttributsCookie)
+parse_attribut_cookie_path :: fonc (ctx: *Contexte_Parsage_Entête, valeur: chaine, résultat: *Attributs_Cookie)
 {
     chemin_cookie := valeur;
 
@@ -858,7 +859,7 @@ parse_attribut_cookie_path :: fonc (ctx: *ContexteParsageEntête, valeur: chaine
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.1.4 */
-donne_chemin_cookie_défaut :: fonc (ctx: *ContexteParsageEntête) -> chaine
+donne_chemin_cookie_défaut :: fonc (ctx: *Contexte_Parsage_Entête) -> chaine
 {
     chemin_uri := ctx.uri.chemin;
 
@@ -876,13 +877,13 @@ donne_chemin_cookie_défaut :: fonc (ctx: *ContexteParsageEntête) -> chaine
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.5 */
-parse_attribut_cookie_secure :: fonc (ctx: *ContexteParsageEntête @inutilisée, résultat: *AttributsCookie)
+parse_attribut_cookie_secure :: fonc (ctx: *Contexte_Parsage_Entête @inutilisée, résultat: *Attributs_Cookie)
 {
     résultat.secure = vrai;
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.6 */
-parse_attribut_cookie_httponly :: fonc (ctx: *ContexteParsageEntête @inutilisée, résultat: *AttributsCookie)
+parse_attribut_cookie_httponly :: fonc (ctx: *Contexte_Parsage_Entête @inutilisée, résultat: *Attributs_Cookie)
 {
     résultat.http_only = vrai;
 }
@@ -893,28 +894,28 @@ At least 50 cookies per domain.
 At least 3000 cookies total.
 */
 
-GardeCookies :: struct {
+Garde_Cookies :: struct {
     cookies: [..]Cookie;
     // cookies par domaine
 }
 
-// ajoute_cookie :: fonc (garde: *GardeCookies, cookie: Cookie, est_api_non_http: bool)
+// ajoute_cookie :: fonc (garde: *Garde_Cookies, cookie: Cookie, est_api_non_http: bool)
 // {
 
 // }
 
-// purge_cookies :: fonc (garde: *GardeCookies)
+// purge_cookies :: fonc (garde: *Garde_Cookies)
 // {
 
 // }
 
-// purge_cookies_non_persistants :: fonc (garde: *GardeCookies)
+// purge_cookies_non_persistants :: fonc (garde: *Garde_Cookies)
 // {
 
 // }
 
 // /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.4 */
-// donne_chaine_cookie :: fonc (garde: *GardeCookies, uri: *URI, est_api_non_http: bool) -> chaine
+// donne_chaine_cookie :: fonc (garde: *Garde_Cookies, uri: *URI, est_api_non_http: bool) -> chaine
 // {
 
 // }

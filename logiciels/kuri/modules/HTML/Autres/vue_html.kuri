@@ -860,7 +860,7 @@ enfile_algorithm :: fonc (file: *File_Parallèle_VueHTML, algorithm: *Algorithm)
  * \{ */
 
 Données_Prise_Réseau :: struct {
-    parseuse: ParseuseMessageServeuseHTTP;
+    parseuse: Parseuse_Message_Serveuse_HTTP;
     requête: *Request;
     response: *Response;
 

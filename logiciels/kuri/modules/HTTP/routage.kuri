@@ -1,5 +1,5 @@
 
-TypeRappelRoute :: fonc (prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP;
+Type_Rappel_Route :: fonc (prise: *Prise, message: *Message_Cliente_HTTP) -> Message_Serveuse_HTTP;
 
 /* Fonction pour parser une chaine de caractère selon les types trouvées lors
  * de la compilation du programme parent.
@@ -14,55 +14,55 @@ parse_paramètre_routage_pour_type :: fonc (chn: chaine, valeur: eini) -> bool
 }
 
 /* Type pour définir des erreurs. */
-ErreurHTTP :: struct {
-    code: CodeÉtatHTTP;
+Erreur_HTTP :: struct {
+    code: Code_État_HTTP;
     message: chaine;
 }
 
 CodeEtContenuHTPP :: struct {
-    code: CodeÉtatHTTP;
-    contenu: ContenuHTTP;
+    code: Code_État_HTTP;
+    contenu: Contenu_HTTP;
 }
 
-message_depuis_erreur_http :: fonc (erreur_http: ErreurHTTP) -> MessageServeuseHTTP
+message_depuis_erreur_http :: fonc (erreur_http: Erreur_HTTP) -> Message_Serveuse_HTTP
 {
     retourne crée_message_avec_contenu(erreur_http.code, contenu_html(erreur_http.message));
 }
 
-erreur_autorisation :: fonc (message := "") -> ErreurHTTP
+erreur_autorisation :: fonc (message := "") -> Erreur_HTTP
 {
     saufsi message {
         message = "autorisation requise";
     }
 
-    retourne ErreurHTTP(CodeÉtatHTTP.UNAUTHORIZED, message);
+    retourne Erreur_HTTP(Code_État_HTTP.UNAUTHORIZED, message);
 }
 
-erreur_ressource_non_trouvée :: fonc (message := "") -> ErreurHTTP
+erreur_ressource_non_trouvée :: fonc (message := "") -> Erreur_HTTP
 {
     saufsi message {
         message = "ressource non trouvée";
     }
 
-    retourne ErreurHTTP(CodeÉtatHTTP.NOT_FOUND, message);
+    retourne Erreur_HTTP(Code_État_HTTP.NOT_FOUND, message);
 }
 
-erreur_interne_serveur :: fonc (message := "") -> ErreurHTTP
+erreur_interne_serveur :: fonc (message := "") -> Erreur_HTTP
 {
     saufsi message {
         message = "erreur interne du serveur";
     }
 
-    retourne ErreurHTTP(CodeÉtatHTTP.INTERNAL_SERVER_ERROR, message);
+    retourne Erreur_HTTP(Code_État_HTTP.INTERNAL_SERVER_ERROR, message);
 }
 
-erreur_requête_malformée :: fonc (message := "") -> ErreurHTTP
+erreur_requête_malformée :: fonc (message := "") -> Erreur_HTTP
 {
     saufsi message {
         message = "requête malformée";
     }
 
-    retourne ErreurHTTP(CodeÉtatHTTP.BAD_REQUEST, message);
+    retourne Erreur_HTTP(Code_État_HTTP.BAD_REQUEST, message);
 }
 
 /* Structure de base pour les paramètres des requêtes des URI.
@@ -70,7 +70,7 @@ erreur_requête_malformée :: fonc (message := "") -> ErreurHTTP
  * dans un URI :
  * vidéos.fr/regarder/?vidéo=IDVIDÉO
  */
-ParamètresRequête :: struct {
+Paramètres_Requête :: struct {
 }
 
 /* Structure de base pour les paramètres de routage. Ces paramètres peuvent être
@@ -82,13 +82,13 @@ ParamètresRequête :: struct {
  * représentant un entier comme première, et seule dans l'exemple, branche :
  * /123456/ prendra cette route, alors que /123def/ ne la prendra pas.
  */
-ParamètresRoutage :: struct {
+Paramètres_Routage :: struct {
 }
 
-règles_ont_au_moins_un_paramètre :: fonc (règles: []RègleRoutage) -> bool
+règles_ont_au_moins_un_paramètre :: fonc (règles: []Règle_Routage) -> bool
 {
     pour règles {
-        si it.action != ActionRègleRoutage.ApparieChaineLittérale {
+        si it.action != Action_Règle_Routage.APPARIE_CHAINE_LITTÉRALE {
             retourne vrai;
         }
     }
@@ -96,7 +96,7 @@ règles_ont_au_moins_un_paramètre :: fonc (règles: []RègleRoutage) -> bool
     retourne faux;
 }
 
-apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *InfoType) -> bool
+apparie_paramètres_à_la_structure :: fonc (règles: []Règle_Routage, infos: *InfoType) -> bool
 {
     si infos.id != GenreInfoType.STRUCTURE {
         retourne faux;
@@ -107,7 +107,7 @@ apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *I
     nombre_paramètres := 0;
 
     pour règles {
-        saufsi it.action == ActionRègleRoutage.ApparieParamètre {
+        saufsi it.action == Action_Règle_Routage.APPARIE_PARAMÈTRE {
             continue;
         }
 
@@ -127,12 +127,12 @@ apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *I
     retourne vrai;
 }
 
-calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
+calcul_priorité :: fonc (règles: []Règle_Routage) -> z32
 {
     priorité := 0;
 
     pour règles {
-        si it.action != ActionRègleRoutage.ApparieChaineLittérale {
+        si it.action != Action_Règle_Routage.APPARIE_CHAINE_LITTÉRALE {
             priorité += 1;
         }
     }
@@ -140,17 +140,17 @@ calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
     retourne priorité;
 }
 
-NouvelleRouteuse :: struct {
-    apparie_routes_get: fonc (chemin: chaine, prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP;
-    apparie_routes_post: fonc (chemin: chaine, prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP;
+Nouvelle_Routeuse :: struct {
+    apparie_routes_get: fonc (chemin: chaine, prise: *Prise, message: *Message_Cliente_HTTP) -> Message_Serveuse_HTTP;
+    apparie_routes_post: fonc (chemin: chaine, prise: *Prise, message: *Message_Cliente_HTTP) -> Message_Serveuse_HTTP;
 
     // À FAIRE
-    rappel_page_non_trouvée: fonc (prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP;
+    rappel_page_non_trouvée: fonc (prise: *Prise, message: *Message_Cliente_HTTP) -> Message_Serveuse_HTTP;
 
     extension_fichiers: [..]chaine;
 }
 
-apparie_fichiers :: fonc (routeuse: *NouvelleRouteuse, extension: chaine)
+apparie_fichiers :: fonc (routeuse: *Nouvelle_Routeuse, extension: chaine)
 {
     pour routeuse.extension_fichiers {
         si it == extension {
@@ -161,12 +161,12 @@ apparie_fichiers :: fonc (routeuse: *NouvelleRouteuse, extension: chaine)
     tableau_ajoute(*routeuse.extension_fichiers, extension);
 }
 
-détruit_routeuse :: fonc (routeuse: *NouvelleRouteuse) -> rien
+détruit_routeuse :: fonc (routeuse: *Nouvelle_Routeuse) -> rien
 {
     déloge(*routeuse.extension_fichiers);
 }
 
-apparie_route :: fonc (routeuse: *NouvelleRouteuse, prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP
+apparie_route :: fonc (routeuse: *Nouvelle_Routeuse, prise: *Prise, message: *Message_Cliente_HTTP) -> Message_Serveuse_HTTP
 {
     méthode := message.méthode;
     // Utilise message.uri.chemin car message.requête peut contenir également les paramètres de requête et de fragment de l'URI
@@ -194,7 +194,7 @@ chemin_pour_fichier :: fonc (chemin: chaine) -> CheminFichier
     retourne CheminFichier(chemin_fichier);
 }
 
-est_chemin_fichier_supporté :: fonc (routeuse: *NouvelleRouteuse, chemin: chaine) -> bool
+est_chemin_fichier_supporté :: fonc (routeuse: *Nouvelle_Routeuse, chemin: chaine) -> bool
 {
     chm := chemin_pour_fichier(chemin);
 
@@ -211,7 +211,7 @@ est_chemin_fichier_supporté :: fonc (routeuse: *NouvelleRouteuse, chemin: chain
     retourne faux;
 }
 
-apparie_fichier :: fonc (routeuse: *NouvelleRouteuse @inutilisée, chemin: chaine, prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP
+apparie_fichier :: fonc (routeuse: *Nouvelle_Routeuse @inutilisée, chemin: chaine, prise: *Prise, message: *Message_Cliente_HTTP) -> Message_Serveuse_HTTP
 {
     chm := chemin_pour_fichier(chemin);
 
@@ -278,31 +278,31 @@ divise_url :: fonc (ligne: chaine) -> [..]chaine
 
 // Règles pour apparier les routes.
 
-ActionRègleRoutage :: énum {
-    Invalide;
+Action_Règle_Routage :: énum {
+    INVALIDE;
     /* Apparie la chaine telle que données dans le chemin, par exemple
      * /accueil/ devra apparier "accueil". */
-    ApparieChaineLittérale;
+    APPARIE_CHAINE_LITTÉRALE;
     /* Apparie un paramètre du nom données entre les chevrons, par exemple /<id>/
      * devra apparier une rubrique de la structure associée nommée "id". */
-    ApparieParamètre;
+    APPARIE_PARAMÈTRE;
 }
 
-RègleRoutage :: struct {
-    action: ActionRègleRoutage;
+Règle_Routage :: struct {
+    action: Action_Règle_Routage;
     chn: chaine;
 }
 
-ErreurParsage :: erreur {
-    RègleDénuéeDeNom;
-    TypeActionInconnue;
-    NomRègleRedéfini;
-    ChevronFermantManquant;
+Erreur_Parsage :: erreur {
+    RÈGLE_DÉNUÉE_DE_NOM;
+    TYPE_ACTION_INCONNUE;
+    NOM_RÈGLE_REDÉFINI;
+    CHEVRON_FERMANT_MANQUANT;
 }
 
 ErreurOuRèglesRoutage :: union {
-    e: ErreurParsage;
-    r: [..]RègleRoutage;
+    e: Erreur_Parsage;
+    r: [..]Règle_Routage;
 }
 
 parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
@@ -310,15 +310,15 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
     éléments := divise_url(route);
     diffère déloge(*éléments);
 
-    résultat: [..]RègleRoutage;
+    résultat: [..]Règle_Routage;
 
     pour éléments {
-        règle: RègleRoutage;
+        règle: Règle_Routage;
 
         si it[0] == '<' {
             si it[it.taille - 1] != '>' {
                 déloge(*résultat);
-                retourne ErreurParsage.ChevronFermantManquant;
+                retourne Erreur_Parsage.CHEVRON_FERMANT_MANQUANT;
             }
 
             nom_données := sous_chaine(it, 1, it.taille - 1);
@@ -326,16 +326,16 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
             pour r dans résultat {
                 si r.chn == nom_données {
                     déloge(*résultat);
-                    retourne ErreurParsage.NomRègleRedéfini;
+                    retourne Erreur_Parsage.NOM_RÈGLE_REDÉFINI;
                 }
             }
 
             règle.chn = nom_données;
-            règle.action = ActionRègleRoutage.ApparieParamètre;
+            règle.action = Action_Règle_Routage.APPARIE_PARAMÈTRE;
         }
         sinon {
             // ceci est également utilisé pour la racine "/"
-            règle.action = ActionRègleRoutage.ApparieChaineLittérale;
+            règle.action = Action_Règle_Routage.APPARIE_CHAINE_LITTÉRALE;
             règle.chn = it;
         }
 
