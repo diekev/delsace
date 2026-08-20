@@ -822,7 +822,7 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
     /* Déclaration d'une fonction de création. */
     imprime_dans_enchaineuse(enchaineuse, "crée_pilote_% :: fonc (uri: URI) -> %\n", paramètres.nom_serveuse, nom_type_pilote);
     ajoute_au_tampon(enchaineuse, "{\n");
-    ajoute_au_tampon(enchaineuse, "    pilote: PiloteCréaduc;\n");
+    ajoute_au_tampon(enchaineuse, "    pilote: ", nom_type_pilote, ";\n");
     ajoute_au_tampon(enchaineuse, "    pilote.uri_serveur = uri;\n");
     ajoute_au_tampon(enchaineuse, "    retourne pilote;\n");
     ajoute_au_tampon(enchaineuse, "}\n\n");
