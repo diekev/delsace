@@ -18,26 +18,8 @@ MéthodeHTTP :: énum {
 
 chaine_pour_méthode :: fonc (méthode: MéthodeHTTP) -> chaine
 {
-    discr méthode {
-        GET {
-            retourne "GET";
-        }
-        POST {
-            retourne "POST";
-        }
-        PUT {
-            retourne "PUT";
-        }
-        HEAD {
-            retourne "HEAD";
-        }
-        UPDATE {
-            retourne "UPDATE";
-        }
-        DELETE {
-            retourne "DELETE";
-        }
-    }
+    infos := info_de(MéthodeHTTP);
+    retourne infos.noms[méthode];
 }
 
 // ----------------------------------------
