@@ -123,11 +123,11 @@ guetteuse_consomme_touche_clavier :: fonc (guetteuse: *Guetteuse @inutilisée, i
 
 État_Guettage_Édition_Texte :: énum {
     /* La guetteuse est lancée lorsque la souris est pressée dans le rect du texte.
-     * Nous attendons le relachement pour voir si l'édition doit commencer
-     * (relachement dans le rect) ou être avortée (relachement hors du rect).  */
-    AttenteRelachementClic;
-    EnÉdition;
-    EnSélection;
+     * Nous attendons le relâchement pour voir si l'édition doit commencer
+     * (relâchement dans le rect) ou être avortée (relâchement hors du rect).  */
+    ATTENTE_RELÂCHEMENT_CLIC;
+    EN_ÉDITION;
+    EN_SÉLECTION;
 }
 
 Guetteuse_Édition_Texte :: struct {
@@ -163,7 +163,7 @@ guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, sour
 {
     empl guetteuse := base comme *Guetteuse_Édition_Texte;
 
-    saufsi état == État_Guettage_Édition_Texte.EnSélection {
+    saufsi état == État_Guettage_Édition_Texte.EN_SÉLECTION {
         retourne État_Évènement.PASSE_AU_PARENT;
     }
 
@@ -176,7 +176,7 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
 {
     empl guetteuse := base comme *Guetteuse_Édition_Texte;
 
-    si état != État_Guettage_Édition_Texte.EnÉdition {
+    si état != État_Guettage_Édition_Texte.EN_ÉDITION {
         retourne État_Évènement.PASSE_AU_PARENT;
     }
 
@@ -204,7 +204,7 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) 
     si clic.action == Action_Souris.PRESSÉE {
         si contient(rect, clic.état.où) {
             définis_position_curseur_pour_clic(guetteuse, clic.état);
-            état = État_Guettage_Édition_Texte.EnSélection;
+            état = État_Guettage_Édition_Texte.EN_SÉLECTION;
         }
         sinon {
             termine_guettage(guetteuse);
@@ -213,21 +213,21 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) 
     }
     sinon si clic.action == Action_Souris.RELACHÉE {
         si contient(rect, clic.état.où) {
-            si état == État_Guettage_Édition_Texte.AttenteRelachementClic {
-                état = État_Guettage_Édition_Texte.EnÉdition;
+            si état == État_Guettage_Édition_Texte.ATTENTE_RELÂCHEMENT_CLIC {
+                état = État_Guettage_Édition_Texte.EN_ÉDITION;
                 démarre_édition(éditrice);
                 définis_position_curseur_pour_clic(guetteuse, clic.état);
             }
-            sinon si état == État_Guettage_Édition_Texte.EnSélection {
-                état = État_Guettage_Édition_Texte.EnÉdition;
+            sinon si état == État_Guettage_Édition_Texte.EN_SÉLECTION {
+                état = État_Guettage_Édition_Texte.EN_ÉDITION;
             }
         }
-        sinon si état == État_Guettage_Édition_Texte.AttenteRelachementClic {
+        sinon si état == État_Guettage_Édition_Texte.ATTENTE_RELÂCHEMENT_CLIC {
             termine_guettage(guetteuse);
             résultat = État_Évènement.PASSE_AU_PARENT;
         }
-        sinon si état == État_Guettage_Édition_Texte.EnSélection {
-            état = État_Guettage_Édition_Texte.EnÉdition;
+        sinon si état == État_Guettage_Édition_Texte.EN_SÉLECTION {
+            état = État_Guettage_Édition_Texte.EN_ÉDITION;
         }
     }
 
