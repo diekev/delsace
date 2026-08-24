@@ -411,6 +411,17 @@ saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (lexeuse: *LexeusePréProcès
 /** \nom Utilitaires
  * \{ */
 
+initialise_lexeuse :: fonc (unit: *TranslationUnit, lexeuse: *SimpleLexeuse)
+{
+    si unit.info_langage.langage == Langage.C {
+        initialise_lexeuse_c(lexeuse);
+    }
+    sinon {
+        assert(unit.info_langage.langage == Langage.CPP);
+        initialise_lexeuse_cpp(lexeuse);
+    }
+}
+
 donne_lexème_suivant_sauf_espace_blanche :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {
     résultat := donne_lexème_suivant(lexeuse);
