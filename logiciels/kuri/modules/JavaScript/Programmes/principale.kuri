@@ -32,7 +32,7 @@ principale :: fonc ()
 
     rect: RectanglePosDim(z32);
     initialise_guetteuse_édition_texte(*application.guetteuse_édition_texte, *application.éditrice_texte, rect, rect);
-    application.guetteuse_édition_texte.état = État_Guettage_Édition_Texte.EnÉdition;
+    application.guetteuse_édition_texte.état = État_Guettage_Édition_Texte.EN_ÉDITION;
     démarre_édition(*application.éditrice_texte);
 
     fenêtre := crée_fenêtre(800, 600, "ECMAScript", vrai);
