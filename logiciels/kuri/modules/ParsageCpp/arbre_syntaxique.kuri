@@ -747,28 +747,16 @@ ClassDecl :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom DeclContext
- * Structure de base pour tous les noeuds représentant un contexte de déclaration.
+/** \nom Namespace_Definition
  * \{ */
 
-DeclContext :: struct {
+Namespace_Definition :: struct {
     empl node: ASTNode;
     genre = #type_de_cette_structure;
 
-    declarations: [..]*ASTNode;
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom NamespaceDecl
- * \{ */
-
-NamespaceDecl :: struct {
-    empl base: DeclContext;
-    genre = #type_de_cette_structure;
-
     identifiant: chaine;
+    est_inline: bool;
+    declarations: [..]*ASTNode;
 }
 
 /** \} */

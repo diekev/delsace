@@ -1,6 +1,198 @@
 importe SimpleLexage;
 
 /* ------------------------------------------------------------------------- */
+/** \nom Parseuse_CPP
+ * \{ */
+
+Parseuse_CPP :: struct {
+    État :: struct {
+        position: z64;
+    }
+
+    unit: *TranslationUnit;
+    lexèmes: []Token;
+    lexème_courant: z64;
+
+    créatrice: CréatriceNoeuds;
+
+    typedef_names: TableDeHachage(chaine, *TypedefDecl);
+
+    messagère: *Messagère;
+}
+
+fini :: fonc (parseuse: *Parseuse_CPP) -> bool
+{
+    retourne parseuse.lexème_courant >= parseuse.lexèmes.taille;
+}
+
+donne_lexème_suivant :: fonc (parseuse: *Parseuse_CPP) -> Token
+{
+    si fini(parseuse) {
+        lexème := Lexème(type = TypeLexème.FinDeFichier);
+        retourne Token(lexème = lexème);
+    }
+    résultat := parseuse.lexèmes[parseuse.lexème_courant];
+    parseuse.lexème_courant += 1;
+    retourne résultat;
+}
+
+épie_lexème_suivant :: fonc (parseuse: *Parseuse_CPP) -> Token
+{
+    si fini(parseuse) {
+        lexème := Lexème(type = TypeLexème.FinDeFichier);
+        retourne Token(lexème = lexème);
+    }
+    résultat := parseuse.lexèmes[parseuse.lexème_courant];
+    retourne résultat;
+}
+
+consomme :: fonc (parseuse: *Parseuse_CPP)
+{
+    parseuse.lexème_courant += 1;
+}
+
+consomme_symbole :: fonc (parseuse: *Parseuse_CPP)
+{
+    lexème := donne_lexème_suivant(parseuse);
+    si lexème.lexème.type != TypeLexème.Symbole {
+        rapporte_erreur(parseuse, lexème, "attendu un symbole");
+    }
+}
+
+consomme_mot_clé :: fonc (parseuse: *Parseuse_CPP, texte: chaine)
+{
+    lexème := donne_lexème_suivant(parseuse);
+    saufsi est_mot_clé(lexème, texte) {
+        rapporte_erreur(parseuse, lexème, "attendu un '%'", texte);
+    }
+}
+
+consomme_ponctuation :: fonc (parseuse: *Parseuse_CPP, texte: chaine)
+{
+    lexème := donne_lexème_suivant(parseuse);
+    saufsi est_ponctuation(lexème, texte) {
+        rapporte_erreur(parseuse, lexème, "attendu un '%'", texte);
+    }
+}
+
+initialise_parseuse :: fonc (parseuse: *Parseuse_CPP, unit: *TranslationUnit)
+{
+    parseuse.unit = unit;
+    parseuse.lexèmes = convertis_en_tokens(unit.lexèmes_préprocès);
+    parseuse.lexème_courant = 0;
+}
+
+rapporte_erreur_interne :: fonc (parseuse: *Parseuse_CPP, lexème: Token, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR_INTERNE, lexème, format, ...args);
+} @Imprimeuse
+
+rapporte_erreur :: fonc (parseuse: *Parseuse_CPP, lexème: Token, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR, lexème, format, ...args);
+} @Imprimeuse
+
+sauvegarde_état :: fonc (parseuse: *Parseuse_CPP) -> Parseuse_CPP.État
+{
+    résultat: Parseuse_CPP.État;
+    résultat.position = parseuse.lexème_courant;
+    retourne résultat;
+}
+
+restaure_état :: fonc (parseuse: *Parseuse_CPP, état: Parseuse_CPP.État)
+{
+    parseuse.lexème_courant = état.position;
+}
+
+parse_translation_unit :: fonc (parseuse: *Parseuse_CPP)
+{
+    assert(parseuse.unit != nul);
+    parse_declaration_sequence(parseuse, *parseuse.unit.declarations, faux);
+}
+
+// declaration-seq
+parse_declaration_sequence :: fonc (parseuse: *Parseuse_CPP, declarations: *[..]*ASTNode, fini_sur_accolade_fermante: bool)
+{
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse);
+        si est_fin_de_fichier(lexème) {
+            arrête;
+        }
+        si fini_sur_accolade_fermante && est_ponctuation(lexème, "}") {
+            arrête;
+        }
+        declaration := parse_declaration(parseuse);
+        si declaration {
+            si parseuse.messagère {
+                envoie_message_déclaration_parsée(parseuse.messagère, parseuse.unit, declaration);
+            }
+            tableau_ajoute(declarations, declaration);
+        }
+    }
+}
+
+parse_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse);
+
+    // block-declaration
+    // function-definition
+    // template-declaration
+    // explicit-instantiation
+    // explicit-specialization
+    // linkage-specification
+    // empty-declaration
+    // attribute-declaration
+
+    // namespace-definition
+    si est_mot_clé(lexème, "namespace") {
+        retourne parse_namespace_definition(parseuse, faux);
+    }
+
+    si est_mot_clé(lexème, "inline") {
+        état := sauvegarde_état(parseuse);
+        consomme(parseuse);
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_mot_clé(lexème_suivant, "namespace") {
+            retourne parse_namespace_definition(parseuse, vrai);
+        }
+        restaure_état(parseuse, état);
+    }
+
+    rapporte_erreur(parseuse, lexème, "attendu une déclaration");
+    retourne nul;
+}
+
+parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -> *Namespace_Definition
+{
+    lexème := donne_lexème_suivant(parseuse);
+
+    lexème_suivant := donne_lexème_suivant(parseuse);
+
+    // À FAIRE : extension-namespace-definition
+
+    si est_symbole(lexème_suivant) {
+        lexème_suivant = donne_lexème_suivant(parseuse);
+    }
+
+    saufsi est_ponctuation(lexème_suivant, "{") {
+        rapporte_erreur(parseuse, lexème_suivant, "attendu un '{'");
+    }
+
+    declarations: [..]*ASTNode;
+    parse_declaration_sequence(parseuse, *declarations, vrai);
+
+    consomme_ponctuation(parseuse, "}");
+
+    résultat := crée_noeud(*parseuse.créatrice, lexème, Namespace_Definition);
+    résultat.declarations = declarations;
+    résultat.est_inline = est_inline;
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ParseuseCPP C++
  * \{ */
 
@@ -19,8 +211,6 @@ ParseuseCPP :: struct {
     sur_prodéclaration_énum: fonc (parseuse: *ParseuseCPP, noeud: *ASTNode);
     sur_identifiant: fonc (parseuse: *ParseuseCPP, texte: chaine);
     sur_inclusion: fonc (parseuse: *ParseuseCPP, texte: chaine, système: bool);
-
-    contextes: [..]*DeclContext;
 }
 
 initialise_parseuse :: fonc (parseuse: *ParseuseCPP, fichier: *FichierSource)
@@ -38,16 +228,6 @@ sauvegarde_position :: fonc (parseuse: *ParseuseCPP)
 restaure_position :: fonc (parseuse: *ParseuseCPP)
 {
     parseuse.lexeuse = parseuse.lexeuse_sauvegardée;
-}
-
-empile_contexte :: fonc (parseuse: *ParseuseCPP, ctx: *DeclContext)
-{
-    tableau_ajoute(*parseuse.contextes, ctx);
-}
-
-dépile_contexte :: fonc (parseuse: *ParseuseCPP)
-{
-    parseuse.contextes.taille -= 1;
 }
 
 ajoute_au_contexte :: fonc (parseuse: *ParseuseCPP, decl: *ASTNode)
@@ -280,10 +460,10 @@ parse_décalaration_haut_niveau :: fonc (parseuse: *ParseuseCPP)
     //     continue
     // }
 
-    si est_mot_clé(lexème, "namespace") {
-        parseuse.parse_décalaration_namespace();
-        retourne;
-    }
+    // si est_mot_clé(lexème, "namespace") {
+    //     parseuse.parse_décalaration_namespace();
+    //     retourne;
+    // }
 
     si est_ponctuation(lexème, "#") {
         parseuse.parse_directive_préprocesseur();
@@ -907,27 +1087,4 @@ parse_using :: fonc (parseuse: *ParseuseCPP)
 parse_référence_type :: fonc (parseuse: *ParseuseCPP)
 {
     _ := parseuse.consomme_ident();
-}
-
-parse_décalaration_namespace :: fonc (parseuse: *ParseuseCPP)
-{
-    namespace := crée_noeud(parseuse.créatrice_noeuds, NamespaceDecl);
-    ajoute_au_contexte(parseuse, namespace);
-    empile_contexte(parseuse, namespace);
-    diffère dépile_contexte(parseuse);
-
-    consomme_symbole(*parseuse.lexeuse);
-    consomme_ponctuation(*parseuse.lexeuse, "{");
-
-    tantque !fini(parseuse) {
-        lexeuse := parseuse.lexeuse;
-        lexème := donne_lexème_suivant(*lexeuse);
-        si lexème.est_ponctuation("}") {
-            arrête;
-        } 
-
-        parse_external_declaration(parseuse);
-    }
-
-    consomme_ponctuation(*parseuse.lexeuse, "}");
 }
