@@ -44,6 +44,13 @@ CXX_Type_Specifier :: struct {
     genre = #type_de_cette_structure;
 }
 
+CXX_Decltype_Specifier :: struct {
+    empl type_specifier: CXX_Type_Specifier;
+    genre = #type_de_cette_structure;
+
+    expression: *Expression;
+}
+
 CXX_Function_Specifier :: struct {
     empl decl_specifier: CXX_Declaration_Specifier;
     genre = #type_de_cette_structure;
@@ -420,6 +427,11 @@ Expression :: struct {
     genre = #type_de_cette_structure;
 
     drapeaux: Drapeaux_Expression;
+}
+
+CXX_Nullptr_Expression :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
 }
 
 TypeRef :: struct {

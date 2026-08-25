@@ -235,7 +235,22 @@ parse_decl_specifier_seq :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Declaration_S
         }
         sinon si est_type_specifier(parseuse, lexème) {
             consomme(parseuse);
-            noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
+
+            si est_mot_clé(lexème, "decltype") {
+                consomme_ponctuation(parseuse, "(");
+                lexème_expr := donne_lexème_suivant(parseuse);
+                saufsi est_mot_clé(lexème_expr, "nullptr") {
+                    rapporte_erreur(parseuse, lexème_expr, "expression non-gérée");
+                }
+                expression := crée_noeud(*parseuse.créatrice, lexème_expr, CXX_Nullptr_Expression);
+                decltype := crée_noeud(*parseuse.créatrice, lexème, CXX_Decltype_Specifier);
+                decltype.expression = expression;
+                noeud = decltype;
+                consomme_ponctuation(parseuse, ")");
+            }
+            sinon {
+                noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
+            }
         }
         sinon si est_function_specifier(parseuse, lexème) {
             consomme(parseuse);
