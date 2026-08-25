@@ -1,0 +1,105 @@
+/* ------------------------------------------------------------------------- */
+/** \nom Base_Parseuse
+ * \{ */
+
+Base_Parseuse :: struct {
+    État :: struct {
+        position: z64;
+    }
+
+    unit: *TranslationUnit;
+    lexèmes: []Token;
+    lexème_courant: z64;
+
+    créatrice: CréatriceNoeuds;
+
+    typedef_names: TableDeHachage(chaine, *TypedefDecl);
+
+    messagère: *Messagère;
+}
+
+initialise_base_parseuse :: fonc (base: *Base_Parseuse, unit: *TranslationUnit)
+{
+    base.unit = unit;
+    base.lexèmes = convertis_en_tokens(unit.lexèmes_préprocès);
+    base.lexème_courant = 0;
+}
+
+fini :: fonc (parseuse: *Base_Parseuse) -> bool
+{
+    retourne parseuse.lexème_courant >= parseuse.lexèmes.taille;
+}
+
+donne_lexème_suivant :: fonc (parseuse: *Base_Parseuse) -> Token
+{
+    si fini(parseuse) {
+        lexème := Lexème(type = TypeLexème.FinDeFichier);
+        retourne Token(lexème = lexème);
+    }
+    résultat := parseuse.lexèmes[parseuse.lexème_courant];
+    parseuse.lexème_courant += 1;
+    retourne résultat;
+}
+
+épie_lexème_suivant :: fonc (parseuse: *Base_Parseuse) -> Token
+{
+    si fini(parseuse) {
+        lexème := Lexème(type = TypeLexème.FinDeFichier);
+        retourne Token(lexème = lexème);
+    }
+    résultat := parseuse.lexèmes[parseuse.lexème_courant];
+    retourne résultat;
+}
+
+consomme :: fonc (parseuse: *Base_Parseuse)
+{
+    parseuse.lexème_courant += 1;
+}
+
+consomme_symbole :: fonc (parseuse: *Base_Parseuse)
+{
+    lexème := donne_lexème_suivant(parseuse);
+    si lexème.lexème.type != TypeLexème.Symbole {
+        rapporte_erreur(parseuse, lexème, "attendu un symbole");
+    }
+}
+
+consomme_mot_clé :: fonc (parseuse: *Base_Parseuse, texte: chaine)
+{
+    lexème := donne_lexème_suivant(parseuse);
+    saufsi est_mot_clé(lexème, texte) {
+        rapporte_erreur(parseuse, lexème, "attendu un '%'", texte);
+    }
+}
+
+consomme_ponctuation :: fonc (parseuse: *Base_Parseuse, texte: chaine)
+{
+    lexème := donne_lexème_suivant(parseuse);
+    saufsi est_ponctuation(lexème, texte) {
+        rapporte_erreur(parseuse, lexème, "attendu un '%'", texte);
+    }
+}
+
+rapporte_erreur_interne :: fonc (parseuse: *Base_Parseuse, lexème: Token, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR_INTERNE, lexème, format, ...args);
+} @Imprimeuse
+
+rapporte_erreur :: fonc (parseuse: *Base_Parseuse, lexème: Token, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR, lexème, format, ...args);
+} @Imprimeuse
+
+sauvegarde_état :: fonc (parseuse: *Base_Parseuse) -> Base_Parseuse.État
+{
+    résultat: Base_Parseuse.État;
+    résultat.position = parseuse.lexème_courant;
+    retourne résultat;
+}
+
+restaure_état :: fonc (parseuse: *Base_Parseuse, état: Base_Parseuse.État)
+{
+    parseuse.lexème_courant = état.position;
+}
+
+/** \} */

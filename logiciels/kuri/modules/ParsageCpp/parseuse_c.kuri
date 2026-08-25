@@ -6,77 +6,12 @@ importe Numérique; // pour magnitude_décimale
  * \{ */
 
 ParseuseC :: struct {
-    unit: *TranslationUnit;
-    lexèmes: []Token;
-    lexème_courant: z64;
-
-    créatrice: CréatriceNoeuds;
-
-    typedef_names: TableDeHachage(chaine, *TypedefDecl);
-
-    messagère: *Messagère;
-}
-
-fini :: fonc (parseuse: *ParseuseC) -> bool
-{
-    retourne parseuse.lexème_courant >= parseuse.lexèmes.taille;
-}
-
-donne_lexème_suivant :: fonc (parseuse: *ParseuseC) -> Token
-{
-    si fini(parseuse) {
-        lexème := Lexème(type = TypeLexème.FinDeFichier);
-        retourne Token(lexème = lexème);
-    }
-    résultat := parseuse.lexèmes[parseuse.lexème_courant];
-    parseuse.lexème_courant += 1;
-    retourne résultat;
-}
-
-épie_lexème_suivant :: fonc (parseuse: *ParseuseC) -> Token
-{
-    si fini(parseuse) {
-        lexème := Lexème(type = TypeLexème.FinDeFichier);
-        retourne Token(lexème = lexème);
-    }
-    résultat := parseuse.lexèmes[parseuse.lexème_courant];
-    retourne résultat;
-}
-
-consomme :: fonc (parseuse: *ParseuseC)
-{
-    parseuse.lexème_courant += 1;
-}
-
-consomme_symbole :: fonc (parseuse: *ParseuseC)
-{
-    lexème := donne_lexème_suivant(parseuse);
-    si lexème.lexème.type != TypeLexème.Symbole {
-        rapporte_erreur(parseuse, lexème, "attendu un symbole");
-    }
-}
-
-consomme_mot_clé :: fonc (parseuse: *ParseuseC, texte: chaine)
-{
-    lexème := donne_lexème_suivant(parseuse);
-    saufsi est_mot_clé(lexème, texte) {
-        rapporte_erreur(parseuse, lexème, "attendu un '%'", texte);
-    }
-}
-
-consomme_ponctuation :: fonc (parseuse: *ParseuseC, texte: chaine)
-{
-    lexème := donne_lexème_suivant(parseuse);
-    saufsi est_ponctuation(lexème, texte) {
-        rapporte_erreur(parseuse, lexème, "attendu un '%'", texte);
-    }
+    empl base: Base_Parseuse;
 }
 
 initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
 {
-    parseuse.unit = unit;
-    parseuse.lexèmes = convertis_en_tokens(unit.lexèmes_préprocès);
-    parseuse.lexème_courant = 0;
+    initialise_base_parseuse(parseuse, unit);
 
     initialise_types_fondamenteaux(*unit.maçonne_type);
 
@@ -108,16 +43,6 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
 
     _, _ := table_insère_si_non_existant(*parseuse.typedef_names, "__builtin_va_list", typedef_decl);
 }
-
-rapporte_erreur_interne :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, args: ...eini)
-{
-    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR_INTERNE, lexème, format, ...args);
-} @Imprimeuse
-
-rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, args: ...eini)
-{
-    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR, lexème, format, ...args);
-} @Imprimeuse
 
 /* (6.9) translation-unit:
     external-declaration

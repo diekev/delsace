@@ -5,103 +5,12 @@ importe SimpleLexage;
  * \{ */
 
 Parseuse_CPP :: struct {
-    État :: struct {
-        position: z64;
-    }
-
-    unit: *TranslationUnit;
-    lexèmes: []Token;
-    lexème_courant: z64;
-
-    créatrice: CréatriceNoeuds;
-
-    typedef_names: TableDeHachage(chaine, *TypedefDecl);
-
-    messagère: *Messagère;
-}
-
-fini :: fonc (parseuse: *Parseuse_CPP) -> bool
-{
-    retourne parseuse.lexème_courant >= parseuse.lexèmes.taille;
-}
-
-donne_lexème_suivant :: fonc (parseuse: *Parseuse_CPP) -> Token
-{
-    si fini(parseuse) {
-        lexème := Lexème(type = TypeLexème.FinDeFichier);
-        retourne Token(lexème = lexème);
-    }
-    résultat := parseuse.lexèmes[parseuse.lexème_courant];
-    parseuse.lexème_courant += 1;
-    retourne résultat;
-}
-
-épie_lexème_suivant :: fonc (parseuse: *Parseuse_CPP) -> Token
-{
-    si fini(parseuse) {
-        lexème := Lexème(type = TypeLexème.FinDeFichier);
-        retourne Token(lexème = lexème);
-    }
-    résultat := parseuse.lexèmes[parseuse.lexème_courant];
-    retourne résultat;
-}
-
-consomme :: fonc (parseuse: *Parseuse_CPP)
-{
-    parseuse.lexème_courant += 1;
-}
-
-consomme_symbole :: fonc (parseuse: *Parseuse_CPP)
-{
-    lexème := donne_lexème_suivant(parseuse);
-    si lexème.lexème.type != TypeLexème.Symbole {
-        rapporte_erreur(parseuse, lexème, "attendu un symbole");
-    }
-}
-
-consomme_mot_clé :: fonc (parseuse: *Parseuse_CPP, texte: chaine)
-{
-    lexème := donne_lexème_suivant(parseuse);
-    saufsi est_mot_clé(lexème, texte) {
-        rapporte_erreur(parseuse, lexème, "attendu un '%'", texte);
-    }
-}
-
-consomme_ponctuation :: fonc (parseuse: *Parseuse_CPP, texte: chaine)
-{
-    lexème := donne_lexème_suivant(parseuse);
-    saufsi est_ponctuation(lexème, texte) {
-        rapporte_erreur(parseuse, lexème, "attendu un '%'", texte);
-    }
+    empl base: Base_Parseuse;
 }
 
 initialise_parseuse :: fonc (parseuse: *Parseuse_CPP, unit: *TranslationUnit)
 {
-    parseuse.unit = unit;
-    parseuse.lexèmes = convertis_en_tokens(unit.lexèmes_préprocès);
-    parseuse.lexème_courant = 0;
-}
-
-rapporte_erreur_interne :: fonc (parseuse: *Parseuse_CPP, lexème: Token, format: chaine, args: ...eini)
-{
-    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR_INTERNE, lexème, format, ...args);
-} @Imprimeuse
-
-rapporte_erreur :: fonc (parseuse: *Parseuse_CPP, lexème: Token, format: chaine, args: ...eini)
-{
-    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR, lexème, format, ...args);
-} @Imprimeuse
-
-sauvegarde_état :: fonc (parseuse: *Parseuse_CPP) -> Parseuse_CPP.État
-{
-    résultat: Parseuse_CPP.État;
-    résultat.position = parseuse.lexème_courant;
-    retourne résultat;
-}
-
-restaure_état :: fonc (parseuse: *Parseuse_CPP, état: Parseuse_CPP.État)
-{
-    parseuse.lexème_courant = état.position;
+    initialise_base_parseuse(parseuse, unit);
 }
 
 parse_translation_unit :: fonc (parseuse: *Parseuse_CPP)

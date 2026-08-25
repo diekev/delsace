@@ -12,6 +12,7 @@ charge "fichier_source";
 charge "lexage";
 charge "message";
 charge "préprocesseur";
+charge "parseuse";
 charge "parseuse_c";
 charge "parseuse_cpp";
 charge "sémanticienne_c";
