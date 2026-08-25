@@ -106,7 +106,9 @@ parse_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
         token_linkage := épie_lexème_suivant(parseuse);
         si est_chaine_littérale(token_linkage) {
             consomme(parseuse);
-            
+
+            _ := parse_attributs_gcc(parseuse);
+
             declarations: [..]*ASTNode;
             lexème_suivant := épie_lexème_suivant(parseuse);
             si est_ponctuation(lexème_suivant, "{") {
@@ -305,6 +307,8 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
     si est_symbole(lexème_suivant) {
         lexème_suivant = donne_lexème_suivant(parseuse);
     }
+
+    _ := parse_attributs_gcc(parseuse);
 
     saufsi est_ponctuation(lexème_suivant, "{") {
         rapporte_erreur(parseuse, lexème_suivant, "attendu un '{'");
