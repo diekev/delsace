@@ -159,7 +159,35 @@ parse_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
         restaure_état(parseuse, état);
     }
 
+    retourne parse_block_declaration(parseuse);
+}
+
+parse_block_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse);
+
+    // asm-definition
+    // namespace-alias-definition
+    // using-declaration
+    // using-directive
+    // static_assert-declaration
+    // alias-declaration
+    // opaque-enum-declaration
+
+    // simple-declaration
+    declaration := parse_simple_declaration(parseuse);
+    si declaration {
+        retourne declaration;
+    }
+
     rapporte_erreur(parseuse, lexème, "attendu une déclaration");
+    retourne nul;
+}
+
+parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    // decl-specifier-seqopt init-declarator-listopt ;
+    // attribute-specifier-seq decl-specifier-seqopt init-declarator-list ;
     retourne nul;
 }
 
@@ -188,6 +216,32 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
     résultat.declarations = declarations;
     résultat.est_inline = est_inline;
     retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires.
+ * \{ */
+
+est_declaration_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    // si est_storage_class_specifier(lexème) {
+    //     retourne vrai;
+    // }
+    // si est_type_specifier(parseuse, lexème, nul) {
+    //     retourne vrai;
+    // }
+    // si est_function_specifier(lexème) {
+    //    retourne vrai;
+    // }
+    mots_clés := ["friend", "typedef", "constexpr"];
+    pour mots_clés {
+        si est_mot_clé(lexème, it) {
+            retourne vrai;
+        }
+    }
+    retourne faux;
 }
 
 /** \} */
