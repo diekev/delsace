@@ -188,7 +188,107 @@ parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
 {
     // decl-specifier-seqopt init-declarator-listopt ;
     // attribute-specifier-seq decl-specifier-seqopt init-declarator-list ;
-    retourne nul;
+
+    decl_specifier := parse_decl_specifier_seq(parseuse);
+    saufsi decl_specifier {
+        retourne nul;
+    }
+
+    // init-declarator-list
+    list: [..]*CXX_Init_Declarator;
+    tantque !fini(parseuse) {
+        init_declarator := parse_init_declarator(parseuse);
+        saufsi init_declarator {
+            arrête;
+        }
+
+        tableau_ajoute(*list, init_declarator);
+
+        lexème := épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème, ",") {
+            arrête;
+        }
+        consomme(parseuse);
+    }
+
+    consomme_ponctuation(parseuse, ";");
+
+    résultat := crée_noeud(*parseuse.créatrice, decl_specifier.token, CXX_Simple_Declaration);
+    résultat.decl_specifier = decl_specifier;
+    résultat.list = list;
+    retourne résultat;
+}
+
+parse_decl_specifier_seq :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Declaration_Specifier
+{
+    racine: *CXX_Declaration_Specifier;
+    dernier: *CXX_Declaration_Specifier;
+
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse);
+
+        noeud: *CXX_Declaration_Specifier;
+
+        si est_storage_class_specifier(parseuse, lexème) {
+            consomme(parseuse);
+            noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Storage_Class_Specifier);
+        }
+        sinon si est_type_specifier(parseuse, lexème) {
+            consomme(parseuse);
+            noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
+        }
+        sinon si est_function_specifier(parseuse, lexème) {
+            consomme(parseuse);
+            noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Function_Specifier);
+        }
+        sinon si est_mot_clé(lexème, ["friend", "typedef", "constexpr"]) {
+            consomme(parseuse);
+            noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Declaration_Specifier);
+        }
+
+        saufsi noeud {
+            arrête;
+        }
+
+        saufsi racine {
+            racine = noeud;
+        }
+
+        si dernier {
+            dernier.next = noeud;
+        }
+
+        dernier = noeud;
+    }
+
+    retourne racine;
+}
+
+parse_init_declarator :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Init_Declarator
+{
+    declarator := parse_declarator(parseuse);
+    saufsi declarator {
+        retourne nul;
+    }
+    résultat := crée_noeud(*parseuse.créatrice, declarator.token, CXX_Init_Declarator);
+    résultat.declarator = declarator;
+    // À FAIRE : initialisateur;
+    retourne résultat;
+}
+
+parse_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse);
+
+    saufsi est_symbole(lexème) {
+        rapporte_erreur(parseuse, lexème, "declarator non-géré");
+        retourne nul;
+    }
+
+    consomme(parseuse);
+
+    résultat := crée_noeud(*parseuse.créatrice, lexème, CXX_ID_Expression);
+    retourne résultat;
 }
 
 parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -> *Namespace_Definition
@@ -224,35 +324,31 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
 /** \nom Utilitaires.
  * \{ */
 
-CXX_Declaration_Specifier_Sequence :: struct {
-    declaration_specifiers: CXX_Declaration_Specifiers;
-    function_specifiers: CXX_Function_Specifiers;
-    storage_classes: CXX_Storage_Class_Specifiers;
-}
+// CXX_Declaration_Specifier_Sequence :: struct {
+//     declaration_specifiers: CXX_Declaration_Specifiers;
+//     function_specifiers: CXX_Function_Specifiers;
+//     storage_classes: CXX_Storage_Class_Specifiers;
+// }
 
-CXX_Declaration_Specifiers :: énum_drapeau n8 {
-    FRIEND;
-    TYPEDEF;
-    CONSTEXPR;
-}
+// CXX_Declaration_Specifiers :: énum_drapeau n8 {
+//     FRIEND;
+//     TYPEDEF;
+//     CONSTEXPR;
+// }
 
-CXX_Storage_Class_Specifiers :: énum_drapeau n8 {
-    REGISTER;
-    STATIC;
-    THREAD_LOCAL;
-    EXTERN;
-    MUTABLE;
-}
+// CXX_Storage_Class_Specifiers :: énum_drapeau n8 {
+//     REGISTER;
+//     STATIC;
+//     THREAD_LOCAL;
+//     EXTERN;
+//     MUTABLE;
+// }
 
-CXX_Type_Specifier :: struct {
-
-}
-
-CXX_Function_Specifiers :: énum_drapeau n8 {
-    INLINE;
-    VIRTUAL;
-    EXPLICIT;
-}
+// CXX_Function_Specifiers :: énum_drapeau n8 {
+//     INLINE;
+//     VIRTUAL;
+//     EXPLICIT;
+// }
 
 est_declaration_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
@@ -280,7 +376,7 @@ est_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
     retourne est_trailing_type_specifier(parseuse, lexème) || est_class_specifier(parseuse, lexème) || est_enum_specifier(parseuse, lexème);
 }
 
-est_trailing_type_specifier :: fonc (parseuse: Parseuse_CPP @inutilisée, lexème: Token) -> bool
+est_trailing_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
     si est_simple_type_specifier(parseuse, lexème) {
         retourne vrai;
@@ -302,7 +398,7 @@ est_simple_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème
     // nested-name-specifieropt type-name
     // nested-name-specifier template simple-template-id
 
-    mots_clés := ["char", "char16_t", "char32_t", "wchar_t", "bool", "short", "int", "long", "signed", "unsigned", "float", "double", "void", "auto"]
+    mots_clés := ["char", "char16_t", "char32_t", "wchar_t", "bool", "short", "int", "long", "signed", "unsigned", "float", "double", "void", "auto"];
     si est_mot_clé(lexème, mots_clés) {
         retourne vrai;
     }
@@ -314,7 +410,7 @@ est_simple_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème
     retourne faux;
 }
 
-est_elaborated_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+est_elaborated_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token @inutilisée) -> bool
 {
     retourne faux;
 }

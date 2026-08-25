@@ -27,6 +27,49 @@ Declaration :: struct {
     declarators: [..]*ASTNode;
 }
 
+CXX_Declaration_Specifier :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    next: *CXX_Declaration_Specifier;
+}
+
+CXX_Storage_Class_Specifier :: struct {
+    empl decl_specifier: CXX_Declaration_Specifier;
+    genre = #type_de_cette_structure;
+}
+
+CXX_Type_Specifier :: struct {
+    empl decl_specifier: CXX_Declaration_Specifier;
+    genre = #type_de_cette_structure;
+}
+
+CXX_Function_Specifier :: struct {
+    empl decl_specifier: CXX_Declaration_Specifier;
+    genre = #type_de_cette_structure;
+}
+
+CXX_Init_Declarator :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    declarator: *ASTNode;
+    initializer: *Expression;
+}
+
+CXX_Simple_Declaration :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    decl_specifier: *CXX_Declaration_Specifier;
+    list: [..]*CXX_Init_Declarator;
+}
+
+CXX_ID_Expression :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+}
+
 StaticAssert :: struct {
     empl node: ASTNode;
     genre = #type_de_cette_structure;
