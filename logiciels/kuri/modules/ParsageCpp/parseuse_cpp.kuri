@@ -186,9 +186,42 @@ parse_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
     // template-declaration
     // explicit-instantiation
     // explicit-specialization
-    // linkage-specification
     // empty-declaration
     // attribute-declaration
+
+    // linkage-specification
+    si est_mot_clé(lexème, "extern") {
+        état := sauvegarde_état(parseuse);
+        consomme(parseuse);
+
+        token_linkage := épie_lexème_suivant(parseuse);
+        si est_chaine_littérale(token_linkage) {
+            consomme(parseuse);
+            
+            declarations: [..]*ASTNode;
+            lexème_suivant := épie_lexème_suivant(parseuse);
+            si est_ponctuation(lexème_suivant, "{") {
+                consomme(parseuse);
+                parse_declaration_sequence(parseuse, *declarations, vrai);
+                consomme_ponctuation(parseuse, "}");
+            }
+            sinon {
+                declaration := parse_declaration(parseuse);
+                si declaration {
+                    tableau_ajoute(*declarations, declaration);
+                }
+            }
+
+            parse_declaration_sequence(parseuse, *declarations, vrai);
+
+            résultat := crée_noeud(*parseuse.créatrice, lexème, CXX_Linkage_Specification);
+            résultat.linkage = token_linkage;
+            résultat.declarations = declarations;
+            retourne résultat;
+        }
+
+        restaure_état(parseuse, état);
+    }
 
     // namespace-definition
     si est_mot_clé(lexème, "namespace") {

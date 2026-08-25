@@ -77,6 +77,14 @@ CXX_ID_Expression :: struct {
     genre = #type_de_cette_structure;
 }
 
+CXX_Linkage_Specification :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    linkage: Token;
+    declarations: [..]*ASTNode;
+}
+
 StaticAssert :: struct {
     empl node: ASTNode;
     genre = #type_de_cette_structure;
