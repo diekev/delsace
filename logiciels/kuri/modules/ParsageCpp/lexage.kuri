@@ -297,6 +297,11 @@ est_symbole :: fonc (token: Token) -> bool #enligne
     retourne token.form == TokenForm.IDENTIFIER;
 }
 
+est_symbole :: fonc (token: Token, texte: chaine) -> bool #enligne
+{
+    retourne token.form == TokenForm.IDENTIFIER && donne_texte(token) == texte;
+}
+
 est_ponctuation :: fonc (token: Token, texte: chaine) -> bool #enligne
 {
     retourne est_ponctuation(token.lexème, texte);
