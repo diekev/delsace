@@ -1198,6 +1198,82 @@ __mots_clés_cpp := [
     "static_assert"
 ];
 
+__mots_clés_cpp14 := [
+    "alignas",
+    "alignof",
+    "asm",
+    "auto",
+    "bool",
+    "break",
+    "case",
+    "catch",
+    "char",
+    "char16_t",
+    "char32_t",
+    "class",
+    "const",
+    "constexpr",
+    "const_cast",
+    "continue",
+    "decltype",
+    "default",
+    "delete",
+    "do",
+    "double",
+    "dynamic_cast",
+    "else",
+    "enum",
+    "explicit",
+    "export",
+    "extern",
+    "false",
+    "float",
+    "for",
+    "friend",
+    "goto",
+    "if",
+    "inline",
+    "int",
+    "long",
+    "mutable",
+    "namespace",
+    "new",
+    "noexcept",
+    "nullptr",
+    "operator",
+    "private",
+    "protected",
+    "public",
+    "register",
+    "reinterpret_cast",
+    "return",
+    "short",
+    "signed",
+    "sizeof",
+    "static",
+    "static_assert",
+    "static_cast",
+    "struct",
+    "switch",
+    "template",
+    "this",
+    "thread_local",
+    "throw",
+    "true",
+    "try",
+    "typedef",
+    "typeid",
+    "typename",
+    "union",
+    "unsigned",
+    "using",
+    "virtual",
+    "void",
+    "volatile",
+    "wchar_t",
+    "while",
+];
+
 /* A.1.7 Punctuators */
 __ponctuation_c := [
     "[", "]", "(", ")", "{", "}", ".", "->",
@@ -1435,11 +1511,16 @@ initialise_lexeuse_c :: fonc (lexeuse: *SimpleLexeuse)
     lexeuse.apostrophe_est_caractère_constant = vrai;
 }
 
-initialise_lexeuse_cpp :: fonc (lexeuse: *SimpleLexeuse)
+initialise_lexeuse_cpp :: fonc (lexeuse: *SimpleLexeuse, standard := 14)
 {
     lexeuse.ponctuations = __ponctuation_cpp;
     lexeuse.sur_lexage_littérale_numérique = parse_lexème_numérique_c;
-    lexeuse.mots_clés = __mots_clés_cpp;
+    si standard == 14 {
+        lexeuse.mots_clés = __mots_clés_cpp14;
+    }
+    sinon {
+        lexeuse.mots_clés = __mots_clés_cpp;
+    }
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_c;
     lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_c;
     lexeuse.suffixes_nombres_littéraux = __suffixes_nombres_littéraux_c;
