@@ -788,28 +788,6 @@ LabelStatement :: struct {
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom ClassDecl
- * \{ */
-
-SpécificationBase :: struct {
-    accès: SpécificationAccès;
-    est_virtuel: bool;
-    nom: chaine;
-}
-
-// Utilisée par Cycles
-ClassDecl :: struct {
-    empl node: ASTNode;
-    genre = #type_de_cette_structure;
-
-    nom: chaine;
-    clé_classe: CléClasse;
-    bases: [..]SpécificationBase;
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom Namespace_Definition
  * \{ */
 
