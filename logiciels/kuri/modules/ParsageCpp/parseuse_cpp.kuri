@@ -224,24 +224,96 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
 /** \nom Utilitaires.
  * \{ */
 
-est_declaration_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+est_declaration_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
-    // si est_storage_class_specifier(lexème) {
-    //     retourne vrai;
-    // }
-    // si est_type_specifier(parseuse, lexème, nul) {
-    //     retourne vrai;
-    // }
-    // si est_function_specifier(lexème) {
-    //    retourne vrai;
-    // }
+    si est_storage_class_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_type_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_function_specifier(parseuse, lexème) {
+       retourne vrai;
+    }
     mots_clés := ["friend", "typedef", "constexpr"];
-    pour mots_clés {
-        si est_mot_clé(lexème, it) {
-            retourne vrai;
-        }
+    retourne est_mot_clé(lexème, mots_clés);
+}
+
+est_storage_class_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    mots_clés := ["register", "static", "thread_local", "extern", "mutable"];
+    retourne est_mot_clé(lexème, mots_clés);
+}
+
+est_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
+{
+    retourne est_trailing_type_specifier(parseuse, lexème) || est_class_specifier(parseuse, lexème) || est_enum_specifier(parseuse, lexème);
+}
+
+est_trailing_type_specifier :: fonc (parseuse: Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    si est_simple_type_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_elaborated_type_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_typename_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_cv_qualifier(parseuse, lexème) {
+        retourne vrai;
     }
     retourne faux;
+}
+
+est_simple_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    // nested-name-specifieropt type-name
+    // nested-name-specifier template simple-template-id
+
+    mots_clés := ["char", "char16_t", "char32_t", "wchar_t", "bool", "short", "int", "long", "signed", "unsigned", "float", "double", "void", "auto"]
+    si est_mot_clé(lexème, mots_clés) {
+        retourne vrai;
+    }
+
+    si est_mot_clé(lexème, "decltype") {
+        retourne vrai;
+    }
+
+    retourne faux;
+}
+
+est_elaborated_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    retourne faux;
+}
+
+est_typename_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    retourne est_mot_clé(lexème, "typename");
+}
+
+est_cv_qualifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    retourne est_mot_clé(lexème, ["const", "volatile"]);
+}
+
+est_class_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    mots_clés := ["class", "struct", "union"];
+    retourne est_mot_clé(lexème, mots_clés);
+}
+
+est_enum_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    retourne est_mot_clé(lexème, "enum");
+}
+
+est_function_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    mots_clés := ["inline", "virtual", "explicit"];
+    retourne est_mot_clé(lexème, mots_clés);
 }
 
 /** \} */

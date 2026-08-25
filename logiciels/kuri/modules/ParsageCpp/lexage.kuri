@@ -282,6 +282,16 @@ est_mot_clé :: fonc (token: Token, texte: chaine) -> bool #enligne
     retourne est_mot_clé(token.lexème, texte);
 }
 
+est_mot_clé :: fonc (token: Token, textes: []chaine) -> bool
+{
+    pour textes {
+        si est_mot_clé(token.lexème, it) {
+            retourne vrai;
+        }
+    }
+    retourne faux;
+}
+
 est_symbole :: fonc (token: Token) -> bool #enligne
 {
     retourne token.form == TokenForm.IDENTIFIER;
