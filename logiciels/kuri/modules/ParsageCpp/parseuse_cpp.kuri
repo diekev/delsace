@@ -224,6 +224,36 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
 /** \nom Utilitaires.
  * \{ */
 
+CXX_Declaration_Specifier_Sequence :: struct {
+    declaration_specifiers: CXX_Declaration_Specifiers;
+    function_specifiers: CXX_Function_Specifiers;
+    storage_classes: CXX_Storage_Class_Specifiers;
+}
+
+CXX_Declaration_Specifiers :: énum_drapeau n8 {
+    FRIEND;
+    TYPEDEF;
+    CONSTEXPR;
+}
+
+CXX_Storage_Class_Specifiers :: énum_drapeau n8 {
+    REGISTER;
+    STATIC;
+    THREAD_LOCAL;
+    EXTERN;
+    MUTABLE;
+}
+
+CXX_Type_Specifier :: struct {
+
+}
+
+CXX_Function_Specifiers :: énum_drapeau n8 {
+    INLINE;
+    VIRTUAL;
+    EXPLICIT;
+}
+
 est_declaration_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
     si est_storage_class_specifier(parseuse, lexème) {
