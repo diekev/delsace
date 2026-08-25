@@ -149,10 +149,10 @@ parse_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
         restaure_état(parseuse, état);
     }
 
-    retourne parse_block_declaration(parseuse);
+    retourne parse_block_declaration(parseuse, vrai);
 }
 
-parse_block_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+parse_block_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fonction: bool) -> *ASTNode
 {
     lexème := épie_lexème_suivant(parseuse);
 
@@ -165,7 +165,7 @@ parse_block_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
     // opaque-enum-declaration
 
     // simple-declaration
-    declaration := parse_simple_declaration(parseuse);
+    declaration := parse_simple_declaration(parseuse, permet_définition_fonction);
     si declaration {
         retourne declaration;
     }
@@ -174,7 +174,7 @@ parse_block_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
     retourne nul;
 }
 
-parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fonction: bool) -> *ASTNode
 {
     // decl-specifier-seqopt init-declarator-listopt ;
     // attribute-specifier-seq decl-specifier-seqopt init-declarator-list ;
@@ -199,6 +199,17 @@ parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
             arrête;
         }
         consomme(parseuse);
+    }
+
+    si list.taille == 1 {
+        init_declarator := list[0];
+
+        si init_declarator.declarator.genre == CXX_Parameters_And_Qualifiers {
+            lexème := épie_lexème_suivant(parseuse);
+            si est_ponctuation(lexème, "{") && permet_définition_fonction {
+                rapporte_erreur(parseuse, lexème, "les fonctions ne sont pas encore supportées");
+            }
+        }
     }
 
     consomme_ponctuation(parseuse, ";");
@@ -283,16 +294,77 @@ parse_init_declarator :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Init_Declarator
 
 parse_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
 {
+    retourne parse_ptr_declarator(parseuse);
+}
+
+parse_ptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
     lexème := épie_lexème_suivant(parseuse);
 
-    saufsi est_symbole(lexème) {
-        rapporte_erreur(parseuse, lexème, "declarator non-géré");
+    // À FAIRE : nested-name-specifier
+    si est_ponctuation(lexème, "*") || est_ponctuation(lexème, "&") || est_ponctuation(lexème, "&&") {
+        consomme(parseuse);
+
+        résultat := crée_noeud(*parseuse.créatrice, lexème, CXX_Ptr_Declarator);
+        résultat.next = parse_ptr_declarator(parseuse);
+        retourne résultat;
+    }
+
+    retourne parse_noptr_declarator(parseuse);
+}
+
+parse_noptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse);
+
+    résultat: *ASTNode;
+
+    // declarator-id attribute-specifier-seqopt
+    // À FAIRE : declarator-id
+    si est_symbole(lexème) {
+        consomme(parseuse);
+        résultat = crée_noeud(*parseuse.créatrice, lexème, CXX_ID_Expression);
+    }
+    // ( ptr-declarator )
+    sinon si est_ponctuation(lexème, "(") {
+        consomme(parseuse);
+        résultat = parse_declarator(parseuse);
+        consomme_ponctuation(parseuse, ")");
+    }
+
+    saufsi résultat {
         retourne nul;
     }
 
-    consomme(parseuse);
+    tantque !fini(parseuse) {
+        lexème = épie_lexème_suivant(parseuse);
+        // noptr-declarator parameters-and-qualifiers
+        si est_ponctuation(lexème, "(") {
+            consomme(parseuse);
 
-    résultat := crée_noeud(*parseuse.créatrice, lexème, CXX_ID_Expression);
+            parameters := crée_noeud(*parseuse.créatrice, lexème, CXX_Parameters_And_Qualifiers);
+            parameters.left = résultat;
+
+            résultat = parameters;
+
+            consomme_ponctuation(parseuse, ")");
+
+            // À FAIRE : qualifiers
+            lexème = épie_lexème_suivant(parseuse);
+            si est_mot_clé(lexème, "noexcept") {
+                consomme(parseuse);
+                tableau_ajoute(*parameters.qualifiers, lexème);
+            }
+        }
+        // noptr-declarator [ constant-expressionopt ] attribute-specifier-seqopt
+        sinon si est_ponctuation(lexème, "[") {
+            rapporte_erreur(parseuse, lexème, "declarator non-géré");
+        }
+        sinon {
+            arrête;
+        }
+    }
+
     retourne résultat;
 }
 

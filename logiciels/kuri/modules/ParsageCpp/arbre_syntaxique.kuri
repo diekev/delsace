@@ -64,6 +64,22 @@ CXX_Init_Declarator :: struct {
     initializer: *Expression;
 }
 
+CXX_Ptr_Declarator :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    next: *ASTNode;
+}
+
+CXX_Parameters_And_Qualifiers :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    left: *ASTNode;
+
+    qualifiers: [..]Token;
+}
+
 CXX_Simple_Declaration :: struct {
     empl node: ASTNode;
     genre = #type_de_cette_structure;
