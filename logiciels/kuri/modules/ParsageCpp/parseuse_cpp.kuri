@@ -124,6 +124,7 @@ parse_declaration_sequence :: fonc (parseuse: *Parseuse_CPP, declarations: *[..]
         si est_ponctuation(lexème, "#") {
             consomme(parseuse);
             parse_directive(parseuse);
+            continue;
         }
         declaration := parse_declaration(parseuse);
         si declaration {
