@@ -5,7 +5,7 @@
  * Panneau.sur_clic_souris doit retourner vrai si le panneau a gérer le
  * clic. Les évènements de mouvement et de clic souris suivant seront
  * envoyés à ce panneau jusqu'au prochain évènement de clic ayant comme
- * action ActionSouris.RELACHÉE
+ * action Action_Souris.RELACHÉE
  *
  * Panneau.sur_début_survol est émis quand la souris entre dans le rect du
  * panneau.
@@ -89,7 +89,7 @@ détruit :: fonc (chronomètre: *Chronomètre)
  * curseur doit être définis.
  */
 ContexteInterface :: struct {
-    empl base: PlateformeGuettage;
+    empl base: Plateforme_Guettage;
 
     fonte: *Fonte;
 
@@ -99,7 +99,7 @@ ContexteInterface :: struct {
 
     panneau_survolé: *Panneau;
 
-    rappel_définis_curseur_souris: fonc (ctx: *ContexteInterface, curseur: TypeCurseurSystème);
+    rappel_définis_curseur_souris: fonc (ctx: *ContexteInterface, curseur: Type_Curseur_Système);
 
     sur_création_chronomètre: fonc (ctx: *ContexteInterface, chrono: *Chronomètre) -> IDChronomètre;
     sur_arrêt_chronomètre: fonc (ctx: *ContexteInterface, id: IDChronomètre);
@@ -120,7 +120,7 @@ crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_donn�
     retourne résultat;
 }
 
-gère_clic_souris :: fonc (empl contexte: *ContexteInterface, clic: ClicSouris)
+gère_clic_souris :: fonc (empl contexte: *ContexteInterface, clic: Clic_Souris)
 {
     nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clic.état);
     si nouveau_panneau_survolé != panneau_survolé {
@@ -142,7 +142,7 @@ gère_clic_souris :: fonc (empl contexte: *ContexteInterface, clic: ClicSouris)
     // }
 }
 
-sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
+sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: État_Souris)
 {
     nouveau_panneau_survolé := trouve_panneau_survolé(contexte, état);
     si nouveau_panneau_survolé != panneau_survolé {
@@ -163,7 +163,7 @@ sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: État
     }
 }
 
-trouve_panneau_survolé :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris) -> *Panneau
+trouve_panneau_survolé :: fonc (empl contexte: *ContexteInterface, état: État_Souris) -> *Panneau
 {
     pour diviseurs {
         si contient(it.rect, état.où) {
@@ -174,7 +174,7 @@ trouve_panneau_survolé :: fonc (empl contexte: *ContexteInterface, état: État
     retourne trouve_panneau_survolé_récursif(panneau_racine, état);
 }
 
-trouve_panneau_survolé_récursif :: fonc (panneau_racine: *Panneau, état: ÉtatSouris) -> *Panneau
+trouve_panneau_survolé_récursif :: fonc (panneau_racine: *Panneau, état: État_Souris) -> *Panneau
 {
     saufsi panneau_racine {
         retourne nul;
@@ -208,7 +208,7 @@ dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage:
     }
 }
 
-définis_curseur_souris :: fonc (empl contexte: *ContexteInterface, type_curseur: TypeCurseurSystème)
+définis_curseur_souris :: fonc (empl contexte: *ContexteInterface, type_curseur: Type_Curseur_Système)
 {
     saufsi rappel_définis_curseur_souris {
         retourne;
@@ -269,8 +269,8 @@ Panneau :: struct {
 
     /* Fonctions de rappels à implémenter pour chaque type dérivé. */
     sur_destruction: fonc (panneau: *Panneau);
-    sur_déplacement_souris: fonc (panneau: *Panneau, ÉtatSouris);
-    sur_clic_souris: fonc (panneau: *Panneau, clic: ClicSouris) -> bool;
+    sur_déplacement_souris: fonc (panneau: *Panneau, État_Souris);
+    sur_clic_souris: fonc (panneau: *Panneau, clic: Clic_Souris) -> bool;
     sur_dessin: fonc (panneau: *Panneau, ctx: *ContexteAffichage);
     sur_redimension: fonc (panneau: *Panneau, rect: RectanglePosDim(z32));
     sur_début_survol: fonc (panneau: *Panneau);
@@ -320,7 +320,7 @@ sur_dessin_récursif :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
     }
 }
 
-gère_clic_souris :: fonc (panneau: *Panneau, clic: ClicSouris) -> bool
+gère_clic_souris :: fonc (panneau: *Panneau, clic: Clic_Souris) -> bool
 {
     /* Permet de passer nul. */
     saufsi panneau {
@@ -339,7 +339,7 @@ redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
     panneau.sur_redimension(panneau, rect);
 }
 
-sur_déplacement_souris_récursif :: fonc (panneau: *Panneau, état: ÉtatSouris)
+sur_déplacement_souris_récursif :: fonc (panneau: *Panneau, état: État_Souris)
 {
     saufsi panneau {
         retourne;
@@ -364,7 +364,7 @@ débute_survol_panneau :: fonc (panneau: *Panneau)
     panneau.sur_début_survol(panneau);
 }
 
-fini_survol_panneau :: fonc (panneau: *Panneau, état: ÉtatSouris)
+fini_survol_panneau :: fonc (panneau: *Panneau, état: État_Souris)
 {
     /* Permet de passer nul. */
     saufsi panneau {
@@ -398,7 +398,7 @@ PanneauInterface :: struct {
 
 crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32), élément_central: *Panneau) -> *PanneauInterface
 {
-    sur_clic_souris :: fonc (panneau_interface: *PanneauInterface, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_interface: *PanneauInterface, clic: Clic_Souris) -> bool
     {
         retourne reçoie_clic_souris(panneau_interface, clic);
     }
@@ -471,7 +471,7 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
     }
 }
 
-reçoie_clic_souris :: fonc (empl panneau: *PanneauInterface, clic: ClicSouris) -> bool
+reçoie_clic_souris :: fonc (empl panneau: *PanneauInterface, clic: Clic_Souris) -> bool
 {
     si gère_clic_souris(barre_de_menu, clic) {
         retourne vrai;
