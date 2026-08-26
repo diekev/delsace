@@ -207,4 +207,45 @@ parse_attributs_gcc :: fonc (empl parseuse: *Base_Parseuse) -> *Attribut
     retourne résultat;
 }
 
+parse_directive :: fonc (parseuse: *Base_Parseuse)
+{
+    lexème := donne_lexème_suivant(parseuse);
+    saufsi est_symbole(lexème, "pragma") {
+        rapporte_erreur(parseuse, lexème, "directive inconnue");
+        retourne;
+    }
+    
+    lexème = donne_lexème_suivant(parseuse);
+    saufsi est_symbole(lexème, "GCC") {
+        rapporte_erreur(parseuse, lexème, "compilateur inconnu");
+        retourne;
+    }
+
+    lexème = donne_lexème_suivant(parseuse);
+    si est_symbole(lexème, "visibility") {
+        // À FAIRE : empile l'état
+        lexème = donne_lexème_suivant(parseuse);
+
+        si est_symbole(lexème, "push") {
+            consomme_ponctuation(parseuse, "(");
+
+            lexème = donne_lexème_suivant(parseuse);
+            saufsi est_symbole(lexème, "default") || est_mot_clé(lexème, "default") {
+                rapporte_erreur(parseuse, lexème, "état de visibility inconnu");
+            }
+
+            consomme_ponctuation(parseuse, ")");
+        }
+        sinon si est_symbole(lexème, "pop") {
+            // À FAIRE : dépile l'état
+        }
+        sinon {
+            rapporte_erreur(parseuse, lexème, "instruction de pragma inconnue");
+        }
+    }
+    sinon {
+        rapporte_erreur(parseuse, lexème, "catégorie de pragma inconnue");
+    }
+}
+
 /** \} */
