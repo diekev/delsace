@@ -45,10 +45,14 @@ CXX_Type_Specifier :: struct {
 }
 
 CXX_Elaborated_Type_Specifier :: struct {
-    empl decl_specifier: CXX_Declaration_Specifier;
+    empl type_specifier: CXX_Type_Specifier;
     genre = #type_de_cette_structure;
 
     identifier: Token;
+
+    /* Si le type élaboré un simple-template-id, par exemple template <> class xxx<void>. */
+    template_declaration: *Template_Declaration;
+    template_parameters: [..]*ASTNode;
 }
 
 CXX_Decltype_Specifier :: struct {
@@ -198,6 +202,14 @@ CXX_Function_Definition :: struct {
     specifiers: *CXX_Declaration_Specifier;
     declarator: *ASTNode;
     body: *ASTNode;
+}
+
+Parameter_Declaration :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    specifiers: *CXX_Declaration_Specifier;
+    declarator: *ASTNode;
 }
 
 donne_dernière_instruction :: fonc (statement: *CompoundStatement) -> *ASTNode
@@ -849,6 +861,22 @@ Template_Declaration :: struct {
 
     parameters: [..]*ASTNode;
     declaration: *ASTNode;
+}
+
+Explicit_Specialization :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    declaration: *ASTNode;
+}
+
+Type_Parameter :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    est_variadique: bool;
+    identifier: Token;
+    type_id: *ASTNode;
 }
 
 /** \} */

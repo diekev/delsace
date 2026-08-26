@@ -62,13 +62,13 @@ trouve_noms :: fonc (table: *CXX_Table_De_Noms, texte: chaine) -> []CXX_Name
     bloc_courant := table.bloc_courant;
 
     tantque bloc_courant {
-        pour bloc.noms {
+        pour bloc_courant.noms {
             si it.texte == texte {
                 tableau_ajoute(*table.noms, it);
             }
         }
 
-        bloc_courant = bloc_courant.parent;
+        bloc_courant = bloc_courant.bloc_parent;
     }
 
     retourne table.noms;
@@ -299,32 +299,7 @@ parse_decl_specifier_seq :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Declaration_S
             noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Declaration_Specifier);
         }
         sinon {
-            type_specifier_kind := détermine_type_specifier(parseuse, lexème);
-            si type_specifier_kind != Type_Specifier_Kind.NONE {
-                consomme(parseuse);
-
-                si est_mot_clé(lexème, "decltype") {
-                    consomme_ponctuation(parseuse, "(");
-                    lexème_expr := donne_lexème_suivant(parseuse);
-                    saufsi est_mot_clé(lexème_expr, "nullptr") {
-                        rapporte_erreur(parseuse, lexème_expr, "expression non-gérée");
-                    }
-                    expression := crée_noeud(*parseuse.créatrice, lexème_expr, CXX_Nullptr_Expression);
-                    decltype := crée_noeud(*parseuse.créatrice, lexème, CXX_Decltype_Specifier);
-                    decltype.expression = expression;
-                    noeud = decltype;
-                    consomme_ponctuation(parseuse, ")");
-                }
-                sinon si type_specifier_kind == Type_Specifier_Kind.ELABORATED {
-                    elaborated := crée_noeud(*parseuse.créatrice, lexème, CXX_Elaborated_Type_Specifier);
-                    elaborated.identifier = donne_lexème_suivant(parseuse);
-                    assert(est_symbole(elaborated.identifier));
-                    noeud = elaborated;
-                }
-                sinon {
-                    noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
-                }
-            }
+            noeud = parse_type_specifier(parseuse);
         }
 
         saufsi noeud {
@@ -1160,32 +1135,17 @@ parse_expression_primaire :: fonc (empl parseuse: *Parseuse_CPP) -> *Expression
 /** \nom Templates
  * \{ */
 
-parse_template_declaration :: fonc (parseuse: *Parseuse_CPP) -> *Template_Declaration
+parse_template_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
 {
     lexème_template := épie_lexème_suivant(parseuse);
     consomme_mot_clé(parseuse, "template");
 
-    parameters: [..]*ASTNode;
-    consomme_ponctuation(parseuse, "<");
-
-    tantque !fini(parseuse) {
-        lexème := épie_lexème_suivant(parseuse);
-        si est_ponctuation(lexème, ">") {
-            arrête;
-        }
-
-        si est_mot_clé(lexème, "typename") {
-            consomme(parseuse);
-        }
-
-        lexème = épie_lexème_suivant(parseuse);
-        saufsi est_ponctuation(lexème, ",") {
-            arrête;
-        }
-        consomme(parseuse);
+    lexème := épie_lexème_suivant(parseuse);
+    saufsi est_ponctuation(lexème, "<") {
+        rapporte_erreur(parseuse, lexème, "attendu '<'");
     }
 
-    consomme_ponctuation(parseuse, ">");
+    parameters, est_explicit_specialization := parse_template_parameters(parseuse);
 
     declaration := parse_declaration(parseuse);
 
@@ -1214,11 +1174,201 @@ parse_template_declaration :: fonc (parseuse: *Parseuse_CPP) -> *Template_Declar
 
     assert(template_name != "");
 
-    résultat := crée_noeud(*parseuse.créatrice, lexème_template, Template_Declaration);
-    résultat.declaration = declaration;
-    résultat.parameters = parameters;
+    résultat: *ASTNode;
 
-    ajoute_nom(*parseuse.table_de_noms, Name_Kind.TEMPLATE, template_name, résultat);
+    si est_explicit_specialization {
+        assert(parameters.taille == 0);
+
+        // À FAIRE : vérifie que nous spécialisons un template existant
+
+        specialization := crée_noeud(*parseuse.créatrice, lexème_template, Explicit_Specialization);
+        specialization.declaration = declaration;
+
+        résultat = specialization;
+    }
+    sinon {
+        template := crée_noeud(*parseuse.créatrice, lexème_template, Template_Declaration);
+        template.declaration = declaration;
+        template.parameters = parameters;
+
+        résultat = template;
+
+        ajoute_nom(*parseuse.table_de_noms, Name_Kind.TEMPLATE, template_name, résultat);
+    }
+
+    retourne résultat;
+}
+
+parse_template_parameters :: fonc (parseuse: *Parseuse_CPP) -> ([..]*ASTNode, bool)
+{
+    parameters: [..]*ASTNode;
+
+    consomme_ponctuation(parseuse, "<");
+    diffère consomme_ponctuation(parseuse, ">");
+
+    lexème := épie_lexème_suivant(parseuse);
+    si est_ponctuation(lexème, ">") {
+        retourne parameters, vrai;
+    }
+
+    tantque !fini(parseuse) {
+        lexème = épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème, ">") {
+            arrête;
+        }
+
+        si est_mot_clé(lexème, "typename") || est_mot_clé(lexème, "class") {
+            consomme(parseuse);
+
+            type_parameter := crée_noeud(*parseuse.créatrice, lexème, Type_Parameter);
+
+            lexème = épie_lexème_suivant(parseuse);
+            si est_ponctuation(lexème, "...") {
+                type_parameter.est_variadique = vrai;
+                consomme(parseuse);
+            }
+
+            lexème = épie_lexème_suivant(parseuse);
+            si est_symbole(lexème) {
+                type_parameter.identifier = lexème;
+                consomme(parseuse);
+            }
+
+            saufsi type_parameter.est_variadique {
+                lexème = épie_lexème_suivant(parseuse);
+                si est_ponctuation(lexème, "=") {
+                    consomme(parseuse);
+                    type_parameter.type_id = parse_type_id(parseuse);
+                }
+            }
+
+            tableau_ajoute(*parameters, type_parameter);
+        }
+        sinon si est_mot_clé(lexème, "template") {
+            rapporte_erreur(parseuse, lexème, "template type parameter non-géré");
+        }
+        sinon {
+            param := parse_parameter_declaration(parseuse);
+            si param {
+                tableau_ajoute(*parameters, param);
+            }
+        }
+
+        lexème = épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème, ",") {
+            arrête;
+        }
+        consomme(parseuse);
+    }
+
+    retourne parameters, faux;
+}
+
+parse_parameter_declaration :: fonc (parseuse: *Parseuse_CPP) -> *Parameter_Declaration
+{
+    specifier := parse_decl_specifier_seq(parseuse);
+    saufsi specifier {
+        retourne nul;
+    }
+
+    declarator := parse_declarator(parseuse);
+
+    résultat := crée_noeud(*parseuse.créatrice, specifier.token, Parameter_Declaration);
+    résultat.specifiers = specifier;
+    résultat.declarator = declarator;
+    retourne résultat;
+}
+
+parse_type_id :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    /* type-specifier-seq abstract-declaratoropt */
+    // À FAIRE : abstract-declarator
+    retourne parse_type_specifier_seq(parseuse);
+}
+
+parse_type_specifier_seq :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Type_Specifier
+{
+    racine: *CXX_Type_Specifier;
+    dernier: *CXX_Type_Specifier;
+
+    tantque !fini(parseuse) {
+        type_specifier := parse_type_specifier(parseuse);
+        saufsi type_specifier {
+            arrête;
+        }
+
+        saufsi racine {
+            racine = type_specifier;
+        }
+
+        si dernier {
+            dernier.next = type_specifier;
+        }
+
+        dernier = type_specifier;
+    }
+
+    retourne racine;
+}
+
+parse_type_specifier :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Type_Specifier
+{
+    lexème := épie_lexème_suivant(parseuse);
+    type_specifier_kind := détermine_type_specifier(parseuse, lexème);
+    si type_specifier_kind == Type_Specifier_Kind.NONE {
+        retourne nul;
+    }
+
+    résultat: *CXX_Type_Specifier;
+        
+    consomme(parseuse);
+
+    si est_mot_clé(lexème, "decltype") {
+        consomme_ponctuation(parseuse, "(");
+        lexème_expr := donne_lexème_suivant(parseuse);
+        saufsi est_mot_clé(lexème_expr, "nullptr") {
+            rapporte_erreur(parseuse, lexème_expr, "expression non-gérée");
+        }
+        expression := crée_noeud(*parseuse.créatrice, lexème_expr, CXX_Nullptr_Expression);
+        decltype := crée_noeud(*parseuse.créatrice, lexème, CXX_Decltype_Specifier);
+        decltype.expression = expression;
+        résultat = decltype;
+        consomme_ponctuation(parseuse, ")");
+    }
+    sinon si type_specifier_kind == Type_Specifier_Kind.ELABORATED {
+        elaborated := crée_noeud(*parseuse.créatrice, lexème, CXX_Elaborated_Type_Specifier);
+        elaborated.identifier = donne_lexème_suivant(parseuse);
+
+        lexème_suivant := épie_lexème_suivant(parseuse);
+
+        si est_ponctuation(lexème_suivant, "<") {
+            /* simple-template-id */
+
+            nom_type := donne_texte(elaborated.identifier);
+            noms := trouve_noms(*parseuse.table_de_noms, nom_type);
+
+            template_declaration: *Template_Declaration;
+            pour noms {
+                si it.kind == Name_Kind.TEMPLATE {
+                    assert(it.node.genre == Template_Declaration);
+                    template_declaration = it.node comme *Template_Declaration;
+                    arrête;
+                }
+            }
+
+            si template_declaration {
+                elaborated.template_declaration = template_declaration;
+                parameters, _ := parse_template_parameters(parseuse);
+                elaborated.template_parameters = parameters;
+            }
+        }
+
+        assert(est_symbole(elaborated.identifier));
+        résultat = elaborated;
+    }
+    sinon {
+        résultat = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
+    }
 
     retourne résultat;
 }
