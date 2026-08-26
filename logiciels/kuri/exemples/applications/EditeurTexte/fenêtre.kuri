@@ -42,7 +42,7 @@ Thème :: struct {
 thème: Thème;
 
 RaccourciCommande :: struct {
-    raccourci: RaccourciClavier;
+    raccourci: Raccourci_Clavier;
     commande: fonc (anonyme: *Anonyme);
     contexte: chaine;
 }
@@ -345,7 +345,7 @@ Anonyme :: struct {
     lexeuse: SimpleLexeuse;
 
     /* Pour la sélection de fichier. */
-    éditrice_sélection_fichier: ÉditriceTexte;
+    éditrice_sélection_fichier: Éditrice_Texte;
     rappels_édition_texte: RappelsÉditionTexteSélecteurFichier;
     sélecteur_fichier_projet: SélecteurFichier;
     sélecteur_projet: SélecteurFichier;
@@ -505,19 +505,19 @@ principale :: fonc ()
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour * évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
 
-            si it.type == TypeÉvènement.Clavier {
+            si it.type == Type_Évènement.CLAVIER {
                 si it.touche_pressée {
                     raccourci_commande := donne_raccourci_pour_évènement(*anonyme, it, donne_contexte_pour_raccourci(*anonyme));
                     si raccourci_commande {
                         raccourci_commande.commande(*anonyme);
                     }
                     sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER || anonyme.état == Anonyme.État.OUVERTURE_PROJET {
-                        si it.touche == ToucheClavier.ENTRÉE {
+                        si it.touche == Touche_Clavier.ENTRÉE {
                             continue;
                         }
                         sur_touche_clavier(*anonyme.éditrice_sélection_fichier, donne_info_touche(it));
@@ -754,14 +754,14 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
     termine_rectangle();
 }
 
-déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id: n64, indice_chaine: z32 @inutilisée) -> ÉtatÉvènement
+déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: Clic_Souris, id: n64, indice_chaine: z32 @inutilisée) -> État_Évènement
 {
     rect := donne_rect(*emboiteuse, id);
 
     où_relatif_x := souris.état.où.x comme r32 - rect.x;
     où_relatif_y := souris.état.où.y comme r32 - rect.y;
     si où_relatif_x < 0.0 || où_relatif_y < 0.0 {
-        retourne ÉtatÉvènement.PASSE_AU_PARENT;
+        retourne État_Évènement.PASSE_AU_PARENT;
     }
 
     métriques := donne_métriques_fonte(fonte);
@@ -784,7 +784,7 @@ déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id:
     éditeur.cx = cx;
     éditeur.cy = cy;
 
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
 dessine_barre_status :: fonc (anonyme: *Anonyme)
@@ -832,7 +832,7 @@ dessine_barre_message :: fonc (anonyme: *Anonyme)
 }
 
 RappelsÉditionTexteSélecteurFichier :: struct {
-    empl base: RappelsÉditionTexte;
+    empl base: Rappels_Édition_Texte;
 
     anonyme: *Anonyme;
 }
