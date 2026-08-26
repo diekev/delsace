@@ -22,7 +22,7 @@ PanneauDiviseur :: struct {
 
 crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 {
-    sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: État_Souris)
     {
         panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || contient(panneau_diviseur.rect, souris.où);
 
@@ -33,17 +33,17 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         }
     }
 
-    sur_clic_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clic: Clic_Souris) -> bool
     {
         saufsi contient(panneau_diviseur.rect, clic.état.où) {
             panneau_diviseur.souris_pressée = faux;
             retourne faux;
         }
 
-        si clic.action == ActionSouris.PRESSÉE {
+        si clic.action == Action_Souris.PRESSÉE {
             panneau_diviseur.souris_pressée = vrai;
         }
-        sinon si clic.action == ActionSouris.RELACHÉE {
+        sinon si clic.action == Action_Souris.RELACHÉE {
             panneau_diviseur.souris_pressée = faux;
         }
 
@@ -52,12 +52,12 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 
     sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
     {
-        définis_curseur_souris(contexte, TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST);
+        définis_curseur_souris(contexte, Type_Curseur_Système.REDIMENSIONNEMENT_EST_OUEST);
     }
 
     sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
     {
-        définis_curseur_souris(contexte, TypeCurseurSystème.FLÈCHE);
+        définis_curseur_souris(contexte, Type_Curseur_Système.FLÈCHE);
     }
 
     sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage)

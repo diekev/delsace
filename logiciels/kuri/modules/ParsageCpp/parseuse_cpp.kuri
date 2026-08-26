@@ -1,933 +1,1306 @@
 importe SimpleLexage;
 
 /* ------------------------------------------------------------------------- */
-/** \nom ParseuseCPP C++
+/** \nom Parseuse_CPP
  * \{ */
 
-ParseuseCPP :: struct {
-    fichier: *FichierSource;
-    lexeuse: SimpleLexeuse;
-    lexeuse_sauvegardée: SimpleLexeuse;
-
-    créatrice_noeuds: CréatriceNoeuds;
-
-    possède_erreur: bool;
-
-    /* Rappels. */
-    sur_prodéclaration_struct_ou_class: fonc (parseuse: *ParseuseCPP, noeud: *ASTNode);
-    sur_définition_classe: fonc (parseuse: *ParseuseCPP, classe: *ClassDecl);
-    sur_prodéclaration_énum: fonc (parseuse: *ParseuseCPP, noeud: *ASTNode);
-    sur_identifiant: fonc (parseuse: *ParseuseCPP, texte: chaine);
-    sur_inclusion: fonc (parseuse: *ParseuseCPP, texte: chaine, système: bool);
-
-    contextes: [..]*DeclContext;
+Parseuse_CPP :: struct {
+    empl base: Base_Parseuse;
 }
 
-initialise_parseuse :: fonc (parseuse: *ParseuseCPP, fichier: *FichierSource)
+initialise_parseuse :: fonc (parseuse: *Parseuse_CPP, unit: *TranslationUnit)
 {
-    parseuse.fichier = fichier;
-    initialise_lexeuse_cpp(*parseuse.lexeuse);
-    initialise_lexeuse_pour_texte(*parseuse.lexeuse, parseuse.fichier.contenu_cru);
+    initialise_base_parseuse(parseuse, unit);
 }
 
-sauvegarde_position :: fonc (parseuse: *ParseuseCPP)
+parse_translation_unit :: fonc (parseuse: *Parseuse_CPP)
 {
-    parseuse.lexeuse_sauvegardée = parseuse.lexeuse;
+    assert(parseuse.unit != nul);
+    parse_declaration_sequence(parseuse, *parseuse.unit.declarations, faux);
 }
 
-restaure_position :: fonc (parseuse: *ParseuseCPP)
+// declaration-seq
+parse_declaration_sequence :: fonc (parseuse: *Parseuse_CPP, declarations: *[..]*ASTNode, fini_sur_accolade_fermante: bool)
 {
-    parseuse.lexeuse = parseuse.lexeuse_sauvegardée;
-}
-
-empile_contexte :: fonc (parseuse: *ParseuseCPP, ctx: *DeclContext)
-{
-    tableau_ajoute(*parseuse.contextes, ctx);
-}
-
-dépile_contexte :: fonc (parseuse: *ParseuseCPP)
-{
-    parseuse.contextes.taille -= 1;
-}
-
-ajoute_au_contexte :: fonc (parseuse: *ParseuseCPP, decl: *ASTNode)
-{
-    assert(parseuse.contextes.taille != 0);
-    ctx := parseuse.contextes[parseuse.contextes.taille - 1];
-    tableau_ajoute(*ctx.déclarations, decl);
-}
-
-rapporte_erreur :: fonc (parseuse: *ParseuseCPP, message: chaine, lexème: Lexème)
-{
-    si parseuse.possède_erreur {
-        retourne;
-    }
-
-    // À FAIRE : ligne
-    ligne := donne_ligne_pour_erreur(*parseuse.lexeuse);
-    imprime("%:%:\n", parseuse.fichier.chemin, 0);
-    imprimeln("%", ligne.texte);
-    imprime("\tErreur : % (lexème : '%')\n", message, lexème.donne_texte());
-
-    parseuse.possède_erreur = vrai;
-}
-
-fini :: fonc (parseuse: *ParseuseCPP) -> bool
-{
-    retourne parseuse.possède_erreur || fini(*parseuse.lexeuse);
-}
-
-apparie :: fonc (parseuse: *ParseuseCPP, c: z8) -> bool
-{
-    lexème := donne_lexème_suivant(*parseuse.lexème);
-    diffère parseuse.lexeuse.début = lexème.début;
-
-    si lexème.type != TypeLexème.Symbole {
-        retourne faux;
-    }
-    texte := lexème.donne_texte();
-    si texte.taille != 1 {
-        retourne faux;
-    }
-    si texte[0] != 0 {
-        retourne faux;
-    }
-    retourne vrai;
-}
-
-consomme_ou_rapporte_erreur :: fonc (parseuse: *ParseuseCPP, c: z8)
-{
-    lexème := donne_lexème_suivant(*parseuse.lexème);
-    si lexème.type != TypeLexème.Symbole {
-        rapporte_erreur(parseuse, "lexème inattendu", lexème);
-        retourne;
-    }
-    texte := lexème.donne_texte();
-    si texte.taille != 1 {
-        rapporte_erreur(parseuse, "lexème inattendu", lexème);
-        retourne;
-    }
-    si texte[0] != 0 {
-        rapporte_erreur(parseuse, "lexème inattendu", lexème);
-        retourne;
-    }
-}
-
-consomme_ident :: fonc (parseuse: *ParseuseCPP) -> chaine
-{
-    lexème := donne_lexème_suivant(*parseuse.lexeuse);
-    si lexème.type == TypeLexème.FinDeFichier {
-        rapporte_erreur(parseuse, "fin de fichier inattendu", lexème);
-        retourne "";
-    }
-    si lexème.type != TypeLexème.Symbole {
-        rapporte_erreur(parseuse, "attendu un identifiant", lexème);
-    }
-    retourne lexème.donne_texte();
-}
-
-CléClasse :: énum {
-    STRUCT;
-    CLASS;
-    UNION;
-}
-
-/* A.13 Grammar */
-parse_translation_unit :: fonc (parseuse: *ParseuseCPP)
-{
-    assert(parseuse.contextes.taille == 0);
-    translation_unit := crée_noeud(parseuse.créatrice_noeuds, TranslationUnit);
-    tableau_ajoute(*parseuse.contextes, translation_unit);
-
     tantque !fini(parseuse) {
-        parse_external_declaration(parseuse);
+        lexème := épie_lexème_suivant(parseuse);
+        si est_fin_de_fichier(lexème) {
+            arrête;
+        }
+        si fini_sur_accolade_fermante && est_ponctuation(lexème, "}") {
+            arrête;
+        }
+        si est_ponctuation(lexème, "#") {
+            consomme(parseuse);
+            parse_directive(parseuse);
+            continue;
+        }
+        declaration := parse_declaration(parseuse);
+        si declaration {
+            si parseuse.messagère {
+                envoie_message_déclaration_parsée(parseuse.messagère, parseuse.unit, declaration);
+            }
+            tableau_ajoute(declarations, declaration);
+        }
     }
 }
 
-parse_external_declaration :: fonc (parseuse: *ParseuseCPP)
+parse_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
 {
-    lexème := donne_lexème_suivant(*parseuse.lexeuse);
+    lexème := épie_lexème_suivant(parseuse);
 
-    si est_mot_clé(lexème, "namespace") {
-        parseuse.parse_décalaration_namespace();
-        retourne;
-    }
-
-    si est_ponctuation(lexème, "#") {
-        parseuse.parse_directive_préprocesseur();
-        retourne;
-    }
-
+    // block-declaration
     // function-definition
+    // explicit-instantiation
+    // explicit-specialization
+    // empty-declaration
+    // attribute-declaration
 
-    // declaration
-    tantque est_declaration_specifier(lexème.donne_texte()) {
-        lexème = donne_lexème_suivant(*parseuse.lexeuse);
+    // template-declaration
+    si est_mot_clé(lexème, "template") {
+        retourne parse_template_declaration(parseuse);
     }
 
-    // init-declarator
+    // linkage-specification
+    si est_mot_clé(lexème, "extern") {
+        état := sauvegarde_état(parseuse);
+        consomme(parseuse);
 
-    // declarator
+        token_linkage := épie_lexème_suivant(parseuse);
+        si est_chaine_littérale(token_linkage) {
+            consomme(parseuse);
 
-    // direct-declarator
-    saufsi lexème.type == TypeLexème.Symbole {
-        rapporte_erreur(parseuse, "attendu un symbole", lexème);
+            _ := parse_attributs_gcc(parseuse);
+
+            declarations: [..]*ASTNode;
+            lexème_suivant := épie_lexème_suivant(parseuse);
+            si est_ponctuation(lexème_suivant, "{") {
+                consomme(parseuse);
+                parse_declaration_sequence(parseuse, *declarations, vrai);
+                consomme_ponctuation(parseuse, "}");
+            }
+            sinon {
+                declaration := parse_declaration(parseuse);
+                si declaration {
+                    tableau_ajoute(*declarations, declaration);
+                }
+            }
+
+            parse_declaration_sequence(parseuse, *declarations, vrai);
+
+            résultat := crée_noeud(*parseuse.créatrice, lexème, CXX_Linkage_Specification);
+            résultat.linkage = token_linkage;
+            résultat.declarations = declarations;
+            retourne résultat;
+        }
+
+        restaure_état(parseuse, état);
     }
 
-    // = 
-    consomme_ponctuation(*parseuse.lexeuse, "=");
-
-    // initializer
-    _ := donne_nombre(*parseuse.lexeuse);
-
-    consomme_ponctuation(*parseuse.lexeuse, ";");
-}
-
-/*
-
-function-definition:
- declaration-specifiersopt declarator declaration-listopt compound-statement
-
-declaration:
- declaration-specifiers init-declarator-listopt;
-
-declaration-specifiers:
- storage-class-specifier declaration-specifiersopt
- type-specifier declaration-specifiersopt
- type-qualifier declaration-specifiersopt
-
-
-init-declarator-list:
- init-declarator
- init-declarator-list , init-declarator
-
-init-declarator:
- declarator
- declarator = initializer
-
-declarator:
- pointeropt direct-declarator
-
-pointer:
- * type-qualifier-listopt
- * type-qualifier-listopt pointer 
-
-direct-declarator:
- identifier
- (declarator)
- direct-declarator [ constant-expressionopt ]
- direct-declarator ( parameter-type-list )
- direct-declarator ( identifier-listopt ) 
-*/
-
-est_declaration_specifier :: fonc (texte: chaine) -> bool
-{
-    retourne est_storage_class_specifier(texte) || est_type_specifier(texte) || est_type_qualifier(texte);
-}
-
-est_storage_class_specifier :: fonc (texte: chaine) -> bool
-{
-    retourne fait_partie_de(texte, "auto", "register", "static", "extern", "typedef");
-}
-
-est_type_specifier :: fonc (texte: chaine) -> bool
-{
-    // À FAIRE : C++ (class), typedef-name
-    retourne fait_partie_de(texte, "void", "char", "short", "int", "long", "float", "double", "signed", "union", "struct", "enum");
-}
-
-est_type_qualifier :: fonc (texte: chaine) -> bool
-{
-    retourne fait_partie_de(texte, "const", "volatile");
-}
-
-parse_décalaration_haut_niveau :: fonc (parseuse: *ParseuseCPP)
-{
-    lexème := donne_lexème_suivant(*parseuse.lexeuse);
-
-    // si est_mot_clé(lexème, "struct") {
-    //     parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.DÉCLARATION)
-    //     continue
-    // }
-
-    // si est_mot_clé(lexème, "class") {
-    //     parseuse.parse_classe(CléClasse.CLASS, ContexteParsageClasse.DÉCLARATION)
-    //     continue
-    // }
-
-    // si est_mot_clé(lexème, "union") {
-    //     parseuse.parse_classe(CléClasse.UNION, ContexteParsageClasse.DÉCLARATION)
-    //     continue
-    // }
-
-    // si est_mot_clé(lexème, "enum") {
-    //     parseuse.parse_enum()
-    //     continue
-    // }
-
-    // si est_mot_clé(lexème, "typedef") {
-    //     parseuse.parse_typedef()
-    //     continue
-    // }
-
-    // si est_mot_clé(lexème, "template") {
-    //     parseuse.parse_template()
-    //     continue
-    // }
-
-    // si est_mot_clé(lexème, "using") {
-    //     parseuse.parse_using()
-    //     continue
-    // }
-
+    // namespace-definition
     si est_mot_clé(lexème, "namespace") {
-        parseuse.parse_décalaration_namespace();
-        retourne;
+        retourne parse_namespace_definition(parseuse, faux);
     }
 
-    si est_ponctuation(lexème, "#") {
-        parseuse.parse_directive_préprocesseur();
-        retourne;
+    si est_mot_clé(lexème, "inline") {
+        état := sauvegarde_état(parseuse);
+        consomme(parseuse);
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_mot_clé(lexème_suivant, "namespace") {
+            retourne parse_namespace_definition(parseuse, vrai);
+        }
+        restaure_état(parseuse, état);
     }
 
-    rapporte_erreur(parseuse, "lexème inattendu", lexème);
+    retourne parse_block_declaration(parseuse, vrai);
 }
 
-/* ------------------------------------------------------------------------- */
-/** \nom Parsage d'une classe.
- * https://en.cppreference.com/w/cpp/language/class
- * \{ */
-
-ContexteParsageClasse :: énum {
-    /* La classe est parsée pour une déclaration. */
-    DÉCLARATION;
-    /* La classe est parsée pour un typedef. */
-    TYPEDEF;
-}
-
-SpécificationAccès :: énum n8 {
-    PUBLIC;
-    PROTÉGÉ;
-    PRIVÉ;
-}
-
-DonnéesParsageClasse :: struct {
-    nom: chaine;
-    clé_classe: CléClasse;
-    spécification_accès_défaut: SpécificationAccès;
-}
-
-crée_données_parsage_classe :: fonc (nom: chaine, clé_classe: CléClasse) -> DonnéesParsageClasse
+parse_block_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fonction: bool) -> *ASTNode
 {
-    résultat: DonnéesParsageClasse;
-    résultat.nom = nom;
-    résultat.clé_classe = clé_classe;
+    lexème := épie_lexème_suivant(parseuse);
 
-    spécification_accès := si clé_classe == CléClasse.STRUCT {
-        SpécificationAccès.PUBLIC;
+    // asm-definition
+    // namespace-alias-definition
+    // using-declaration
+    // using-directive
+    // static_assert-declaration
+    // alias-declaration
+    // opaque-enum-declaration
+
+    // simple-declaration
+    declaration := parse_simple_declaration(parseuse, permet_définition_fonction);
+    si declaration {
+        retourne declaration;
     }
-    sinon {
-        SpécificationAccès.PRIVÉ;
-    };
 
-    résultat.spécification_accès_défaut = spécification_accès;
+    rapporte_erreur(parseuse, lexème, "attendu une déclaration");
+    retourne nul;
+}
+
+parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fonction: bool) -> *ASTNode
+{
+    // decl-specifier-seqopt init-declarator-listopt ;
+    // attribute-specifier-seq decl-specifier-seqopt init-declarator-list ;
+
+    decl_specifier := parse_decl_specifier_seq(parseuse);
+    saufsi decl_specifier {
+        retourne nul;
+    }
+
+    // init-declarator-list
+    list: [..]*CXX_Init_Declarator;
+    tantque !fini(parseuse) {
+        init_declarator := parse_init_declarator(parseuse);
+        saufsi init_declarator {
+            arrête;
+        }
+
+        tableau_ajoute(*list, init_declarator);
+
+        lexème := épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème, ",") {
+            arrête;
+        }
+        consomme(parseuse);
+    }
+
+    si list.taille == 1 {
+        init_declarator := list[0];
+
+        si init_declarator.declarator.genre == CXX_Parameters_And_Qualifiers {
+            lexème := épie_lexème_suivant(parseuse);
+            si est_ponctuation(lexème, "{") && permet_définition_fonction {
+                // À FAIRE : le mieux serait de ne pas avoir à faire ceci
+                déloge(*list);
+
+                function_body := parse_function_body(parseuse);
+
+                résultat := crée_noeud(*parseuse.créatrice, init_declarator.token, CXX_Function_Definition);
+                résultat.specifiers = decl_specifier;
+                résultat.declarator = init_declarator.declarator;
+                résultat.body = function_body;
+                retourne résultat;
+            }
+        }
+    }
+
+    _ := parse_attributs_gcc(parseuse);
+
+    consomme_ponctuation(parseuse, ";");
+
+    résultat := crée_noeud(*parseuse.créatrice, decl_specifier.token, CXX_Simple_Declaration);
+    résultat.decl_specifier = decl_specifier;
+    résultat.list = list;
     retourne résultat;
 }
 
-parse_classe :: fonc (parseuse: *ParseuseCPP, clé_classe: CléClasse, contexte_parsage: ContexteParsageClasse)
+parse_decl_specifier_seq :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Declaration_Specifier
 {
-    /* Nous sommes sur le mot-clé. */
-    lexème := parseuse.lexème_courant();
-    parseuse.avance();
+    racine: *CXX_Declaration_Specifier;
+    dernier: *CXX_Declaration_Specifier;
 
-    // À FAIRE : attributs (C++11)
-
-    nom_struct := "";
-    /* Il est possible de ne pas avoir d'identifiant (par exemple, pour un typedef) */
-    si parseuse.apparie(GenreLexème.IDENTIFIANT) {
-        nom_struct = parseuse.lexème_courant().ident;
-        parseuse.avance();
-    }
-
-    données_parsage_classe := crée_données_parsage_classe(nom_struct, clé_classe);
-
-    si apparie(parseuse, ';') {
-        parseuse.avance();
-
-        noeud_prodéclaration := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudProdéclarationObjet);
-        noeud_prodéclaration.est_struct = clé_classe == CléClasse.STRUCT;
-        noeud_prodéclaration.nom_objet = nom_struct;
-
-        si parseuse.sur_prodéclaration_struct_ou_class {
-            parseuse.sur_prodéclaration_struct_ou_class(parseuse, noeud_prodéclaration);
-        }
-
-        retourne;
-    }
-
-    est_finale := faux;
-    si apparie_mot_clé(parseuse, "final") {
-        est_finale = vrai;
-        parseuse.avance();
-    }
-
-    bases: [..]SpécificationBase;
-    si apparie(parseuse, ':') {
-        parseuse.avance();
-        parseuse.parse_spécification_base(données_parsage_classe, *bases);
-    }
-
-    saufsi parseuse.apparie('{') {
-        /* typedef struct XXX YYY; */
-        si contexte_parsage == ContexteParsageClasse.TYPEDEF {
-            retourne;
-        }
-        parseuse.rapporte_erreur("Attendu '{'");
-        retourne;
-    }
-    parseuse.avance();
-
-    parseuse.parse_spécification_rubrique(données_parsage_classe);
-
-    saufsi parseuse.apparie('}') {
-        parseuse.rapporte_erreur("Attendu '}'");
-        retourne;
-    }
-    parseuse.avance();
-
-    si contexte_parsage != ContexteParsageClasse.TYPEDEF {
-        saufsi parseuse.apparie(';') {
-            parseuse.rapporte_erreur("Attendu ';'");
-            retourne;
-        }
-        parseuse.avance();
-    }
-
-    si parseuse.sur_définition_classe {
-        noeud := parseuse.créatrice_noeuds.crée_noeud(lexème, ClassDecl);
-        noeud.nom = nom_struct;
-        noeud.clé_classe = clé_classe;
-        noeud.bases = bases;
-
-        parseuse.sur_définition_classe(parseuse, noeud);
-    }
-}
-
-/** \} */
-
-parse_spécification_accès :: fonc (parseuse: *ParseuseCPP) -> Optionnel(SpécificationAccès)
-{
-    si parseuse.apparie_mot_clé("public") {
-        parseuse.avance();
-        retourne SpécificationAccès.PUBLIC;
-    }
-
-    si parseuse.apparie_mot_clé("private") {
-        parseuse.avance();
-        retourne SpécificationAccès.PRIVÉ;
-    }
-
-    si parseuse.apparie_mot_clé("protected") {
-        parseuse.avance();
-        retourne SpécificationAccès.PROTÉGÉ;
-    }
-}
-
-/* ------------------------------------------------------------------------- */
-/** \nom Parsage spécification base.
- * https://en.cppreference.com/w/cpp/language/derived_class
- * \{ */
-
-/* base-class */
-parse_spécification_base :: fonc (parseuse: *ParseuseCPP, données_parsage_classe: DonnéesParsageClasse, bases: *[..]SpécificationBase)
-{
-    accès_courant := données_parsage_classe.spécification_accès_défaut;
-
-    tantque !parseuse.fini() {
-        // À FAIRE : attributs (C++11)
-
-        est_virtuel := faux;
-        eu_virtuel := faux;
-
-        si parseuse.apparie_mot_clé("virtual") {
-            parseuse.avance();
-            est_virtuel = vrai;
-            eu_virtuel = vrai;
-        }
-
-        opt_accès := parseuse.parse_spécification_accès();
-        si opt_accès.possède_valeur() {
-            accès_courant = opt_accès.Quelque;
-        }
-
-        /* « virtual » peut-être avant ou après la spécification d'accès. */
-        si parseuse.apparie_mot_clé("virtual") {
-            si eu_virtuel {
-                parseuse.rapporte_erreur("« virtual » fut déjà spécifé");
-            }
-            parseuse.avance();
-            est_virtuel = vrai;
-        }
-
-        nom_parent := parseuse.parse_classe_ou_decltype();
-
-        spécification_base : SpécificationBase = ---;
-        spécification_base.nom = nom_parent;
-        spécification_base.accès = accès_courant;
-        spécification_base.est_virtuel = est_virtuel;
-
-        tableau_ajoute(bases, spécification_base);
-        // imprime("Classe parent : % (%, virtuel: %)\n", nom_parent, accès_courant, est_virtuel)
-
-        saufsi parseuse.apparie(',') {
-            arrête;
-        }
-
-        parseuse.avance();
-    }
-}
-
-/* class-or-decltype:
- * - nested-name-specifier(optional) type-name
- * - nested-name-specifier `template` simple-template-id
- * - decltype-specifier (C++11)
- */
-parse_classe_ou_decltype :: fonc (parseuse: *ParseuseCPP) -> chaine
-{
-    // À FAIRE : decltype
-    // https://en.cppreference.com/w/cpp/language/decltype
-
-    // À FAIRE : scope globale
-    si parseuse.apparie(GenreLexème.OPÉRATEUR_RÉSOLUTION_SCOPE) {
-        parseuse.avance();
-    }
-
-    nom_parent := "";
-
-    tantque !parseuse.fini() {
-        saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
-            parseuse.rapporte_erreur("Attendu un identifiant");
-            retourne "";
-        }
-
-        nom_parent = parseuse.lexème_courant().ident;
-        parseuse.avance();
-
-        si parseuse.apparie('<') {
-            parseuse.avance();
-
-            // À FAIRE : parse le contenu
-
-            tantque !parseuse.fini() {
-                si parseuse.apparie('>') {
-                    arrête;
-                }
-
-                parseuse.avance();
-            }
-
-            parseuse.avance();
-        }
-
-        // À FAIRE : si template, peut avoir ... après le type
-
-        saufsi parseuse.apparie(GenreLexème.OPÉRATEUR_RÉSOLUTION_SCOPE) {
-            arrête;
-        }
-
-        parseuse.avance();
-    }
-
-    retourne nom_parent;
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Spécification des rubriques des classes.
- * \{ */
-
-parse_spécification_rubrique :: fonc (parseuse: *ParseuseCPP, données_parsage_classe: DonnéesParsageClasse)
-{
-    accès_courant := données_parsage_classe.spécification_accès_défaut;
-
-    // À FAIRE
     tantque !fini(parseuse) {
-        si parseuse.apparie('{') {
-            parseuse.parse_bloc();
-            continue;
+        lexème := épie_lexème_suivant(parseuse);
+
+        noeud: *CXX_Declaration_Specifier;
+
+        si est_storage_class_specifier(parseuse, lexème) {
+            consomme(parseuse);
+            noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Storage_Class_Specifier);
         }
-
-        si parseuse.apparie('}') {
-            arrête;
+        sinon si est_function_specifier(parseuse, lexème) {
+            consomme(parseuse);
+            noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Function_Specifier);
         }
-
-        /* Spécification accès. */
-        opt_accès := parseuse.parse_spécification_accès();
-        si opt_accès.possède_valeur() {
-            saufsi parseuse.apparie(':') {
-                parseuse.rapporte_erreur("Attendu ':' après la spécification d'accès.");
-                retourne;
-            }
-
-            accès_courant = opt_accès.Quelque;
-            parseuse.avance();
-            continue;
-        }
-
-        /* Constructeur. */
-        si parseuse.apparie_identifiant(données_parsage_classe.nom) {
-            parseuse.sauvegarde_position();
-
-            parseuse.avance();
-            si parseuse.apparie('(') {
-                // imprime("Constructeur pour %\n", données_parsage_classe.nom)
-                parseuse.parse_constructeur();
-                continue;
-            }
-
-            parseuse.restaure_position();
-        }
-
-        /* Parse jusqu'au point virgule où la fin d'un bloc. */
-        tantque !parseuse.fini() {
-            si parseuse.apparie('{') {
-                parseuse.parse_bloc();
-                arrête;
-            }
-
-            si parseuse.apparie(';') {
-                parseuse.avance();
-                arrête;
-            }
-            parseuse.avance();
-        }
-    }
-}
-
-parse_constructeur :: fonc (parseuse: *ParseuseCPP)
-{
-    /* Nous sommes sur la parenthèse. */
-    assert(parseuse.apparie('('));
-    parseuse.avance();
-
-    // À FAIRE : parse les paramètres.
-    profondeur_parenthèse := 0;
-    tantque !fini(parseuse) {
-        si parseuse.apparie('(') {
-            parseuse.avance();
-            profondeur_parenthèse += 1;
-            continue;
-        }
-
-        si parseuse.apparie(')') {
-            si profondeur_parenthèse == 0 {
-                arrête;
-            }
-
-            profondeur_parenthèse -= 1;
-        }
-
-        parseuse.avance();
-    }
-
-    assert(parseuse.apparie(')'));
-    parseuse.avance();
-
-    /* Nous sommes sur la déclaration. */
-    si parseuse.apparie(';') {
-        retourne;
-    }
-
-    si parseuse.apparie('=') {
-        parseuse.avance();
-
-        si parseuse.apparie_mot_clé("delete") {
-            parseuse.avance();
-        }
-        sinon si parseuse.apparie_mot_clé("default") {
-            parseuse.avance();
+        sinon si est_mot_clé(lexème, ["friend", "typedef", "constexpr"]) {
+            consomme(parseuse);
+            noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Declaration_Specifier);
         }
         sinon {
-            parseuse.rapporte_erreur("Lexème inattendu");
-        }
+            type_specifier_kind := détermine_type_specifier(parseuse, lexème);
+            si type_specifier_kind != Type_Specifier_Kind.NONE {
+                consomme(parseuse);
 
-        consomme_ou_rapporte_erreur(parseuse, ';');
-        retourne;
-    }
-
-    /* Nous sommes sur la définition. */
-
-    si parseuse.apparie(':') {
-        parseuse.avance();
-
-        tantque !fini(parseuse) {
-            saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
-                parseuse.rapporte_erreur("Attendu un identifiant pour la rubrique");
-                retourne;
-            }
-
-            /* Nom de la rubrique */
-            _ := parseuse.consomme_ident();
-
-            saufsi parseuse.apparie('(') {
-                parseuse.rapporte_erreur("Attendu un '(' après le nom de la rubrique");
-            }
-
-            parseuse.avance();
-
-            // À FAIRE : parse l'expression
-            tantque !fini(parseuse) {
-                si parseuse.apparie(')') {
-                    arrête;
+                si est_mot_clé(lexème, "decltype") {
+                    consomme_ponctuation(parseuse, "(");
+                    lexème_expr := donne_lexème_suivant(parseuse);
+                    saufsi est_mot_clé(lexème_expr, "nullptr") {
+                        rapporte_erreur(parseuse, lexème_expr, "expression non-gérée");
+                    }
+                    expression := crée_noeud(*parseuse.créatrice, lexème_expr, CXX_Nullptr_Expression);
+                    decltype := crée_noeud(*parseuse.créatrice, lexème, CXX_Decltype_Specifier);
+                    decltype.expression = expression;
+                    noeud = decltype;
+                    consomme_ponctuation(parseuse, ")");
                 }
-
-                parseuse.avance();
+                sinon si type_specifier_kind == Type_Specifier_Kind.ELABORATED {
+                    elaborated := crée_noeud(*parseuse.créatrice, lexème, CXX_Elaborated_Type_Specifier);
+                    elaborated.identifier = donne_lexème_suivant(parseuse);
+                    assert(est_symbole(elaborated.identifier));
+                    noeud = elaborated;
+                }
+                sinon {
+                    noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
+                }
             }
-
-            /* Parenthèse fermante. */
-            parseuse.avance();
-
-            saufsi apparie(parseuse, ',') {
-                arrête;
-            }
-
-            parseuse.avance();
-        }
-    }
-
-    saufsi parseuse.apparie('{') {
-        parseuse.rapporte_erreur("Attendu '{'");
-        retourne;
-    }
-
-    parseuse.parse_bloc();
-}
-
-parse_bloc :: fonc (parseuse: *ParseuseCPP)
-{
-    /* Nous sommes sur l'accolade ouvrante. */
-    parseuse.avance();
-
-    tantque !fini(parseuse) {
-        si parseuse.apparie('{') {
-            parseuse.parse_bloc();
-            continue;
         }
 
-        si parseuse.apparie('}') {
+        saufsi noeud {
             arrête;
         }
 
-        parseuse.avance();
+        saufsi racine {
+            racine = noeud;
+        }
+
+        si dernier {
+            dernier.next = noeud;
+        }
+
+        dernier = noeud;
     }
 
-    consomme_ou_rapporte_erreur(parseuse, '}');
+    retourne racine;
+}
+
+parse_init_declarator :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Init_Declarator
+{
+    declarator := parse_declarator(parseuse);
+    saufsi declarator {
+        retourne nul;
+    }
+    résultat := crée_noeud(*parseuse.créatrice, declarator.token, CXX_Init_Declarator);
+    résultat.declarator = declarator;
+    // À FAIRE : initialisateur;
+    retourne résultat;
+}
+
+parse_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    retourne parse_ptr_declarator(parseuse);
+}
+
+parse_ptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse);
+
+    // À FAIRE : nested-name-specifier
+    si est_ponctuation(lexème, "*") || est_ponctuation(lexème, "&") || est_ponctuation(lexème, "&&") {
+        consomme(parseuse);
+
+        résultat := crée_noeud(*parseuse.créatrice, lexème, CXX_Ptr_Declarator);
+        résultat.next = parse_ptr_declarator(parseuse);
+        retourne résultat;
+    }
+
+    retourne parse_noptr_declarator(parseuse);
+}
+
+parse_noptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse);
+
+    résultat: *ASTNode;
+
+    // declarator-id attribute-specifier-seqopt
+    // À FAIRE : declarator-id
+    si est_symbole(lexème) {
+        consomme(parseuse);
+        résultat = crée_noeud(*parseuse.créatrice, lexème, CXX_ID_Expression);
+    }
+    // ( ptr-declarator )
+    sinon si est_ponctuation(lexème, "(") {
+        consomme(parseuse);
+        résultat = parse_declarator(parseuse);
+        consomme_ponctuation(parseuse, ")");
+    }
+
+    saufsi résultat {
+        retourne nul;
+    }
+
+    tantque !fini(parseuse) {
+        lexème = épie_lexème_suivant(parseuse);
+        // noptr-declarator parameters-and-qualifiers
+        si est_ponctuation(lexème, "(") {
+            consomme(parseuse);
+
+            parameters := crée_noeud(*parseuse.créatrice, lexème, CXX_Parameters_And_Qualifiers);
+            parameters.left = résultat;
+
+            résultat = parameters;
+
+            consomme_ponctuation(parseuse, ")");
+
+            // À FAIRE : qualifiers
+            lexème = épie_lexème_suivant(parseuse);
+            si est_mot_clé(lexème, "noexcept") {
+                consomme(parseuse);
+                tableau_ajoute(*parameters.qualifiers, lexème);
+            }
+        }
+        // noptr-declarator [ constant-expressionopt ] attribute-specifier-seqopt
+        sinon si est_ponctuation(lexème, "[") {
+            rapporte_erreur(parseuse, lexème, "declarator non-géré");
+        }
+        sinon {
+            arrête;
+        }
+    }
+
+    retourne résultat;
+}
+
+parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -> *Namespace_Definition
+{
+    lexème := donne_lexème_suivant(parseuse);
+
+    lexème_suivant := donne_lexème_suivant(parseuse);
+
+    // À FAIRE : extension-namespace-definition
+
+    si est_symbole(lexème_suivant) {
+        _ := parse_attributs_gcc(parseuse);
+        lexème_suivant = donne_lexème_suivant(parseuse);
+    }
+
+    saufsi est_ponctuation(lexème_suivant, "{") {
+        rapporte_erreur(parseuse, lexème_suivant, "attendu un '{'");
+    }
+
+    declarations: [..]*ASTNode;
+    parse_declaration_sequence(parseuse, *declarations, vrai);
+
+    consomme_ponctuation(parseuse, "}");
+
+    résultat := crée_noeud(*parseuse.créatrice, lexème, Namespace_Definition);
+    résultat.declarations = declarations;
+    résultat.est_inline = est_inline;
+    retourne résultat;
+}
+
+parse_function_body :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    retourne parse_compound_statement(parseuse);
+}
+
+parse_compound_statement :: fonc (parseuse: *Parseuse_CPP) -> *CompoundStatement
+{
+    lexème_compound := épie_lexème_suivant(parseuse);
+    consomme_ponctuation(parseuse, "{");
+
+    items: [..]*ASTNode;
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème, "}") {
+            arrête;
+        }
+
+        statement := parse_statement(parseuse);
+        si statement {
+            tableau_ajoute(*items, statement);
+        }
+    }
+
+    consomme_ponctuation(parseuse, "}");
+
+    résultat := crée_noeud(*parseuse.créatrice, lexème_compound, CompoundStatement);
+    résultat.items = items;
+    retourne résultat;
+}
+
+parse_statement :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse);
+
+    // labeled-statement
+
+    si est_mot_clé(lexème, "case") {
+        consomme(parseuse);
+
+        expression := parse_constant_expression(parseuse);
+        consomme_ponctuation(parseuse, ":");
+
+        statement := parse_statement(parseuse);
+
+        case_clause := crée_noeud(*parseuse.créatrice, lexème, CaseClause);
+        case_clause.expression = expression;
+        case_clause.statement = statement;
+        retourne case_clause;
+    }
+
+    si est_mot_clé(lexème, "default") {
+        consomme(parseuse);
+        consomme_ponctuation(parseuse, ":");
+
+        statement := parse_statement(parseuse);
+
+        default_clause := crée_noeud(*parseuse.créatrice, lexème, DefaultClause);
+        default_clause.statement = statement;
+        retourne default_clause;
+    }
+
+    si est_symbole(lexème) {
+        sauvegarde := parseuse.lexème_courant;
+        consomme(parseuse);
+
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème_suivant, ":") {
+            consomme(parseuse);
+
+            statement := parse_statement(parseuse);
+
+            résultat := crée_noeud(*parseuse.créatrice, lexème, LabelStatement);
+            résultat.identifier = donne_texte(lexème);
+            résultat.statement = statement;
+            retourne résultat;
+        }
+        sinon {
+            parseuse.lexème_courant = sauvegarde;
+        }
+    }
+
+    // attribute-specifier-seqopt compound-statement
+    si est_ponctuation(lexème, "{") {
+        retourne parse_compound_statement(parseuse);
+    }
+
+    // attribute-specifier-seqopt selection-statement
+
+    si est_mot_clé(lexème, "if") {
+        consomme(parseuse);
+
+        consomme_ponctuation(parseuse, "(");
+        expression := parse_expression(parseuse);
+        consomme_ponctuation(parseuse, ")");
+
+        statement := parse_statement(parseuse);
+
+        else_statement: *ASTNode;
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_mot_clé(lexème_suivant, "else") {
+            consomme(parseuse);
+            else_statement = parse_statement(parseuse);
+        }
+
+        if_statement := crée_noeud(*parseuse.créatrice, lexème, IfStatement);
+        if_statement.expression = expression;
+        if_statement.statement = statement;
+        if_statement.else_statement = else_statement;
+        retourne if_statement;
+    }
+
+    si est_mot_clé(lexème, "switch") {
+        consomme(parseuse);
+
+        consomme_ponctuation(parseuse, "(");
+        expression := parse_expression(parseuse);
+        consomme_ponctuation(parseuse, ")");
+
+        statement := parse_statement(parseuse);
+
+        switch_statement := crée_noeud(*parseuse.créatrice, lexème, SwitchStatement);
+        switch_statement.expression = expression;
+        switch_statement.statement = statement;
+        retourne switch_statement;
+    }
+
+    // attribute-specifier-seqopt iteration-statement
+
+    si est_mot_clé(lexème, "while") {
+        consomme(parseuse);
+
+        consomme_ponctuation(parseuse, "(");
+        expression := parse_expression(parseuse);
+        consomme_ponctuation(parseuse, ")");
+
+        statement := parse_statement(parseuse);
+
+        while_statement := crée_noeud(*parseuse.créatrice, lexème, WhileStatement);
+        while_statement.expression = expression;
+        while_statement.statement = statement;
+        retourne while_statement;
+    }
+
+    si est_mot_clé(lexème, "do") {
+        lexème_do := lexème;
+        consomme(parseuse);
+
+        statement := parse_statement(parseuse);
+
+        consomme_mot_clé(parseuse, "while");
+        consomme_ponctuation(parseuse, "(");
+        expression := parse_expression(parseuse);
+        consomme_ponctuation(parseuse, ")");
+        consomme_ponctuation(parseuse, ";");
+
+        do_while_statement := crée_noeud(*parseuse.créatrice, lexème_do, DoWhileStatement);
+        do_while_statement.statement = statement;
+        do_while_statement.expression = expression;
+        retourne do_while_statement;
+    }
+
+    si est_mot_clé(lexème, "for") {
+        lexème_for := lexème;
+        consomme(parseuse);
+
+        consomme_ponctuation(parseuse, "(");
+
+        initializer: *ASTNode;
+        test: *Expression;
+        update: *Expression;
+
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_declaration_specifier(parseuse, lexème_suivant) {
+            initializer = parse_declaration(parseuse);
+        }
+        sinon {
+            saufsi est_ponctuation(lexème_suivant, ";") {
+                initializer = parse_expression(parseuse);
+            }
+            consomme_ponctuation(parseuse, ";");
+        }
+
+        lexème_suivant = épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème_suivant, ";") {
+            test = parse_expression(parseuse);
+        }
+        consomme_ponctuation(parseuse, ";");
+
+        lexème_suivant = épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème_suivant, ")") {
+            update = parse_expression(parseuse);
+        }
+
+        consomme_ponctuation(parseuse, ")");
+
+        statement := parse_statement(parseuse);
+
+        for_statement := crée_noeud(*parseuse.créatrice, lexème_for, ForStatement);
+        for_statement.initializer = initializer;
+        for_statement.test = test;
+        for_statement.update = update;
+        for_statement.statement = statement;
+        retourne for_statement;
+    }
+
+    // attribute-specifier-seqopt jump-statement
+
+    si est_mot_clé(lexème, "goto") {
+        lexème_goto := lexème;
+        consomme(parseuse);
+        lexème = donne_lexème_suivant(parseuse);
+        saufsi est_symbole(lexème) {
+            rapporte_erreur(parseuse, lexème, "attendu un symbole");
+        }
+        consomme_ponctuation(parseuse, ";");
+        résultat := crée_noeud(*parseuse.créatrice, lexème_goto, GotoStatement);
+        résultat.identifier = donne_texte(lexème);
+        retourne résultat;
+    }
+
+    si est_mot_clé(lexème, "continue") {
+        consomme(parseuse);
+        consomme_ponctuation(parseuse, ";");
+        résultat := crée_noeud(*parseuse.créatrice, lexème, ContinueStatement);
+        retourne résultat;
+    }
+
+    si est_mot_clé(lexème, "break") {
+        consomme(parseuse);
+        consomme_ponctuation(parseuse, ";");
+        résultat := crée_noeud(*parseuse.créatrice, lexème, BreakStatement);
+        retourne résultat;
+    }
+
+    si est_mot_clé(lexème, "return") {
+        lexème_return := lexème;
+        consomme(parseuse);
+
+        expression: *Expression;
+
+        lexème = épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème, ";") {
+            expression = parse_expression(parseuse);
+        }
+
+        consomme_ponctuation(parseuse, ";");
+
+        résultat := crée_noeud(*parseuse.créatrice, lexème_return, ReturnStatement);
+        résultat.expression = expression;
+        retourne résultat;
+    }
+
+    // declaration-statement
+    si est_declaration_specifier(parseuse, lexème) {
+        retourne parse_block_declaration(parseuse, faux);
+    }
+
+    // attribute-specifier-seqopt try-block
+
+    // attribute-specifier-seqopt expression-statement
+
+    expression := parse_expression(parseuse);
+    si expression {
+        lexème = épie_lexème_suivant(parseuse);
+        consomme_ponctuation(parseuse, ";");
+
+        résultat := crée_noeud(*parseuse.créatrice, lexème, ExpressionStatement);
+        résultat.expression = expression;
+        retourne résultat;
+    }
+
+    rapporte_erreur(parseuse, épie_lexème_suivant(parseuse), "attendu une instruction");
+    retourne nul;
 }
 
 /** \} */
-
-parse_enum :: fonc (parseuse: *ParseuseCPP)
-{
-    est_énum_class := faux;
-
-    si apparie_mot_clé(parseuse, "class") {
-        parseuse.avance();
-        est_énum_class = vrai;
-    }
-
-    nom_énum := "";
-    /* Il est possible de ne pas avoir d'identifiant (par exemple, pour un typedef) */
-    si parseuse.apparie(GenreLexème.IDENTIFIANT) {
-        nom_énum = parseuse.lexème_courant().ident;
-        parseuse.avance();
-    }
-
-    si apparie(parseuse, ':') {
-        parseuse.avance();
-        parseuse.avance(); // type À FAIRE
-    }
-
-    si apparie(parseuse, '{') {
-        parseuse.avance();
-
-        // À FAIRE : parse rubriques
-
-        tantque !fini(parseuse) {
-            si parseuse.apparie('}') {
-                arrête;
-            }
-
-            parseuse.avance();
-        }
-
-        /* Consomme le '}' */
-        parseuse.avance();
-    }
-
-    si apparie(parseuse, ';') {
-        parseuse.avance();
-
-        noeud_prodéclaration := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudProdéclarationÉnum);
-        noeud_prodéclaration.nom_énum = nom_énum;
-
-        si parseuse.sur_prodéclaration_énum {
-            parseuse.sur_prodéclaration_énum(parseuse, noeud_prodéclaration);
-        }
-
-        retourne;
-    }
-}
-
-parse_directive_préprocesseur :: fonc (parseuse: *ParseuseCPP)
-{
-    directive := donne_lexème_suivant(*parseuse.lexeuse);
-    si directive.donne_texte() == "include" {
-        lexème := donne_lexème_suivant(*parseuse.lexeuse);
-        si lexème.type == TypeLexème.ChaineLittérale {
-            si parseuse.sur_inclusion {
-                parseuse.sur_inclusion(parseuse, lexème.donne_texte(), faux);
-            }
-            retourne;
-        }
-
-        rapporte_erreur(parseuse, "attendu une chaine littérale", lexème);
-        retourne;
-    }
-
-    si directive.donne_texte() == "if" {
-        tantque !parseuse.fini() {
-            lexème := donne_lexème_suivant(*parseuse.lexeuse);
-            si lexème.est_ponctuation("#") {
-                lexème = donne_lexème_suivant(*parseuse.lexeuse);
-                si lexème.donne_texte() == "endif" {
-                    arrête;
-                }
-            }
-        }
-
-        retourne;
-    }
-
-    rapporte_erreur(parseuse, "directive inconnue", directive);
-}
 
 /* ------------------------------------------------------------------------- */
-/** \nom Parsage typedef.
+/** \nom Parsage des expressions.
  * \{ */
 
-parse_typedef :: fonc (parseuse: *ParseuseCPP)
+donne_info_parsage_opérateur_binaire_cpp :: fonc (texte: chaine) -> (bool, InfoParsageOpérateur)
 {
-    /* Nous sommes sur le mot clé. */
-    parseuse.avance();
+    est_opérateur := vrai;
+    résultat: InfoParsageOpérateur;
 
-    si apparie_mot_clé(parseuse, "struct") {
-        parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.TYPEDEF);
+    si texte == "," {
+        résultat.précédence = 1;
+        résultat.associativité = Associativité.GAUCHE;
     }
-    sinon si apparie_mot_clé(parseuse, "class") {
-        parseuse.parse_classe(CléClasse.CLASS, ContexteParsageClasse.TYPEDEF);
+    sinon si texte == "=" || texte == "+=" || texte == "-=" || texte == "*=" || texte == "/=" || texte == "%=" || texte == "<<=" || texte == ">>=" || texte == "&=" || texte == "|=" || texte == "^=" {
+        résultat.précédence = 2;
+        résultat.associativité = Associativité.DROITE;
     }
-    sinon si apparie_mot_clé(parseuse, "union") {
-        parseuse.parse_classe(CléClasse.UNION, ContexteParsageClasse.TYPEDEF);
+    sinon si texte == "?" {
+        résultat.précédence = 3;
+        résultat.associativité = Associativité.DROITE;
     }
-    sinon si apparie_mot_clé(parseuse, "enum") {
-        parseuse.parse_enum();
+    sinon si texte == "||" {
+        résultat.précédence = 4;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == "&&" {
+        résultat.précédence = 5;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == "|" {
+        résultat.précédence = 6;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == "^" {
+        résultat.précédence = 7;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == "&" {
+        résultat.précédence = 8;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == "==" || texte == "!=" {
+        résultat.précédence = 9;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" {
+        résultat.précédence = 10;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == "<<" || texte == ">>" {
+        résultat.précédence = 11;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == "-" || texte == "+" {
+        résultat.précédence = 12;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    sinon si texte == "*" || texte == "/" || texte == "%" {
+        résultat.précédence = 13;
+        résultat.associativité = Associativité.GAUCHE;
+    }
+    /* la précédence de 14 est réservée pour les opérateurs unaires */
+    sinon si texte == "(" || texte == "[" || texte == "." || texte == "->" || texte == "++" || texte == "--" {
+        résultat.précédence = 15;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon {
-        // À FAIRE
+        est_opérateur = faux;
+    }
+
+    retourne est_opérateur, résultat;
+}
+
+donne_info_parsage_opérateur_unaire_cpp :: fonc () -> InfoParsageOpérateur
+{
+    résultat: InfoParsageOpérateur;
+    résultat.précédence = 14;
+    résultat.associativité = Associativité.DROITE;
+    retourne résultat;
+}
+
+parse_expression :: fonc (empl parseuse: *Parseuse_CPP) -> *Expression
+{
+    résultat := parse_assignment_expression(parseuse);
+
+    lexème := épie_lexème_suivant(parseuse);
+    si est_ponctuation(lexème, ",") {
+        lexème_comma := lexème;
+        consomme(parseuse);
+
+        expressions: [..]*Expression;
+        tableau_ajoute(*expressions, résultat);
+
         tantque !fini(parseuse) {
-            si apparie(parseuse, ';') {
+            expression := parse_assignment_expression(parseuse);
+            tableau_ajoute(*expressions, expression);
+
+            lexème = épie_lexème_suivant(parseuse);
+            saufsi est_ponctuation(lexème, ",") {
                 arrête;
             }
-
-            parseuse.avance();
+            consomme(parseuse);
         }
 
-        /* Saute le point-virgule. */
-        parseuse.avance();
-        retourne;
+        comma := crée_noeud(*créatrice, lexème_comma, CommaExpression);
+        comma.expressions = expressions;
+
+        résultat = comma;
     }
 
-    saufsi apparie(parseuse, GenreLexème.IDENTIFIANT) {
-        parseuse.rapporte_erreur("Attendu un identifiant à la fin du typedef");
-        retourne;
-    }
-
-    _ := parseuse.lexème_courant().ident;
-    parseuse.avance();
-
-    saufsi apparie(parseuse, ';') {
-        parseuse.rapporte_erreur("Attendu un ';'");
-        retourne;
-    }
-
-    parseuse.avance();
+    retourne résultat;
 }
 
-/** \} */
-
-/** \} */
-
-parse_template :: fonc (parseuse: *ParseuseCPP)
+parse_constant_expression :: fonc (parseuse: *Parseuse_CPP) -> *Expression
 {
-    /* Nous sommes sur le mot-clé. */
-    _ := parseuse.lexème_courant();
-    parseuse.avance();
+    _, info := donne_info_parsage_opérateur_binaire_cpp("?");
+    retourne parse_expression(parseuse, info);
+}
 
-    consomme_ou_rapporte_erreur(parseuse, '<');
+parse_assignment_expression :: fonc (parseuse: *Parseuse_CPP) -> *Expression
+{
+    _, info := donne_info_parsage_opérateur_binaire_cpp("=");
+    retourne parse_expression(parseuse, info);
+}
+
+parse_unary_expression :: fonc (parseuse: *Parseuse_CPP) -> *Expression
+{
+    info := donne_info_parsage_opérateur_unaire_cpp();
+    retourne parse_expression(parseuse, info);
+}
+
+parse_expression :: fonc (empl parseuse: *Parseuse_CPP, info_courante: InfoParsageOpérateur) -> *Expression
+{
+    gauche := parse_expression_primaire(parseuse);
+    saufsi gauche {
+        retourne nul;
+    }
+
+    résultat := gauche;
 
     tantque !fini(parseuse) {
-        si parseuse.apparie('>') {
+        lexème := épie_lexème_suivant(parseuse);
+
+        texte := donne_texte(lexème);
+        est_opérateur, info := donne_info_parsage_opérateur_binaire_cpp(texte);
+        saufsi est_opérateur {
             arrête;
         }
 
-        parseuse.avance();
+        si info.précédence < info_courante.précédence {
+            arrête;
+        }
+
+        si info.précédence == info_courante.précédence && info_courante.associativité == Associativité.GAUCHE {
+            arrête;
+        }
+
+        si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" || texte == "==" || texte == "!=" || texte == "-" || texte == "+" || texte == "*" || texte == "/" || texte == "<<" || texte == ">>" || texte == "&" || texte == "^" || texte == "|" || texte == "%" || texte == "||" || texte == "&&" {
+            consomme(parseuse);
+
+            opérateur_binaire := crée_noeud(*créatrice, lexème, BinaryExpression);
+            opérateur_binaire.op = texte;
+            opérateur_binaire.left = résultat;
+            opérateur_binaire.right = parse_expression(parseuse, info);
+
+            résultat = opérateur_binaire;
+        }
+        sinon si texte == "(" {
+            consomme(parseuse);
+
+            arguments: [..]*Expression;
+
+            tantque !fini(parseuse) {
+                lexème_suivant := épie_lexème_suivant(parseuse);
+                si est_ponctuation(lexème_suivant, ")") {
+                    arrête;
+                }
+
+                argument := parse_assignment_expression(parseuse);
+                saufsi argument {
+                    arrête;
+                }
+
+                tableau_ajoute(*arguments, argument);
+
+                lexème_suivant = épie_lexème_suivant(parseuse);
+                saufsi est_ponctuation(lexème_suivant, ",") {
+                    arrête;
+                }
+
+                consomme(parseuse);
+            }
+
+            consomme_ponctuation(parseuse, ")");
+
+            call := crée_noeud(*créatrice, lexème, CallExpression);
+            call.callee = résultat;
+            call.arguments = arguments;
+
+            résultat = call;
+        }
+        sinon si texte == "." || texte == "->" {
+            consomme(parseuse);
+
+            lexème_suivant := épie_lexème_suivant(parseuse);
+            saufsi est_symbole(lexème_suivant) {
+                rapporte_erreur(parseuse, lexème_suivant, "attendu un identifiant après '%'", texte);
+            }
+
+            consomme(parseuse);
+
+            member_access := crée_noeud(*créatrice, lexème, MemberAccessExpression);
+            member_access.is_arrow = texte == "->";
+            member_access.left = résultat;
+            member_access.identifier = lexème_suivant;
+
+            résultat = member_access;
+        }
+        sinon si texte == "=" {
+            consomme(parseuse);
+
+            assignment := crée_noeud(*créatrice, lexème, AssignmentExpression);
+            assignment.left = résultat;
+            assignment.right = parse_expression(parseuse, info);
+
+            résultat = assignment;
+        }
+        sinon si texte == "+=" || texte == "-=" || texte == "*=" || texte == "/=" || texte == "%=" || texte == "<<=" || texte == ">>=" || texte == "&=" || texte == "|=" || texte == "^=" {
+            consomme(parseuse);
+
+            assignment := crée_noeud(*créatrice, lexème, CompoundAssignmentExpression);
+            assignment.op = texte;
+            assignment.left = résultat;
+            assignment.right = parse_expression(parseuse, info);
+
+            résultat = assignment;
+        }
+        sinon si texte == "++" || texte == "--" {
+            consomme(parseuse);
+
+            update := crée_noeud(*créatrice, lexème, PostFixUpdateExpression);
+            update.op = texte;
+            update.operand = résultat;
+
+            résultat = update;
+        }
+        sinon si texte == "[" {
+            consomme(parseuse);
+
+            index := crée_noeud(*créatrice, lexème, IndexExpression);
+            index.left = résultat;
+            index.right = parse_expression(parseuse);
+
+            résultat = index;
+
+            consomme_ponctuation(parseuse, "]");
+        }
+        sinon si texte == "?" {
+            consomme(parseuse);
+            consequent := parse_expression(parseuse);
+            consomme_ponctuation(parseuse, ":");
+            alternate := parse_expression(parseuse, info);
+
+            ternary := crée_noeud(*créatrice, lexème, TernaryExpression);
+            ternary.test = résultat;
+            ternary.consequent = consequent;
+            ternary.alternate = alternate;
+
+            résultat = ternary;
+        }
+        sinon {
+            rapporte_erreur_interne(parseuse, lexème, "opérateur non-géré");
+            arrête;
+        }
     }
 
-    consomme_ou_rapporte_erreur(parseuse, '>');
+    retourne résultat;
 }
 
-parse_using :: fonc (parseuse: *ParseuseCPP)
+parse_expression_primaire :: fonc (empl parseuse: *Parseuse_CPP) -> *Expression
 {
-    parseuse.avance();
+    résultat: *Expression;
 
-    si apparie_mot_clé(parseuse, "namespace") {
-        parseuse.avance();
-        _ := parseuse.consomme_ident();
+    lexème := épie_lexème_suivant(parseuse);
+
+    si est_mot_clé(lexème, "sizeof") {
+        consomme(parseuse);
+
+        operand: *Expression;
+
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème_suivant, "(") {
+            consomme(parseuse);
+
+            lexème_suivant = épie_lexème_suivant(parseuse);
+            si est_type_specifier(parseuse, lexème_suivant) || est_type_qualifier(lexème_suivant) {
+                rapporte_erreur(parseuse, lexème_suivant, "sizeof(type) non-implémenté");
+            }
+            sinon {
+                operand = parse_expression(parseuse);
+            }
+
+            consomme_ponctuation(parseuse, ")");
+        }
+        sinon {
+            operand = parse_unary_expression(parseuse);
+        }
+
+        sizeof := crée_noeud(*créatrice, lexème, SizeOfExpression);
+        sizeof.operand = operand;
+
+        résultat = sizeof;
+    }
+    sinon si est_littérale_nombre_entier(lexème) {
+        consomme(parseuse);
+
+        literal := crée_noeud(*créatrice, lexème, IntegerConstant);
+
+        résultat = literal;
+    }
+    sinon si est_littérale_nombre_réel(lexème) {
+        consomme(parseuse);
+
+        literal := crée_noeud(*créatrice, lexème, FloatingConstant);
+
+        résultat = literal;
+    }
+    sinon si est_littérale_caractère(lexème) {
+        consomme(parseuse);
+
+        literal := crée_noeud(*créatrice, lexème, CharacterConstant);
+
+        résultat = literal;
+    }
+    sinon si est_mot_clé(lexème, "true") || est_mot_clé(lexème, "false") {
+        consomme(parseuse);
+
+        literal := crée_noeud(*créatrice, lexème, Boolean_Constant);
+
+        résultat = literal;
+    }
+    sinon si est_ponctuation(lexème, "-") || est_ponctuation(lexème, "+") || est_ponctuation(lexème, "!") || est_ponctuation(lexème, "~") {
+        consomme(parseuse);
+
+        operand := parse_unary_expression(parseuse);
+
+        unary := crée_noeud(*créatrice, lexème, UnaryExpression);
+        unary.op = donne_texte(lexème);
+        unary.operand = operand;
+
+        résultat = unary;
+    }
+    sinon si est_ponctuation(lexème, "*") {
+        consomme(parseuse);
+
+        operand := parse_unary_expression(parseuse);
+
+        indirection := crée_noeud(*créatrice, lexème, IndirectionExpression);
+        indirection.operand = operand;
+
+        résultat = indirection;
+    }
+    sinon si est_ponctuation(lexème, "&") {
+        consomme(parseuse);
+
+        operand := parse_unary_expression(parseuse);
+
+        address := crée_noeud(*créatrice, lexème, AddressExpression);
+        address.operand = operand;
+
+        résultat = address;
+    }
+    sinon si est_symbole(lexème) {
+        consomme(parseuse);
+
+        reference := crée_noeud(*créatrice, lexème, DeclarationReference);
+
+        résultat = reference;
+    }
+    sinon si est_chaine_littérale(lexème) {
+        consomme(parseuse);
+
+        literal := crée_noeud(*créatrice, lexème, StringLiteral);
+
+        résultat = literal;
+    }
+    sinon si est_ponctuation(lexème, "(") {
+        consomme(parseuse);
+        // À FAIRE : note que l'expression possède des parenthèses
+        résultat = parse_expression(parseuse);
+        consomme_ponctuation(parseuse, ")");
+    }
+    sinon si est_ponctuation(lexème, "++") || est_ponctuation(lexème, "--") {
+        consomme(parseuse);
+
+        operand := parse_unary_expression(parseuse);
+
+        update := crée_noeud(*créatrice, lexème, PrefixUpdateExpression);
+        update.op = donne_texte(lexème);
+        update.operand = operand;
+
+        résultat = update;
     }
     sinon {
-        _ := parseuse.consomme_ident();
-        consomme_ou_rapporte_erreur(parseuse, '=');
-        parseuse.parse_référence_type();
+        rapporte_erreur(parseuse, lexème, "attendu une expression primaire");
     }
 
-    consomme_ou_rapporte_erreur(parseuse, ';');
+    retourne résultat;
 }
 
-parse_référence_type :: fonc (parseuse: *ParseuseCPP)
-{
-    _ := parseuse.consomme_ident();
-}
+/** \} */
 
-parse_décalaration_namespace :: fonc (parseuse: *ParseuseCPP)
-{
-    namespace := crée_noeud(parseuse.créatrice_noeuds, NamespaceDecl);
-    ajoute_au_contexte(parseuse, namespace);
-    empile_contexte(parseuse, namespace);
-    diffère dépile_contexte(parseuse);
+/* ------------------------------------------------------------------------- */
+/** \nom Templates
+ * \{ */
 
-    consomme_symbole(*parseuse.lexeuse);
-    consomme_ponctuation(*parseuse.lexeuse, "{");
+parse_template_declaration :: fonc (parseuse: *Parseuse_CPP) -> *Template_Declaration
+{
+    lexème_template := épie_lexème_suivant(parseuse);
+    consomme_mot_clé(parseuse, "template");
+
+    parameters: [..]*ASTNode;
+    consomme_ponctuation(parseuse, "<");
 
     tantque !fini(parseuse) {
-        lexeuse := parseuse.lexeuse;
-        lexème := donne_lexème_suivant(*lexeuse);
-        si lexème.est_ponctuation("}") {
+        lexème := épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème, ">") {
             arrête;
-        } 
+        }
 
-        parse_external_declaration(parseuse);
+        si est_mot_clé(lexème, "typename") {
+            consomme(parseuse);
+        }
+
+        lexème = épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème, ",") {
+            arrête;
+        }
+        consomme(parseuse);
     }
 
-    consomme_ponctuation(*parseuse.lexeuse, "}");
+    consomme_ponctuation(parseuse, ">");
+
+    declaration := parse_declaration(parseuse);
+
+    résultat := crée_noeud(*parseuse.créatrice, lexème_template, Template_Declaration);
+    résultat.declaration = declaration;
+    résultat.parameters = parameters;
+    retourne résultat;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires.
+ * \{ */
+
+// CXX_Declaration_Specifier_Sequence :: struct {
+//     declaration_specifiers: CXX_Declaration_Specifiers;
+//     function_specifiers: CXX_Function_Specifiers;
+//     storage_classes: CXX_Storage_Class_Specifiers;
+// }
+
+// CXX_Declaration_Specifiers :: énum_drapeau n8 {
+//     FRIEND;
+//     TYPEDEF;
+//     CONSTEXPR;
+// }
+
+// CXX_Storage_Class_Specifiers :: énum_drapeau n8 {
+//     REGISTER;
+//     STATIC;
+//     THREAD_LOCAL;
+//     EXTERN;
+//     MUTABLE;
+// }
+
+// CXX_Function_Specifiers :: énum_drapeau n8 {
+//     INLINE;
+//     VIRTUAL;
+//     EXPLICIT;
+// }
+
+est_declaration_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
+{
+    si est_storage_class_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_type_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_function_specifier(parseuse, lexème) {
+       retourne vrai;
+    }
+    mots_clés := ["friend", "typedef", "constexpr"];
+    retourne est_mot_clé(lexème, mots_clés);
+}
+
+est_storage_class_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    mots_clés := ["register", "static", "thread_local", "extern", "mutable"];
+    retourne est_mot_clé(lexème, mots_clés);
+}
+
+Type_Specifier_Kind :: énum {
+    NONE;
+    /* simple-type-specifier */
+    FUNDAMENTAL;
+    DECLTYPE;
+    /* class-specifier */
+    CLASS;
+    /* enum-specifier */
+    ENUM;
+    /* elaborated */
+    ELABORATED;
+    TYPE_NAME;
+    CV_QUALIFIER;
+}
+
+détermine_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> Type_Specifier_Kind
+{
+    état := sauvegarde_état(parseuse);
+    diffère restaure_état(parseuse, état);
+
+    /* simple-type-specifier */
+
+    // nested-name-specifieropt type-name
+    // nested-name-specifier template simple-template-id
+
+    mots_clés := ["char", "char16_t", "char32_t", "wchar_t", "bool", "short", "int", "long", "signed", "unsigned", "float", "double", "void", "auto"];
+    si est_mot_clé(lexème, mots_clés) {
+        retourne Type_Specifier_Kind.FUNDAMENTAL;
+    }
+
+    si est_mot_clé(lexème, "decltype") {
+        retourne Type_Specifier_Kind.DECLTYPE;
+    }
+
+    /* elaborated-type-specifier */
+
+    // class-key attribute-specifier-seqopt nested-name-specifieropt identifier
+    // class-key nested-name-specifieropt templateopt simple-template-id
+    si est_class_key(lexème) {
+        consomme(parseuse);
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_symbole(lexème_suivant) {
+            consomme(parseuse);
+            lexème_suivant = épie_lexème_suivant(parseuse);
+
+            si est_ponctuation(lexème_suivant, ":") || est_ponctuation(lexème_suivant, "{") {
+                retourne Type_Specifier_Kind.CLASS;
+            }
+
+            retourne Type_Specifier_Kind.ELABORATED;
+        }
+
+        retourne Type_Specifier_Kind.NONE;
+    }
+
+    // enum nested-name-specifieropt identifier
+    si est_mot_clé(lexème, "enum") {
+        consomme(parseuse);
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_symbole(lexème_suivant) {
+            consomme(parseuse);
+            lexème_suivant = épie_lexème_suivant(parseuse);
+
+            si est_ponctuation(lexème_suivant, ":") || est_ponctuation(lexème_suivant, "{") {
+                retourne Type_Specifier_Kind.ENUM;
+            }
+
+            retourne Type_Specifier_Kind.ELABORATED;
+        }
+
+        retourne Type_Specifier_Kind.NONE;
+    }
+
+    retourne Type_Specifier_Kind.NONE;
+}
+
+est_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
+{
+    retourne est_trailing_type_specifier(parseuse, lexème) || est_class_specifier(parseuse, lexème) || est_enum_specifier(parseuse, lexème);
+}
+
+est_trailing_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
+{
+    si est_simple_type_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_elaborated_type_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_typename_specifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    si est_cv_qualifier(parseuse, lexème) {
+        retourne vrai;
+    }
+    retourne faux;
+}
+
+est_simple_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
+{
+    kind := détermine_type_specifier(parseuse, lexème);
+    retourne kind == Type_Specifier_Kind.DECLTYPE || kind == Type_Specifier_Kind.FUNDAMENTAL;
+}
+
+est_elaborated_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
+{
+    kind := détermine_type_specifier(parseuse, lexème);
+    retourne kind == Type_Specifier_Kind.ELABORATED;
+}
+
+est_class_key :: fonc (lexème: Token) -> bool
+{
+    retourne est_mot_clé(lexème, ["struct", "union", "class"]);
+}
+
+est_typename_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    retourne est_mot_clé(lexème, "typename");
+}
+
+est_cv_qualifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    retourne est_mot_clé(lexème, ["const", "volatile"]);
+}
+
+est_class_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
+{
+    kind := détermine_type_specifier(parseuse, lexème);
+    retourne kind == Type_Specifier_Kind.CLASS;
+}
+
+est_enum_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
+{
+    kind := détermine_type_specifier(parseuse, lexème);
+    retourne kind == Type_Specifier_Kind.ENUM;
+}
+
+est_function_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+{
+    mots_clés := ["inline", "virtual", "explicit"];
+    retourne est_mot_clé(lexème, mots_clés);
+}
+
+/** \} */

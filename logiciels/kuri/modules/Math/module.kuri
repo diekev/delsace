@@ -9,3 +9,17 @@ charge "probabilité";
 charge "quaternion";
 charge "statistiques";
 charge "vecteur";
+
+/* Interpolation de p0 et p1 en prenant leurs vélocités respectives en compte
+ * v0 et v1 afin que la dérivée du résultat soit sa vélocité.
+ * À FAIRE : trouve l'origine de la fonction (cela ressemble à interpolation de bézier).
+ */
+interpolation_c1 :: fonc (p0: $T, p1: T, v0: T, v1: T, t: T) -> T
+{
+    u := 1.0 - t;
+    /* Fonction originelle. */
+    retourne u * u * (p0 + t * v0) + 2.0 * u * t * (p0 + t * (p1 - p0)) + t * t * (p1 - u * v1);
+    /* Optimisation. */
+    retourne u * u * (p0 + t * (2.0 * p0 + v0)) +
+             t * t * (p1 - u * (2.0 * p1 - v1));
+}

@@ -13,56 +13,56 @@ entier_vers_chaine :: fonc (entier: z64) -> chaine
 
 // ----------------------------------------------------
 
-PositionChaine :: struct {
+Position_Chaine :: struct {
     début: z32;
     fin: z32;
 }
 
-taille_position :: fonc (position: PositionChaine) -> z32
+taille_position :: fonc (position: Position_Chaine) -> z32
 {
     retourne position.fin - position.début;
 }
 
-sous_chaine :: fonc (chn: chaine, position: PositionChaine) -> chaine
+sous_chaine :: fonc (chn: chaine, position: Position_Chaine) -> chaine
 {
     retourne chaine(chn.caractères + position.début, position.fin - position.début);
 }
 
 // ----------------------------------------------------
 
-DonnéesEntête :: struct {
-    position_nom: PositionChaine;
-    position_valeur: PositionChaine;
+Données_Entête :: struct {
+    position_nom: Position_Chaine;
+    position_valeur: Position_Chaine;
 }
 
 // À FAIRE : enregistre proprement les positions, nous ne pouvons utiliser des sous chaines quand une requête n'est pas encore terminée !
-DonnéesMessage :: struct {
+Données_Message :: struct {
     /* Pour les messages clients. */
-    position_méthode: PositionChaine;
-    position_requête: PositionChaine;
-    position_version: PositionChaine;
+    position_méthode: Position_Chaine;
+    position_requête: Position_Chaine;
+    position_version: Position_Chaine;
 
     /* Pour les messages serveurs. */
     code_état: z32;
-    position_code_état: PositionChaine;
+    position_code_état: Position_Chaine;
 
-    positions_entêtes: [..]DonnéesEntête;
+    positions_entêtes: [..]Données_Entête;
 
     // si taille fixe
-    position_contenu: PositionChaine;
+    position_contenu: Position_Chaine;
 
     // si chunked
     contenu: chaine;
 }
 
-ajoute_entête :: fonc (données_message: *DonnéesMessage, nom: PositionChaine, valeur: PositionChaine)
+ajoute_entête :: fonc (données_message: *Données_Message, nom: Position_Chaine, valeur: Position_Chaine)
 {
-    tableau_ajoute(*données_message.positions_entêtes, DonnéesEntête(nom, valeur));
+    tableau_ajoute(*données_message.positions_entêtes, Données_Entête(nom, valeur));
 }
 
 // ----------------------------------------------------
 
-RésultatParsage :: énum {
+Résultat_Parsage :: énum {
     /* Nous n'avons pas commencé à parser les données. */
     NON_COMMENCÉ;
     /* Le message put être parsé, en incluant son corps. */
@@ -82,15 +82,15 @@ RésultatParsage :: énum {
  * « chunked », ou encore parce que nous sommes appelés illégitimement par OpenSSL ou un thread qui
  * se réveille, ou encore car nous subissons une attaque « SlowLoris ».
  */
-ParseuseHTTP :: struct {
-    message_en_cours: MessageHTTP;
-    données_message: DonnéesMessage;
+Parseuse_HTTP :: struct {
+    message_en_cours: Message_HTTP;
+    données_message: Données_Message;
 
     données: chaine;
 
-    état_parsage: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage;
+    état_parsage: fonc (parseuse: *Parseuse_HTTP) -> Résultat_Parsage;
 
-    dernier_résultat: RésultatParsage;
+    dernier_résultat: Résultat_Parsage;
 
     parseuse_chaine: ParseuseChaine;
 
@@ -104,20 +104,20 @@ ParseuseHTTP :: struct {
     pour_sous_message := faux;
 }
 
-erreur_de_parsage :: fonc (message: chaine) -> RésultatParsage
+erreur_de_parsage :: fonc (message: chaine) -> Résultat_Parsage
 {
     imprime("%\n", message);
-    retourne RésultatParsage.ERREUR;
+    retourne Résultat_Parsage.ERREUR;
 }
 
-réinitialise_base :: fonc (parseuse: *ParseuseHTTP)
+réinitialise_base :: fonc (parseuse: *Parseuse_HTTP)
 {
     détruit_message(*parseuse.message_en_cours);
     déloge(*parseuse.données);
     déloge(*parseuse.données_message.positions_entêtes);
 }
 
-ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)
+ajourne_données :: fonc (parseuse: *Parseuse_HTTP, données: chaine)
 {
     saufsi données {
         retourne;
@@ -130,13 +130,13 @@ ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)
     parse_données(parseuse);
 }
 
-parse_données :: fonc (parseuse: *ParseuseHTTP)
+parse_données :: fonc (parseuse: *Parseuse_HTTP)
 {
     boucle {
         résultat := parseuse.état_parsage(parseuse);
 
         parseuse.dernier_résultat = résultat;
-        si résultat != RésultatParsage.OK {
+        si résultat != Résultat_Parsage.OK {
             retourne;
         }
     }
@@ -145,7 +145,7 @@ parse_données :: fonc (parseuse: *ParseuseHTTP)
 /* Dans certains cas (par exemple lors de la réception du serrage de main d'une
  * serveuse WebSocket), il est possible que des données restent après le message.
  * Cette fonction peut-être appelée pour obtenir ces données. */
-donne_données_après_message :: fonc (parseuse: *ParseuseHTTP) -> []octet
+donne_données_après_message :: fonc (parseuse: *Parseuse_HTTP) -> []octet
 {
     résultat: []octet;
     taille_contenu := parseuse.parseuse_chaine.chn.taille - parseuse.parseuse_chaine.curseur;
@@ -156,13 +156,13 @@ donne_données_après_message :: fonc (parseuse: *ParseuseHTTP) -> []octet
     retourne résultat;
 }
 
-parse_état_méthode_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
+parse_état_méthode_http :: fonc (parseuse: *Parseuse_HTTP) -> Résultat_Parsage
 {
     début := parseuse.parseuse_chaine.curseur;
 
     // taille max d'une commande HTTP + 1
     si parseuse.données.taille < 8 {
-        retourne RésultatParsage.MESSAGE_INCOMPLET;
+        retourne Résultat_Parsage.MESSAGE_INCOMPLET;
     }
 
     méthodes : []chaine = [ "GET", "POST", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE", "PATCH" ];
@@ -178,11 +178,11 @@ parse_état_méthode_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
     positionne(*parseuse.parseuse_chaine, méthode.taille);
 
     parseuse.état_parsage = parse_état_requête_http;
-    parseuse.données_message.position_méthode = PositionChaine(début, début + méthode.taille comme z32);
-    retourne RésultatParsage.OK;
+    parseuse.données_message.position_méthode = Position_Chaine(début, début + méthode.taille comme z32);
+    retourne Résultat_Parsage.OK;
 }
 
-parse_état_requête_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
+parse_état_requête_http :: fonc (parseuse: *Parseuse_HTTP) -> Résultat_Parsage
 {
     si !consomme(*parseuse.parseuse_chaine, ' ') {
         retourne erreur_de_parsage("pas d'espace avant la requête HTTP");
@@ -195,21 +195,21 @@ parse_état_requête_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
     si pos_prochain_espace <= 0 {
         // recule pour revenir sur l'espace avant le chemin
         parseuse.parseuse_chaine.curseur -= 1;
-        retourne RésultatParsage.MESSAGE_INCOMPLET;
+        retourne Résultat_Parsage.MESSAGE_INCOMPLET;
     }
 
     requête := sous_chaine_jusque_indice(*parseuse.parseuse_chaine, pos_prochain_espace);
     positionne(*parseuse.parseuse_chaine, pos_prochain_espace + 1);
 
     parseuse.état_parsage = parse_état_version_http;
-    parseuse.données_message.position_requête = PositionChaine(début, début + requête.taille comme z32);
-    retourne RésultatParsage.OK;
+    parseuse.données_message.position_requête = Position_Chaine(début, début + requête.taille comme z32);
+    retourne Résultat_Parsage.OK;
 }
 
-parse_état_status_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
+parse_état_status_http :: fonc (parseuse: *Parseuse_HTTP) -> Résultat_Parsage
 {
     si parseuse.données.taille < 64 {
-        retourne RésultatParsage.MESSAGE_INCOMPLET;
+        retourne Résultat_Parsage.MESSAGE_INCOMPLET;
     }
 
     parseuse_chaine := *parseuse.parseuse_chaine;
@@ -233,35 +233,35 @@ parse_état_status_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
     pos_version := trouve_prochain(parseuse_chaine, "\r\n");
 
     si pos_version <= 0 {
-        retourne RésultatParsage.MESSAGE_INCOMPLET;
+        retourne Résultat_Parsage.MESSAGE_INCOMPLET;
     }
 
     positionne(parseuse_chaine, pos_version + 2);
 
-    parseuse.données_message.position_version = PositionChaine(0, 8);
+    parseuse.données_message.position_version = Position_Chaine(0, 8);
     parseuse.données_message.code_état = parseuse_chaine.nombre;
     parseuse.état_parsage = parse_état_entêtes;
-    retourne RésultatParsage.OK;
+    retourne Résultat_Parsage.OK;
 }
 
-parse_état_version_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
+parse_état_version_http :: fonc (parseuse: *Parseuse_HTTP) -> Résultat_Parsage
 {
     début := parseuse.parseuse_chaine.curseur;
     pos_nouvelle_ligne := trouve_prochain(*parseuse.parseuse_chaine, "\r\n");
 
     si pos_nouvelle_ligne <= 0 {
-        retourne RésultatParsage.MESSAGE_INCOMPLET;
+        retourne Résultat_Parsage.MESSAGE_INCOMPLET;
     }
 
     version := sous_chaine_jusque_indice(*parseuse.parseuse_chaine, pos_nouvelle_ligne);
     positionne(*parseuse.parseuse_chaine, pos_nouvelle_ligne + 2);
 
     parseuse.état_parsage = parse_état_entêtes;
-    parseuse.données_message.position_version = PositionChaine(début, début + version.taille comme z32);
-    retourne RésultatParsage.OK;
+    parseuse.données_message.position_version = Position_Chaine(début, début + version.taille comme z32);
+    retourne Résultat_Parsage.OK;
 }
 
-parse_état_entêtes :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
+parse_état_entêtes :: fonc (parseuse: *Parseuse_HTTP) -> Résultat_Parsage
 {
     tantque !fini(*parseuse.parseuse_chaine) {
         // parse une entête
@@ -269,21 +269,21 @@ parse_état_entêtes :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         pos_nouvelle_ligne := trouve_prochain(*parseuse.parseuse_chaine, "\r\n");
 
         si pos_nouvelle_ligne < 0 {
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
         // une ligne vide indique la fin des entêtes
         si pos_nouvelle_ligne == parseuse.parseuse_chaine.curseur {
             avance(*parseuse.parseuse_chaine, 2);
             parseuse.état_parsage = parse_état_message_terminé;
-            retourne RésultatParsage.OK;
+            retourne Résultat_Parsage.OK;
         }
 
         pos_double_points := trouve_prochain(*parseuse.parseuse_chaine, ':');
 
         si pos_double_points <= 0 {
             positionne(*parseuse.parseuse_chaine, pos_courante);
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
         nom := sous_chaine_jusque_indice(*parseuse.parseuse_chaine, pos_double_points);
@@ -297,23 +297,23 @@ parse_état_entêtes :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         // valeur
         si pos_nouvelle_ligne <= 0 {
             positionne(*parseuse.parseuse_chaine, pos_courante);
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
         valeur := sous_chaine_jusque_indice(*parseuse.parseuse_chaine, pos_nouvelle_ligne);
 
         positionne(*parseuse.parseuse_chaine, pos_nouvelle_ligne + 2);
 
-        position_nom := PositionChaine(pos_courante, pos_courante + nom.taille comme z32);
-        position_valeur := PositionChaine(début_valeur, début_valeur + valeur.taille comme z32);
+        position_nom := Position_Chaine(pos_courante, pos_courante + nom.taille comme z32);
+        position_valeur := Position_Chaine(début_valeur, début_valeur + valeur.taille comme z32);
 
         ajoute_entête(*parseuse.données_message, position_nom, position_valeur);
     }
 
-    retourne RésultatParsage.MESSAGE_INCOMPLET;
+    retourne Résultat_Parsage.MESSAGE_INCOMPLET;
 }
 
-parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
+parse_état_message_terminé :: fonc (parseuse: *Parseuse_HTTP) -> Résultat_Parsage
 {
     message := prépare_message_pour_parsage_contenu(parseuse);
 
@@ -329,10 +329,10 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
         parseuse.contenu_chunked = vrai;
 
         si fini(*parseuse.parseuse_chaine) {
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
-        retourne RésultatParsage.OK;
+        retourne Résultat_Parsage.OK;
     }
 
     si possède_entête(*message, "Content-Length") {
@@ -350,14 +350,14 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
         parseuse.état_parsage = parse_état_corps_message;
 
         si taille_contenu == 0 {
-            retourne RésultatParsage.TERMINÉ;
+            retourne Résultat_Parsage.TERMINÉ;
         }
 
         si fini(*parseuse.parseuse_chaine) {
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
-        retourne RésultatParsage.OK;
+        retourne Résultat_Parsage.OK;
     }
 
     si parseuse.pour_sous_message {
@@ -369,16 +369,16 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
         parseuse.état_parsage = parse_état_corps_message;
 
         si fini(*parseuse.parseuse_chaine) {
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
-        retourne RésultatParsage.OK;
+        retourne Résultat_Parsage.OK;
     }
 
-    retourne RésultatParsage.TERMINÉ;
+    retourne Résultat_Parsage.TERMINÉ;
 }
 
-parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
+parse_état_corps_message :: fonc (parseuse: *Parseuse_HTTP) -> Résultat_Parsage
 {
     si parseuse.contenu_fixe {
         parseuse.données_message.position_contenu.fin = parseuse.parseuse_chaine.chn.taille comme z32;
@@ -387,10 +387,10 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
             // tronque le contenu
             // À FAIRE : erreur ?
             parseuse.données_message.position_contenu.fin = parseuse.données_message.position_contenu.début + parseuse.taille_contenu;
-            retourne RésultatParsage.TERMINÉ;
+            retourne Résultat_Parsage.TERMINÉ;
         }
 
-        retourne RésultatParsage.MESSAGE_INCOMPLET;
+        retourne Résultat_Parsage.MESSAGE_INCOMPLET;
     }
 
     assert(parseuse.contenu_chunked);
@@ -407,7 +407,7 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         pos_nouvelle_ligne := trouve_prochain(*parseuse.parseuse_chaine, "\r\n");
 
         si pos_nouvelle_ligne <= 0 {
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
         valeur := sous_chaine_jusque_indice(*parseuse.parseuse_chaine, pos_nouvelle_ligne);
@@ -427,7 +427,7 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
         si indice_fin_chunk >= parseuse.parseuse_chaine.chn.taille {
             positionne(*parseuse.parseuse_chaine, pos_courante);
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
         /* ** append chunk-data to entity-body ** */
@@ -437,7 +437,7 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
         si !consomme(*parseuse.parseuse_chaine, "\r\n") {
             positionne(*parseuse.parseuse_chaine, pos_courante);
-            retourne RésultatParsage.MESSAGE_INCOMPLET;
+            retourne Résultat_Parsage.MESSAGE_INCOMPLET;
         }
 
         taille += données.taille comme z32;
@@ -466,20 +466,20 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
     */
 
-    retourne RésultatParsage.TERMINÉ;
+    retourne Résultat_Parsage.TERMINÉ;
 } @FonctionLongue
 
-message_est_erroné :: fonc (parseuse: *ParseuseHTTP) -> bool
+message_est_erroné :: fonc (parseuse: *Parseuse_HTTP) -> bool
 {
-    retourne parseuse.dernier_résultat == RésultatParsage.ERREUR;
+    retourne parseuse.dernier_résultat == Résultat_Parsage.ERREUR;
 }
 
-message_prêt_pour_finalisation :: fonc (parseuse: *ParseuseHTTP) -> bool
+message_prêt_pour_finalisation :: fonc (parseuse: *Parseuse_HTTP) -> bool
 {
-    retourne parseuse.dernier_résultat == RésultatParsage.TERMINÉ;
+    retourne parseuse.dernier_résultat == Résultat_Parsage.TERMINÉ;
 }
 
-prépare_message_pour_parsage_contenu :: fonc (parseuse: *ParseuseHTTP) -> MessageHTTP
+prépare_message_pour_parsage_contenu :: fonc (parseuse: *Parseuse_HTTP) -> Message_HTTP
 {
     pour parseuse.données_message.positions_entêtes {
         nom := sous_chaine(parseuse.données, it.position_nom);
@@ -491,7 +491,7 @@ prépare_message_pour_parsage_contenu :: fonc (parseuse: *ParseuseHTTP) -> Messa
     retourne parseuse.message_en_cours;
 }
 
-finalise_message_base :: fonc (parseuse: *ParseuseHTTP) -> MessageHTTP
+finalise_message_base :: fonc (parseuse: *Parseuse_HTTP) -> Message_HTTP
 {
     détruit_message(*parseuse.message_en_cours);
 
@@ -528,24 +528,24 @@ finalise_message_base :: fonc (parseuse: *ParseuseHTTP) -> MessageHTTP
 // ----------------------------------------------
 // Spécialisation pour les messages des clientes.
 
-ParseuseMessageClienteHTTP :: struct {
-    empl base: ParseuseHTTP;
+Parseuse_Message_Cliente_HTTP :: struct {
+    empl base: Parseuse_HTTP;
 
     /* Les messages clients commencent par la méthode. */
     état_parsage = parse_état_méthode_http;
 }
 
-réinitialise :: fonc (parseuse: *ParseuseMessageClienteHTTP)
+réinitialise :: fonc (parseuse: *Parseuse_Message_Cliente_HTTP)
 {
     réinitialise_base(parseuse);
-    init_de(ParseuseMessageClienteHTTP)(parseuse);
+    init_de(Parseuse_Message_Cliente_HTTP)(parseuse);
 }
 
-finalise_message :: fonc (parseuse: *ParseuseMessageClienteHTTP) -> MessageClienteHTTP
+finalise_message :: fonc (parseuse: *Parseuse_Message_Cliente_HTTP) -> Message_Cliente_HTTP
 {
     message := finalise_message_base(parseuse);
 
-    message_cliente := MessageClienteHTTP();
+    message_cliente := Message_Cliente_HTTP();
     initialise_depuis_message(*message_cliente, message);
     message_cliente.méthode = sous_chaine(parseuse.données, parseuse.données_message.position_méthode);
     message_cliente.requête = sous_chaine(parseuse.données, parseuse.données_message.position_requête);
@@ -554,7 +554,7 @@ finalise_message :: fonc (parseuse: *ParseuseMessageClienteHTTP) -> MessageClien
     résoud_échappement_url_localement(*message_cliente.requête);
 
     message_cliente.uri = tente parse_uri_depuis_chemin_requête(message_cliente.requête) piège _ {
-        retourne MessageClienteHTTP();
+        retourne Message_Cliente_HTTP();
     };
 
     retourne message_cliente;
@@ -563,27 +563,27 @@ finalise_message :: fonc (parseuse: *ParseuseMessageClienteHTTP) -> MessageClien
 // -----------------------------------------------
 // Spécialisation pour les messages des serveuses.
 
-ParseuseMessageServeuseHTTP :: struct {
-    empl base: ParseuseHTTP;
+Parseuse_Message_Serveuse_HTTP :: struct {
+    empl base: Parseuse_HTTP;
 
     /* Les messages serveuses commencent sur un status. */
     état_parsage = parse_état_status_http;
 }
 
-réinitialise :: fonc (parseuse: *ParseuseMessageServeuseHTTP)
+réinitialise :: fonc (parseuse: *Parseuse_Message_Serveuse_HTTP)
 {
     réinitialise_base(parseuse);
-    init_de(ParseuseMessageServeuseHTTP)(parseuse);
+    init_de(Parseuse_Message_Serveuse_HTTP)(parseuse);
 }
 
-finalise_message :: fonc (parseuse: *ParseuseMessageServeuseHTTP) -> MessageServeuseHTTP
+finalise_message :: fonc (parseuse: *Parseuse_Message_Serveuse_HTTP) -> Message_Serveuse_HTTP
 {
     message := finalise_message_base(parseuse);
 
-    message_serveuse := MessageServeuseHTTP();
+    message_serveuse := Message_Serveuse_HTTP();
     initialise_depuis_message(*message_serveuse, message);
     message_serveuse.status = parseuse.données_message.code_état;
-    message_serveuse.code_état = message_serveuse.status comme CodeÉtatHTTP;
+    message_serveuse.code_état = message_serveuse.status comme Code_État_HTTP;
     message_serveuse.version = sous_chaine(parseuse.données, parseuse.données_message.position_version);
     retourne message_serveuse;
 }
