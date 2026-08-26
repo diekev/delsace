@@ -27,6 +27,87 @@ Declaration :: struct {
     declarators: [..]*ASTNode;
 }
 
+CXX_Declaration_Specifier :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    next: *CXX_Declaration_Specifier;
+}
+
+CXX_Storage_Class_Specifier :: struct {
+    empl decl_specifier: CXX_Declaration_Specifier;
+    genre = #type_de_cette_structure;
+}
+
+CXX_Type_Specifier :: struct {
+    empl decl_specifier: CXX_Declaration_Specifier;
+    genre = #type_de_cette_structure;
+}
+
+CXX_Elaborated_Type_Specifier :: struct {
+    empl decl_specifier: CXX_Declaration_Specifier;
+    genre = #type_de_cette_structure;
+
+    identifier: Token;
+}
+
+CXX_Decltype_Specifier :: struct {
+    empl type_specifier: CXX_Type_Specifier;
+    genre = #type_de_cette_structure;
+
+    expression: *Expression;
+}
+
+CXX_Function_Specifier :: struct {
+    empl decl_specifier: CXX_Declaration_Specifier;
+    genre = #type_de_cette_structure;
+}
+
+CXX_Init_Declarator :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    declarator: *ASTNode;
+    initializer: *Expression;
+}
+
+CXX_Ptr_Declarator :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    next: *ASTNode;
+}
+
+CXX_Parameters_And_Qualifiers :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    left: *ASTNode;
+
+    qualifiers: [..]Token;
+}
+
+CXX_Simple_Declaration :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    decl_specifier: *CXX_Declaration_Specifier;
+    list: [..]*CXX_Init_Declarator;
+}
+
+CXX_ID_Expression :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+}
+
+CXX_Linkage_Specification :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    linkage: Token;
+    declarations: [..]*ASTNode;
+}
+
 StaticAssert :: struct {
     empl node: ASTNode;
     genre = #type_de_cette_structure;
@@ -108,6 +189,15 @@ FunctionDefinition :: struct {
     storage_class_specifier: chaine;
     linkage: Linkage;
     statement: *CompoundStatement;
+}
+
+CXX_Function_Definition :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    specifiers: *CXX_Declaration_Specifier;
+    declarator: *ASTNode;
+    body: *ASTNode;
 }
 
 donne_dernière_instruction :: fonc (statement: *CompoundStatement) -> *ASTNode
@@ -379,6 +469,11 @@ Expression :: struct {
     drapeaux: Drapeaux_Expression;
 }
 
+CXX_Nullptr_Expression :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+}
+
 TypeRef :: struct {
     empl expr: Expression;
     genre = #type_de_cette_structure;
@@ -428,6 +523,11 @@ IntegerConstant :: struct {
 }
 
 FloatingConstant :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+}
+
+Boolean_Constant :: struct {
     empl expr: Expression;
     genre = #type_de_cette_structure;
 }
@@ -725,50 +825,30 @@ LabelStatement :: struct {
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom ClassDecl
+/** \nom Namespace_Definition
  * \{ */
 
-SpécificationBase :: struct {
-    accès: SpécificationAccès;
-    est_virtuel: bool;
-    nom: chaine;
-}
-
-// Utilisée par Cycles
-ClassDecl :: struct {
+Namespace_Definition :: struct {
     empl node: ASTNode;
     genre = #type_de_cette_structure;
 
-    nom: chaine;
-    clé_classe: CléClasse;
-    bases: [..]SpécificationBase;
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom DeclContext
- * Structure de base pour tous les noeuds représentant un contexte de déclaration.
- * \{ */
-
-DeclContext :: struct {
-    empl node: ASTNode;
-    genre = #type_de_cette_structure;
-
+    identifiant: chaine;
+    est_inline: bool;
     declarations: [..]*ASTNode;
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NamespaceDecl
+/** \nom Templates
  * \{ */
 
-NamespaceDecl :: struct {
-    empl base: DeclContext;
+Template_Declaration :: struct {
+    empl node: ASTNode;
     genre = #type_de_cette_structure;
 
-    identifiant: chaine;
+    parameters: [..]*ASTNode;
+    declaration: *ASTNode;
 }
 
 /** \} */
@@ -833,7 +913,7 @@ crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, token: Token, eleme
 
 imprime_arbre :: fonc (node: *ASTNode)
 {
-    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ASTNode), noeud: *ASTNode, info: *InfoTypeStructure) -> VisiteEnfants;
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ASTNode), noeud: *ASTNode, info: *InfoTypeStructure) -> VisiteEnfants
     {
         imprime_tabulation(visiteuse.profondeur);
         discr noeud.genre {
@@ -884,7 +964,7 @@ imprime_arbre :: fonc (node: *ASTNode)
         retourne VisiteEnfants.Oui;
     }
 
-    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseArbre(ASTNode), tableau: [..]*ASTNode);
+    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseArbre(ASTNode), tableau: [..]*ASTNode)
     {
         pour tableau {
             info := it.genre comme *InfoTypeStructure;

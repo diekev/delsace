@@ -40,25 +40,25 @@ charge "routage";
 charge "simple_serveuse";
 charge "types";
 
-ServeuseHTTP :: struct {
+Serveuse_HTTP :: struct {
     empl base: ServeuseTCP.ServeuseTCP;
 
     nom : chaine = "test";
-    routeuse: NouvelleRouteuse;
+    routeuse: Nouvelle_Routeuse;
 
-    intergiciel: TypeRappelRoute;
+    intergiciel: Type_Rappel_Route;
 
-    rappel_méthode_non_autorisée: TypeRappelRoute;
-    rappel_page_non_trouvée: TypeRappelRoute;
+    rappel_méthode_non_autorisée: Type_Rappel_Route;
+    rappel_page_non_trouvée: Type_Rappel_Route;
     rappel_données_websocket: fonc (prise: *Prise, données: []octet);
 
     quand_connexion_http: fonc (prise: *Prise);
 }
 
-crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> *ServeuseHTTP
+crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> *Serveuse_HTTP
 {
-    // À FAIRE: déduplique avec ServeuseTCP, requiers d'avoir une manière de déterminer le bon type (ServeuseTCP vs. ServeuseHTTP)
-    serveuse := loge(ServeuseHTTP);
+    // À FAIRE: déduplique avec ServeuseTCP, requiers d'avoir une manière de déterminer le bon type (ServeuseTCP vs. Serveuse_HTTP)
+    serveuse := loge(Serveuse_HTTP);
 
     boucle_évènements := crée_boucle();
     ctx := crée_contexte_vide(boucle_évènements, nul, T);
@@ -86,7 +86,7 @@ crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max:
 }
 
 // À FAIRE : dossier
-ajoute_service_fichier :: fonc (serveuse: *ServeuseHTTP, extension: chaine)
+ajoute_service_fichier :: fonc (serveuse: *Serveuse_HTTP, extension: chaine)
 {
     si extension != ".css" && extension != ".js" && extension != ".jsx" && extension != ".png" {
         retourne;
@@ -95,12 +95,12 @@ ajoute_service_fichier :: fonc (serveuse: *ServeuseHTTP, extension: chaine)
     apparie_fichiers(*serveuse.routeuse, extension);
 }
 
-lance :: fonc (serveuse: *ServeuseHTTP)
+lance :: fonc (serveuse: *Serveuse_HTTP)
 {
     lance(serveuse.boucle_évènements);
 }
 
-détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
+détruit_serveuse :: fonc (serveuse: *Serveuse_HTTP)
 {
     détruit_routeuse(*serveuse.routeuse);
     détruit_boucle(serveuse.boucle_évènements);
@@ -108,18 +108,18 @@ détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
     déloge(*serveuse);
 }
 
-DonnéesServeuseHTTP :: struct {
-    parseuse: *ParseuseMessageClienteHTTP;
+Données_Serveuse_HTTP :: struct {
+    parseuse: *Parseuse_Message_Cliente_HTTP;
     connexion_est_websocket: bool;
 }
 
 quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
-    données := loge(DonnéesServeuseHTTP);
-    données.parseuse = loge(ParseuseMessageClienteHTTP);
+    données := loge(Données_Serveuse_HTTP);
+    données.parseuse = loge(Parseuse_Message_Cliente_HTTP);
     mute_données_serveuse(prise, données);
 
-    serveuse := accède_serveuse(prise.contexte_, ServeuseHTTP);
+    serveuse := accède_serveuse(prise.contexte_, Serveuse_HTTP);
 
     si serveuse.quand_connexion_http {
         serveuse.quand_connexion_http(prise);
@@ -136,7 +136,7 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
         retourne;
     }
 
-    données_serveuse := accède_données_serveuse(prise, DonnéesServeuseHTTP);
+    données_serveuse := accède_données_serveuse(prise, Données_Serveuse_HTTP);
 
     si données_serveuse.connexion_est_websocket {
         quand_données_reçues_websocket(prise, données);
@@ -154,8 +154,8 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
         retourne;
     }
 
-    message: MessageClienteHTTP;
-    réponse : MessageServeuseHTTP = ---;
+    message: Message_Cliente_HTTP;
+    réponse : Message_Serveuse_HTTP = ---;
     diffère détruit_message(*réponse);
 
     si message_est_erroné(parseuse) {
@@ -168,16 +168,16 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 
     suite := détermine_suite_connexion_après_réponse(*message, *réponse);
 
-    si suite == SuiteConnexion.Ferme {
+    si suite == Suite_Connexion.FERME {
         fusionne_entête(*réponse, "Connection", "close");
     }
 
     écris_réponse(prise, *réponse);
 
-    si suite == SuiteConnexion.Ferme {
+    si suite == Suite_Connexion.FERME {
         ferme(prise);
     }
-    sinon si suite == SuiteConnexion.PasseÀWebSocket {
+    sinon si suite == Suite_Connexion.PASSE_À_WEBSOCKET {
         données_serveuse.connexion_est_websocket = vrai;
     }
     sinon {
@@ -189,30 +189,30 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 
 quand_données_reçues_websocket :: fonc (prise: *Prise, données: []octet)
 {
-    serveuse := accède_serveuse(prise.contexte_, ServeuseHTTP);
+    serveuse := accède_serveuse(prise.contexte_, Serveuse_HTTP);
     assert(serveuse.rappel_données_websocket != nul);
     serveuse.rappel_données_websocket(prise, données);
 }
 
-gère_message :: fonc (prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP
+gère_message :: fonc (prise: *Prise, message: *Message_Cliente_HTTP) -> Message_Serveuse_HTTP
 {
-    serveuse := accède_serveuse(prise.contexte_, ServeuseHTTP);
+    serveuse := accède_serveuse(prise.contexte_, Serveuse_HTTP);
     retourne apparie_route(*serveuse.routeuse, prise, message);
 }
 
-SuiteConnexion :: énum {
-    GardeEnVie;
-    Ferme;
-    PasseÀWebSocket;
+Suite_Connexion :: énum {
+    GARDE_EN_VIE;
+    FERME;
+    PASSE_À_WEBSOCKET;
 }
 
-détermine_suite_connexion_après_réponse :: fonc (message: *MessageClienteHTTP, réponse: *MessageServeuseHTTP) -> SuiteConnexion
+détermine_suite_connexion_après_réponse :: fonc (message: *Message_Cliente_HTTP, réponse: *Message_Serveuse_HTTP) -> Suite_Connexion
 {
     connection_message := entête(message, "Connection");
     connection_réponse := entête(réponse, "Connection");
 
     si connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "Upgrade") {
-        retourne SuiteConnexion.PasseÀWebSocket;
+        retourne Suite_Connexion.PASSE_À_WEBSOCKET;
     }
 
     cliente_veut_fermer_la_connexion := connection_message && compare_ascii_insensible_à_la_casse(connection_message.valeur, "close");
@@ -224,20 +224,20 @@ détermine_suite_connexion_après_réponse :: fonc (message: *MessageClienteHTTP
     doit_fermer_la_connexion := cliente_veut_fermer_la_connexion || serveuse_veut_fermer_la_connexion;
 
     si doit_fermer_la_connexion && !serveuse_veut_fermer_la_connexion {
-        retourne SuiteConnexion.GardeEnVie;
+        retourne Suite_Connexion.GARDE_EN_VIE;
     }
 
     si !cliente_veut_garder_la_connexion && !serveuse_veut_garder_la_connexion {
-        retourne SuiteConnexion.GardeEnVie;
+        retourne Suite_Connexion.GARDE_EN_VIE;
     }
 
-    retourne SuiteConnexion.Ferme;
+    retourne Suite_Connexion.FERME;
 }
 
 quand_fermeture :: fonc (prise: *Prise)
 {
     imprime("fermeture de la prise...\n");
-    données := accède_données_serveuse(prise, DonnéesServeuseHTTP);
+    données := accède_données_serveuse(prise, Données_Serveuse_HTTP);
     parseuse := données.parseuse;
     réinitialise(parseuse);
     déloge(*parseuse);
@@ -247,19 +247,19 @@ quand_fermeture :: fonc (prise: *Prise)
 // Entête: Cache-Control
 // pour supprimer un cache, ajouter max-age=0
 // https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control
-PolitiqueDeCache :: énum {
-    Revalide; // no-cache
-    ClientsSeulement; // private
-    NeJamaisCacher; // no-store
+Politique_De_Cache :: énum {
+    REVALIDE; // no-cache
+    CLIENTS_SEULEMENT; // private
+    NE_JAMAIS_CACHER; // no-store
 }
 
-écris_réponse :: fonc (prise: *Prise, message: *MessageServeuseHTTP)
+écris_réponse :: fonc (prise: *Prise, message: *Message_Serveuse_HTTP)
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
     diffère détruit_tampons(*enchaineuse);
 
-    serveuse := accède_serveuse(prise.contexte_, ServeuseHTTP);
+    serveuse := accède_serveuse(prise.contexte_, Serveuse_HTTP);
 
     ajoute_au_tampon(*enchaineuse, message.version, " ", chaine_code_état_http(message.code_état), "\r\n");
     ajoute_au_tampon(*enchaineuse, "Server: ", serveuse.nom, "\r\n");
@@ -349,36 +349,36 @@ chaine_pour_aujourdhui :: fonc (enchaineuse: *Enchaineuse) -> rien
 
 /* Réponses basiques */
 
-ok :: fonc () -> MessageServeuseHTTP
+ok :: fonc () -> Message_Serveuse_HTTP
 {
-    message: MessageServeuseHTTP;
-    message.code_état = CodeÉtatHTTP.OK;
+    message: Message_Serveuse_HTTP;
+    message.code_état = Code_État_HTTP.OK;
     message.version = "HTTP/1.1";
     retourne message;
 }
 
-ressource_non_trouvée :: fonc () -> MessageServeuseHTTP
+ressource_non_trouvée :: fonc () -> Message_Serveuse_HTTP
 {
-    message: MessageServeuseHTTP;
-    message.code_état = CodeÉtatHTTP.NOT_FOUND;
-    message.version = "HTTP/1.1";
-    ajoute_entête(*message, "Connection", "close");
-    retourne message;
-}
-
-méthode_non_autorisée :: fonc () -> MessageServeuseHTTP
-{
-    message: MessageServeuseHTTP;
-    message.code_état = CodeÉtatHTTP.METHOD_NOT_ALLOWED;
+    message: Message_Serveuse_HTTP;
+    message.code_état = Code_État_HTTP.NOT_FOUND;
     message.version = "HTTP/1.1";
     ajoute_entête(*message, "Connection", "close");
     retourne message;
 }
 
-mauvaise_requête :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
+méthode_non_autorisée :: fonc () -> Message_Serveuse_HTTP
 {
-    message: MessageServeuseHTTP;
-    message.code_état = CodeÉtatHTTP.BAD_REQUEST;
+    message: Message_Serveuse_HTTP;
+    message.code_état = Code_État_HTTP.METHOD_NOT_ALLOWED;
+    message.version = "HTTP/1.1";
+    ajoute_entête(*message, "Connection", "close");
+    retourne message;
+}
+
+mauvaise_requête :: fonc (contenu : chaine = "") -> Message_Serveuse_HTTP
+{
+    message: Message_Serveuse_HTTP;
+    message.code_état = Code_État_HTTP.BAD_REQUEST;
     message.version = "HTTP/1.1";
     ajoute_entête(*message, "Connection", "close");
 
@@ -390,20 +390,20 @@ mauvaise_requête :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
     retourne message;
 }
 
-redirige :: fonc (chemin: chaine) -> MessageServeuseHTTP
+redirige :: fonc (chemin: chaine) -> Message_Serveuse_HTTP
 {
-    message: MessageServeuseHTTP;
+    message: Message_Serveuse_HTTP;
     message.version = "HTTP/1.1";
-    message.code_état = CodeÉtatHTTP.SEE_OTHER;
+    message.code_état = Code_État_HTTP.SEE_OTHER;
     ajoute_entête(*message, "Location", chemin);
     retourne message;
 }
 
-erreur_interne :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
+erreur_interne :: fonc (contenu : chaine = "") -> Message_Serveuse_HTTP
 {
-    message: MessageServeuseHTTP;
+    message: Message_Serveuse_HTTP;
     message.version = "HTTP/1.1";
-    message.code_état = CodeÉtatHTTP.INTERNAL_SERVER_ERROR;
+    message.code_état = Code_État_HTTP.INTERNAL_SERVER_ERROR;
 
     si contenu {
         message.contenu = contenu;
@@ -413,7 +413,7 @@ erreur_interne :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
     retourne message;
 }
 
-sers_fichier :: fonc (prise: *Prise @inutilisée, message: *MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
+sers_fichier :: fonc (prise: *Prise @inutilisée, message: *Message_Cliente_HTTP, type_mime: chaine) -> Message_Serveuse_HTTP
 {
     chm := chemin_pour_fichier(message.requête);
     _, contenu := contenu_fichier_texte(chm);
@@ -422,9 +422,9 @@ sers_fichier :: fonc (prise: *Prise @inutilisée, message: *MessageClienteHTTP, 
         retourne ressource_non_trouvée();
     }
 
-    réponse: MessageServeuseHTTP;
+    réponse: Message_Serveuse_HTTP;
     réponse.version = "HTTP/1.1";
-    réponse.code_état = CodeÉtatHTTP.OK;
+    réponse.code_état = Code_État_HTTP.OK;
     réponse.contenu = contenu;
     ajoute_entête(*réponse, "Content-Type", type_mime);
     retourne réponse;
@@ -434,9 +434,9 @@ sers_fichier :: fonc (prise: *Prise @inutilisée, message: *MessageClienteHTTP, 
 
 importe GHTML;
 
-rends_page_ex :: fonc (rendeuse_page: *RendeusePage, page: chaine, données_page: eini) -> MessageServeuseHTTP
+rends_page_ex :: fonc (rendeuse_page: *RendeusePage, page: chaine, données_page: eini) -> Message_Serveuse_HTTP
 {
     //  À FAIRE : restaure la connaissance d'une erreur
     chn := rends_page(rendeuse_page, page, données_page);
-    retourne crée_message_avec_contenu(CodeÉtatHTTP.OK, contenu_html(chn));
+    retourne crée_message_avec_contenu(Code_État_HTTP.OK, contenu_html(chn));
 }

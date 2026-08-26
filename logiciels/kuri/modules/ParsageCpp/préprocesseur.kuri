@@ -683,7 +683,7 @@ ajoute_définition_lexèmes :: fonc (préprocesseur: *PréProcesseur, nom: chain
     définition := crée_définition(préprocesseur, nom);
 
     lexeuse: SimpleLexeuse;
-    initialise_lexeuse_c(*lexeuse);
+    initialise_lexeuse(préprocesseur.unit, *lexeuse);
     lexeuse.options.INCLUS_TOUT = vrai;
 
     initialise_lexeuse_pour_texte(*lexeuse, valeur);
@@ -816,7 +816,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur, fichier_non
         lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses);
         lexeuse.fichier = indice_fichier;
         lexeuse.lexeuse.chemin_fichier = fichier.chemin;
-        initialise_lexeuse_c(*lexeuse.lexeuse);
+        initialise_lexeuse(préprocesseur.unit, *lexeuse.lexeuse);
         lexeuse.lexeuse.options.INCLUS_TOUT = vrai;
 
         initialise_lexeuse_pour_texte(*lexeuse.lexeuse, fichier.contenu_prétaité);
@@ -1537,7 +1537,7 @@ applique_opérateurs_de_collage :: fonc (préprocesseur: *PréProcesseur, sortie
                 nouveau_texte := enchaine(donne_texte(lexème_précédent), donne_texte(lexème_suivant));
 
                 lexeuse: SimpleLexeuse;
-                initialise_lexeuse_c(*lexeuse);
+                initialise_lexeuse(préprocesseur.unit, *lexeuse);
                 initialise_lexeuse_pour_texte(*lexeuse, nouveau_texte);
                 // À FAIRE : position code
                 lexème.lexème = donne_lexème_suivant(*lexeuse);
@@ -1885,7 +1885,7 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
     lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses);
     lexeuse.fichier = indice_fichier;
     lexeuse.lexeuse.chemin_fichier = fichier.chemin;
-    initialise_lexeuse_c(*lexeuse.lexeuse);
+    initialise_lexeuse(préprocesseur.unit, *lexeuse.lexeuse);
     lexeuse.lexeuse.options.INCLUS_TOUT = vrai;
 
     initialise_lexeuse_pour_texte(*lexeuse.lexeuse, fichier.contenu_prétaité);

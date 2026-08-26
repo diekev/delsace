@@ -12,6 +12,7 @@ charge "fichier_source";
 charge "lexage";
 charge "message";
 charge "préprocesseur";
+charge "parseuse";
 charge "parseuse_c";
 charge "parseuse_cpp";
 charge "sémanticienne_c";
@@ -77,7 +78,7 @@ donne_info_langage_pour_langage :: fonc (langage: Langage) -> InfoLangage
         }
     }
 
-    _, résultat := donne_info_langage_pour_dialecte("c");
+    _, résultat := donne_info_langage_pour_dialecte(dialecte);
     assert(est_valide(résultat));
     retourne résultat;
 }
