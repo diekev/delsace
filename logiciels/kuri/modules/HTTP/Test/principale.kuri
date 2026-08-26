@@ -3,7 +3,7 @@ importe HTTP;
 
 principale :: fonc ()
 {
-    parseuse: ParseuseMessageServeuseHTTP;
+    parseuse: Parseuse_Message_Serveuse_HTTP;
 
     ajourne_données(*parseuse, "HTTP/1.1 200 OK\r\n");
     ajourne_données(*parseuse, "Content-Type: ");
@@ -15,7 +15,7 @@ principale :: fonc ()
 
 test_redirection_avec_content_length_zéro :: fonc ()
 {
-    parseuse: ParseuseMessageServeuseHTTP;
+    parseuse: Parseuse_Message_Serveuse_HTTP;
     diffère réinitialise(*parseuse);
 
     ajourne_données(*parseuse, "HTTP/1.1 301 Moved Permanently\r\n");

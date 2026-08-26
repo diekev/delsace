@@ -50,7 +50,7 @@ DonnéesPriseWebSocket :: struct {
     réponse: chaine;
     décalage_réponse: z32;
 
-    parseuse: ParseuseMessageClienteHTTP;
+    parseuse: Parseuse_Message_Cliente_HTTP;
     extrémité: Extrémité(Prise, faux);
 
     est_connexion_websocket: bool;
@@ -99,11 +99,11 @@ rappel_quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 
     données_connexion.est_connexion_websocket = vrai;
 
-    réponse: MessageServeuseHTTP;
+    réponse: Message_Serveuse_HTTP;
     diffère détruit_message(*réponse);
 
     réponse.version = "HTTP/1.1";
-    réponse.code_état = CodeÉtatHTTP.SWITCHING_PROTOCOL;
+    réponse.code_état = Code_État_HTTP.SWITCHING_PROTOCOL;
 
     ajoute_entête(*réponse, "Upgrade", "websocket");
     ajoute_entête(*réponse, "Connection", "Upgrade");

@@ -1,6 +1,6 @@
 // Liste des différents codes HTTP pour les requêtes.
 
-CodeÉtatHTTP :: énum z32 {
+Code_État_HTTP :: énum z32 {
     CONTINUE :: 100;
     SWITCHING_PROTOCOL :: 101;
     OK :: 200;
@@ -51,7 +51,7 @@ CodeÉtatHTTP :: énum z32 {
     NETWORK_AUTHENTICATION_REQUIRED :: 511;
 }
 
-chaine_code_état_http :: fonc (code: CodeÉtatHTTP) -> chaine
+chaine_code_état_http :: fonc (code: Code_État_HTTP) -> chaine
 {
     discr code {
         CONTINUE { retourne "100 CONTINUE"; }
