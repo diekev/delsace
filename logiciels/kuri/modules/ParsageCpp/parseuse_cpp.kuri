@@ -208,25 +208,6 @@ parse_decl_specifier_seq :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Declaration_S
             consomme(parseuse);
             noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Storage_Class_Specifier);
         }
-        sinon si est_type_specifier(parseuse, lexème) {
-            consomme(parseuse);
-
-            si est_mot_clé(lexème, "decltype") {
-                consomme_ponctuation(parseuse, "(");
-                lexème_expr := donne_lexème_suivant(parseuse);
-                saufsi est_mot_clé(lexème_expr, "nullptr") {
-                    rapporte_erreur(parseuse, lexème_expr, "expression non-gérée");
-                }
-                expression := crée_noeud(*parseuse.créatrice, lexème_expr, CXX_Nullptr_Expression);
-                decltype := crée_noeud(*parseuse.créatrice, lexème, CXX_Decltype_Specifier);
-                decltype.expression = expression;
-                noeud = decltype;
-                consomme_ponctuation(parseuse, ")");
-            }
-            sinon {
-                noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
-            }
-        }
         sinon si est_function_specifier(parseuse, lexème) {
             consomme(parseuse);
             noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Function_Specifier);
@@ -234,6 +215,34 @@ parse_decl_specifier_seq :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Declaration_S
         sinon si est_mot_clé(lexème, ["friend", "typedef", "constexpr"]) {
             consomme(parseuse);
             noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Declaration_Specifier);
+        }
+        sinon {
+            type_specifier_kind := détermine_type_specifier(parseuse, lexème);
+            si type_specifier_kind != Type_Specifier_Kind.NONE {
+                consomme(parseuse);
+
+                si est_mot_clé(lexème, "decltype") {
+                    consomme_ponctuation(parseuse, "(");
+                    lexème_expr := donne_lexème_suivant(parseuse);
+                    saufsi est_mot_clé(lexème_expr, "nullptr") {
+                        rapporte_erreur(parseuse, lexème_expr, "expression non-gérée");
+                    }
+                    expression := crée_noeud(*parseuse.créatrice, lexème_expr, CXX_Nullptr_Expression);
+                    decltype := crée_noeud(*parseuse.créatrice, lexème, CXX_Decltype_Specifier);
+                    decltype.expression = expression;
+                    noeud = decltype;
+                    consomme_ponctuation(parseuse, ")");
+                }
+                sinon si type_specifier_kind == Type_Specifier_Kind.ELABORATED {
+                    elaborated := crée_noeud(*parseuse.créatrice, lexème, CXX_Elaborated_Type_Specifier);
+                    elaborated.identifier = donne_lexème_suivant(parseuse);
+                    assert(est_symbole(elaborated.identifier));
+                    noeud = elaborated;
+                }
+                sinon {
+                    noeud = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
+                }
+            }
         }
 
         saufsi noeud {
@@ -1151,6 +1160,82 @@ est_storage_class_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexè
     retourne est_mot_clé(lexème, mots_clés);
 }
 
+Type_Specifier_Kind :: énum {
+    NONE;
+    /* simple-type-specifier */
+    FUNDAMENTAL;
+    DECLTYPE;
+    /* class-specifier */
+    CLASS;
+    /* enum-specifier */
+    ENUM;
+    /* elaborated */
+    ELABORATED;
+    TYPE_NAME;
+    CV_QUALIFIER;
+}
+
+détermine_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> Type_Specifier_Kind
+{
+    état := sauvegarde_état(parseuse);
+    diffère restaure_état(parseuse, état);
+
+    /* simple-type-specifier */
+
+    // nested-name-specifieropt type-name
+    // nested-name-specifier template simple-template-id
+
+    mots_clés := ["char", "char16_t", "char32_t", "wchar_t", "bool", "short", "int", "long", "signed", "unsigned", "float", "double", "void", "auto"];
+    si est_mot_clé(lexème, mots_clés) {
+        retourne Type_Specifier_Kind.FUNDAMENTAL;
+    }
+
+    si est_mot_clé(lexème, "decltype") {
+        retourne Type_Specifier_Kind.DECLTYPE;
+    }
+
+    /* elaborated-type-specifier */
+
+    // class-key attribute-specifier-seqopt nested-name-specifieropt identifier
+    // class-key nested-name-specifieropt templateopt simple-template-id
+    si est_class_key(lexème) {
+        consomme(parseuse);
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_symbole(lexème_suivant) {
+            consomme(parseuse);
+            lexème_suivant = épie_lexème_suivant(parseuse);
+
+            si est_ponctuation(lexème_suivant, ":") || est_ponctuation(lexème_suivant, "{") {
+                retourne Type_Specifier_Kind.CLASS;
+            }
+
+            retourne Type_Specifier_Kind.ELABORATED;
+        }
+
+        retourne Type_Specifier_Kind.NONE;
+    }
+
+    // enum nested-name-specifieropt identifier
+    si est_mot_clé(lexème, "enum") {
+        consomme(parseuse);
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_symbole(lexème_suivant) {
+            consomme(parseuse);
+            lexème_suivant = épie_lexème_suivant(parseuse);
+
+            si est_ponctuation(lexème_suivant, ":") || est_ponctuation(lexème_suivant, "{") {
+                retourne Type_Specifier_Kind.ENUM;
+            }
+
+            retourne Type_Specifier_Kind.ELABORATED;
+        }
+
+        retourne Type_Specifier_Kind.NONE;
+    }
+
+    retourne Type_Specifier_Kind.NONE;
+}
+
 est_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
     retourne est_trailing_type_specifier(parseuse, lexème) || est_class_specifier(parseuse, lexème) || est_enum_specifier(parseuse, lexème);
@@ -1173,44 +1258,16 @@ est_trailing_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) ->
     retourne faux;
 }
 
-est_simple_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+est_simple_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
-    // nested-name-specifieropt type-name
-    // nested-name-specifier template simple-template-id
-
-    mots_clés := ["char", "char16_t", "char32_t", "wchar_t", "bool", "short", "int", "long", "signed", "unsigned", "float", "double", "void", "auto"];
-    si est_mot_clé(lexème, mots_clés) {
-        retourne vrai;
-    }
-
-    si est_mot_clé(lexème, "decltype") {
-        retourne vrai;
-    }
-
-    retourne faux;
+    kind := détermine_type_specifier(parseuse, lexème);
+    retourne kind == Type_Specifier_Kind.DECLTYPE || kind == Type_Specifier_Kind.FUNDAMENTAL;
 }
 
 est_elaborated_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
-    état := sauvegarde_état(parseuse);
-    diffère restaure_état(parseuse, état);
-
-    // class-key attribute-specifier-seqopt nested-name-specifieropt identifier
-    // class-key nested-name-specifieropt templateopt simple-template-id
-    si est_class_key(lexème) {
-        consomme(parseuse);
-        lexème = épie_lexème_suivant(parseuse);
-        retourne est_symbole(lexème);
-    }
-
-    // enum nested-name-specifieropt identifier
-    si est_mot_clé(lexème, "enum") {
-        consomme(parseuse);
-        lexème = épie_lexème_suivant(parseuse);
-        retourne est_symbole(lexème);
-    }
-
-    retourne faux;
+    kind := détermine_type_specifier(parseuse, lexème);
+    retourne kind == Type_Specifier_Kind.ELABORATED;
 }
 
 est_class_key :: fonc (lexème: Token) -> bool
@@ -1228,15 +1285,16 @@ est_cv_qualifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) 
     retourne est_mot_clé(lexème, ["const", "volatile"]);
 }
 
-est_class_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+est_class_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
-    mots_clés := ["class", "struct", "union"];
-    retourne est_mot_clé(lexème, mots_clés);
+    kind := détermine_type_specifier(parseuse, lexème);
+    retourne kind == Type_Specifier_Kind.CLASS;
 }
 
-est_enum_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
+est_enum_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
-    retourne est_mot_clé(lexème, "enum");
+    kind := détermine_type_specifier(parseuse, lexème);
+    retourne kind == Type_Specifier_Kind.ENUM;
 }
 
 est_function_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool

@@ -44,6 +44,13 @@ CXX_Type_Specifier :: struct {
     genre = #type_de_cette_structure;
 }
 
+CXX_Elaborated_Type_Specifier :: struct {
+    empl decl_specifier: CXX_Declaration_Specifier;
+    genre = #type_de_cette_structure;
+
+    identifier: Token;
+}
+
 CXX_Decltype_Specifier :: struct {
     empl type_specifier: CXX_Type_Specifier;
     genre = #type_de_cette_structure;
