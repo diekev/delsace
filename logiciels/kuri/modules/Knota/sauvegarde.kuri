@@ -743,7 +743,7 @@ crée_fichier_de_copie :: fonc (items: []*Item_Graphe, connexions: []*Connexion)
     retourne aplatis_fichier(sauvegardeuse.fichier);
 }
 
-lis_fichier_copie :: fonc (lectrice: *Lectrice_Graphe, graphe: *Graphe, souris: *ÉtatSouris)
+lis_fichier_copie :: fonc (lectrice: *Lectrice_Graphe, graphe: *Graphe, souris: *État_Souris)
 {
     saufsi lis_nombre_magique(lectrice, nombre_magique_fichier_copie()) {
         rapporte_erreur(lectrice, "Impossible de lire la copie, le nombre magique est erroné.");

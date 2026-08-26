@@ -1,13 +1,13 @@
-/* Un PiloteClienteHTTP est un objet utilisé pour se communiquer avec un serveur HTTP.
+/* Un Pilote_Cliente_HTTP est un objet utilisé pour se communiquer avec un serveur HTTP.
  * Le pilote connait les chemins et paramètres des requêtes et permet d'avoir une IPA
  * vers le service.
  * Le code des pilotes peut être soit généré lors de la compilation du service, via
  * la génération d'interface, soit écris manuellement.
- * Les pilotes écris manuellement doivent dérivé de PiloteClienteHTTP.
+ * Les pilotes écris manuellement doivent dérivé de Pilote_Cliente_HTTP.
  */
 
 
-MéthodeHTTP :: énum {
+Méthode_HTTP :: énum {
     GET;
     POST;
     PUT;
@@ -16,38 +16,20 @@ MéthodeHTTP :: énum {
     DELETE;
 }
 
-chaine_pour_méthode :: fonc (méthode: MéthodeHTTP) -> chaine
+chaine_pour_méthode :: fonc (méthode: Méthode_HTTP) -> chaine
 {
-    discr méthode {
-        GET {
-            retourne "GET";
-        }
-        POST {
-            retourne "POST";
-        }
-        PUT {
-            retourne "PUT";
-        }
-        HEAD {
-            retourne "HEAD";
-        }
-        UPDATE {
-            retourne "UPDATE";
-        }
-        DELETE {
-            retourne "DELETE";
-        }
-    }
+    infos := info_de(Méthode_HTTP);
+    retourne infos.noms[méthode];
 }
 
 // ----------------------------------------
 
 // À FAIRE : gestionnaire de cookies pour déterminer les cookies à envoyer.
-GestionnaireCookie :: struct {
+Gestionnaire_Cookie :: struct {
     cookies: [..]Cookie;
 }
 
-ajoute_cookie :: fonc (gestionnaire: *GestionnaireCookie, uri: URI, cookie: Cookie)
+ajoute_cookie :: fonc (gestionnaire: *Gestionnaire_Cookie, uri: URI, cookie: Cookie)
 {
 }
 
@@ -62,7 +44,7 @@ est_localhost :: fonc (uri: URI) -> bool
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
-cookies_pour_requête :: fonc (gestionnaire: *GestionnaireCookie, uri: URI) -> [..]Cookie
+cookies_pour_requête :: fonc (gestionnaire: *Gestionnaire_Cookie, uri: URI) -> [..]Cookie
 {
     // trouve les cookies qui n'ont pas périmés
     // si le schéma est http, seuls les cookies non sûrs sont envoyés, sauf si le domaine est localhost
@@ -81,14 +63,14 @@ cookies_pour_requête :: fonc (gestionnaire: *GestionnaireCookie, uri: URI) -> [
 
 // ----------------------------------------
 
-PiloteClienteHTTP :: struct {
+Pilote_Cliente_HTTP :: struct {
     cookies: [..]Cookie;
     uri_serveur: URI;
 }
 
-débute_requête :: fonc (pilote: *PiloteClienteHTTP, méthode: MéthodeHTTP, uri: URI) -> MessageClienteHTTP
+débute_requête :: fonc (pilote: *Pilote_Cliente_HTTP, méthode: Méthode_HTTP, uri: URI) -> Message_Cliente_HTTP
 {
-    message: MessageClienteHTTP;
+    message: Message_Cliente_HTTP;
     message.méthode = chaine_pour_méthode(méthode);
     message.uri = uri;
 
@@ -99,7 +81,7 @@ débute_requête :: fonc (pilote: *PiloteClienteHTTP, méthode: MéthodeHTTP, ur
     retourne message;
 }
 
-ajoute_contenu_depuis_formulaire :: fonc (message: *MessageClienteHTTP, formulaire: eini)
+ajoute_contenu_depuis_formulaire :: fonc (message: *Message_Cliente_HTTP, formulaire: eini)
 {
     chn := encode_format_url(formulaire);
 
@@ -111,7 +93,7 @@ ajoute_contenu_depuis_formulaire :: fonc (message: *MessageClienteHTTP, formulai
 }
 
 /* Envoie la requête de manière bloquante. */
-envoie_requête :: fonc (pilote: *PiloteClienteHTTP, requête: *MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
+envoie_requête :: fonc (pilote: *Pilote_Cliente_HTTP, requête: *Message_Cliente_HTTP) -> Optionnel(Message_Serveuse_HTTP)
 {
     message := chaine_pour_message_cliente(requête);
     diffère déloge(*message);
@@ -128,7 +110,7 @@ envoie_requête :: fonc (pilote: *PiloteClienteHTTP, requête: *MessageClienteHT
     };
 
     // lis jusqu'à ce que nous n'ayons plus rien à lire
-    parseuse: ParseuseMessageServeuseHTTP;
+    parseuse: Parseuse_Message_Serveuse_HTTP;
     // À FAIRE : gestion de la mémoire des messages
     // diffère réinitialise(*parseuse)
 
@@ -157,7 +139,7 @@ envoie_requête :: fonc (pilote: *PiloteClienteHTTP, requête: *MessageClienteHT
     retourne finalise_message(*parseuse);
 }
 
-traite_réponse :: fonc (pilote: *PiloteClienteHTTP, réponse: *MessageServeuseHTTP)
+traite_réponse :: fonc (pilote: *Pilote_Cliente_HTTP, réponse: *Message_Serveuse_HTTP)
 {
     pour réponse.entêtes {
         si it.nom == "Set-Cookie" {
@@ -170,7 +152,7 @@ traite_réponse :: fonc (pilote: *PiloteClienteHTTP, réponse: *MessageServeuseH
     }
 }
 
-envoie_requête_et_traite_réponse :: fonc (pilote: *PiloteClienteHTTP, requête: *MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
+envoie_requête_et_traite_réponse :: fonc (pilote: *Pilote_Cliente_HTTP, requête: *Message_Cliente_HTTP) -> Optionnel(Message_Serveuse_HTTP)
 {
     discr pilote.envoie_requête(requête) {
         Quelque(réponse) {
