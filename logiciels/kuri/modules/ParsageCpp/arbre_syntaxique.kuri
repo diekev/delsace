@@ -184,6 +184,15 @@ FunctionDefinition :: struct {
     statement: *CompoundStatement;
 }
 
+CXX_Function_Definition :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    specifiers: *CXX_Declaration_Specifier;
+    declarator: *ASTNode;
+    body: *ASTNode;
+}
+
 donne_dernière_instruction :: fonc (statement: *CompoundStatement) -> *ASTNode
 {
     boucle {

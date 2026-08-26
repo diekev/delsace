@@ -207,10 +207,21 @@ parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fo
         si init_declarator.declarator.genre == CXX_Parameters_And_Qualifiers {
             lexème := épie_lexème_suivant(parseuse);
             si est_ponctuation(lexème, "{") && permet_définition_fonction {
-                rapporte_erreur(parseuse, lexème, "les fonctions ne sont pas encore supportées");
+                // À FAIRE : le mieux serait de ne pas avoir à faire ceci
+                déloge(*list);
+
+                function_body := parse_function_body(parseuse);
+
+                résultat := crée_noeud(*parseuse.créatrice, init_declarator.token, CXX_Function_Definition);
+                résultat.specifiers = decl_specifier;
+                résultat.declarator = init_declarator.declarator;
+                résultat.body = function_body;
+                retourne résultat;
             }
         }
     }
+
+    _ := parse_attributs_gcc(parseuse);
 
     consomme_ponctuation(parseuse, ";");
 
@@ -395,6 +406,58 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
     résultat.declarations = declarations;
     résultat.est_inline = est_inline;
     retourne résultat;
+}
+
+parse_function_body :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    retourne parse_compound_statement(parseuse);
+}
+
+parse_compound_statement :: fonc (parseuse: *Parseuse_CPP) -> *CompoundStatement
+{
+    lexème_compound := épie_lexème_suivant(parseuse);
+    consomme_ponctuation(parseuse, "{");
+
+    items: [..]*ASTNode;
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème, "}") {
+            arrête;
+        }
+
+        statement := parse_statement(parseuse);
+        si statement {
+            tableau_ajoute(*items, statement);
+        }
+    }
+
+    consomme_ponctuation(parseuse, "}");
+
+    résultat := crée_noeud(*parseuse.créatrice, lexème_compound, CompoundStatement);
+    résultat.items = items;
+    retourne résultat;
+}
+
+parse_statement :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse);
+
+    // labeled-statement
+    // attribute-specifier-seqopt expression-statement
+    // attribute-specifier-seqopt compound-statement
+    // attribute-specifier-seqopt selection-statement
+    // attribute-specifier-seqopt iteration-statement
+    // attribute-specifier-seqopt jump-statement
+
+    // declaration-statement
+    si est_declaration_specifier(parseuse, lexème) {
+        retourne parse_block_declaration(parseuse, faux);
+    }
+
+    // attribute-specifier-seqopt try-block
+
+    rapporte_erreur(parseuse, épie_lexème_suivant(parseuse), "attendu une instruction");
+    retourne nul;
 }
 
 /** \} */
