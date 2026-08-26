@@ -86,11 +86,11 @@ sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *Context
     }
 }
 
-sur_déplacement_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier @inutilisée, état: ÉtatSouris @inutilisée)
+sur_déplacement_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier @inutilisée, état: État_Souris @inutilisée)
 {
 }
 
-sur_clic_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clic: ClicSouris) -> bool
+sur_clic_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clic: Clic_Souris) -> bool
 {
     saufsi contient(rect, clic.état.où) {
         retourne faux;

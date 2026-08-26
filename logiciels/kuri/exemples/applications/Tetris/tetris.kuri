@@ -41,12 +41,12 @@ principale :: fonc ()
         évènements := ajourne_évènements_fenêtre(fenêtre);
 
         pour évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
 
-            si it.type == TypeÉvènement.Clavier {
+            si it.type == Type_Évènement.CLAVIER {
                 traite_touche_clavier(*tetris, it.touche);
             }
         }
@@ -184,7 +184,7 @@ crée_tetris :: fonc () -> Tetris
     retourne résultat;
 }
 
-traite_touche_clavier :: fonc (tetris: *Tetris, touche_clavier: ToucheClavier)
+traite_touche_clavier :: fonc (tetris: *Tetris, touche_clavier: Touche_Clavier)
 {
     discr touche_clavier {
         FLÈCHE_GAUCHE {

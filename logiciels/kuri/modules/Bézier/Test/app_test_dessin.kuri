@@ -41,7 +41,7 @@ principale :: fonc ()
         dernière_souris := donne_état_souris(fenêtre);
 
         pour * évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
