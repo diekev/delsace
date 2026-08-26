@@ -4,118 +4,118 @@
 
 importe Périphériques;
 
-donne_cursor_système :: fonc (type: CursorType) -> TypeCurseurSystème
+donne_cursor_système :: fonc (type: CursorType) -> Type_Curseur_Système
 {
     discr type {
         auto,
         default {
-            retourne TypeCurseurSystème.FLÈCHE;
+            retourne Type_Curseur_Système.FLÈCHE;
         }
         none {
-            retourne TypeCurseurSystème.VIERGE;
+            retourne Type_Curseur_Système.VIERGE;
         }
         context_menu {
-            retourne TypeCurseurSystème.MENU_CONTEXTUEL;
+            retourne Type_Curseur_Système.MENU_CONTEXTUEL;
         }
         help {
-            retourne TypeCurseurSystème.POINT_D_INTERROGATION;
+            retourne Type_Curseur_Système.POINT_D_INTERROGATION;
         }
         pointer {
-            retourne TypeCurseurSystème.MAIN_POINTANT;
+            retourne Type_Curseur_Système.MAIN_POINTANT;
         }
         progress {
-            retourne TypeCurseurSystème.PROGRÈS;
+            retourne Type_Curseur_Système.PROGRÈS;
         }
         wait {
-            retourne TypeCurseurSystème.ATTENTE;
+            retourne Type_Curseur_Système.ATTENTE;
         }
         cell {
-            retourne TypeCurseurSystème.CELLULE;
+            retourne Type_Curseur_Système.CELLULE;
         }
         crosshair {
-            retourne TypeCurseurSystème.CROIX;
+            retourne Type_Curseur_Système.CROIX;
         }
         text {
-            retourne TypeCurseurSystème.TEXTE;
+            retourne Type_Curseur_Système.TEXTE;
         }
         vertical_text {
-            retourne TypeCurseurSystème.TEXTE_VERTICAL;
+            retourne Type_Curseur_Système.TEXTE_VERTICAL;
         }
         alias {
-            retourne TypeCurseurSystème.ALIAS;
+            retourne Type_Curseur_Système.ALIAS;
         }
         copy {
-            retourne TypeCurseurSystème.COPIE;
+            retourne Type_Curseur_Système.COPIE;
         }
         move {
-            retourne TypeCurseurSystème.DÉPLACEMENT;
+            retourne Type_Curseur_Système.DÉPLACEMENT;
         }
         no_drop {
-            retourne TypeCurseurSystème.DÉPOSAGE_INTERDIT;
+            retourne Type_Curseur_Système.DÉPOSAGE_INTERDIT;
         }
         not_allowed {
-            retourne TypeCurseurSystème.INTERDIT;
+            retourne Type_Curseur_Système.INTERDIT;
         }
         grab {
-            retourne TypeCurseurSystème.MAIN_OUVERTE;
+            retourne Type_Curseur_Système.MAIN_OUVERTE;
         }
         grabbing {
-            retourne TypeCurseurSystème.MAIN_FERMÉE;
+            retourne Type_Curseur_Système.MAIN_FERMÉE;
         }
         e_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_EST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_EST;
         }
         n_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_NORD;
         }
         ne_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_EST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_NORD_EST;
         }
         nw_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_OUEST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_NORD_OUEST;
         }
         s_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_SUD;
         }
         se_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD_EST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_SUD_EST;
         }
         sw_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD_OUEST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_SUD_OUEST;
         }
         w_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_OUEST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_OUEST;
         }
         ew_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_EST_OUEST;
         }
         ns_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_SUD;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_NORD_SUD;
         }
         nesw_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_EST_SUD_OUEST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_NORD_EST_SUD_OUEST;
         }
         nwse_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_OUEST_SUD_EST;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_NORD_OUEST_SUD_EST;
         }
         col_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_COLONNE;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_COLONNE;
         }
         row_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_LIGNE;
+            retourne Type_Curseur_Système.REDIMENSIONNEMENT_LIGNE;
         }
         all_scroll {
-            retourne TypeCurseurSystème.DÉFILAGE_OMNI;
+            retourne Type_Curseur_Système.DÉFILAGE_OMNI;
         }
         zoom_in {
-            retourne TypeCurseurSystème.ZOOM;
+            retourne Type_Curseur_Système.ZOOM;
         }
         zoom_out {
-            retourne TypeCurseurSystème.DÉZOOM;
+            retourne Type_Curseur_Système.DÉZOOM;
         }
     }
 
-    retourne TypeCurseurSystème.FLÈCHE;
+    retourne Type_Curseur_Système.FLÈCHE;
 }
 
 /** \} */

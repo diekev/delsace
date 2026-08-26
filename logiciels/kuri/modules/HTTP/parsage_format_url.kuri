@@ -13,14 +13,14 @@
 importe Introspection;
 
 /* structure auxilliaire pour l'algorithme de parsage */
-InfoDonnées :: struct {
+Info_Données :: struct {
     info: *InfoTypeRubriqueStructure;
     ptr_résultat: *z8;
     ptr_données: *bool;
 }
 
 /* fonction auxilliaire pour l'algorithme de parsage */
-trouve_info_données :: fonc (infos: [..]InfoDonnées, nom: chaine) -> *InfoDonnées
+trouve_info_données :: fonc (infos: [..]Info_Données, nom: chaine) -> *Info_Données
 {
     pour * infos {
         si it.info.nom == nom {
@@ -31,29 +31,29 @@ trouve_info_données :: fonc (infos: [..]InfoDonnées, nom: chaine) -> *InfoDonn
     retourne nul;
 }
 
-RésultatParsageFormatURL :: énum {
+Résultat_Parsage_Format_URL :: énum {
     /* Tout c'est bien passé, le texte put être parsé avec succès. */
-    Succès;
+    SUCCÈS;
 
     /* Le texte contient un champs dont le nom ne correspond à ancune rubrique de la structure
      * cible. */
-    RubriqueInconnue;
+    RUBRIQUE_INCONNUE;
 
     /* Aucune fonction de parsage n'existe pour le type de la rubrique de la structure cible. */
-    FonctionParsageInexistante;
+    FONCTION_PARSAGE_INEXISTANTE;
 
     /* Une valeur ne put être parsée. */
-    ÉchecParsageValeur;
+    ÉCHEC_PARSAGE_VALEUR;
 
     /* Texte malformé, une valeur peut manqué, ou le texte contient un caractère '&' final. */
-    TexteMalformé;
+    TEXTE_MALFORMÉ;
 
     /* Redéfinition d'une rubrique. */
-    RenommageParamètre;
+    RENOMMAGE_PARAMÈTRE;
 }
 
 /* Parse une chaine au format URL pour le type T précisé et retourne une structure de ce type
- * contenant les valeurs trouvées dans le texte, ainsi qu'une DonnéesRésultat pour le type T
+ * contenant les valeurs trouvées dans le texte, ainsi qu'une Données_Résultat pour le type T
  * contenant des renseignements sur quelles rubriques ont été trouvés dans le texte. La fonction
  * retourne également un drapeau pour définir si une erreur est survenue.
  *
@@ -64,7 +64,7 @@ RésultatParsageFormatURL :: énum {
  *
  * Le type T doit être une structure.
  */
-parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (RésultatParsageFormatURL, DonnéesRésultat(T = T), T)
+parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résultat_Parsage_Format_URL, Données_Résultat(T = T), T)
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
@@ -73,16 +73,16 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
     // À FAIRE : nous ne pouvons pas libérer la mémoire car les chaines ne sont pas copiées
     // À FAIRE : erreur quand nous différons ici
 
-    données: DonnéesRésultat(T = T);
+    données: Données_Résultat(T = T);
     résultat: T;
 
     info := info_de(T);
 
-    pointeurs: [..]InfoDonnées;
+    pointeurs: [..]Info_Données;
     diffère déloge(*pointeurs);
 
     pour info.rubriques {
-        id : InfoDonnées = ---;
+        id : Info_Données = ---;
         id.info = it;
         id.ptr_résultat = (*résultat comme *z8 + it.décalage);
 
@@ -102,7 +102,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
         pos := trouve_prochain(*parseuse, '=');
 
         si pos <= 0 {
-            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat;
+            retourne Résultat_Parsage_Format_URL.TEXTE_MALFORMÉ, données, résultat;
         }
 
         nom := sous_chaine_jusque_indice(*parseuse, pos);
@@ -111,7 +111,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
         positionne(*parseuse, pos + 1);
 
         si fini(*parseuse) {
-            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat;
+            retourne Résultat_Parsage_Format_URL.TEXTE_MALFORMÉ, données, résultat;
         }
 
         pos = trouve_prochain(*parseuse, '&');
@@ -128,18 +128,18 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
         id := trouve_info_données(pointeurs, nom);
 
         saufsi id {
-            retourne RésultatParsageFormatURL.RubriqueInconnue, données, résultat;
+            retourne Résultat_Parsage_Format_URL.RUBRIQUE_INCONNUE, données, résultat;
         }
 
         // Vérifions que nous n'avons pas encore parsé cette rubrique.
         si mémoire(id.ptr_données) {
-            retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat;
+            retourne Résultat_Parsage_Format_URL.RENOMMAGE_PARAMÈTRE, données, résultat;
         }
 
         fonction_parsage := trouve_fonction_pour_type(id.info.id);
 
         saufsi fonction_parsage {
-            retourne RésultatParsageFormatURL.FonctionParsageInexistante, données, résultat;
+            retourne Résultat_Parsage_Format_URL.FONCTION_PARSAGE_INEXISTANTE, données, résultat;
         }
 
         tampon: []octet;
@@ -148,23 +148,23 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
 
         // fonction_parsage.rappel ajournera le ptr_résultat via le tampon
         saufsi fonction_parsage.rappel(valeur, tampon) {
-            retourne RésultatParsageFormatURL.ÉchecParsageValeur, données, résultat;
+            retourne Résultat_Parsage_Format_URL.ÉCHEC_PARSAGE_VALEUR, données, résultat;
         }
 
         mémoire(id.ptr_données) = vrai;
     }
 
-    retourne RésultatParsageFormatURL.Succès, données, résultat;
+    retourne Résultat_Parsage_Format_URL.SUCCÈS, données, résultat;
 } @FonctionLongue
 
-ChainesParsées :: struct ($T: type_de_données) #corps_texte {
+Chaines_Parsées :: struct ($T: type_de_données) #corps_texte {
     info := info_de(T);
 
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
     si info.rubriques.taille == 0 {
-        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans rubrique : ");
+        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de Données_Résultat, j'ai obtenu un type sans rubrique : ");
         imprime_type(*enchaineuse, info);
         ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des rubriques afin de pouvoir générer le corps.");
 
@@ -182,22 +182,22 @@ ChainesParsées :: struct ($T: type_de_données) #corps_texte {
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
-parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (RésultatParsageFormatURL, DonnéesRésultat(T), ChainesParsées(T))
+parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résultat_Parsage_Format_URL, Données_Résultat(T), Chaines_Parsées(T))
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
     parseuse := ParseuseChaine(texte);
 
-    données: DonnéesRésultat(T = T);
-    résultat: ChainesParsées(T);
+    données: Données_Résultat(T = T);
+    résultat: Chaines_Parsées(T);
 
     info := info_de(T);
 
-    pointeurs: [..]InfoDonnées;
+    pointeurs: [..]Info_Données;
     diffère déloge(*pointeurs);
 
     pour info.rubriques {
-        id : InfoDonnées = ---;
+        id : Info_Données = ---;
         id.info = it;
         id.ptr_résultat = (*résultat comme *z8 + it.décalage);
 
@@ -217,7 +217,7 @@ parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résul
         pos := trouve_prochain(*parseuse, '=');
 
         si pos <= 0 {
-            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat;
+            retourne Résultat_Parsage_Format_URL.TEXTE_MALFORMÉ, données, résultat;
         }
 
         nom := sous_chaine_jusque_indice(*parseuse, pos);
@@ -226,7 +226,7 @@ parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résul
         positionne(*parseuse, pos + 1);
 
         si fini(*parseuse) {
-            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat;
+            retourne Résultat_Parsage_Format_URL.TEXTE_MALFORMÉ, données, résultat;
         }
 
         pos = trouve_prochain(*parseuse, '&');
@@ -243,22 +243,22 @@ parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résul
         id := trouve_info_données(pointeurs, nom);
 
         saufsi id {
-            retourne RésultatParsageFormatURL.RubriqueInconnue, données, résultat;
+            retourne Résultat_Parsage_Format_URL.RUBRIQUE_INCONNUE, données, résultat;
         }
 
         // Vérifions que nous n'avons pas encore parsé cette rubrique.
         si mémoire(id.ptr_données) {
-            retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat;
+            retourne Résultat_Parsage_Format_URL.RENOMMAGE_PARAMÈTRE, données, résultat;
         }
 
         mémoire(id.ptr_résultat comme *chaine) = valeur;
         mémoire(id.ptr_données) = vrai;
     }
 
-    retourne RésultatParsageFormatURL.Succès, données, résultat;
+    retourne Résultat_Parsage_Format_URL.SUCCÈS, données, résultat;
 } @FonctionLongue
 
-/* DonnéesRésultat
+/* Données_Résultat
  *
  * Cette structure polymorphique est monomorphée à partir du type passé en paramètre
  * et possède une rubrique correspond pour chaque rubrique de ce dernier.
@@ -268,14 +268,14 @@ parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résul
  * aura pour valeur « vrai » dans le résultat du parsage ; si le texte ne possède pas
  * un tel nom, ou si la valeur ne peut être parsée, la rubrique aura pour valeur « faux ».
  */
-DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
+Données_Résultat :: struct ($T: type_de_données) #corps_texte {
     info := info_de(T);
 
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
     si info.rubriques.taille == 0 {
-        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans rubrique : ");
+        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de Données_Résultat, j'ai obtenu un type sans rubrique : ");
         imprime_type(*enchaineuse, info);
         ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des rubriques afin de pouvoir générer le corps.");
 
@@ -291,7 +291,7 @@ DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
-tous_les_champs_sont_renseignés :: fonc (données: DonnéesRésultat($T)) -> bool
+tous_les_champs_sont_renseignés :: fonc (données: Données_Résultat($T)) -> bool
 #corps_texte {
     info := info_de(T);
 
@@ -310,7 +310,7 @@ tous_les_champs_sont_renseignés :: fonc (données: DonnéesRésultat($T)) -> bo
 }
 
 /*
-InformationConnexion :: struct {
+Information_Connexion :: struct {
     courriel: chaine
     mot_de_passe: chaine
 }
@@ -318,9 +318,9 @@ InformationConnexion :: struct {
 #test {
     requête := "courriel=exemple@courriel.fr&mot_de_passe=M0tDeP4sS3"
 
-    raison, résultat, info := parse_texte_format_url(requête, InformationConnexion)
+    raison, résultat, info := parse_texte_format_url(requête, Information_Connexion)
 
-    compilatrice_vérifie_égalité(raison, RésultatParsageFormatURL.Succès)
+    compilatrice_vérifie_égalité(raison, Résultat_Parsage_Format_URL.SUCCÈS)
 
     compilatrice_vérifie_égalité(résultat.courriel, vrai)
     compilatrice_vérifie_égalité(résultat.mot_de_passe, vrai)
@@ -348,7 +348,7 @@ est_transfert_correcte :: fonc (texte: chaine) -> bool
     texte_copié := copie_chaine(texte)
     raison, champs_renseignés, résultat := parse_texte_format_url(texte_copié, TransertDeFond)
 
-    si raison != RésultatParsageFormatURL.Succès {
+    si raison != Résultat_Parsage_Format_URL.SUCCÈS {
         retourne faux
     }
 

@@ -12,18 +12,18 @@ PanneauBouton :: struct {
 
 crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
 {
-    sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: État_Souris)
     {
         panneau_bouton.souris_dans_rect = contient(panneau_bouton.rect, souris.où);
     }
 
-    sur_clic_souris :: fonc (panneau_bouton: *PanneauBouton, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_bouton: *PanneauBouton, clic: Clic_Souris) -> bool
     {
         saufsi contient(panneau_bouton.rect, clic.état.où) {
             retourne faux;
         }
 
-        si clic.action == ActionSouris.PRESSÉE {
+        si clic.action == Action_Souris.PRESSÉE {
             panneau_bouton.souris_pressée = vrai;
             guetteuse: GuetteusePanneauBouton;
             guetteuse.panneau_bouton = panneau_bouton;
@@ -105,13 +105,13 @@ GuetteusePanneauBouton :: struct {
     sur_clic = guetteuse_bouton_sur_clic;
 }
 
-guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
+guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: Clic_Souris) -> État_Évènement
 {
     empl guetteuse := base comme *GuetteusePanneauBouton;
 
     panneau_bouton.souris_dans_rect = contient(panneau_bouton.rect, clic.état.où);
 
-    si clic.action == ActionSouris.RELACHÉE {
+    si clic.action == Action_Souris.RELACHÉE {
         panneau_bouton.souris_pressée = faux;
 
         si panneau_bouton.souris_dans_rect {
@@ -124,7 +124,7 @@ guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> État�
         termine_guettage(guetteuse);
     }
 
-    retourne ÉtatÉvènement.CONSOMMÉ;
+    retourne État_Évènement.CONSOMMÉ;
 }
 
 /** \} */
