@@ -48,11 +48,11 @@ ajourne_application :: fonc (mémoire_app: *MémoireApplication, entrée: *Entr�
     }
 
     pour entrée.évènements {
-        si it.type == TypeÉvènement.Fermeture {
+        si it.type == Type_Évènement.FERMETURE {
             retourne;
         }
 
-        si it.touche_pressée && it.touche == ToucheClavier.O {
+        si it.touche_pressée && it.touche == Touche_Clavier.O {
             // À FAIRE(modules) : fonction générique pour avance une énumération
             type_outil_entier := type_outil comme z32;
             type_outil_entier += 1;
@@ -101,7 +101,7 @@ ajourne_application :: fonc (mémoire_app: *MémoireApplication, entrée: *Entr�
     termine_dessin(peintre);
 }
 
-outil_gère_évènement :: fonc (empl état_app: *ÉtatApplication, évènement: Évènement, dernière_souris: ÉtatSouris)
+outil_gère_évènement :: fonc (empl état_app: *ÉtatApplication, évènement: Évènement, dernière_souris: État_Souris)
 {
     discr type_outil {
         TEST {
@@ -121,9 +121,9 @@ outil_gère_évènement :: fonc (empl état_app: *ÉtatApplication, évènement:
 
 outil_test_gère_évènement :: fonc (empl état_app: *ÉtatApplication, it: Évènement)
 {
-    si it.type == TypeÉvènement.Souris {
-        si it.bouton_souris == BoutonSouris.GAUCHE {
-            si it.action_souris == ActionSouris.PRESSÉE {
+    si it.type == Type_Évènement.SOURIS {
+        si it.bouton_souris == Bouton_Souris.GAUCHE {
+            si it.action_souris == Action_Souris.PRESSÉE {
                 souris_x := it.état_souris.où.x comme r32;
                 souris_y := it.état_souris.où.y comme r32;
                 si nombre_de_points < 4 {
@@ -157,13 +157,13 @@ outil_test_gère_évènement :: fonc (empl état_app: *ÉtatApplication, it: Év
                     }
                 }
             }
-            sinon si it.action_souris == ActionSouris.RELACHÉE {
+            sinon si it.action_souris == Action_Souris.RELACHÉE {
                 si mode_sélection_point {
                     point_sélectionné = -1;
                     mode_sélection_point = faux;
                 }
             }
-            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            sinon si it.action_souris == Action_Souris.DÉPLACÉE {
                 si point_sélectionné != -1 {
                     souris_x := it.état_souris.où.x comme r32;
                     souris_y := it.état_souris.où.y comme r32;
@@ -172,7 +172,7 @@ outil_test_gère_évènement :: fonc (empl état_app: *ÉtatApplication, it: Év
                 }
             }
         }
-        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+        sinon si it.action_souris == Action_Souris.DÉPLACÉE {
             si point_sélectionné != -1 {
                 souris_x := it.état_souris.où.x comme r32;
                 souris_y := it.état_souris.où.y comme r32;
@@ -216,72 +216,72 @@ dessine_segment_bézier :: fonc (empl état_app: *ÉtatApplication, peintre: *Pe
     IGUMI.termine_immédiat();
 }
 
-outil_plume_gère_évènement :: fonc (plume: *Plume, it: Évènement, dernière_souris: ÉtatSouris)
+outil_plume_gère_évènement :: fonc (plume: *Plume, it: Évènement, dernière_souris: État_Souris)
 {
-    si it.type == TypeÉvènement.Souris {
-        si it.bouton_souris == BoutonSouris.GAUCHE {
-            si it.action_souris == ActionSouris.PRESSÉE {
+    si it.type == Type_Évènement.SOURIS {
+        si it.bouton_souris == Bouton_Souris.GAUCHE {
+            si it.action_souris == Action_Souris.PRESSÉE {
                 souris_x := it.état_souris.où.x comme r32;
                 souris_y := it.état_souris.où.y comme r32;
                 commence_ajout_noeud(plume, souris_x, souris_y);
             }
-            sinon si it.action_souris == ActionSouris.RELACHÉE {
+            sinon si it.action_souris == Action_Souris.RELACHÉE {
                 termine_ajout_noeud(plume);
             }
-            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            sinon si it.action_souris == Action_Souris.DÉPLACÉE {
                 souris_x := it.état_souris.où.x comme r32;
                 souris_y := it.état_souris.où.y comme r32;
                 continue_ajout_noeud(plume, souris_x, souris_y);
             }
         }
-        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+        sinon si it.action_souris == Action_Souris.DÉPLACÉE {
             souris_x := it.état_souris.où.x comme r32;
             souris_y := it.état_souris.où.y comme r32;
             continue_déplacement_dernier_noeud(plume, souris_x, souris_y);
         }
     }
-    sinon si it.type == TypeÉvènement.Clavier {
+    sinon si it.type == Type_Évènement.CLAVIER {
         si it.touche_pressée || it.est_répétée {
-            si it.touche == ToucheClavier.ESPACE {
+            si it.touche == Touche_Clavier.ESPACE {
                 souris_x := dernière_souris.où.x comme r32;
                 souris_y := dernière_souris.où.y comme r32;
                 commence_déplacement_dernier_noeud(plume, souris_x, souris_y);
             }
         }
         sinon {
-            si it.touche == ToucheClavier.ESPACE {
+            si it.touche == Touche_Clavier.ESPACE {
                 termine_déplacement_dernier_noeud(plume);
             }
         }
     }
 }
 
-outil_plume_de_courbure_gère_évènement :: fonc (plume: *PlumeDeCourbure, it: Évènement, dernière_souris: ÉtatSouris)
+outil_plume_de_courbure_gère_évènement :: fonc (plume: *PlumeDeCourbure, it: Évènement, dernière_souris: État_Souris)
 {
-    si it.type == TypeÉvènement.Souris {
-        si it.bouton_souris == BoutonSouris.GAUCHE {
-            si it.action_souris == ActionSouris.PRESSÉE {
+    si it.type == Type_Évènement.SOURIS {
+        si it.bouton_souris == Bouton_Souris.GAUCHE {
+            si it.action_souris == Action_Souris.PRESSÉE {
                 souris_x := it.état_souris.où.x comme r32;
                 souris_y := it.état_souris.où.y comme r32;
                 ajoute_point(plume, souris_x, souris_y);
             }
         }
-        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+        sinon si it.action_souris == Action_Souris.DÉPLACÉE {
             souris_x := it.état_souris.où.x comme r32;
             souris_y := it.état_souris.où.y comme r32;
             continue_déplacement_dernier_noeud(plume, souris_x, souris_y);
         }
     }
-    sinon si it.type == TypeÉvènement.Clavier {
+    sinon si it.type == Type_Évènement.CLAVIER {
         si it.touche_pressée || it.est_répétée {
-            si it.touche == ToucheClavier.ESPACE {
+            si it.touche == Touche_Clavier.ESPACE {
                 souris_x := dernière_souris.où.x comme r32;
                 souris_y := dernière_souris.où.y comme r32;
                 commence_déplacement_dernier_noeud(plume, souris_x, souris_y);
             }
         }
         sinon {
-            si it.touche == ToucheClavier.ESPACE {
+            si it.touche == Touche_Clavier.ESPACE {
                 termine_déplacement_dernier_noeud(plume);
             }
         }
@@ -290,19 +290,19 @@ outil_plume_de_courbure_gère_évènement :: fonc (plume: *PlumeDeCourbure, it: 
 
 outil_plume_de_forme_libregère_évènement :: fonc (plume: *PlumeDeFormeLibre, it: Évènement)
 {
-    si it.type == TypeÉvènement.Souris {
-        si it.bouton_souris == BoutonSouris.GAUCHE {
-            si it.action_souris == ActionSouris.PRESSÉE {
+    si it.type == Type_Évènement.SOURIS {
+        si it.bouton_souris == Bouton_Souris.GAUCHE {
+            si it.action_souris == Action_Souris.PRESSÉE {
                 souris_x := it.état_souris.où.x comme r32;
                 souris_y := it.état_souris.où.y comme r32;
                 ajoute_point(plume, souris_x, souris_y);
             }
-            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            sinon si it.action_souris == Action_Souris.DÉPLACÉE {
                 souris_x := it.état_souris.où.x comme r32;
                 souris_y := it.état_souris.où.y comme r32;
                 ajoute_point(plume, souris_x, souris_y);
             }
-            sinon si it.action_souris == ActionSouris.RELACHÉE {
+            sinon si it.action_souris == Action_Souris.RELACHÉE {
                 termine_tracé(plume);
             }
         }

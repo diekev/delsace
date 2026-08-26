@@ -3,11 +3,11 @@ importe Math;
 importe Périphériques;
 
 ContexteExécutionCommande :: struct {
-    souris: ClicSouris;
-    souris_prétransformée: ClicSouris;
+    souris: Clic_Souris;
+    souris_prétransformée: Clic_Souris;
     /* Non-nul lors d'une exécution modale. */
-    souris_précédente: Optionnel(ClicSouris);
-    souris_originelle: Optionnel(ClicSouris);
+    souris_précédente: Optionnel(Clic_Souris);
+    souris_originelle: Optionnel(Clic_Souris);
     /* Métadonnées passée à la commande. */
     métadonnée: chaine;
 }
@@ -80,10 +80,10 @@ Commande :: struct {
     nom: chaine;
     identifiant: chaine;
     icone: chaine;
-    raccourci: Optionnel(RaccourciClavier);
-    bouton_souris: Optionnel(BoutonSouris);
-    action_souris: Optionnel(ActionSouris);
-    modificateur: Optionnel(ModificateurClavier);
+    raccourci: Optionnel(Raccourci_Clavier);
+    bouton_souris: Optionnel(Bouton_Souris);
+    action_souris: Optionnel(Action_Souris);
+    modificateur: Optionnel(Modificateur_Clavier);
 
     exécute: fonc (ctx: *ContexteExécutionCommande) -> RésultatExécutionCommande;
     exécute_modal: fonc (ctx: *ContexteExécutionCommande);
@@ -199,7 +199,7 @@ sauvegarde_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, command
     gestionnaire.ctx_modal = mémoire(ctx);
 }
 
-trouve_commande_pour_clic :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, souris: ClicSouris) -> *Commande
+trouve_commande_pour_clic :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, souris: Clic_Souris) -> *Commande
 {
     groupe := trouve_groupe_pour_id(gestionnaire, contexte);
 
@@ -217,7 +217,7 @@ trouve_commande_pour_clic :: fonc (gestionnaire: *GestionnaireCommande, contexte
                 continue;
             }
 
-            si !possède_valeur(it.modificateur) && souris.état.modificateur != ModificateurClavier.zéro {
+            si !possède_valeur(it.modificateur) && souris.état.modificateur != Modificateur_Clavier.zéro {
                 continue;
             }
 
@@ -230,7 +230,7 @@ trouve_commande_pour_clic :: fonc (gestionnaire: *GestionnaireCommande, contexte
     retourne nul;
 }
 
-trouve_commande_pour_raccourci :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, raccourci: RaccourciClavier) -> *Commande
+trouve_commande_pour_raccourci :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, raccourci: Raccourci_Clavier) -> *Commande
 {
     groupe := trouve_groupe_pour_id(gestionnaire, contexte);
 
@@ -294,7 +294,7 @@ appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *Context
     retourne;
 }
 
-appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, souris: ClicSouris) -> bool
+appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, souris: Clic_Souris) -> bool
 {
     commande := trouve_commande_pour_clic(gestionnaire, type_éditrice, souris);
     saufsi commande {
@@ -324,7 +324,7 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
     retourne vrai;
 }
 
-appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, raccourci: RaccourciClavier, souris: ÉtatSouris) -> bool
+appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, raccourci: Raccourci_Clavier, souris: État_Souris) -> bool
 {
     commande := trouve_commande_pour_raccourci(gestionnaire, type_éditrice, raccourci);
     saufsi commande {
@@ -353,7 +353,7 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
     retourne vrai;
 }
 
-ajourne_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: ClicSouris, souris_prétransformée: ClicSouris) -> bool
+ajourne_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: Clic_Souris, souris_prétransformée: Clic_Souris) -> bool
 {
     commande := gestionnaire.commande_modale;
     saufsi commande {
@@ -375,7 +375,7 @@ ajourne_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *Cont
     retourne vrai;
 }
 
-achève_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: ClicSouris) -> bool
+achève_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: Clic_Souris) -> bool
 {
     commande := gestionnaire.commande_modale;
 
