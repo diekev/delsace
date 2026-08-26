@@ -38,7 +38,7 @@ ParamètresConnexionWebSocket :: struct {
     extensions: chaine;
 }
 
-parse_paramètres_connexion_websocket :: fonc (requête: *MessageClienteHTTP) -> Résultat(ParamètresConnexionWebSocket, ErreurRequêteWebSocket)
+parse_paramètres_connexion_websocket :: fonc (requête: *Message_Cliente_HTTP) -> Résultat(ParamètresConnexionWebSocket, ErreurRequêteWebSocket)
 {
     /* [rfc6455] Section 4.2.1 2. */
     hôte := cherche_entête(requête.entêtes, "Host");
@@ -113,7 +113,7 @@ ParamètresServeurWebSocket :: struct {
     extensions: chaine;
 }
 
-parse_paramètres_serveur_websocket :: fonc (requête: *MessageServeuseHTTP) -> Résultat(ParamètresServeurWebSocket, ErreurRequêteWebSocket)
+parse_paramètres_serveur_websocket :: fonc (requête: *Message_Serveuse_HTTP) -> Résultat(ParamètresServeurWebSocket, ErreurRequêteWebSocket)
 {
     connection := cherche_entête(requête.entêtes, "Connection");
     saufsi connection {
@@ -162,7 +162,7 @@ parse_paramètres_serveur_websocket :: fonc (requête: *MessageServeuseHTTP) -> 
  * Pour la création :
  *     extrémité := crée_extrémité(MonTypePrise, est_cliente, sur_message)
  *
- * Pour verifier un serrage de main depuis un MessageHTTP :
+ * Pour verifier un serrage de main depuis un Message_HTTP :
  *    saufsi accèpte_serrage_de_main(*extrémité, *message) { ... }
  *
  * accèpte_serrage_de_main, pour une serveuse, mettra en place la valeur
@@ -204,7 +204,7 @@ crée_extrémité :: fonc (prise: *$TypePrise, $est_cliente: bool, sur_message: 
     retourne résultat;
 }
 
-accèpte_serrage_de_main :: fonc (extrémité: *Extrémité($TypePrise, $est_cliente), message: *MessageServeuseHTTP) -> bool
+accèpte_serrage_de_main :: fonc (extrémité: *Extrémité($TypePrise, $est_cliente), message: *Message_Serveuse_HTTP) -> bool
 {
     saufsi est_cliente {
         retourne faux;
@@ -238,7 +238,7 @@ accèpte_serrage_de_main :: fonc (extrémité: *Extrémité($TypePrise, $est_cli
     retourne vrai;
 }
 
-accèpte_serrage_de_main :: fonc (extrémité: *Extrémité($TypePrise, $est_cliente), message: *MessageClienteHTTP) -> bool
+accèpte_serrage_de_main :: fonc (extrémité: *Extrémité($TypePrise, $est_cliente), message: *Message_Cliente_HTTP) -> bool
 {
     si est_cliente {
         retourne faux;
@@ -1002,7 +1002,7 @@ calcul_clé_serrage_de_main :: fonc (clé_donnée: chaine) -> chaine
     rés_sha1 := donne_condensat(sha1);
     diffère détruit_données(*rés_sha1);
 
-    // @fuite-de-mémoire quand on les passe aux MessageHTTP
+    // @fuite-de-mémoire quand on les passe aux Message_HTTP
     retourne encode_base64(donne_chaine(rés_sha1));
 }
 

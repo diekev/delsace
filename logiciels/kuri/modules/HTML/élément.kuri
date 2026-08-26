@@ -2132,7 +2132,7 @@ HTMLInputElement :: struct {
     /* https://html.spec.whatwg.org/multipage/input.html#dom-input-indeterminate */
     indeterminate: bool;
 
-    éditrice: *ÉditriceTexte;
+    éditrice: *Éditrice_Texte;
 
     /* À FAIRE : déplace ceci dans CSS. */
     texte_mot_de_passe: ChaineUTF16;

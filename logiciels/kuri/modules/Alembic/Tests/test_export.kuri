@@ -198,7 +198,9 @@ principale :: fonc ()
 {
     // imprime_infos_types_attributs_pour_python();
 
-    crée_test_mauvaise_géométrie_maillage();
+    crée_points_vides();
+
+    // crée_test_mauvaise_géométrie_maillage();
 
     // crée_test_user_props("/tmp/scalar-props-in-user-props.abc", vrai, vrai);
     // crée_test_user_props("/tmp/scalar-props-in-geom-params.abc", vrai, faux);
@@ -905,4 +907,34 @@ crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: 
     abc_output_curves_sample_set(curves, curves_sample);
 
     retourne curves;
+}
+
+crée_points_vides :: fonc ()
+{
+    chemin := "/tmp/empty-points.abc";
+
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
+    points := abc_output_points_create(matrice_objet_point, "PointCloudShape", ts_défaut);
+
+    point_sample := abc_output_points_sample_create(points);
+    diffère abc_output_points_sample_destroy(point_sample);
+
+    positions: []Vec3;
+    abc_output_points_sample_positions_set(point_sample, positions);
+
+    ids: []n64;
+    abc_output_points_sample_ids_set(point_sample, ids);
+
+    abc_output_points_sample_set(points, point_sample);
 }

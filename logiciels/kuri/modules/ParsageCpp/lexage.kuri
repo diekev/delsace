@@ -282,9 +282,24 @@ est_mot_clé :: fonc (token: Token, texte: chaine) -> bool #enligne
     retourne est_mot_clé(token.lexème, texte);
 }
 
+est_mot_clé :: fonc (token: Token, textes: []chaine) -> bool
+{
+    pour textes {
+        si est_mot_clé(token.lexème, it) {
+            retourne vrai;
+        }
+    }
+    retourne faux;
+}
+
 est_symbole :: fonc (token: Token) -> bool #enligne
 {
     retourne token.form == TokenForm.IDENTIFIER;
+}
+
+est_symbole :: fonc (token: Token, texte: chaine) -> bool #enligne
+{
+    retourne token.form == TokenForm.IDENTIFIER && donne_texte(token) == texte;
 }
 
 est_ponctuation :: fonc (token: Token, texte: chaine) -> bool #enligne
@@ -410,6 +425,17 @@ saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (lexeuse: *LexeusePréProcès
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
  * \{ */
+
+initialise_lexeuse :: fonc (unit: *TranslationUnit, lexeuse: *SimpleLexeuse)
+{
+    si unit.info_langage.langage == Langage.C {
+        initialise_lexeuse_c(lexeuse);
+    }
+    sinon {
+        assert(unit.info_langage.langage == Langage.CPP);
+        initialise_lexeuse_cpp(lexeuse);
+    }
+}
 
 donne_lexème_suivant_sauf_espace_blanche :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {

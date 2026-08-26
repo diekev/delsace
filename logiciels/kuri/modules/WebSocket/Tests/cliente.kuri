@@ -109,7 +109,7 @@ DonnéesPriseWebSocket :: struct {
     requête: chaine;
     décalage_requête: z32;
 
-    parseuse: ParseuseMessageServeuseHTTP;
+    parseuse: Parseuse_Message_Serveuse_HTTP;
     extrémité: Extrémité(Prise, vrai);
 
     est_connexion_websocket: bool;
@@ -122,7 +122,7 @@ rappel_quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 
     données.extrémité = crée_extrémité(prise, vrai, sur_message_websocket);
 
-    message: MessageClienteHTTP;
+    message: Message_Cliente_HTTP;
     diffère détruit_message(*message);
 
     ctx := prise.contexte_;

@@ -1413,56 +1413,56 @@ initialise_évènement_depuis_xmotion_event :: fonc (xmotion_event: *XMotionEven
 {
     init_de(Évènement)(résultat);
 
-    état: ÉtatSouris;
+    état: État_Souris;
     état.où.x = xmotion_event.x;
     état.où.y = xmotion_event.y;
     état.modificateur = convertis_modificateurs_clavier(xmotion_event.state);
 
-    résultat.type = TypeÉvènement.Souris;
+    résultat.type = Type_Évènement.SOURIS;
     résultat.état_souris = état;
-    résultat.action_souris = ActionSouris.DÉPLACÉE;
-    résultat.bouton_souris = BoutonSouris.AUCUN;
+    résultat.action_souris = Action_Souris.DÉPLACÉE;
+    résultat.bouton_souris = Bouton_Souris.AUCUN;
 }
 
 initialise_évènement_depuis_xbutton_event :: fonc (xbutton_event: *XButtonEvent, résultat: *Évènement)
 {
     init_de(Évènement)(résultat);
  
-    état: ÉtatSouris;
+    état: État_Souris;
     état.où.x = xbutton_event.x;
     état.où.y = xbutton_event.y;
     état.modificateur = convertis_modificateurs_clavier(xbutton_event.state);
 
-    résultat.type = TypeÉvènement.Souris;
+    résultat.type = Type_Évènement.SOURIS;
     résultat.état_souris = état;
     résultat.action_souris = si xbutton_event.type == ButtonPress {
-        ActionSouris.PRESSÉE;
+        Action_Souris.PRESSÉE;
     }
     sinon {
         assert(xbutton_event.type == ButtonRelease);
-        ActionSouris.RELACHÉE;
+        Action_Souris.RELACHÉE;
     };
     résultat.bouton_souris = si xbutton_event.button == Button1 {
-        BoutonSouris.PRIMAIRE;
+        Bouton_Souris.PRIMAIRE;
     }
     sinon si xbutton_event.button == Button2 {
-        BoutonSouris.MOLETTE;
+        Bouton_Souris.MOLETTE;
     }
     sinon si xbutton_event.button == Button3 {
-        BoutonSouris.CONTEXTUEL;
+        Bouton_Souris.CONTEXTUEL;
     }
     sinon si xbutton_event.button == Button4 && xbutton_event.type == ButtonPress {
-        résultat.action_souris = ActionSouris.ROULEMENT;
+        résultat.action_souris = Action_Souris.ROULEMENT;
         résultat.delta_souris = 1;
-        BoutonSouris.MOLETTE;
+        Bouton_Souris.MOLETTE;
     }
     sinon si xbutton_event.button == Button5 && xbutton_event.type == ButtonPress {
-        résultat.action_souris = ActionSouris.ROULEMENT;
+        résultat.action_souris = Action_Souris.ROULEMENT;
         résultat.delta_souris = -1;
-        BoutonSouris.MOLETTE;
+        Bouton_Souris.MOLETTE;
     }
     sinon {
-        BoutonSouris.AUCUN;
+        Bouton_Souris.AUCUN;
     };
 }
 
@@ -1470,7 +1470,7 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
 {
     init_de(Évènement)(résultat);
 
-    résultat.type = TypeÉvènement.Clavier;
+    résultat.type = Type_Évènement.CLAVIER;
     résultat.touche_pressée = xkey_event.type == KeyPress;
     résultat.est_répétée = est_répétée;
     résultat.code_scan_natif = xkey_event.keycode;
@@ -1539,7 +1539,7 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
         PAVÉ_NUM_SUPPR {}
         sinon {
             touche := touche_clavier_depuis_keysym(key_sym_str, verrouillage_numérique_est_actif);
-            si touche != ToucheClavier.INCONNUE {
+            si touche != Touche_Clavier.INCONNUE {
                 résultat.touche = touche;
             }
         }
@@ -1564,9 +1564,9 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
     // compte: z32
 }
 
-convertis_modificateurs_clavier :: fonc (state: n32) -> ModificateurClavier
+convertis_modificateurs_clavier :: fonc (state: n32) -> Modificateur_Clavier
 {
-    résultat: ModificateurClavier;
+    résultat: Modificateur_Clavier;
     si (state & ShiftMask comme n32) != 0 {
         résultat.MAJUSCULE = vrai;
     }
@@ -1584,148 +1584,148 @@ convertis_modificateurs_clavier :: fonc (state: n32) -> ModificateurClavier
 /* Media keys in some keyboards and laptops with XFree86/XORG. */
 AVEC_XF86KEYSYM :: vrai;
 
-touche_clavier_depuis_keysym :: fonc (key: KeySym, verrouillage_numérique_est_actif: bool) -> ToucheClavier
+touche_clavier_depuis_keysym :: fonc (key: KeySym, verrouillage_numérique_est_actif: bool) -> Touche_Clavier
 {
     si key >= XK_A && key <= XK_Z {
-        retourne ((key - XK_A) comme z32 + ToucheClavier.A comme z32) comme ToucheClavier;
+        retourne ((key - XK_A) comme z32 + Touche_Clavier.A comme z32) comme Touche_Clavier;
     }
 
     si key >= XK_a && key <= XK_z {
-        retourne ((key - XK_a) comme z32 + ToucheClavier.A comme z32) comme ToucheClavier;
+        retourne ((key - XK_a) comme z32 + Touche_Clavier.A comme z32) comme Touche_Clavier;
     }
 
     si key >= XK_0 && key <= XK_9 {
-        retourne ((key - XK_0) comme z32 + ToucheClavier._0 comme z32) comme ToucheClavier;
+        retourne ((key - XK_0) comme z32 + Touche_Clavier._0 comme z32) comme Touche_Clavier;
     }
 
     si key >= XK_F1 && key <= XK_F24 {
-        retourne ((key - XK_F1) comme z32 + ToucheClavier.F1 comme z32) comme ToucheClavier;
+        retourne ((key - XK_F1) comme z32 + Touche_Clavier.F1 comme z32) comme Touche_Clavier;
     }
 
-    si key == XK_parenleft { retourne ToucheClavier.PARENTHÈSE_GAUCHE; }
-    si key == XK_parenright { retourne ToucheClavier.PARENTHÈSE_DROITE; }
-    si key == XK_ampersand { retourne ToucheClavier.ESPERLUETTE; }
-    si key == XK_eacute { retourne ToucheClavier.E_ACCENT_AIGÜE; }
-    si key == XK_egrave { retourne ToucheClavier.E_ACCENT_GRAVE; }
-    si key == XK_underscore { retourne ToucheClavier.TIRET_BAS; }
-    si key == XK_ccedilla { retourne ToucheClavier.C_CÉDILLE; }
-    si key == XK_agrave { retourne ToucheClavier.A_ACCENT_GRAVE; }
-    si key == XK_quotedbl { retourne ToucheClavier.GUILLEMET_ANGLAIS; }
-    si key == XK_colon { retourne ToucheClavier.DOUBLE_POINT; }
-    si key == XK_exclam { retourne ToucheClavier.EXCLAMATION; }
-    si key == XK_ugrave { retourne ToucheClavier.U_ACCENT_GRAVE; }
-    si key == XK_asterisk { retourne ToucheClavier.ASTÉRISQUE; }
-    si key == XK_dollar { retourne ToucheClavier.DOLLAR; }
-    si key == XK_less { retourne ToucheClavier.INFÉRIEUR; }
+    si key == XK_parenleft { retourne Touche_Clavier.PARENTHÈSE_GAUCHE; }
+    si key == XK_parenright { retourne Touche_Clavier.PARENTHÈSE_DROITE; }
+    si key == XK_ampersand { retourne Touche_Clavier.ESPERLUETTE; }
+    si key == XK_eacute { retourne Touche_Clavier.E_ACCENT_AIGÜE; }
+    si key == XK_egrave { retourne Touche_Clavier.E_ACCENT_GRAVE; }
+    si key == XK_underscore { retourne Touche_Clavier.TIRET_BAS; }
+    si key == XK_ccedilla { retourne Touche_Clavier.C_CÉDILLE; }
+    si key == XK_agrave { retourne Touche_Clavier.A_ACCENT_GRAVE; }
+    si key == XK_quotedbl { retourne Touche_Clavier.GUILLEMET_ANGLAIS; }
+    si key == XK_colon { retourne Touche_Clavier.DOUBLE_POINT; }
+    si key == XK_exclam { retourne Touche_Clavier.EXCLAMATION; }
+    si key == XK_ugrave { retourne Touche_Clavier.U_ACCENT_GRAVE; }
+    si key == XK_asterisk { retourne Touche_Clavier.ASTÉRISQUE; }
+    si key == XK_dollar { retourne Touche_Clavier.DOLLAR; }
+    si key == XK_less { retourne Touche_Clavier.INFÉRIEUR; }
 
-    si key == XK_BackSpace { retourne ToucheClavier.EFFACE; }
-    si key == XK_Tab { retourne ToucheClavier.TAB; }
-    si key == XK_ISO_Left_Tab { retourne ToucheClavier.TAB; }
-    si key == XK_Return { retourne ToucheClavier.ENTRÉE; }
-    si key == XK_Escape { retourne ToucheClavier.ÉCHAPPE; }
-    si key == XK_space { retourne ToucheClavier.ESPACE; }
+    si key == XK_BackSpace { retourne Touche_Clavier.EFFACE; }
+    si key == XK_Tab { retourne Touche_Clavier.TAB; }
+    si key == XK_ISO_Left_Tab { retourne Touche_Clavier.TAB; }
+    si key == XK_Return { retourne Touche_Clavier.ENTRÉE; }
+    si key == XK_Escape { retourne Touche_Clavier.ÉCHAPPE; }
+    si key == XK_space { retourne Touche_Clavier.ESPACE; }
 
-    si key == XK_Linefeed { retourne ToucheClavier.ENTRÉE; }
-    si key == XK_semicolon { retourne ToucheClavier.POINT_VIRGULE; }
-    si key == XK_period { retourne ToucheClavier.POINT; }
-    si key == XK_comma { retourne ToucheClavier.VIRGULE; }
-    si key == XK_quoteleft { retourne ToucheClavier.APOSTROPHE; }
-    si key == XK_quoteright { retourne ToucheClavier.APOSTROPHE; }
-    si key == XK_quoteleft { retourne ToucheClavier.ACCENT_GRAVE; }
-    si key == XK_minus { retourne ToucheClavier.MOINS; }
-    si key == XK_plus { retourne ToucheClavier.PLUS; }
-    si key == XK_slash { retourne ToucheClavier.SLASH; }
-    si key == XK_backslash { retourne ToucheClavier.BACK_SLASH; }
-    si key == XK_equal { retourne ToucheClavier.ÉGAL; }
-    si key == XK_bracketleft { retourne ToucheClavier.CROCHET_OUVRANT; }
-    si key == XK_bracketright { retourne ToucheClavier.CROCHET_FERMANT; }
-    si key == XK_Pause { retourne ToucheClavier.PAUSE; }
+    si key == XK_Linefeed { retourne Touche_Clavier.ENTRÉE; }
+    si key == XK_semicolon { retourne Touche_Clavier.POINT_VIRGULE; }
+    si key == XK_period { retourne Touche_Clavier.POINT; }
+    si key == XK_comma { retourne Touche_Clavier.VIRGULE; }
+    si key == XK_quoteleft { retourne Touche_Clavier.APOSTROPHE; }
+    si key == XK_quoteright { retourne Touche_Clavier.APOSTROPHE; }
+    si key == XK_quoteleft { retourne Touche_Clavier.ACCENT_GRAVE; }
+    si key == XK_minus { retourne Touche_Clavier.MOINS; }
+    si key == XK_plus { retourne Touche_Clavier.PLUS; }
+    si key == XK_slash { retourne Touche_Clavier.SLASH; }
+    si key == XK_backslash { retourne Touche_Clavier.BACK_SLASH; }
+    si key == XK_equal { retourne Touche_Clavier.ÉGAL; }
+    si key == XK_bracketleft { retourne Touche_Clavier.CROCHET_OUVRANT; }
+    si key == XK_bracketright { retourne Touche_Clavier.CROCHET_FERMANT; }
+    si key == XK_Pause { retourne Touche_Clavier.PAUSE; }
 
-    si key == XK_Shift_L { retourne ToucheClavier.MAJUSCULE_GAUCHE; }
-    si key == XK_Shift_R { retourne ToucheClavier.MAJUSCULE_DROITE; }
-    si key == XK_Control_L { retourne ToucheClavier.CONTROLE_GAUCHE; }
-    si key == XK_Control_R { retourne ToucheClavier.CONTROLE_DROITE; }
-    si key == XK_Alt_L { retourne ToucheClavier.ALT_GAUCHE; }
-    si key == XK_Alt_R { retourne ToucheClavier.ALT_DROITE; }
-    si key == XK_Super_L { retourne ToucheClavier.SYSTÈME_GAUCHE; }
-    si key == XK_Super_R { retourne ToucheClavier.SYSTÈME_DROITE; }
-    si key == XK_Hyper_L { retourne ToucheClavier.HYPER_GAUCHE; }
-    si key == XK_Hyper_R { retourne ToucheClavier.HYPER_DROITE; }
+    si key == XK_Shift_L { retourne Touche_Clavier.MAJUSCULE_GAUCHE; }
+    si key == XK_Shift_R { retourne Touche_Clavier.MAJUSCULE_DROITE; }
+    si key == XK_Control_L { retourne Touche_Clavier.CONTROLE_GAUCHE; }
+    si key == XK_Control_R { retourne Touche_Clavier.CONTROLE_DROITE; }
+    si key == XK_Alt_L { retourne Touche_Clavier.ALT_GAUCHE; }
+    si key == XK_Alt_R { retourne Touche_Clavier.ALT_DROITE; }
+    si key == XK_Super_L { retourne Touche_Clavier.SYSTÈME_GAUCHE; }
+    si key == XK_Super_R { retourne Touche_Clavier.SYSTÈME_DROITE; }
+    si key == XK_Hyper_L { retourne Touche_Clavier.HYPER_GAUCHE; }
+    si key == XK_Hyper_R { retourne Touche_Clavier.HYPER_DROITE; }
 
-    si key == XK_Insert { retourne ToucheClavier.INSÉRER; }
-    si key == XK_Delete { retourne ToucheClavier.SUPPRIMER; }
-    si key == XK_Home { retourne ToucheClavier.DÉBUT; }
-    si key == XK_End { retourne ToucheClavier.FIN; }
-    si key == XK_Page_Up { retourne ToucheClavier.PAGE_HAUT; }
-    si key == XK_Page_Down { retourne ToucheClavier.PAGE_BAS; }
+    si key == XK_Insert { retourne Touche_Clavier.INSÉRER; }
+    si key == XK_Delete { retourne Touche_Clavier.SUPPRIMER; }
+    si key == XK_Home { retourne Touche_Clavier.DÉBUT; }
+    si key == XK_End { retourne Touche_Clavier.FIN; }
+    si key == XK_Page_Up { retourne Touche_Clavier.PAGE_HAUT; }
+    si key == XK_Page_Down { retourne Touche_Clavier.PAGE_BAS; }
 
-    si key == XK_Left { retourne ToucheClavier.FLÈCHE_GAUCHE; }
-    si key == XK_Right { retourne ToucheClavier.FLÈCHE_DROITE; }
-    si key == XK_Up { retourne ToucheClavier.FLÈCHE_HAUT; }
-    si key == XK_Down { retourne ToucheClavier.FLÈCHE_BAS; }
+    si key == XK_Left { retourne Touche_Clavier.FLÈCHE_GAUCHE; }
+    si key == XK_Right { retourne Touche_Clavier.FLÈCHE_DROITE; }
+    si key == XK_Up { retourne Touche_Clavier.FLÈCHE_HAUT; }
+    si key == XK_Down { retourne Touche_Clavier.FLÈCHE_BAS; }
 
-    si key == XK_Caps_Lock { retourne ToucheClavier.VERROUILLAGE_CASSE; }
-    si key == XK_Scroll_Lock { retourne ToucheClavier.ARRÊT_DÉFILAGE; }
-    si key == XK_Num_Lock { retourne ToucheClavier.VERROUILLAGE_NUMÉRIQUE; }
-    si key == XK_Menu { retourne ToucheClavier.APPLICATION; }
+    si key == XK_Caps_Lock { retourne Touche_Clavier.VERROUILLAGE_CASSE; }
+    si key == XK_Scroll_Lock { retourne Touche_Clavier.ARRÊT_DÉFILAGE; }
+    si key == XK_Num_Lock { retourne Touche_Clavier.VERROUILLAGE_NUMÉRIQUE; }
+    si key == XK_Menu { retourne Touche_Clavier.APPLICATION; }
 
     /* Évènement pavé numérique. */
 
-    si key == XK_KP_0 { retourne ToucheClavier.PAVÉ_NUM_0; }
-    si key == XK_KP_1 { retourne ToucheClavier.PAVÉ_NUM_1; }
-    si key == XK_KP_2 { retourne ToucheClavier.PAVÉ_NUM_2; }
-    si key == XK_KP_3 { retourne ToucheClavier.PAVÉ_NUM_3; }
-    si key == XK_KP_4 { retourne ToucheClavier.PAVÉ_NUM_4; }
-    si key == XK_KP_5 { retourne ToucheClavier.PAVÉ_NUM_5; }
-    si key == XK_KP_6 { retourne ToucheClavier.PAVÉ_NUM_6; }
-    si key == XK_KP_7 { retourne ToucheClavier.PAVÉ_NUM_7; }
-    si key == XK_KP_8 { retourne ToucheClavier.PAVÉ_NUM_8; }
-    si key == XK_KP_9 { retourne ToucheClavier.PAVÉ_NUM_9; }
-    si key == XK_KP_Decimal { retourne ToucheClavier.PAVÉ_NUM_POINT; }
+    si key == XK_KP_0 { retourne Touche_Clavier.PAVÉ_NUM_0; }
+    si key == XK_KP_1 { retourne Touche_Clavier.PAVÉ_NUM_1; }
+    si key == XK_KP_2 { retourne Touche_Clavier.PAVÉ_NUM_2; }
+    si key == XK_KP_3 { retourne Touche_Clavier.PAVÉ_NUM_3; }
+    si key == XK_KP_4 { retourne Touche_Clavier.PAVÉ_NUM_4; }
+    si key == XK_KP_5 { retourne Touche_Clavier.PAVÉ_NUM_5; }
+    si key == XK_KP_6 { retourne Touche_Clavier.PAVÉ_NUM_6; }
+    si key == XK_KP_7 { retourne Touche_Clavier.PAVÉ_NUM_7; }
+    si key == XK_KP_8 { retourne Touche_Clavier.PAVÉ_NUM_8; }
+    si key == XK_KP_9 { retourne Touche_Clavier.PAVÉ_NUM_9; }
+    si key == XK_KP_Decimal { retourne Touche_Clavier.PAVÉ_NUM_POINT; }
 
     si verrouillage_numérique_est_actif {
-        si key == XK_KP_Insert { retourne ToucheClavier.PAVÉ_NUM_0; }
-        si key == XK_KP_End { retourne ToucheClavier.PAVÉ_NUM_1; }
-        si key == XK_KP_Down { retourne ToucheClavier.PAVÉ_NUM_2; }
-        si key == XK_KP_Page_Down { retourne ToucheClavier.PAVÉ_NUM_3; }
-        si key == XK_KP_Left { retourne ToucheClavier.PAVÉ_NUM_4; }
-        si key == XK_KP_Begin { retourne ToucheClavier.PAVÉ_NUM_5; } // xxx
-        si key == XK_KP_Right { retourne ToucheClavier.PAVÉ_NUM_6; }
-        si key == XK_KP_Home { retourne ToucheClavier.PAVÉ_NUM_7; }
-        si key == XK_KP_Up { retourne ToucheClavier.PAVÉ_NUM_8; }
-        si key == XK_KP_Page_Up { retourne ToucheClavier.PAVÉ_NUM_9; }
-        si key == XK_KP_Delete { retourne ToucheClavier.PAVÉ_NUM_SUPPR; }
+        si key == XK_KP_Insert { retourne Touche_Clavier.PAVÉ_NUM_0; }
+        si key == XK_KP_End { retourne Touche_Clavier.PAVÉ_NUM_1; }
+        si key == XK_KP_Down { retourne Touche_Clavier.PAVÉ_NUM_2; }
+        si key == XK_KP_Page_Down { retourne Touche_Clavier.PAVÉ_NUM_3; }
+        si key == XK_KP_Left { retourne Touche_Clavier.PAVÉ_NUM_4; }
+        si key == XK_KP_Begin { retourne Touche_Clavier.PAVÉ_NUM_5; } // xxx
+        si key == XK_KP_Right { retourne Touche_Clavier.PAVÉ_NUM_6; }
+        si key == XK_KP_Home { retourne Touche_Clavier.PAVÉ_NUM_7; }
+        si key == XK_KP_Up { retourne Touche_Clavier.PAVÉ_NUM_8; }
+        si key == XK_KP_Page_Up { retourne Touche_Clavier.PAVÉ_NUM_9; }
+        si key == XK_KP_Delete { retourne Touche_Clavier.PAVÉ_NUM_SUPPR; }
     }
     sinon {
-        si key == XK_KP_Insert { retourne ToucheClavier.PAVÉ_NUM_INSÈRE; }
-        si key == XK_KP_End { retourne ToucheClavier.PAVÉ_NUM_FIN; }
-        si key == XK_KP_Down { retourne ToucheClavier.PAVÉ_NUM_BAS; }
-        si key == XK_KP_Page_Down { retourne ToucheClavier.PAVÉ_NUM_PAGE_BAS; }
-        si key == XK_KP_Left { retourne ToucheClavier.PAVÉ_NUM_GAUCHE; }
-        si key == XK_KP_Begin { retourne ToucheClavier.PAVÉ_NUM_5; } // xxx
-        si key == XK_KP_Right { retourne ToucheClavier.PAVÉ_NUM_DROITE; }
-        si key == XK_KP_Home { retourne ToucheClavier.PAVÉ_NUM_DÉBUT; }
-        si key == XK_KP_Up { retourne ToucheClavier.PAVÉ_NUM_HAUT; }
-        si key == XK_KP_Page_Up { retourne ToucheClavier.PAVÉ_NUM_PAGE_HAUT; }
-        si key == XK_KP_Delete { retourne ToucheClavier.PAVÉ_NUM_SUPPR; }
+        si key == XK_KP_Insert { retourne Touche_Clavier.PAVÉ_NUM_INSÈRE; }
+        si key == XK_KP_End { retourne Touche_Clavier.PAVÉ_NUM_FIN; }
+        si key == XK_KP_Down { retourne Touche_Clavier.PAVÉ_NUM_BAS; }
+        si key == XK_KP_Page_Down { retourne Touche_Clavier.PAVÉ_NUM_PAGE_BAS; }
+        si key == XK_KP_Left { retourne Touche_Clavier.PAVÉ_NUM_GAUCHE; }
+        si key == XK_KP_Begin { retourne Touche_Clavier.PAVÉ_NUM_5; } // xxx
+        si key == XK_KP_Right { retourne Touche_Clavier.PAVÉ_NUM_DROITE; }
+        si key == XK_KP_Home { retourne Touche_Clavier.PAVÉ_NUM_DÉBUT; }
+        si key == XK_KP_Up { retourne Touche_Clavier.PAVÉ_NUM_HAUT; }
+        si key == XK_KP_Page_Up { retourne Touche_Clavier.PAVÉ_NUM_PAGE_HAUT; }
+        si key == XK_KP_Delete { retourne Touche_Clavier.PAVÉ_NUM_SUPPR; }
     }
 
-    si key == XK_KP_Enter { retourne ToucheClavier.PAVÉ_NUM_ENTRÉE; }
-    si key == XK_KP_Add { retourne ToucheClavier.PAVÉ_NUM_PLUS; }
-    si key == XK_KP_Subtract { retourne ToucheClavier.PAVÉ_NUM_MOINS; }
-    si key == XK_KP_Multiply { retourne ToucheClavier.PAVÉ_NUM_ASTÉRISQUE; }
-    si key == XK_KP_Divide { retourne ToucheClavier.PAVÉ_NUM_SLASH; }
+    si key == XK_KP_Enter { retourne Touche_Clavier.PAVÉ_NUM_ENTRÉE; }
+    si key == XK_KP_Add { retourne Touche_Clavier.PAVÉ_NUM_PLUS; }
+    si key == XK_KP_Subtract { retourne Touche_Clavier.PAVÉ_NUM_MOINS; }
+    si key == XK_KP_Multiply { retourne Touche_Clavier.PAVÉ_NUM_ASTÉRISQUE; }
+    si key == XK_KP_Divide { retourne Touche_Clavier.PAVÉ_NUM_SLASH; }
 
     #si AVEC_XF86KEYSYM {
-        si key == XF86XK_AudioPlay { retourne ToucheClavier.LECTURE_MÉDIA; }
-        si key == XF86XK_AudioStop { retourne ToucheClavier.PAUSE_MÉDIA; }
-        si key == XF86XK_AudioPrev { retourne ToucheClavier.MÉDIA_PRÉCÉDENT; }
-        si key == XF86XK_AudioRewind { retourne ToucheClavier.RECULE_MÉDIA; }
-        si key == XF86XK_AudioNext { retourne ToucheClavier.MÉDIA_SUIVANT; }
-        si key == XF86XK_AudioForward { retourne ToucheClavier.AVANCE_MÉDIA; }
+        si key == XF86XK_AudioPlay { retourne Touche_Clavier.LECTURE_MÉDIA; }
+        si key == XF86XK_AudioStop { retourne Touche_Clavier.PAUSE_MÉDIA; }
+        si key == XF86XK_AudioPrev { retourne Touche_Clavier.MÉDIA_PRÉCÉDENT; }
+        si key == XF86XK_AudioRewind { retourne Touche_Clavier.RECULE_MÉDIA; }
+        si key == XF86XK_AudioNext { retourne Touche_Clavier.MÉDIA_SUIVANT; }
+        si key == XF86XK_AudioForward { retourne Touche_Clavier.AVANCE_MÉDIA; }
     }
 
-    retourne ToucheClavier.INCONNUE;
+    retourne Touche_Clavier.INCONNUE;
 }
 
 /** \} */
@@ -1779,7 +1779,7 @@ XGetVisualInfo :: fonc (display: *Display, vinfo_mask: z64, vinfo_template: *XVi
 /** \nom cursorfont.h
  * \{ */
 
-cursorfont_donne_nom_curseur :: fonc (type: TypeCurseurSystème) -> chaine
+cursorfont_donne_nom_curseur :: fonc (type: Type_Curseur_Système) -> chaine
 {
     discr type {
         VIERGE {
