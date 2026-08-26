@@ -4,19 +4,19 @@ Redirection :: struct {
 }
 
 /* Indique un changement de protocole, pour WebSocket. */
-ChangementProtocole :: struct {
+Changement_Protocole :: struct {
     /* La valeur de Sec-WebSocket-Accept. */
     sec_websocket_accept: chaine;
 }
 
-message_depuis_changement_protocole :: fonc (changement: ChangementProtocole) -> MessageServeuseHTTP
+message_depuis_changement_protocole :: fonc (changement: Changement_Protocole) -> Message_Serveuse_HTTP
 {
-    message: MessageServeuseHTTP;
+    message: Message_Serveuse_HTTP;
     message.version = "HTTP/1.1";
     ajoute_entête(*message, "Upgrade", "websocket");
     ajoute_entête(*message, "Connection", "Upgrade");
     ajoute_entête(*message, "Sec-WebSocket-Accept", changement.sec_websocket_accept);
-    message.code_état = CodeÉtatHTTP.SWITCHING_PROTOCOL;
+    message.code_état = Code_État_HTTP.SWITCHING_PROTOCOL;
 
     retourne message;
 }
@@ -26,7 +26,7 @@ message_depuis_changement_protocole :: fonc (changement: ChangementProtocole) ->
 RésultatServeuseHTTP :: union ($T: type_de_données) {
     valeur: T;
     redirection: Redirection;
-    erreur_http: ErreurHTTP;
+    erreur_http: Erreur_HTTP;
     contenu_http: CodeEtContenuHTPP;
-    changement_protocol: ChangementProtocole;
+    changement_protocol: Changement_Protocole;
 }

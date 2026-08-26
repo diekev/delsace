@@ -5,7 +5,7 @@ MémoireApplication :: struct {
 EntréeApplication :: struct {
     évènements: []Évènement;
     peintre: *Peintre;
-    dernière_souris: ÉtatSouris;
+    dernière_souris: État_Souris;
 }
 
 TYPE_ajourne_application :: fonc (mémoire_app: *MémoireApplication, entrée: *EntréeApplication);
