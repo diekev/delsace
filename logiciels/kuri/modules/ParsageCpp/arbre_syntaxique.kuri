@@ -906,7 +906,7 @@ crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, token: Token, eleme
 
 imprime_arbre :: fonc (node: *ASTNode)
 {
-    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ASTNode), noeud: *ASTNode, info: *InfoTypeStructure) -> VisiteEnfants;
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ASTNode), noeud: *ASTNode, info: *InfoTypeStructure) -> VisiteEnfants
     {
         imprime_tabulation(visiteuse.profondeur);
         discr noeud.genre {
@@ -957,7 +957,7 @@ imprime_arbre :: fonc (node: *ASTNode)
         retourne VisiteEnfants.Oui;
     }
 
-    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseArbre(ASTNode), tableau: [..]*ASTNode);
+    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseArbre(ASTNode), tableau: [..]*ASTNode)
     {
         pour tableau {
             info := it.genre comme *InfoTypeStructure;
