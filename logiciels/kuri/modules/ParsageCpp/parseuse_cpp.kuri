@@ -51,11 +51,15 @@ parse_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
 
     // block-declaration
     // function-definition
-    // template-declaration
     // explicit-instantiation
     // explicit-specialization
     // empty-declaration
     // attribute-declaration
+
+    // template-declaration
+    si est_mot_clé(lexème, "template") {
+        retourne parse_template_declaration(parseuse);
+    }
 
     // linkage-specification
     si est_mot_clé(lexème, "extern") {
@@ -1050,6 +1054,47 @@ parse_expression_primaire :: fonc (empl parseuse: *Parseuse_CPP) -> *Expression
         rapporte_erreur(parseuse, lexème, "attendu une expression primaire");
     }
 
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Templates
+ * \{ */
+
+parse_template_declaration :: fonc (parseuse: *Parseuse_CPP) -> *Template_Declaration
+{
+    lexème_template := épie_lexème_suivant(parseuse);
+    consomme_mot_clé(parseuse, "template");
+
+    parameters: [..]*ASTNode;
+    consomme_ponctuation(parseuse, "<");
+
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème, ">") {
+            arrête;
+        }
+
+        si est_mot_clé(lexème, "typename") {
+            consomme(parseuse);
+        }
+
+        lexème = épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème, ",") {
+            arrête;
+        }
+        consomme(parseuse);
+    }
+
+    consomme_ponctuation(parseuse, ">");
+
+    declaration := parse_declaration(parseuse);
+
+    résultat := crée_noeud(*parseuse.créatrice, lexème_template, Template_Declaration);
+    résultat.declaration = declaration;
+    résultat.parameters = parameters;
     retourne résultat;
 }
 

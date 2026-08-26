@@ -833,6 +833,20 @@ Namespace_Definition :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Templates
+ * \{ */
+
+Template_Declaration :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    parameters: [..]*ASTNode;
+    declaration: *ASTNode;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Créatrice de Noeuds
  * \{ */
 
