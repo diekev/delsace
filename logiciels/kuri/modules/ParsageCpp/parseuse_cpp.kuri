@@ -1,11 +1,89 @@
 importe SimpleLexage;
 
 /* ------------------------------------------------------------------------- */
+/** \nom CXX_Table_De_Symboles
+ * À FAIRE : fusionne avec Table_De_Symboles
+ * \{ */
+
+Name_Kind :: énum {
+    TEMPLATE;
+    NAMESPACE;
+}
+
+CXX_Name :: struct {
+    kind: Name_Kind;
+    texte: chaine;
+    node: *ASTNode;
+}
+
+CXX_Bloc_De_Noms :: struct {
+    bloc_parent: *CXX_Bloc_De_Noms;
+    noms: [..]CXX_Name;
+}
+
+ajoute_nom :: fonc (bloc: *CXX_Bloc_De_Noms, kind: Name_Kind, texte: chaine, node: *ASTNode)
+{
+    name := tableau_ajoute_élément(*bloc.noms);
+    name.kind = kind;
+    name.texte = texte;
+    name.node = node;
+}
+
+CXX_Table_De_Noms :: struct {
+    blocs: [..]*CXX_Bloc_De_Noms;
+    bloc_courant: *CXX_Bloc_De_Noms;
+
+    noms: [..]CXX_Name;
+}
+
+empile_bloc :: fonc (table: *CXX_Table_De_Noms) -> *CXX_Bloc_De_Noms
+{
+    résultat := loge(CXX_Bloc_De_Noms);
+    résultat.bloc_parent = table.bloc_courant;
+    table.bloc_courant = résultat;
+    tableau_ajoute(*table.blocs, résultat);
+    retourne résultat;
+}
+
+dépile_bloc :: fonc (table: *CXX_Table_De_Noms)
+{
+    table.bloc_courant = table.bloc_courant.bloc_parent;
+}
+
+ajoute_nom :: fonc (table: *CXX_Table_De_Noms, kind: Name_Kind, texte: chaine, node: *ASTNode)
+{
+    ajoute_nom(table.bloc_courant, kind, texte, node);
+}
+
+trouve_noms :: fonc (table: *CXX_Table_De_Noms, texte: chaine) -> []CXX_Name
+{
+    table.noms.taille = 0;
+
+    bloc_courant := table.bloc_courant;
+
+    tantque bloc_courant {
+        pour bloc.noms {
+            si it.texte == texte {
+                tableau_ajoute(*table.noms, it);
+            }
+        }
+
+        bloc_courant = bloc_courant.parent;
+    }
+
+    retourne table.noms;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Parseuse_CPP
  * \{ */
 
 Parseuse_CPP :: struct {
     empl base: Base_Parseuse;
+
+    table_de_noms: CXX_Table_De_Noms;
 }
 
 initialise_parseuse :: fonc (parseuse: *Parseuse_CPP, unit: *TranslationUnit)
@@ -16,6 +94,10 @@ initialise_parseuse :: fonc (parseuse: *Parseuse_CPP, unit: *TranslationUnit)
 parse_translation_unit :: fonc (parseuse: *Parseuse_CPP)
 {
     assert(parseuse.unit != nul);
+
+    _ := empile_bloc(*parseuse.table_de_noms);
+    diffère dépile_bloc(*parseuse.table_de_noms);
+
     parse_declaration_sequence(parseuse, *parseuse.unit.declarations, faux);
 }
 
@@ -359,7 +441,10 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
 
     // À FAIRE : extension-namespace-definition
 
+    nom: chaine;
+
     si est_symbole(lexème_suivant) {
+        nom = donne_texte(lexème_suivant);
         _ := parse_attributs_gcc(parseuse);
         lexème_suivant = donne_lexème_suivant(parseuse);
     }
@@ -376,6 +461,9 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
     résultat := crée_noeud(*parseuse.créatrice, lexème, Namespace_Definition);
     résultat.declarations = declarations;
     résultat.est_inline = est_inline;
+    si nom {
+        ajoute_nom(*parseuse.table_de_noms, Name_Kind.NAMESPACE, nom, résultat);
+    }
     retourne résultat;
 }
 
@@ -1101,9 +1189,37 @@ parse_template_declaration :: fonc (parseuse: *Parseuse_CPP) -> *Template_Declar
 
     declaration := parse_declaration(parseuse);
 
+    saufsi declaration {
+        déloge(*parameters);
+        retourne nul;
+    }
+
+    template_name: chaine;
+
+    si declaration.genre == CXX_Simple_Declaration {
+        simple_declaration := declaration comme *CXX_Simple_Declaration;
+        specifier := simple_declaration.decl_specifier;
+
+        si specifier.genre == CXX_Elaborated_Type_Specifier {
+            elaborated := specifier comme *CXX_Elaborated_Type_Specifier;
+            template_name = donne_texte(elaborated.identifier);
+        }
+        sinon {
+            rapporte_erreur(parseuse, simple_declaration.token, "specifier non-géré pour les templates");
+        }
+    }
+    sinon {
+        rapporte_erreur(parseuse, declaration.token, "déclaration non-gérée pour les templates");
+    }
+
+    assert(template_name != "");
+
     résultat := crée_noeud(*parseuse.créatrice, lexème_template, Template_Declaration);
     résultat.declaration = declaration;
     résultat.parameters = parameters;
+
+    ajoute_nom(*parseuse.table_de_noms, Name_Kind.TEMPLATE, template_name, résultat);
+
     retourne résultat;
 }
 
