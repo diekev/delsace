@@ -1190,9 +1190,32 @@ est_simple_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème
     retourne faux;
 }
 
-est_elaborated_type_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token @inutilisée) -> bool
+est_elaborated_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> bool
 {
+    état := sauvegarde_état(parseuse);
+    diffère restaure_état(parseuse, état);
+
+    // class-key attribute-specifier-seqopt nested-name-specifieropt identifier
+    // class-key nested-name-specifieropt templateopt simple-template-id
+    si est_class_key(lexème) {
+        consomme(parseuse);
+        lexème = épie_lexème_suivant(parseuse);
+        retourne est_symbole(lexème);
+    }
+
+    // enum nested-name-specifieropt identifier
+    si est_mot_clé(lexème, "enum") {
+        consomme(parseuse);
+        lexème = épie_lexème_suivant(parseuse);
+        retourne est_symbole(lexème);
+    }
+
     retourne faux;
+}
+
+est_class_key :: fonc (lexème: Token) -> bool
+{
+    retourne est_mot_clé(lexème, ["struct", "union", "class"]);
 }
 
 est_typename_specifier :: fonc (parseuse: *Parseuse_CPP @inutilisée, lexème: Token) -> bool
