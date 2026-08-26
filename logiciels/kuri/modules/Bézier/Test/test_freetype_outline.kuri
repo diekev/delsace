@@ -33,12 +33,12 @@ principale :: fonc ()
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
 
-            si it.type == TypeÉvènement.Clavier && it.touche_pressée && it.texte {
+            si it.type == Type_Évènement.CLAVIER && it.touche_pressée && it.texte {
                 n := nombre_octets_utf8_rapide(it.texte.caractères);
                 point_de_code := convertis_utf8_utf32(it.texte.caractères, n) comme n32;
                 _ := charge_chemin_depuis_caractètre(chemin_fonte, point_de_code, *chemin);

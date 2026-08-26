@@ -245,6 +245,11 @@ détermine_taille_fichier :: fonc (chemin: CheminFichier) -> n64
     retourne détermine_taille_fichier(*fichier) comme n64;
 }
 
+détermine_taille_fichier :: fonc (chemin: chaine) -> n64
+{
+    retourne détermine_taille_fichier(CheminFichier(chemin));
+}
+
 /* Retourne la taille du fichier en octet, ou 0 si le fichier n'est pas un
  * fichier régulier, ou si une erreur est rencontré. */
 détermine_taille_fichier :: fonc (fichier: *Fichier) -> z64

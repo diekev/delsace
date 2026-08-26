@@ -1,8 +1,8 @@
 importe POSIX;
 
 /* ------------------------------------------------------------------------- */
-/** \nom SimpleServeuse
- * SimpleServeuse permet de créer une serveuse HTTP en quelques lignes.
+/** \nom Simple_Serveuse
+ * Simple_Serveuse permet de créer une serveuse HTTP en quelques lignes.
  *
  * Utilisation :
  * 
@@ -17,11 +17,11 @@ importe POSIX;
  *  }
  * \{ */
 
-SimpleServeuse :: struct {
+Simple_Serveuse :: struct {
     prise: z32 = -1;
 }
 
-crée_simple_serveuse :: fonc (adresse: chaine) -> (succès: bool, serveuse: *SimpleServeuse)
+crée_simple_serveuse :: fonc (adresse: chaine) -> (succès: bool, serveuse: *Simple_Serveuse)
 {
     copie_adresse := copie_chaine(adresse);
     diffère déloge(*copie_adresse);
@@ -88,14 +88,14 @@ crée_simple_serveuse :: fonc (adresse: chaine) -> (succès: bool, serveuse: *Si
 
     imprimeln("Écoute sur %...", adresse);
 
-    résultat := loge(SimpleServeuse);
+    résultat := loge(Simple_Serveuse);
     résultat.prise = prise;
     retourne vrai, résultat;
 }
 
-requêtes :: fonc (serveuse: *SimpleServeuse) -> RequêtesEntrantes
+requêtes :: fonc (serveuse: *Simple_Serveuse) -> Requêtes_Entrantes
 {
-    retourne RequêtesEntrantes(serveuse);
+    retourne Requêtes_Entrantes(serveuse);
 }
 
 /** \} */
@@ -105,7 +105,7 @@ requêtes :: fonc (serveuse: *SimpleServeuse) -> RequêtesEntrantes
  * \{ */
 
 Requête :: struct {
-    message: MessageClienteHTTP;
+    message: Message_Cliente_HTTP;
     prise: z32;
 }
 
@@ -118,7 +118,7 @@ répond :: fonc (requête: *Requête, réponse: *Réponse)
 
     entête_server := cherche_entête(réponse.message.entêtes, "Server");
     saufsi entête_server {
-        ajoute_entête(*réponse.message, "Server", "SimpleServeuse");
+        ajoute_entête(*réponse.message, "Server", "Simple_Serveuse");
     }
 
     chaine_message := chaine_pour_message_serveuse(*réponse.message);
@@ -140,24 +140,24 @@ répond :: fonc (requête: *Requête, réponse: *Réponse)
  * \{ */
 
 Réponse :: struct {
-    message: MessageServeuseHTTP;
+    message: Message_Serveuse_HTTP;
 }
 
 crée_réponse_depuis_chaine :: fonc (texte: chaine) -> Réponse
 {
     résultat: Réponse;
-    résultat.message = crée_message_avec_contenu(CodeÉtatHTTP.OK, ContenuHTTP("text/plain", texte));
+    résultat.message = crée_message_avec_contenu(Code_État_HTTP.OK, Contenu_HTTP("text/plain", texte));
     retourne résultat;
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom RequêtesEntrantes
+/** \nom Requêtes_Entrantes
  * \{ */
 
-RequêtesEntrantes :: struct {
-    serveuse: *SimpleServeuse;
+Requêtes_Entrantes :: struct {
+    serveuse: *Simple_Serveuse;
 }
 
 charge_donnees_requete :: fonc (prise: z32, mon_addresse: *sockaddr_in @inutilisée) -> chaine
@@ -175,7 +175,7 @@ charge_donnees_requete :: fonc (prise: z32, mon_addresse: *sockaddr_in @inutilis
 }
 
 // À FAIRE(langage) : empl pour les opérateurs
-opérateur pour :: (requêtes: RequêtesEntrantes) -> Requête
+opérateur pour :: (requêtes: Requêtes_Entrantes) -> Requête
 {
     serveuse := requêtes.serveuse;
 
@@ -186,7 +186,7 @@ opérateur pour :: (requêtes: RequêtesEntrantes) -> Requête
 
     index_requête: z64;
 
-    parseuse: ParseuseMessageClienteHTTP;
+    parseuse: Parseuse_Message_Cliente_HTTP;
 
     mon_addresse: sockaddr_in; // Adresse du connecté
     sin_size := taille_de(sockaddr_in);

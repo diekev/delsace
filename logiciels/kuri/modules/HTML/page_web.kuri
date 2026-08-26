@@ -172,7 +172,7 @@ redimensionne :: fonc (page: *PageWeb, largeur: z32, hauteur: z32)
 }
 
 /* À FAIRE : supprime la valeur de retour. */
-gère_mouvement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
+gère_mouvement_souris :: fonc (page: *PageWeb, clic: *Clic_Souris) -> bool
 {
     document := donne_document(page);
     saufsi document {
@@ -220,7 +220,7 @@ gère_mouvement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
     retourne ajourne_rendu;
 }
 
-gère_pression_souris :: fonc (page: *PageWeb, clic: *ClicSouris)
+gère_pression_souris :: fonc (page: *PageWeb, clic: *Clic_Souris)
 {
     document := donne_document(page);
     saufsi document {
@@ -243,10 +243,10 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *ClicSouris)
     position_event := donne_position_décalée_par_défilement(page, position);
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y);
     si élément {
-        si clic.bouton == BoutonSouris.PRIMAIRE {
+        si clic.bouton == Bouton_Souris.PRIMAIRE {
             est_en_train_d_être_activé(élément, vrai);
         }
-        sinon si clic.bouton == BoutonSouris.CONTEXTUEL {
+        sinon si clic.bouton == Bouton_Souris.CONTEXTUEL {
             user_agent := donne_user_agent(document);
             assert(user_agent != nul);
             affiche_menu_contextuel_pour(user_agent, élément, clic);
@@ -257,7 +257,7 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *ClicSouris)
 }
 
 /* À FAIRE : supprime la valeur de retour. */
-gère_relâchement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
+gère_relâchement_souris :: fonc (page: *PageWeb, clic: *Clic_Souris) -> bool
 {
     document := donne_document(page);
     saufsi document {
@@ -295,7 +295,7 @@ gère_relâchement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
 }
 
 /* À FAIRE : supprime la valeur de retour. */
-gère_molette_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
+gère_molette_souris :: fonc (page: *PageWeb, clic: *Clic_Souris) -> bool
 {
     document := donne_document(page);
     saufsi document {
@@ -362,13 +362,13 @@ défile_vers_fragment :: fonc (page: *PageWeb)
 }
 
 /* https://w3c.github.io/uievents/#send-click-event */
-envoie_un_clic :: fonc (élément: *Element, bouton: BoutonSouris, position_x: z32, position_y: z32)
+envoie_un_clic :: fonc (élément: *Element, bouton: Bouton_Souris, position_x: z32, position_y: z32)
 {
     /* À FAIRE : standardise. */
     évènement := crée_platform_object(élément, MouseEvent);
     évènement.bubbles = vrai;
 
-    si bouton == BoutonSouris.PRIMAIRE {
+    si bouton == Bouton_Souris.PRIMAIRE {
         évènement.type = EventType.click;
     }
     sinon {
