@@ -28,11 +28,11 @@ principale :: fonc ()
 
     application.fonte = donne_fonte_mono_défaut(14.0);
 
-    initialise_éditrice(*application.éditrice_texte, application.fonte, contenu, nul, ModeÉditionTexte.PLUSIEURS_LIGNES);
+    initialise_éditrice(*application.éditrice_texte, application.fonte, contenu, nul, Mode_Édition_Texte.PLUSIEURS_LIGNES);
 
     rect: RectanglePosDim(z32);
     initialise_guetteuse_édition_texte(*application.guetteuse_édition_texte, *application.éditrice_texte, rect, rect);
-    application.guetteuse_édition_texte.état = ÉtatGuettageÉditionTexte.EnÉdition;
+    application.guetteuse_édition_texte.état = État_Guettage_Édition_Texte.EN_ÉDITION;
     démarre_édition(*application.éditrice_texte);
 
     fenêtre := crée_fenêtre(800, 600, "ECMAScript", vrai);
@@ -45,21 +45,21 @@ principale :: fonc ()
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour * évènements {
-            si it.type == TypeÉvènement.Fermeture {
+            si it.type == Type_Évènement.FERMETURE {
                 doit_fermer = vrai;
                 arrête;
             }
 
             évènement_géré := faux;
             si it.touche_pressée {
-                si it.modificateurs == ModificateurClavier.CONTROL && it.touche == ToucheClavier.S && !it.est_répétée {
+                si it.modificateurs == Modificateur_Clavier.CONTROL && it.touche == Touche_Clavier.S && !it.est_répétée {
                     sauvegarde_texte(*application);
                     évènement_géré = vrai;
                 }
             }
 
             saufsi évènement_géré {
-                saufsi gère_évènement(*application.guetteuse_édition_texte, it) == ÉtatÉvènement.CONSOMMÉ {
+                saufsi gère_évènement(*application.guetteuse_édition_texte, it) == État_Évènement.CONSOMMÉ {
                     gère_évènement(*application.emboiteuse, it);
                 }
             }
@@ -87,8 +87,8 @@ Application :: struct {
 
     lignes: [..]chaine;
 
-    éditrice_texte: ÉditriceTexte;
-    guetteuse_édition_texte: GuetteuseÉditionTexte;
+    éditrice_texte: Éditrice_Texte;
+    guetteuse_édition_texte: Guetteuse_Édition_Texte;
 }
 
 /** \} */

@@ -126,7 +126,7 @@ définis_titre_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native, titre: chaine)
     }
 }
 
-définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: TypeCurseurSystème)
+définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: Type_Curseur_Système)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_définis_curseur(fenêtre, curseur);
@@ -357,7 +357,7 @@ donne_id_fenêtre_suivant :: fonc () -> z32
 
 #portée_export
 
-donne_état_souris :: fonc (fenêtre: Port_Fenêtre_Native) -> ÉtatSouris
+donne_état_souris :: fonc (fenêtre: Port_Fenêtre_Native) -> État_Souris
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         retourne fenêtre.données_x11.dernière_souris;
@@ -528,7 +528,7 @@ qt_définis_titre_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native, titre: chain
     QT_window_set_title(fenêtre.rappels_window.window, vers_qt(titre));
 }
 
-qt_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: TypeCurseurSystème)
+qt_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: Type_Curseur_Système)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
@@ -726,7 +726,7 @@ RappelsWindow :: struct {
     sur_evenement = rappels_window_sur_évènement;
     sur_destruction = rappels_window_sur_desctruction;
 
-    dernière_souris: ÉtatSouris;
+    dernière_souris: État_Souris;
 }
 
 rappels_window_sur_création :: fonc (base: *QT_Rappels_Window)
@@ -821,20 +821,20 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
     si type == QT_Event_Type.Close {
         évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
-        évènement.type = TypeÉvènement.Fermeture;
+        évènement.type = Type_Évènement.FERMETURE;
         QT_evenement_ignore(event);
         retourne faux;
     }
 
     si type == QT_Event_Type.Enter {
         évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
-        évènement.type = TypeÉvènement.Entrée_Fenêtre;
+        évènement.type = Type_Évènement.ENTRÉE_FENÊTRE;
         retourne faux;
     }
 
     si type == QT_Event_Type.Leave {
         évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
-        évènement.type = TypeÉvènement.Sortie_Fenêtre;
+        évènement.type = Type_Évènement.SORTIE_FENÊTRE;
         retourne faux;
     }
 
@@ -883,7 +883,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         }
 
         évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
-        évènement.type = TypeÉvènement.Déposage;
+        évènement.type = Type_Évènement.DÉPOSAGE;
         évènement.mimes = mimes;
 
         QT_drop_event_accepte_action_propose(event.drop_event);
@@ -954,7 +954,7 @@ DonnéesX11 :: struct {
 
     id_fenêtre: z32;
 
-    dernière_souris: ÉtatSouris;
+    dernière_souris: État_Souris;
 }
 
 #portée_fichier
@@ -1272,7 +1272,7 @@ x11_définis_titre_fenêtre :: fonc (display: *Display, window: Window, titre: c
     _ := XFlush(display);
 }
 
-x11_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: TypeCurseurSystème)
+x11_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: Type_Curseur_Système)
 {
     /* À FAIRE : utilise le thème :
     char* theme = XcursorGetTheme(display);
@@ -1465,7 +1465,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
         sinon si event.type == MotionNotify {
             évènement: *Évènement;
 
-            si __évènements.taille && __évènements[__évènements.taille - 1].action_souris == ActionSouris.DÉPLACÉE {
+            si __évènements.taille && __évènements[__évènements.taille - 1].action_souris == Action_Souris.DÉPLACÉE {
                 évènement = *__évènements[__évènements.taille - 1];
             }
             sinon {
@@ -1485,7 +1485,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
             temps := millisecondes(maintenant_précis());
 
             si (temps - __temps_dernier_relâchement) < __temps_double_clic && __dernier_relâchement.bouton_souris == évènement.bouton_souris {
-                évènement.action_souris = ActionSouris.DOUBLE_CLIC;
+                évènement.action_souris = Action_Souris.DOUBLE_CLIC;
             }
         }
         sinon si event.type == ButtonRelease {
@@ -1502,7 +1502,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
             atome := data[0] comme Atom;
             si atome == fenêtre.données_x11.système.wm_delete_window {
                 évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
-                évènement.type = TypeÉvènement.Fermeture;
+                évènement.type = Type_Évènement.FERMETURE;
                 continue;
             }
 
@@ -1517,11 +1517,11 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
         }
         sinon si event.type == EnterNotify {
             évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
-            évènement.type = TypeÉvènement.Entrée_Fenêtre;
+            évènement.type = Type_Évènement.ENTRÉE_FENÊTRE;
         }
         sinon si event.type == LeaveNotify {
             évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
-            évènement.type = TypeÉvènement.Sortie_Fenêtre;
+            évènement.type = Type_Évènement.SORTIE_FENÊTRE;
         }
         sinon si event.type == MapNotify {}
         sinon si event.type == ReparentNotify {}
@@ -1558,7 +1558,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
                     mime_type := XGetAtomName(display, format);
 
                     évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
-                    évènement.type = TypeÉvènement.Déposage;
+                    évènement.type = Type_Évènement.DÉPOSAGE;
 
                     mime := tableau_ajoute_élément(*évènement.mimes);
                     mime.type = convertis_chaine_c(ChaineC(mime_type));
