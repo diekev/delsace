@@ -388,10 +388,9 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
     // À FAIRE : extension-namespace-definition
 
     si est_symbole(lexème_suivant) {
+        _ := parse_attributs_gcc(parseuse);
         lexème_suivant = donne_lexème_suivant(parseuse);
     }
-
-    _ := parse_attributs_gcc(parseuse);
 
     saufsi est_ponctuation(lexème_suivant, "{") {
         rapporte_erreur(parseuse, lexème_suivant, "attendu un '{'");
