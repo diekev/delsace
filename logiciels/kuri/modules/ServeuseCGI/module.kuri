@@ -172,7 +172,7 @@ lance :: fonc (serveuse: *ServeuseCGI(T = $T))
     si serveuse.intergiciel {
         résultat := serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse);
 
-        si résultat.status != CodeÉtatHTTP.OK {
+        si résultat.status != Code_État_HTTP.OK {
             crée_réponse(résultat);
             retourne;
         }
