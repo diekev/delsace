@@ -1018,6 +1018,13 @@ parse_expression_primaire :: fonc (empl parseuse: *Parseuse_CPP) -> *Expression
 
         résultat = literal;
     }
+    sinon si est_mot_clé(lexème, "true") || est_mot_clé(lexème, "false") {
+        consomme(parseuse);
+
+        literal := crée_noeud(*créatrice, lexème, Boolean_Constant);
+
+        résultat = literal;
+    }
     sinon si est_ponctuation(lexème, "-") || est_ponctuation(lexème, "+") || est_ponctuation(lexème, "!") || est_ponctuation(lexème, "~") {
         consomme(parseuse);
 

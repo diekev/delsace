@@ -520,6 +520,11 @@ FloatingConstant :: struct {
     genre = #type_de_cette_structure;
 }
 
+Boolean_Constant :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+}
+
 CompoundLiteral :: struct {
     empl expr: Expression;
     genre = #type_de_cette_structure;
