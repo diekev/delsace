@@ -11,6 +11,7 @@ Name_Kind :: énum {
     ENUM;
     CLASS;
     TYPEDEF;
+    TEMPLATE_PARAMETER;
 }
 
 CXX_Name :: struct {
@@ -1196,6 +1197,8 @@ parse_template_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
 
         résultat = template;
 
+        dépile_bloc(*parseuse.table_de_noms);
+
         ajoute_nom(*parseuse.table_de_noms, Name_Kind.TEMPLATE, template_name, résultat);
     }
 
@@ -1213,6 +1216,8 @@ parse_template_parameters :: fonc (parseuse: *Parseuse_CPP) -> ([..]*ASTNode, bo
     si est_ponctuation(lexème, ">") {
         retourne parameters, vrai;
     }
+
+    _ := empile_bloc(*parseuse.table_de_noms);
 
     tantque !fini(parseuse) {
         lexème = épie_lexème_suivant(parseuse);
@@ -1249,6 +1254,11 @@ parse_template_parameters :: fonc (parseuse: *Parseuse_CPP) -> ([..]*ASTNode, bo
 
                     type_parameter.type_id = type_id;
                 }
+            }
+
+            nom := donne_texte(type_parameter.identifier);
+            si nom {
+                ajoute_nom(*parseuse.table_de_noms, Name_Kind.TEMPLATE_PARAMETER, nom, type_parameter);
             }
 
             tableau_ajoute(*parameters, type_parameter);
@@ -1559,6 +1569,10 @@ détermine_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> T
                 }
                 TYPEDEF {
                     retourne Type_Specifier_Kind.TYPEDEF_NAME;
+                }
+                TEMPLATE_PARAMETER {
+                    // À FAIRE : trouve ce que ce doit être
+                    retourne Type_Specifier_Kind.FUNDAMENTAL;
                 }
                 sinon {
                     rapporte_erreur(parseuse, lexème, "unexpected identifier");
