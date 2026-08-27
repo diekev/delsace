@@ -1238,7 +1238,13 @@ parse_template_parameters :: fonc (parseuse: *Parseuse_CPP) -> ([..]*ASTNode, bo
                 lexème = épie_lexème_suivant(parseuse);
                 si est_ponctuation(lexème, "=") {
                     consomme(parseuse);
-                    type_parameter.type_id = parse_type_id(parseuse);
+
+                    type_id := parse_type_id(parseuse);
+                    saufsi type_id {
+                        rapporte_erreur(parseuse, épie_lexème_suivant(parseuse), "attendu un type-id");
+                    }
+
+                    type_parameter.type_id = type_id;
                 }
             }
 
