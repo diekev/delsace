@@ -93,14 +93,14 @@ Parseuse_CPP :: struct {
 initialise_parseuse :: fonc (parseuse: *Parseuse_CPP, unit: *TranslationUnit)
 {
     initialise_base_parseuse(parseuse, unit);
+
+    _ := empile_bloc(*parseuse.table_de_noms);
+    ajoute_nom(*parseuse.table_de_noms, Name_Kind.TYPEDEF, "__builtin_va_list", nul);
 }
 
 parse_translation_unit :: fonc (parseuse: *Parseuse_CPP)
 {
     assert(parseuse.unit != nul);
-
-    _ := empile_bloc(*parseuse.table_de_noms);
-    diffère dépile_bloc(*parseuse.table_de_noms);
 
     parse_declaration_sequence(parseuse, *parseuse.unit.declarations, faux);
 }
@@ -233,12 +233,24 @@ parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fo
         retourne nul;
     }
 
+    est_typedef := est_mot_clé(decl_specifier.token, "typedef");
+
     // init-declarator-list
     list: [..]*CXX_Init_Declarator;
     tantque !fini(parseuse) {
         init_declarator := parse_init_declarator(parseuse);
         saufsi init_declarator {
             arrête;
+        }
+
+        si est_typedef {
+            nom := donne_nom_déclaration(init_declarator);
+            saufsi nom {
+                rapporte_erreur(parseuse, init_declarator.token, "impossible de définir le nom de la déclaration");
+            }
+
+            // À FAIRE : noeud pour les typedefs
+            ajoute_nom(*parseuse.table_de_noms, Name_Kind.TYPEDEF, nom, nul);
         }
 
         tableau_ajoute(*list, init_declarator);
@@ -334,6 +346,22 @@ parse_init_declarator :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Init_Declarator
     résultat.declarator = declarator;
     // À FAIRE : initialisateur;
     retourne résultat;
+}
+
+donne_nom_déclaration :: fonc (init_declarator: *CXX_Init_Declarator) -> chaine
+{
+    retourne donne_nom_déclaration(init_declarator.declarator);
+}
+
+donne_nom_déclaration :: fonc (declarator: *ASTNode) -> chaine
+{
+    si declarator.genre == CXX_ID_Expression {
+        id := declarator comme *CXX_ID_Expression;
+        retourne donne_texte(id.token);
+    }
+
+    imprime_arbre(declarator);
+    retourne "";
 }
 
 parse_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
