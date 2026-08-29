@@ -417,6 +417,21 @@ StructDecl :: struct {
     field_infos: [..]Field_Info;
 }
 
+CXX_Class_Specifier :: struct {
+    empl type_specifier: CXX_Type_Specifier;
+    genre = #type_de_cette_structure;
+
+    members: [..]*ASTNode;
+}
+
+CXX_Member_Declaration :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    specifier: *CXX_Declaration_Specifier;
+    list: [..]*ASTNode;
+}
+
 donne_field_info :: fonc (struct_decl: *StructDecl, nom: chaine) -> (*Field_Info, z64)
 {
     pour * struct_decl.field_infos {

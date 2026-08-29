@@ -400,7 +400,7 @@ parse_noptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
     // ( ptr-declarator )
     sinon si est_ponctuation(lexème, "(") {
         consomme(parseuse);
-        résultat = parse_declarator(parseuse);
+        résultat = parse_ptr_declarator(parseuse);
         consomme_ponctuation(parseuse, ")");
     }
 
@@ -1164,6 +1164,75 @@ parse_expression_primaire :: fonc (empl parseuse: *Parseuse_CPP) -> *Expression
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Classes
+ * \{ */
+
+parse_class_specifier :: fonc (parseuse: *Parseuse_CPP, class_key: Token) -> *CXX_Class_Specifier
+{
+    lexème := épie_lexème_suivant(parseuse);
+    class_name: Token;
+    si est_symbole(lexème) {
+        class_name = donne_lexème_suivant(parseuse);
+    }
+
+    consomme_ponctuation(parseuse, "{");
+
+    members: [..]*ASTNode;
+
+    tantque !fini(parseuse) {
+        lexème = épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème, "}") {
+            arrête;
+        }
+
+        member := parse_member_declaration(parseuse);
+        saufsi member {
+            arrête;
+        }
+
+        tableau_ajoute(*members, member);
+    }
+
+    consomme_ponctuation(parseuse, "}");
+
+    résultat := crée_noeud(*parseuse.créatrice, class_key, CXX_Class_Specifier);
+    résultat.members = members;
+    retourne résultat;
+}
+
+parse_member_declaration :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Member_Declaration
+{
+    specifier := parse_decl_specifier_seq(parseuse);
+
+    // À FAIRE : member-declator-list
+
+    declarators: [..]*ASTNode;
+
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème, ";") {
+            arrête;
+        }
+
+        declarator := parse_declarator(parseuse);
+        saufsi declarator {
+            arrête;
+        }
+
+        tableau_ajoute(*declarators, declarator);
+    }
+
+    consomme_ponctuation(parseuse, ";");
+
+    résultat := crée_noeud(*parseuse.créatrice, specifier.token, CXX_Member_Declaration);
+    résultat.specifier = specifier;
+    résultat.list = declarators;
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Templates
  * \{ */
 
@@ -1440,6 +1509,9 @@ parse_type_specifier :: fonc (parseuse: *Parseuse_CPP) -> *CXX_Type_Specifier
             elaborated.template_parameters = parameters;
         }
     }
+    sinon si type_specifier_kind == Type_Specifier_Kind.CLASS_SPECIFIER {
+        résultat = parse_class_specifier(parseuse, lexème);
+    }
     sinon {
         résultat = crée_noeud(*parseuse.créatrice, lexème, CXX_Type_Specifier);
     }
@@ -1540,6 +1612,10 @@ détermine_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> T
             }
 
             retourne Type_Specifier_Kind.ELABORATED;
+        }
+
+        si est_ponctuation(lexème_suivant, "{") {
+            retourne Type_Specifier_Kind.CLASS_SPECIFIER;
         }
 
         retourne Type_Specifier_Kind.NONE;
