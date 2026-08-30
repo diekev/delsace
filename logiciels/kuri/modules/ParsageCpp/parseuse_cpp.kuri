@@ -253,6 +253,8 @@ parse_simple_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fo
             ajoute_nom(*parseuse.table_de_noms, Name_Kind.TYPEDEF, nom, nul);
         }
 
+        _ := parse_attributs_gcc(parseuse);
+
         tableau_ajoute(*list, init_declarator);
 
         lexème := épie_lexème_suivant(parseuse);
