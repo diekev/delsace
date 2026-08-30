@@ -122,6 +122,13 @@ CXX_Linkage_Specification :: struct {
     declarations: [..]*ASTNode;
 }
 
+CXX_Using_Declaration :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    id: Token;
+}
+
 StaticAssert :: struct {
     empl node: ASTNode;
     genre = #type_de_cette_structure;

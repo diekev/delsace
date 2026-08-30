@@ -212,7 +212,12 @@ parse_block_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fon
 
     // asm-definition
     // namespace-alias-definition
+
     // using-declaration
+    si est_mot_clé(lexème, "using") {
+        retourne parse_using_declaration(parseuse);
+    }
+
     // using-directive
     // static_assert-declaration
     // alias-declaration
@@ -563,6 +568,32 @@ parse_namespace_definition :: fonc (parseuse: *Parseuse_CPP, est_inline: bool) -
     si nom {
         ajoute_nom(*parseuse.table_de_noms, Name_Kind.NAMESPACE, nom, résultat);
     }
+    retourne résultat;
+}
+
+parse_using_declaration :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
+{
+    lexème_using := donne_lexème_suivant(parseuse);
+
+    lexème := épie_lexème_suivant(parseuse);
+    si est_ponctuation(lexème, "::") {
+        consomme(parseuse);
+        lexème = épie_lexème_suivant(parseuse);
+    }
+    sinon {
+        rapporte_erreur(parseuse, lexème, "lexème non-géré pour using");
+    }
+
+    // À FAIRE : unqualified-id
+    saufsi est_symbole(lexème) {
+        rapporte_erreur(parseuse, lexème, "attendu un unqualified-id");
+    }
+    consomme(parseuse);
+
+    consomme_ponctuation(parseuse, ";");
+
+    résultat := crée_noeud(*parseuse.créatrice, lexème_using, CXX_Using_Declaration);
+    résultat.id = lexème;
     retourne résultat;
 }
 
