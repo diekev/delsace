@@ -1666,6 +1666,10 @@ détermine_type_specifier :: fonc (parseuse: *Parseuse_CPP, lexème: Token) -> T
         retourne Type_Specifier_Kind.DECLTYPE;
     }
 
+    si est_cv_qualifier(parseuse, lexème) {
+        retourne Type_Specifier_Kind.CV_QUALIFIER;
+    }
+
     si est_symbole(lexème) {
         noms := trouve_noms(*parseuse.table_de_noms, donne_texte(lexème));
 
