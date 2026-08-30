@@ -432,6 +432,25 @@ parse_noptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
             parameters := crée_noeud(*parseuse.créatrice, lexème, CXX_Parameters_And_Qualifiers);
             parameters.left = résultat;
 
+            tantque !fini(parseuse) {
+                lexème_suivant := épie_lexème_suivant(parseuse);
+                si est_ponctuation(lexème_suivant, ")") {
+                    arrête;
+                }
+
+                parameter := parse_parameter_declaration(parseuse);
+                saufsi parameter {
+                    arrête;
+                }
+                tableau_ajoute(*parameters.parameters, parameter);
+
+                lexème_suivant = épie_lexème_suivant(parseuse);
+                saufsi est_ponctuation(lexème_suivant, ",") {
+                    arrête;
+                }
+                consomme(parseuse);
+            }
+
             résultat = parameters;
 
             consomme_ponctuation(parseuse, ")");
