@@ -460,6 +460,12 @@ parse_noptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
                     arrête;
                 }
 
+                si est_ponctuation(lexème_suivant, "...") {
+                    consomme(parseuse);
+                    parameters.est_variadique = vrai;
+                    arrête;
+                }
+
                 parameter := parse_parameter_declaration(parseuse);
                 saufsi parameter {
                     arrête;
@@ -467,6 +473,11 @@ parse_noptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
                 tableau_ajoute(*parameters.parameters, parameter);
 
                 lexème_suivant = épie_lexème_suivant(parseuse);
+                si est_ponctuation(lexème_suivant, "...") {
+                    consomme(parseuse);
+                    parameters.est_variadique = vrai;
+                    arrête;
+                }
                 saufsi est_ponctuation(lexème_suivant, ",") {
                     arrête;
                 }

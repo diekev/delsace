@@ -90,6 +90,7 @@ CXX_Parameters_And_Qualifiers :: struct {
     left: *ASTNode;
     parameters: [..]*ASTNode;
     qualifiers: [..]Token;
+    est_variadique: bool;
 }
 
 CXX_Array_Declarator :: struct {
