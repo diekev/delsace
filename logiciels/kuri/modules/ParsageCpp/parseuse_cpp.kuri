@@ -430,7 +430,20 @@ parse_noptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
         }
         // noptr-declarator [ constant-expressionopt ] attribute-specifier-seqopt
         sinon si est_ponctuation(lexème, "[") {
-            rapporte_erreur(parseuse, lexème, "declarator non-géré");
+            consomme(parseuse);
+
+            // À FAIRE : attribute-specifier-seqopt
+            array := crée_noeud(*parseuse.créatrice, lexème, CXX_Array_Declarator);
+            array.left = résultat;
+
+            lexème = épie_lexème_suivant(parseuse);
+            saufsi est_ponctuation(lexème, "]") {
+                array.size_expression = parse_constant_expression(parseuse);
+            }
+
+            consomme_ponctuation(parseuse, "]");
+
+            résultat = array;
         }
         sinon {
             arrête;

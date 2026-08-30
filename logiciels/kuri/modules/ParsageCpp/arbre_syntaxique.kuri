@@ -91,6 +91,14 @@ CXX_Parameters_And_Qualifiers :: struct {
     qualifiers: [..]Token;
 }
 
+CXX_Array_Declarator :: struct {
+    empl node: ASTNode;
+    genre = #type_de_cette_structure;
+
+    left: *ASTNode;
+    size_expression: *ASTNode;
+}
+
 CXX_Simple_Declaration :: struct {
     empl node: ASTNode;
     genre = #type_de_cette_structure;
