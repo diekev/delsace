@@ -389,7 +389,22 @@ parse_ptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
     lexème := épie_lexème_suivant(parseuse);
 
     // À FAIRE : nested-name-specifier
-    si est_ponctuation(lexème, "*") || est_ponctuation(lexème, "&") || est_ponctuation(lexème, "&&") {
+    si est_ponctuation(lexème, "*") {
+        consomme(parseuse);
+
+        restricted: bool;
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_symbole(lexème_suivant, "__restrict") {
+            consomme(parseuse);
+            restricted = vrai;
+        }
+
+        résultat := crée_noeud(*parseuse.créatrice, lexème, CXX_Ptr_Declarator);
+        résultat.next = parse_ptr_declarator(parseuse);
+        résultat.restricted = vrai;
+        retourne résultat;
+    }
+    si est_ponctuation(lexème, "&") || est_ponctuation(lexème, "&&") {
         consomme(parseuse);
 
         résultat := crée_noeud(*parseuse.créatrice, lexème, CXX_Ptr_Declarator);
