@@ -205,6 +205,11 @@ parse_block_declaration :: fonc (parseuse: *Parseuse_CPP, permet_définition_fon
 {
     lexème := épie_lexème_suivant(parseuse);
 
+    si est_symbole(lexème, "__extension__") {
+        consomme(parseuse);
+        lexème = épie_lexème_suivant(parseuse);
+    }
+
     // asm-definition
     // namespace-alias-definition
     // using-declaration
