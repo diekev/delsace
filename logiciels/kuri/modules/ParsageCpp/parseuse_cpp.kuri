@@ -475,6 +475,18 @@ parse_noptr_declarator :: fonc (parseuse: *Parseuse_CPP) -> *ASTNode
             si est_mot_clé(lexème, "noexcept") {
                 consomme(parseuse);
                 tableau_ajoute(*parameters.qualifiers, lexème);
+
+                lexème = épie_lexème_suivant(parseuse);
+                si est_ponctuation(lexème, "(") {
+                    consomme(parseuse);
+
+                    lexème = donne_lexème_suivant(parseuse);
+                    saufsi est_mot_clé(lexème, "true") || est_mot_clé(lexème, "false") {
+                        rapporte_erreur(parseuse, lexème, "attendu 'true' ou 'false'");
+                    }
+
+                    consomme_ponctuation(parseuse, ")");
+                }
             }
         }
         // noptr-declarator [ constant-expressionopt ] attribute-specifier-seqopt
