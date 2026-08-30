@@ -360,6 +360,21 @@ donne_nom_déclaration :: fonc (declarator: *ASTNode) -> chaine
         retourne donne_texte(id.token);
     }
 
+    si declarator.genre == CXX_Ptr_Declarator {
+        ptr := declarator comme *CXX_Ptr_Declarator;
+        retourne donne_nom_déclaration(ptr.next);
+    }
+
+    si declarator.genre == CXX_Parameters_And_Qualifiers {
+        params := declarator comme *CXX_Parameters_And_Qualifiers;
+        retourne donne_nom_déclaration(params.left);
+    }
+
+    si declarator.genre == CXX_Array_Declarator {
+        array := declarator comme *CXX_Array_Declarator;
+        retourne donne_nom_déclaration(array.left);
+    }
+
     imprime_arbre(declarator);
     retourne "";
 }
