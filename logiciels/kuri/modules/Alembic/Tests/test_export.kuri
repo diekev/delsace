@@ -211,6 +211,13 @@ principale :: fonc ()
     // crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
     // crée_test_rayons_points("/tmp/point-without-width.abc", faux);
 
+    crée_test_scope_rayons_points("/tmp/points-width-constant-scope.abc", Abc_Geometry_Scope.CONSTANT);
+    crée_test_scope_rayons_points("/tmp/points-width-vertex-scope.abc", Abc_Geometry_Scope.VERTEX);
+
+    crée_test_scope_rayons_courbes("/tmp/curves-width-constant-scope.abc", Abc_Geometry_Scope.CONSTANT);
+    crée_test_scope_rayons_courbes("/tmp/curves-width-vertex-scope.abc", Abc_Geometry_Scope.VERTEX);
+    crée_test_scope_rayons_courbes("/tmp/curves-width-uniform-scope.abc", Abc_Geometry_Scope.UNIFORM);
+
     // crée_test_visibilité("/tmp/visibility-hidden.abc");
     // crée_test_visibilité("/tmp/visibility-parent-hidden-child-visible.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.VISIBLE);
     // crée_test_visibilité("/tmp/visibility-parent-hidden-child-deferred.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.DEFERRED);
@@ -704,6 +711,52 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
     }
 }
 
+crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Scope)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
+
+    curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_défaut);
+
+    curves_sample := abc_output_curves_sample_create(curves);
+    diffère abc_output_curves_sample_destroy(curves_sample);
+
+    abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
+    abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+
+    positions := [Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Vec3(1.0, 0.0, 0.0), Vec3(1.0, 1.0, 0.0)];
+    abc_output_curves_sample_positions_set(curves_sample, positions);
+
+    num_vertices := z32.[2, 2];
+    abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+
+    si scope == Abc_Geometry_Scope.CONSTANT {
+        widths := [0.2];
+        abc_output_curves_sample_widths_set(curves_sample, widths, scope);
+    }
+    sinon si scope == Abc_Geometry_Scope.UNIFORM {
+        widths := [0.4, 0.6];
+        abc_output_curves_sample_widths_set(curves_sample, widths, scope);
+    }
+    sinon {
+        assert(scope != Abc_Geometry_Scope.UNKNOWN);
+        widths := [0.8, 1.0, 1.2, 1.4];
+        abc_output_curves_sample_widths_set(curves_sample, widths, scope);
+    }
+
+    abc_output_curves_sample_set(curves, curves_sample);
+}
+
 crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
@@ -767,6 +820,55 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
 
         abc_output_points_sample_set(objet_point, point_sample);
     }
+}
+
+crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scope)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
+
+    objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_défaut);
+    point_sample := abc_output_points_sample_create(objet_point);
+    diffère abc_output_points_sample_destroy(point_sample);
+
+    positions := [Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0)];
+    abc_output_points_sample_positions_set(point_sample, positions);
+
+    ids := n64.[0, 1];
+    abc_output_points_sample_ids_set(point_sample, ids);
+
+    si scope == Abc_Geometry_Scope.CONSTANT {
+    geom_param: Abc_Output_Float_Geom_Param_Sample;
+        widths := [0.2];
+        geom_param.values = widths.données;
+        geom_param.num_values = 1;
+        geom_param.scope = scope;
+
+        abc_output_points_sample_widths_set(point_sample, geom_param);
+    }
+    sinon {
+        assert(scope != Abc_Geometry_Scope.UNKNOWN);
+
+        widths := [0.4, 0.6];
+        geom_param: Abc_Output_Float_Geom_Param_Sample;
+        geom_param.values = widths.données;
+        geom_param.num_values = 2;
+        geom_param.scope = scope;
+
+        abc_output_points_sample_widths_set(point_sample, geom_param);
+    }
+
+    abc_output_points_sample_set(objet_point, point_sample);
 }
 
 crée_test_visibilité :: fonc (chemin: chaine)
