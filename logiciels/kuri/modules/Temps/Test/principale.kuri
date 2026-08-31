@@ -27,6 +27,38 @@ ajoute_secondes :: fonc (horloge: *Horloge, secondes: n64)
 
 principale :: fonc ()
 {
+    test_nombre_de_jours_dans_mois();
+    test_calendrier_républicain();
+    test_horloge();
+}
+
+test_nombre_de_jours_dans_mois :: fonc ()
+{
+    imprime("30 : %\n", FormatEntier(30, base=2));
+    pour 1 ... 12 {
+        M := it;
+        M_3 := M >> 3;
+        M_x_M_3 := M ^ M_3;
+        imprime("M % | M >> 3 % | (M ^ (M >> 3) %)\n", FormatEntier(M, base=2), FormatEntier(M_3, base=2), FormatEntier(M_x_M_3, base=2));
+    }
+
+    pour 1 ... 12 {
+        n := nombre_de_jours_dans_mois(it, 2023);
+        imprime("Nombre de jours dans mois : %\n", n);
+    }
+}
+
+test_calendrier_républicain :: fonc ()
+{
+    moment := hui_système();
+    date := donne_date_républicaine(moment);
+    imprime("%\n", donne_chaine_date_républicaine(date));
+
+    imprime("1792 est bissextile %\n", est_année_bissextile(1792));
+}
+
+test_horloge :: fonc ()
+{
     {
         horloge := Horloge(8, 32, 39);
         ajoute_secondes(*horloge, 793);
