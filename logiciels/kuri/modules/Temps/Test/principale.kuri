@@ -1,0 +1,45 @@
+importe Fondation;
+importe Temps;
+
+Horloge :: struct {
+    heures: n64;
+    minutes: n8;
+    secondes: n8;
+}
+
+donne_secondes :: fonc (horloge: *Horloge) -> n64
+{
+    retourne horloge.heures * 60 * 60 + horloge.minutes comme n64 * 60 + horloge.secondes;
+}
+
+ajoute_secondes :: fonc (horloge: *Horloge, secondes: n64)
+{
+    secondes += donne_secondes(horloge);
+
+    horloge.secondes = (secondes % 60) comme n8;
+
+    minutes := secondes / 60;
+    horloge.minutes = (minutes % 60) comme n8;
+
+    heures := minutes / 60;
+    horloge.heures = heures;
+}
+
+principale :: fonc ()
+{
+    {
+        horloge := Horloge(8, 32, 39);
+        ajoute_secondes(*horloge, 793);
+        imprimeln("%:%:%", horloge.heures, horloge.minutes, horloge.secondes);
+    }
+    {
+        horloge := Horloge(8, 18, 47);
+        ajoute_secondes(*horloge, 1620);
+        imprimeln("%:%:%", horloge.heures, horloge.minutes, horloge.secondes);
+    }
+    {
+        horloge := Horloge(9, 0, 3);
+        ajoute_secondes(*horloge, 192);
+        imprimeln("%:%:%", horloge.heures, horloge.minutes, horloge.secondes);
+    }
+}
