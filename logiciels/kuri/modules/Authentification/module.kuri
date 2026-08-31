@@ -153,25 +153,25 @@ valide :: fonc (signataire: *Signataire, valeur_signée: chaine) -> bool
     retourne vrai;
 }
 
-/* SignataireHorodoté.
+/* SignataireHorodaté.
  *
- * Similaire à Signataire mais ajoute un horodotage au message afin de créer des messages temporaires.
+ * Similaire à Signataire mais ajoute un horodatage au message afin de créer des messages temporaires.
  *
- * À FAIRE: l'horodotage ne prend pas en compte les fuseaux horaires, ou le fait que le temps système peut retourner en arrière.
+ * À FAIRE: l'horodatage ne prend pas en compte les fuseaux horaires, ou le fait que le temps système peut retourner en arrière.
  */
-SignataireHorodoté :: struct {
+SignataireHorodaté :: struct {
     signataire: Signataire;
 }
 
-crée_signataire_horodoté :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> SignataireHorodoté
+crée_signataire_horodaté :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> SignataireHorodaté
 {
-    signataire: SignataireHorodoté;
+    signataire: SignataireHorodaté;
     signataire.signataire = crée_signataire(clés_secrètes, sel, séparateur, algorithme, codec_base_64);
     retourne signataire;
 }
 
 /* Signe un message en lui ajoutant le temps de création de celui-ci. */
-signe :: fonc (signataire: *SignataireHorodoté, valeur: chaine) -> chaine
+signe :: fonc (signataire: *SignataireHorodaté, valeur: chaine) -> chaine
 {
     // génère un Intanstané
     temps := maintenant_précis().millisecondes();
@@ -189,9 +189,9 @@ signe :: fonc (signataire: *SignataireHorodoté, valeur: chaine) -> chaine
 }
 
 /* Dissigne le message d'une valeur_signée en vérifiant que le message fut généré dans un laps de temps inférieur à âge_max, en millisecondes.
- * Retourne une ErreurSignature si la valeur_signée ne vient pas de ce SignataireHorodoté ou est périmée.
+ * Retourne une ErreurSignature si la valeur_signée ne vient pas de ce SignataireHorodaté ou est périmée.
  * Retourne le message extrait sinon. */
-dissigne :: fonc (signataire: *SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> ErreurSignature | chaine
+dissigne :: fonc (signataire: *SignataireHorodaté, valeur_signée: chaine, âge_max: z64) -> ErreurSignature | chaine
 {
     valeur_ := tente signataire.signataire.dissigne(valeur_signée) piège err {
         retourne err;
@@ -225,8 +225,8 @@ dissigne :: fonc (signataire: *SignataireHorodoté, valeur_signée: chaine, âge
     retourne valeur;
 }
 
-/* Retourne vrai si la valeur_signée fut générée par ce SignataireHorodoté et que le message n'est pas périmé. */
-valide :: fonc (signataire: *SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> bool
+/* Retourne vrai si la valeur_signée fut générée par ce SignataireHorodaté et que le message n'est pas périmé. */
+valide :: fonc (signataire: *SignataireHorodaté, valeur_signée: chaine, âge_max: z64) -> bool
 {
     valeur := tente signataire.dissigne(valeur_signée, âge_max) piège err {
         retourne faux;
