@@ -131,7 +131,7 @@ parse_attributs_gcc :: fonc (empl parseuse: *Base_Parseuse) -> *Attribut
         lexème := épie_lexème_suivant(parseuse);
         texte := donne_texte(lexème);
 
-        si texte == "__asm__" {
+        si texte == "__asm__" || texte == "__asm" {
             résultat = crée_attribut(texte, résultat);
 
             consomme(parseuse);
