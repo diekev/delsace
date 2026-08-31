@@ -1,4 +1,6 @@
+importe Chaine;
 importe Fondation;
+importe Sérialisation;
 importe Temps;
 
 Horloge :: struct {
@@ -23,6 +25,37 @@ ajoute_secondes :: fonc (horloge: *Horloge, secondes: n64)
 
     heures := minutes / 60;
     horloge.heures = heures;
+}
+
+imprime_horloge :: fonc (horloge: Horloge, tampon: *TamponFixe(z8, 8))
+{
+    ajoute(tampon, '0' + (horloge.heures / 10) comme z8);
+    ajoute(tampon, '0' + (horloge.heures % 10) comme z8);
+    ajoute(tampon, ':');
+    ajoute(tampon, '0' + (horloge.minutes / 10) comme z8);
+    ajoute(tampon, '0' + (horloge.minutes % 10) comme z8);
+    ajoute(tampon, ':');
+    ajoute(tampon, '0' + (horloge.secondes / 10) comme z8);
+    ajoute(tampon, '0' + (horloge.secondes % 10) comme z8);
+}
+
+imprime_horloge :: fonc (horloge: Horloge) -> TamponFixe(z8, 8)
+{
+    résultat: TamponFixe(z8, 8);
+    imprime_horloge(horloge, *résultat);
+    retourne résultat;
+}
+
+donne_chaine :: fonc (horloge: Horloge) -> chaine
+{
+    tampon := imprime_horloge(horloge);
+    résultat := donne_chaine(*tampon);
+    retourne copie_chaine(résultat);
+}
+
+donne_chaine :: fonc (tampon: *TamponFixe(z8, 8)) -> chaine
+{
+    retourne chaine(tampon.données.données, tampon.curseur);
 }
 
 principale :: fonc ()
@@ -62,16 +95,16 @@ test_horloge :: fonc ()
     {
         horloge := Horloge(8, 32, 39);
         ajoute_secondes(*horloge, 793);
-        imprimeln("%:%:%", horloge.heures, horloge.minutes, horloge.secondes);
+        imprimeln("%", donne_chaine(horloge));
     }
     {
         horloge := Horloge(8, 18, 47);
         ajoute_secondes(*horloge, 1620);
-        imprimeln("%:%:%", horloge.heures, horloge.minutes, horloge.secondes);
+        imprimeln("%", donne_chaine(horloge));
     }
     {
         horloge := Horloge(9, 0, 3);
         ajoute_secondes(*horloge, 192);
-        imprimeln("%:%:%", horloge.heures, horloge.minutes, horloge.secondes);
+        imprimeln("%", donne_chaine(horloge));
     }
 }
