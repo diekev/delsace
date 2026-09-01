@@ -540,6 +540,8 @@ struct Abc_Input_Geom_Param;
 
 #define DECLARE_INPUT_GEOM_PARAM(type_geom, type_abc_value, type_c, nom_court)                    \
     struct Abc_Input_##type_geom##_Geom_Param;                                                    \
+    struct Abc_Input_##type_geom##_Geom_Param *abc_input_##nom_court##_geom_param_get(            \
+        struct Abc_Input_Compound_Property *prop, struct Abc_String name);                        \
     uint64_t abc_input_##nom_court##_geom_param_get_num_samples(                                  \
         struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
     void abc_input_##nom_court##_geom_param_get_data_type(                                        \

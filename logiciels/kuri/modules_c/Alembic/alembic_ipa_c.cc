@@ -945,6 +945,13 @@ struct Abc_Input_Geom_Param {
         AbcGeom::I##type_geom##GeomParam param{};                                                 \
         AbcGeom::I##type_geom##GeomParam::Sample sample{};                                        \
     };                                                                                            \
+    Abc_Input_##type_geom##_Geom_Param *abc_input_##nom_court##_geom_param_get(                   \
+        Abc_Input_Compound_Property *prop, Abc_String name)                                       \
+    {                                                                                             \
+        auto résultat = kuri_loge<Abc_Input_##type_geom##_Geom_Param>(prop->archive->ctx_kuri);   \
+        résultat->param = AbcGeom::I##type_geom##GeomParam(prop->prop, name);                     \
+        return résultat;                                                                          \
+    }                                                                                             \
     uint64_t abc_input_##nom_court##_geom_param_get_num_samples(                                  \
         struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
     {                                                                                             \
