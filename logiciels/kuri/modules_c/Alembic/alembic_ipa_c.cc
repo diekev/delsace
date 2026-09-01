@@ -991,6 +991,14 @@ struct Abc_Input_Geom_Param {
         struct Abc_Sample_Selector selector)                                                      \
     {                                                                                             \
         param->param.getIndexed(param->sample, get_sample_selector(selector));                    \
+        if (sample) {                                                                             \
+            sample->values = reinterpret_cast<type_c *>(                                          \
+                const_cast<type_abc_value *>(param->sample.getVals()->get()));                    \
+            sample->num_values = param->sample.getVals()->size();                                 \
+            sample->indices = const_cast<uint32_t *>(param->sample.getIndices()->get());          \
+            sample->num_indices = param->sample.getIndices()->size();                             \
+            sample->scope = static_cast<Abc_Geometry_Scope>(param->sample.getScope());            \
+        }                                                                                         \
     }                                                                                             \
     void abc_input_##nom_court##_geom_param_get_expanded(                                         \
         struct Abc_Input_##type_geom##_Geom_Param *param,                                         \
@@ -998,6 +1006,12 @@ struct Abc_Input_Geom_Param {
         struct Abc_Sample_Selector selector)                                                      \
     {                                                                                             \
         param->param.getExpanded(param->sample, get_sample_selector(selector));                   \
+        if (sample) {                                                                             \
+            sample->values = reinterpret_cast<type_c *>(                                          \
+                const_cast<type_abc_value *>(param->sample.getVals()->get()));                    \
+            sample->num_values = param->sample.getVals()->size();                                 \
+            sample->scope = static_cast<Abc_Geometry_Scope>(param->sample.getScope());            \
+        }                                                                                         \
     }
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_INPUT_GEOM_PARAM)
