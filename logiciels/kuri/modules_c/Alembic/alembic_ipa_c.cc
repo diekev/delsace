@@ -945,6 +945,10 @@ struct Abc_Input_Geom_Param {
         AbcGeom::I##type_geom##GeomParam param{};                                                 \
         AbcGeom::I##type_geom##GeomParam::Sample sample{};                                        \
     };                                                                                            \
+    bool abc_input_##nom_court##_geom_param_matches(Abc_Property_Header *prop_header)             \
+    {                                                                                             \
+        return AbcGeom::I##type_geom##GeomParam::matches(prop_header->header);                    \
+    }                                                                                             \
     Abc_Input_##type_geom##_Geom_Param *abc_input_##nom_court##_geom_param_get(                   \
         Abc_Input_Compound_Property *prop, Abc_String name)                                       \
     {                                                                                             \
