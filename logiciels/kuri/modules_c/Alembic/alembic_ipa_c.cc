@@ -683,6 +683,7 @@ struct Abc_Input_Archive {
     Abc_Property_Header *prop_headers = nullptr;
     Abc_Input_Scalar_Property *scalar_props = nullptr;
     Abc_Input_Array_Property *array_props = nullptr;
+    Abc_Input_Geom_Param *geom_params = nullptr;
     Abc_Time_Sampling *time_samplings = nullptr;
 };
 
@@ -938,7 +939,19 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
 
 struct Abc_Input_Geom_Param {
     Abc_Input_Archive *archive = nullptr;
+    Abc_Input_Geom_Param *next = nullptr;
+
+    virtual ~Abc_Input_Geom_Param() = default;
 };
+
+template <typename T>
+T *make_input_geom_param(Abc_Input_Archive *archive)
+{
+    auto résultat = kuri_loge<T>(archive->ctx_kuri);
+    liste_ajoute(&archive->geom_params, static_cast<Abc_Input_Geom_Param *>(résultat));
+    résultat->archive = archive;
+    return résultat;
+}
 
 #define DEFINE_INPUT_GEOM_PARAM(type_geom, type_abc_value, type_c, nom_court)                     \
     struct Abc_Input_##type_geom##_Geom_Param : public Abc_Input_Geom_Param {                     \
@@ -952,7 +965,7 @@ struct Abc_Input_Geom_Param {
     Abc_Input_##type_geom##_Geom_Param *abc_input_##nom_court##_geom_param_get(                   \
         Abc_Input_Compound_Property *prop, Abc_String name)                                       \
     {                                                                                             \
-        auto résultat = kuri_loge<Abc_Input_##type_geom##_Geom_Param>(prop->archive->ctx_kuri);   \
+        auto résultat = make_input_geom_param<Abc_Input_##type_geom##_Geom_Param>(prop->archive); \
         résultat->param = AbcGeom::I##type_geom##GeomParam(prop->prop, name);                     \
         return résultat;                                                                          \
     }                                                                                             \
@@ -1678,6 +1691,7 @@ void abc_input_archive_destroy(struct Abc_Input_Archive *archive)
         kuri_deloge_liste(archive->ctx_kuri, archive->prop_headers);
         kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->array_props);
+        kuri_deloge_liste(archive->ctx_kuri, archive->geom_params);
         kuri_deloge(archive->ctx_kuri, archive);
     }
 }
