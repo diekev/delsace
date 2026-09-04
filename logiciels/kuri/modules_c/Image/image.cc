@@ -648,7 +648,9 @@ OIIO_ImageInput *OIIO_ImageInput_open(OIIO_StringView chemin,
                                       OIIO_Filesystem_IOProxy *ioproxy)
 {
     auto filename = std::string(chemin.characters, chemin.size);
-    auto résultat = OIIO::ImageInput::open(filename);
+    auto oiio_config = reinterpret_cast<OIIO::ImageSpec *>(config);
+    auto oiio_proxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(ioproxy);
+    auto résultat = OIIO::ImageInput::open(filename, oiio_config, oiio_proxy);
     return reinterpret_cast<OIIO_ImageInput *>(résultat.release());
 }
 
