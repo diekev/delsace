@@ -417,6 +417,73 @@ void SVG_image_ratisse(struct SVGImage *image, uint8_t *sortie, int largeur, int
 
 void SVG_image_detruit(struct SVGImage *image);
 
+// ----------------------------------------------------------------------------
+// OIIO.
+
+struct OIIO_StringView {
+    const char *characters;
+    uint64_t size;
+};
+
+#define OIIO_USTRING_SIZE 8
+#define OIIO_USTRING_ALIGNMENT 8
+
+struct OIIO_ustring {
+    char data[OIIO_USTRING_SIZE];
+} __attribute__((aligned(OIIO_USTRING_ALIGNMENT)));
+
+const char *OIIO_ustring_c_str(struct OIIO_ustring *str);
+
+uint64_t OIIO_ustring_size(struct OIIO_ustring *str);
+
+struct OIIO_TypeDesc {
+    unsigned char basetype;      ///< C data type at the heart of our type
+    unsigned char aggregate;     ///< What kind of AGGREGATE is it?
+    unsigned char vecsemantics;  ///< Hint: What does the aggregate represent?
+    unsigned char reserved;      ///< Reserved for future expansion
+    int arraylen;                ///< Array length, 0 = not array, -1 = unsized
+};
+
+#define OIIO_PARAMVALUE_SIZE 40
+#define OIIO_PARAMVALUE_ALIGNMENT 8
+
+struct OIIO_ParamValue {
+    char data[OIIO_PARAMVALUE_SIZE];
+} __attribute__((aligned(OIIO_PARAMVALUE_ALIGNMENT)));
+
+struct OIIO_TypeDesc OIIO_ParamValue_type(struct OIIO_ParamValue *param);
+
+struct OIIO_StringView OIIO_ParamValue_name(struct OIIO_ParamValue *param);
+
+const void *OIIO_ParamValue_data(struct OIIO_ParamValue *param);
+
+int OIIO_ParamValue_nvavlues(struct OIIO_ParamValue *param);
+
+#define OIIO_IMAGESPEC_SIZE 160
+#define OIIO_IMAGESPEC_ALIGNMENT 8
+
+struct OIIO_ImageSpec {
+    char data[OIIO_IMAGESPEC_SIZE];
+} __attribute__((aligned(OIIO_IMAGESPEC_ALIGNMENT)));
+
+struct OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(struct OIIO_ImageSpec *spec);
+
+uint64_t OIIO_ImageSpec_donne_extra_attribs_size(struct OIIO_ImageSpec *spec);
+
+struct OIIO_Filesystem_IOProxy;
+
+struct OIIO_ImageInput;
+
+struct OIIO_ImageInput *OIIO_ImageInput_open(struct OIIO_StringView chemin,
+                                             struct OIIO_ImageSpec *config,
+                                             struct OIIO_Filesystem_IOProxy *ioproxy);
+
+bool OIIO_ImageInput_close(struct OIIO_ImageInput *image);
+
+void OIIO_ImageInput_delete(struct OIIO_ImageInput *image);
+
+struct OIIO_ImageSpec *OIIO_ImageInput_spec(struct OIIO_ImageInput *image);
+
 #ifdef __cplusplus
 }
 #endif

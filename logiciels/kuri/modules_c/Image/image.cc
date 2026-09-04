@@ -596,3 +596,96 @@ void SVG_image_detruit(SVGImage *image)
     image->width = 0.0f;
     image->height = 0.0f;
 }
+
+// ----------------------------------------------------------------------------
+// OIIO.
+
+static_assert(sizeof(OIIO::ustring) == sizeof(OIIO_ustring));
+static_assert(alignof(OIIO::ustring) == alignof(OIIO_ustring));
+
+const char *OIIO_ustring_c_str(struct OIIO_ustring *str)
+{
+    auto oiio_str = reinterpret_cast<OIIO::ustring *>(str);
+    return oiio_str->c_str();
+}
+
+uint64_t OIIO_ustring_size(struct OIIO_ustring *str)
+{
+    auto oiio_str = reinterpret_cast<OIIO::ustring *>(str);
+    return oiio_str->size();
+}
+
+static_assert(sizeof(OIIO::ParamValue) == sizeof(OIIO_ParamValue));
+static_assert(alignof(OIIO::ParamValue) == alignof(OIIO_ParamValue));
+
+OIIO_TypeDesc OIIO_ParamValue_type(OIIO_ParamValue *param)
+{
+    auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
+    auto résultat = oiio_param->type();
+    return *reinterpret_cast<OIIO_TypeDesc *>(&résultat);
+}
+
+OIIO_StringView OIIO_ParamValue_name(OIIO_ParamValue *param)
+{
+    auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
+    auto name = oiio_param->name();
+    auto résultat = OIIO_StringView();
+    résultat.characters = name.c_str();
+    résultat.size = name.size();
+    return résultat;
+}
+
+const void *OIIO_ParamValue_data(OIIO_ParamValue *param)
+{
+    auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
+    return oiio_param->data();
+}
+
+int OIIO_ParamValue_nvavlues(struct OIIO_ParamValue *param)
+{
+    auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
+    return oiio_param->nvalues();
+}
+
+static_assert(sizeof(OIIO::ImageSpec) == sizeof(OIIO_ImageSpec));
+static_assert(alignof(OIIO::ImageSpec) == alignof(OIIO_ImageSpec));
+
+OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return reinterpret_cast<OIIO_ParamValue *>(oiio_spec->extra_attribs.data());
+}
+
+uint64_t OIIO_ImageSpec_donne_extra_attribs_size(OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->extra_attribs.size();
+}
+
+OIIO_ImageInput *OIIO_ImageInput_open(OIIO_StringView chemin,
+                                      OIIO_ImageSpec *config,
+                                      OIIO_Filesystem_IOProxy *ioproxy)
+{
+    auto filename = std::string(chemin.characters, chemin.size);
+    auto résultat = OIIO::ImageInput::open(filename);
+    return reinterpret_cast<OIIO_ImageInput *>(résultat.release());
+}
+
+bool OIIO_ImageInput_close(OIIO_ImageInput *image)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    return oiio_image->close();
+}
+
+void OIIO_ImageInput_delete(OIIO_ImageInput *image)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    delete oiio_image;
+}
+
+OIIO_ImageSpec *OIIO_ImageInput_spec(OIIO_ImageInput *image)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    auto résultat = &oiio_image->spec();
+    return reinterpret_cast<OIIO_ImageSpec *>(const_cast<OIIO::ImageSpec *>(résultat));
+}
