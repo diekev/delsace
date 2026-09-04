@@ -828,42 +828,10 @@ imprime_animation_attributs :: fonc (chemin: chaine)
 
     polymesh := meshes[0];
 
-    ts := abc_input_polymesh_get_time_sampling(polymesh);
-
-    num_stored_times := abc_time_sampling_get_num_stored_times(ts);
-    imprimeln("num_stored_times : %", num_stored_times);
-
-    stored_times: [..]r64;
-    tableau_redimensionne(*stored_times, num_stored_times comme z64);
-
-    abc_time_sampling_get_stored_times(ts, *stored_times.données, *stored_times.taille comme *n64);
-
-    pour stored_times {
-        imprimeln("-- %", it);
-    }
-
-    start_time: r64;
-    end_time: r64;
-    abc_input_archive_get_start_and_end_time(iarchive, *start_time, *end_time);
-
-    imprimeln("start %, end %", start_time, end_time);
-
-    fps: r64;
-    si num_stored_times == 1 {
-        fps = 1.0 / stored_times[0];
-    }
-    sinon {
-        fps = 24.0;
-    }
-
-    imprimeln("fps : %", fps);
-
-    start_frame := (start_time * fps) comme z64;
-    end_frame := (end_time * fps) comme z64;
-
-    imprimeln("start_frame : %, end_frame : %", start_frame, end_frame);
-
     arb_geom_params := abc_input_polymesh_get_arb_geom_params(polymesh);
+    saufsi abc_input_compound_property_valid(arb_geom_params) {
+        retourne;
+    }
 
     num_properties := abc_input_compound_property_get_num_properties(arb_geom_params);
     si num_properties == 0 {
@@ -880,15 +848,17 @@ imprime_animation_attributs :: fonc (chemin: chaine)
 
     geom_param := abc_input_float_geom_param_get(arb_geom_params, prop_name);
 
+    ts := abc_input_float_geom_param_get_time_sampling(geom_param);
+
+    start_frame, end_frame, ips := calcule_limites_animation_en_image(iarchive, ts);
+
     pour start_frame ... end_frame {
-        time := it comme r64 / fps;
+        time := it comme r64 / ips;
         imprimeln("sample at time : % (frame %)", time, it);
 
         selector: Abc_Sample_Selector;
         selector.requested_time = time;
         selector.requested_index = -1;
-
-        imprimeln("%", vers_kuri(prop_name));
 
         geom_param_sample: Abc_Input_Float_Geom_Param_Sample;
         abc_input_float_geom_param_get_expanded(geom_param, *geom_param_sample, selector);
@@ -897,10 +867,50 @@ imprime_animation_attributs :: fonc (chemin: chaine)
         tranche.données = geom_param_sample.values;
         tranche.taille = geom_param_sample.num_values comme z64;
 
+        imprimeln("% (% valeur(s))", vers_kuri(prop_name), tranche.taille);
+
         pour value dans tranche {
             imprimeln("--  %", value);
         }
     }
+}
+
+calcule_limites_animation_en_image :: fonc (iarchive: *Abc_Input_Archive, ts: *Abc_Time_Sampling, ips_défaut: r64 = 24.0) -> (début: z64, fin: z64, ips: r64)
+{
+    num_stored_times := abc_time_sampling_get_num_stored_times(ts);
+    imprimeln("num_stored_times : %", num_stored_times);
+
+    stored_times: [..]r64;
+    diffère déloge(*stored_times);
+    tableau_redimensionne(*stored_times, num_stored_times comme z64);
+
+    abc_time_sampling_get_stored_times(ts, *stored_times.données, *stored_times.taille comme *n64);
+
+    pour stored_times {
+        imprimeln("-- %", it);
+    }
+
+    start_time: r64;
+    end_time: r64;
+    abc_input_archive_get_start_and_end_time(iarchive, *start_time, *end_time);
+
+    imprimeln("start %, end %", start_time, end_time);
+
+    si num_stored_times == 1 && stored_times[0] != 0.0 {
+        ips = 1.0 / stored_times[0];
+    }
+    sinon {
+        ips = ips_défaut;
+    }
+
+    imprimeln("ps : %", ips);
+
+    début = (start_time * ips) comme z64;
+    fin = (end_time * ips) comme z64;
+
+    imprimeln("image début : %, fin : %", début, fin);
+
+    retourne début, fin, ips;
 }
 
 rassemble_polymesh :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header, meshes: *[..]*Abc_Input_PolyMesh)
