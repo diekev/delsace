@@ -1731,6 +1731,7 @@ uint32_t abc_input_archive_get_num_time_sampling(struct Abc_Input_Archive *archi
 /** \} */
 
 struct Abc_Output_Object;
+struct Abc_Output_Geom_Param;
 
 struct Abc_Output_Archive {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1743,6 +1744,7 @@ struct Abc_Output_Archive {
     Abc_Output_Compound_Property *compound_props = nullptr;
     Abc_Output_Scalar_Property *scalar_props = nullptr;
     Abc_Output_Array_Property *array_props = nullptr;
+    Abc_Output_Geom_Param *geom_params = nullptr;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -1895,8 +1897,24 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
 /** \nom Abc_Output_Typed_Geom_Param
  * \{ */
 
+struct Abc_Output_Geom_Param {
+    Abc_Output_Archive *archive = nullptr;
+    Abc_Output_Geom_Param *next = nullptr;
+
+    virtual ~Abc_Output_Geom_Param() = default;
+};
+
+template <typename T>
+T *make_output_geom_param(Abc_Output_Archive *archive)
+{
+    auto résultat = kuri_loge<T>(archive->ctx_kuri);
+    liste_ajoute(&archive->geom_params, static_cast<Abc_Output_Geom_Param *>(résultat));
+    résultat->archive = archive;
+    return résultat;
+}
+
 #define DEFINE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)               \
-    struct Abc_Output_##type_geom##_Geom_Param {                                                  \
+    struct Abc_Output_##type_geom##_Geom_Param : public Abc_Output_Geom_Param {                   \
         AbcGeom::O##type_geom##GeomParam param{};                                                 \
         Array_Sample_Data sample_data{};                                                          \
         using ABC_ARRAY_SAMPLE_TYPE = AbcGeom::type_geom##ArraySample;                            \
@@ -1912,8 +1930,8 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
         if (parent == nullptr) {                                                                  \
             return nullptr;                                                                       \
         }                                                                                         \
-        auto résultat = kuri_loge<Abc_Output_##type_geom##_Geom_Param>(                           \
-            parent->archive->ctx_kuri);                                                           \
+        auto résultat = make_output_geom_param<Abc_Output_##type_geom##_Geom_Param>(              \
+            parent->archive);                                                                     \
         résultat->param = AbcGeom::O##type_geom##GeomParam(                                       \
             parent->prop,                                                                         \
             vers_std_string(name),                                                                \
@@ -2122,6 +2140,7 @@ void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
     if (archive) {
         kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->array_props);
+        kuri_deloge_liste(archive->ctx_kuri, archive->geom_params);
         kuri_deloge_liste(archive->ctx_kuri, archive->compound_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->objects);
         kuri_deloge(archive->ctx_kuri, archive->archive);
