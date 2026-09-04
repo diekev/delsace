@@ -60,20 +60,6 @@ struct ImageIO {
     enum ImageIO_DataType format;
 };
 
-struct ImageIOProxy;
-
-struct ImageIOProxy *IMG_cree_proxy_memoire(void *buf, uint64_t size);
-
-void IMG_detruit_proxy(struct ImageIOProxy *proxy);
-
-enum ResultatOperation IMG_ouvre_image(const char *chemin,
-                                       struct ImageIO *image,
-                                       enum ImageIO_DataType format);
-enum ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
-                                                  struct ImageIO *image,
-                                                  struct ImageIOProxy *proxy,
-                                                  enum ImageIO_DataType format);
-
 enum ResultatOperation IMG_ouvre_gif_depuis_fichier(const char *chemin, struct ImageIO *resultat);
 enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
                                                     uint64_t taille,
