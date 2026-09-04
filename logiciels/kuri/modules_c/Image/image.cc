@@ -600,6 +600,11 @@ void SVG_image_detruit(SVGImage *image)
 // ----------------------------------------------------------------------------
 // OIIO.
 
+int64_t OIIO_AutoStride()
+{
+    return OIIO::AutoStride;
+}
+
 static_assert(sizeof(OIIO::ustring) == sizeof(OIIO_ustring));
 static_assert(alignof(OIIO::ustring) == alignof(OIIO_ustring));
 
@@ -613,6 +618,12 @@ uint64_t OIIO_ustring_size(struct OIIO_ustring *str)
 {
     auto oiio_str = reinterpret_cast<OIIO::ustring *>(str);
     return oiio_str->size();
+}
+
+uint64_t OIIO_TypeDesc_basesize(struct OIIO_TypeDesc *type_desc)
+{
+    auto oiio_desc = reinterpret_cast<OIIO::TypeDesc *>(type_desc);
+    return oiio_desc->basesize();
 }
 
 static_assert(sizeof(OIIO::ParamValue) == sizeof(OIIO_ParamValue));
@@ -650,6 +661,30 @@ int OIIO_ParamValue_nvavlues(struct OIIO_ParamValue *param)
 static_assert(sizeof(OIIO::ImageSpec) == sizeof(OIIO_ImageSpec));
 static_assert(alignof(OIIO::ImageSpec) == alignof(OIIO_ImageSpec));
 
+int OIIO_ImageSpec_donne_width(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->width;
+}
+
+int OIIO_ImageSpec_donne_height(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->height;
+}
+
+int OIIO_ImageSpec_donne_nchannels(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->nchannels;
+}
+
+struct OIIO_TypeDesc OIIO_ImageSpec_donne_format(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return *reinterpret_cast<OIIO_TypeDesc *>(&oiio_spec->format);
+}
+
 OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(OIIO_ImageSpec *spec)
 {
     auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
@@ -660,6 +695,18 @@ uint64_t OIIO_ImageSpec_donne_extra_attribs_size(OIIO_ImageSpec *spec)
 {
     auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
     return oiio_spec->extra_attribs.size();
+}
+
+struct OIIO_Filesystem_IOProxy *OIIO_Filesytem_IOMemReader_new(void *buf, uint64_t size)
+{
+    return reinterpret_cast<OIIO_Filesystem_IOProxy *>(
+        new OIIO::Filesystem::IOMemReader(buf, size));
+}
+
+void OIIO_Filesytem_IOMemReader_delete(struct OIIO_Filesystem_IOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    delete ioproxy;
 }
 
 OIIO_ImageInput *OIIO_ImageInput_open(OIIO_StringView chemin,
@@ -688,4 +735,39 @@ OIIO_ImageSpec *OIIO_ImageInput_spec(OIIO_ImageInput *image)
     auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
     auto résultat = &oiio_image->spec();
     return reinterpret_cast<OIIO_ImageSpec *>(const_cast<OIIO::ImageSpec *>(résultat));
+}
+
+bool OIIO_ImageInput_supports(OIIO_ImageInput *image, OIIO_StringView feature)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    auto oiio_feature = std::string_view(feature.characters, feature.size);
+    return oiio_image->supports(oiio_feature);
+}
+
+bool OIIO_ImageInput_read_image(OIIO_ImageInput *image,
+                                int subimage,
+                                int miplevel,
+                                int chbegin,
+                                int chend,
+                                OIIO_TypeDesc format,
+                                void *data,
+                                int64_t xstride,
+                                int64_t ystride,
+                                int64_t zstride,
+                                OIIO_ProgressCallback progress_callback,
+                                void *progress_callback_data)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    auto oiio_format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
+    return oiio_image->read_image(subimage,
+                                  miplevel,
+                                  chbegin,
+                                  chend,
+                                  oiio_format,
+                                  data,
+                                  xstride,
+                                  ystride,
+                                  zstride,
+                                  progress_callback,
+                                  progress_callback_data);
 }
