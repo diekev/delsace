@@ -665,6 +665,13 @@ bool OIIO_ImageOutput_open(struct OIIO_ImageOutput *output,
                            struct OIIO_ImageSpec *newspec,
                            enum OIIO_ImageOutput_OpenMode open_mode);
 
+bool OIIO_ImageOutput_open_subimages(struct OIIO_ImageOutput *output,
+                                     struct OIIO_StringView filename,
+                                     struct OIIO_ImageSpec *newspec,
+                                     int specnum);
+
+struct OIIO_ImageSpec *OIIO_ImageOutput_spec(struct OIIO_ImageOutput *output);
+
 bool OIIO_ImageOutput_supports(struct OIIO_ImageOutput *output, struct OIIO_StringView feature);
 
 bool OIIO_ImageOutput_write_image(struct OIIO_ImageOutput *output,
@@ -675,6 +682,19 @@ bool OIIO_ImageOutput_write_image(struct OIIO_ImageOutput *output,
                                   int64_t zstride,
                                   OIIO_ProgressCallback progress_callback,
                                   void *progress_callback_data);
+
+bool OIIO_ImageOutput_write_scanline(int y,
+                                     struct OIIO_ImageOutput *output,
+                                     struct OIIO_TypeDesc format,
+                                     uint8_t *bytes,
+                                     uint64_t num_bytes);
+
+bool OIIO_ImageOutput_write_scanlines(int ybegin,
+                                      int yend,
+                                      struct OIIO_ImageOutput *output,
+                                      struct OIIO_TypeDesc format,
+                                      uint8_t *bytes,
+                                      uint64_t num_bytes);
 
 #ifdef __cplusplus
 }

@@ -814,6 +814,24 @@ bool OIIO_ImageOutput_open(struct OIIO_ImageOutput *output,
     return oiio_output->open(oiio_filename, *oiio_newspec, oiio_open_mode);
 }
 
+bool OIIO_ImageOutput_open_subimages(struct OIIO_ImageOutput *output,
+                                     struct OIIO_StringView filename,
+                                     struct OIIO_ImageSpec *newspec,
+                                     int specnum)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_filename = std::string(filename.characters, filename.size);
+    auto oiio_newspec = reinterpret_cast<OIIO::ImageSpec *>(newspec);
+    return oiio_output->open(oiio_filename, specnum, oiio_newspec);
+}
+
+OIIO_ImageSpec *OIIO_ImageOutput_spec(OIIO_ImageOutput *output)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto résultat = &oiio_output->spec();
+    return reinterpret_cast<OIIO_ImageSpec *>(const_cast<OIIO::ImageSpec *>(résultat));
+}
+
 bool OIIO_ImageOutput_supports(OIIO_ImageOutput *output, OIIO_StringView feature)
 {
     auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
@@ -834,4 +852,33 @@ bool OIIO_ImageOutput_write_image(struct OIIO_ImageOutput *output,
     auto oiio_format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
     return oiio_output->write_image(
         oiio_format, data, xstride, ystride, zstride, progress_callback, progress_callback_data);
+}
+
+bool OIIO_ImageOutput_write_scanline(int y,
+                                     struct OIIO_ImageOutput *output,
+                                     struct OIIO_TypeDesc format,
+                                     uint8_t *bytes,
+                                     uint64_t num_bytes)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
+    auto const &spec = oiio_output->spec();
+    const OIIO::span<std::byte> data(reinterpret_cast<std::byte *>(bytes), num_bytes);
+    const OIIO::image_span<std::byte> image_data(data.data(), spec.nchannels, spec.width, 1, 1);
+    return oiio_output->write_scanline(y, oiio_format, image_data);
+}
+
+bool OIIO_ImageOutput_write_scanlines(int ybegin,
+                                      int yend,
+                                      struct OIIO_ImageOutput *output,
+                                      struct OIIO_TypeDesc format,
+                                      uint8_t *bytes,
+                                      uint64_t num_bytes)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
+    auto const &spec = oiio_output->spec();
+    const OIIO::span<std::byte> data(reinterpret_cast<std::byte *>(bytes), num_bytes);
+    const OIIO::image_span<std::byte> image_data(data.data(), spec.nchannels, spec.width, 1, 1);
+    return oiio_output->write_scanlines(ybegin, yend, oiio_format, image_data);
 }
