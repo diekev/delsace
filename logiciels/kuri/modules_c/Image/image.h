@@ -553,7 +553,67 @@ struct OIIO_Filesystem_IOProxy;
 
 struct OIIO_Filesystem_IOProxy *OIIO_Filesytem_IOMemReader_new(void *buf, uint64_t size);
 
-void OIIO_Filesytem_IOMemReader_delete(struct OIIO_Filesystem_IOProxy *proxy);
+struct OIIO_IOProxy_Callbacks {
+    const char *(*proxytype)(struct OIIO_IOProxy_Callbacks *base);
+    void (*close)(struct OIIO_IOProxy_Callbacks *base);
+    bool (*opened)(struct OIIO_IOProxy_Callbacks *base);
+    int64_t (*tell)(struct OIIO_IOProxy_Callbacks *base);
+    // Seek to the position, returning true on success, false on failure.
+    // Note the difference between this and std::fseek() which returns 0 on
+    // success, and -1 on failure.
+    bool (*seek)(struct OIIO_IOProxy_Callbacks *base, int64_t offset);
+    // Read `size` bytes at the current position into `buf[]`, returning the
+    // number of bytes successfully read.
+    uint64_t (*read)(struct OIIO_IOProxy_Callbacks *base, void *buf, uint64_t size);
+    // Write `size` bytes from `buf[]` at the current position, returning the
+    // number of bytes successfully written.
+    uint64_t (*write)(struct OIIO_IOProxy_Callbacks *base, const void *buf, uint64_t size);
+
+    /// Read `size` bytes starting at the `offset` position into `buf[]`,
+    /// returning the number of bytes successfully read. This function does
+    /// not alter the current file position. This function is thread-safe against
+    /// all other concurrent calls to pread() and pwrite(), but not against any
+    /// other function of IOProxy.
+    uint64_t (*pread)(struct OIIO_IOProxy_Callbacks *base,
+                      void *buf,
+                      uint64_t size,
+                      int64_t offset);
+
+    /// Write `size` bytes from `buf[]` to file starting at the `offset` position,
+    /// returning the number of bytes successfully written. This function does
+    /// not alter the current file position. This function is thread-safe against
+    /// all other concurrent calls to pread() and pwrite(), but not against any
+    /// other function of IOProxy.
+    uint64_t (*pwrite)(struct OIIO_IOProxy_Callbacks *base,
+                       const void *buf,
+                       uint64_t size,
+                       int64_t offset);
+
+    // Return the total size of the proxy data, in bytes.
+    uint64_t (*size)(struct OIIO_IOProxy_Callbacks *base);
+    void (*flush)(struct OIIO_IOProxy_Callbacks *base);
+
+    // Filled by OIIO_IOProxy_Filesystem_new_from_callbacks
+    struct OIIO_Filesystem_IOProxy *proxy;
+};
+
+struct OIIO_Filesystem_IOProxy *OIIO_Filesystem_IOProxy_new_from_callbacks(
+    struct OIIO_IOProxy_Callbacks *callbacks);
+
+void OIIO_Filesystem_IOProxy_delete(struct OIIO_Filesystem_IOProxy *proxy);
+
+const char *OIIO_Filesytem_IOProxy_proxytype(struct OIIO_Filesystem_IOProxy *proxy);
+
+enum OIIO_Filesystem_IOProxy_Mode {
+    OIIO_FILESYSTEM_IOPROXY_MODE_CREATE = 0,
+    OIIO_FILESYSTEM_IOPROXY_MODE_READ = 114,
+    OIIO_FILESYSTEM_IOPROXY_MODE_WRITE = 119,
+};
+
+enum OIIO_Filesystem_IOProxy_Mode OIIO_Filesystem_IOProxy_mode(
+    struct OIIO_Filesystem_IOProxy *proxy);
+
+struct OIIO_StringView OIIO_Filesystem_IOProxy_filename(struct OIIO_Filesystem_IOProxy *proxy);
 
 struct OIIO_ImageInput;
 

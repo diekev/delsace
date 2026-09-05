@@ -638,10 +638,136 @@ struct OIIO_Filesystem_IOProxy *OIIO_Filesytem_IOMemReader_new(void *buf, uint64
         new OIIO::Filesystem::IOMemReader(buf, size));
 }
 
-void OIIO_Filesytem_IOMemReader_delete(struct OIIO_Filesystem_IOProxy *proxy)
+class Custom_IOProxy final : public OIIO::Filesystem::IOProxy {
+    OIIO_IOProxy_Callbacks *m_callbacks = nullptr;
+
+  public:
+    Custom_IOProxy(OIIO_IOProxy_Callbacks *callbacks)
+        : OIIO::Filesystem::IOProxy(), m_callbacks(callbacks)
+    {
+    }
+
+    const char *proxytype() const override
+    {
+        if (m_callbacks->proxytype) {
+            return m_callbacks->proxytype(m_callbacks);
+        }
+        return "";
+    }
+
+    void close() override
+    {
+        if (m_callbacks->close) {
+            m_callbacks->close(m_callbacks);
+        }
+    }
+
+    bool opened() const override
+    {
+        if (m_callbacks->opened) {
+            m_callbacks->opened(m_callbacks);
+        }
+        return OIIO::Filesystem::IOProxy::opened();
+    }
+
+    int64_t tell() const override
+    {
+        if (m_callbacks->tell) {
+            m_callbacks->tell(m_callbacks);
+        }
+        return OIIO::Filesystem::IOProxy::tell();
+    }
+
+    bool seek(int64_t offset) override
+    {
+        if (m_callbacks->seek) {
+            m_callbacks->seek(m_callbacks, offset);
+        }
+        return OIIO::Filesystem::IOProxy::seek(offset);
+    }
+
+    size_t read(void *buf, size_t size) override
+    {
+        if (m_callbacks->read) {
+            return m_callbacks->read(m_callbacks, buf, size);
+        }
+        return 0;
+    }
+
+    size_t write(const void *buf, size_t size) override
+    {
+        if (m_callbacks->write) {
+            return m_callbacks->write(m_callbacks, buf, size);
+        }
+        return 0;
+    }
+
+    size_t pread(void *buf, size_t size, int64_t offset) override
+    {
+        if (m_callbacks->pread) {
+            return m_callbacks->pread(m_callbacks, buf, size, offset);
+        }
+        return 0;
+    }
+
+    size_t pwrite(const void *buf, size_t size, int64_t offset) override
+    {
+        if (m_callbacks->pwrite) {
+            return m_callbacks->pwrite(m_callbacks, buf, size, offset);
+        }
+        return 0;
+    }
+
+    size_t size() const override
+    {
+        if (m_callbacks->size) {
+            m_callbacks->size(m_callbacks);
+        }
+        return OIIO::Filesystem::IOProxy::size();
+    }
+
+    void flush() override
+    {
+        if (m_callbacks->flush) {
+            m_callbacks->flush(m_callbacks);
+        }
+    }
+};
+
+struct OIIO_Filesystem_IOProxy *OIIO_Filesystem_IOProxy_new_from_callbacks(
+    struct OIIO_IOProxy_Callbacks *callbacks)
+{
+    auto résultat = reinterpret_cast<OIIO_Filesystem_IOProxy *>(new Custom_IOProxy(callbacks));
+    callbacks->proxy = résultat;
+    return résultat;
+}
+
+void OIIO_Filesystem_IOProxy_delete(struct OIIO_Filesystem_IOProxy *proxy)
 {
     auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
     delete ioproxy;
+}
+
+const char *OIIO_Filesytem_IOProxy_proxytype(struct OIIO_Filesystem_IOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    return ioproxy->proxytype();
+}
+
+enum OIIO_Filesystem_IOProxy_Mode OIIO_Filesystem_IOProxy_mode(
+    struct OIIO_Filesystem_IOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    return static_cast<OIIO_Filesystem_IOProxy_Mode>(ioproxy->mode());
+}
+
+OIIO_StringView OIIO_Filesystem_IOProxy_filename(struct OIIO_Filesystem_IOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    auto résultat = OIIO_StringView();
+    résultat.characters = ioproxy->filename().c_str();
+    résultat.size = ioproxy->filename().size();
+    return résultat;
 }
 
 OIIO_ImageInput *OIIO_ImageInput_open(OIIO_StringView chemin,

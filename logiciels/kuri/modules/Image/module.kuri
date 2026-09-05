@@ -243,7 +243,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     }
 
     proxy_image := OIIO_Filesytem_IOMemReader_new(données.données, données.taille comme n64);
-    diffère OIIO_Filesytem_IOMemReader_delete(proxy_image);
+    diffère OIIO_Filesystem_IOProxy_delete(proxy_image);
 
     input := OIIO_ImageInput_open(chemin, nul, proxy_image);
     saufsi input {
