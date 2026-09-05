@@ -529,13 +529,23 @@ struct OIIO_ImageSpec {
     char data[OIIO_IMAGESPEC_SIZE];
 } __attribute__((aligned(OIIO_IMAGESPEC_ALIGNMENT)));
 
+void OIIO_ImageSpec_init(struct OIIO_ImageSpec *spec);
+
 int OIIO_ImageSpec_donne_width(struct OIIO_ImageSpec *spec);
+
+void OIIO_ImageSpec_definis_width(struct OIIO_ImageSpec *spec, int width);
 
 int OIIO_ImageSpec_donne_height(struct OIIO_ImageSpec *spec);
 
+void OIIO_ImageSpec_definis_height(struct OIIO_ImageSpec *spec, int height);
+
 int OIIO_ImageSpec_donne_nchannels(struct OIIO_ImageSpec *spec);
 
+void OIIO_ImageSpec_definis_nchannels(struct OIIO_ImageSpec *spec, int nchannels);
+
 struct OIIO_TypeDesc OIIO_ImageSpec_donne_format(struct OIIO_ImageSpec *spec);
+
+void OIIO_ImageSpec_definis_format(struct OIIO_ImageSpec *spec, struct OIIO_TypeDesc format);
 
 struct OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(struct OIIO_ImageSpec *spec);
 
@@ -575,6 +585,38 @@ bool OIIO_ImageInput_read_image(struct OIIO_ImageInput *image,
                                 int64_t zstride,
                                 OIIO_ProgressCallback progress_callback,
                                 void *progress_callback_data);
+
+struct OIIO_ImageOutput;
+
+struct OIIO_ImageOutput *OIIO_ImageOutput_create(struct OIIO_StringView filename,
+                                                 struct OIIO_Filesystem_IOProxy *ioproxy,
+                                                 struct OIIO_StringView plugin_searchpath);
+
+bool OIIO_ImageOutput_close(struct OIIO_ImageOutput *output);
+
+void OIIO_ImageOutput_delete(struct OIIO_ImageOutput *output);
+
+enum OIIO_ImageOutput_OpenMode {
+    OIIO_IMAGEOUTPUT_OPENMODE_CREATE,
+    OIIO_IMAGEOUTPUT_OPENMODE_APPEND_SUB_IMAGE,
+    OIIO_IMAGEOUTPUT_OPENMODE_APPEND_MIP_LEVEL,
+};
+
+bool OIIO_ImageOutput_open(struct OIIO_ImageOutput *output,
+                           struct OIIO_StringView filename,
+                           struct OIIO_ImageSpec *newspec,
+                           enum OIIO_ImageOutput_OpenMode open_mode);
+
+bool OIIO_ImageOutput_supports(struct OIIO_ImageOutput *output, struct OIIO_StringView feature);
+
+bool OIIO_ImageOutput_write_image(struct OIIO_ImageOutput *output,
+                                  struct OIIO_TypeDesc format,
+                                  const void *data,
+                                  int64_t xstride,
+                                  int64_t ystride,
+                                  int64_t zstride,
+                                  OIIO_ProgressCallback progress_callback,
+                                  void *progress_callback_data);
 
 #ifdef __cplusplus
 }
