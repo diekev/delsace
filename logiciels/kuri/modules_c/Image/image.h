@@ -411,6 +411,13 @@ struct OIIO_StringView {
     uint64_t size;
 };
 
+int OIIO_get_int_attribute(struct OIIO_StringView name, int default_value);
+
+float OIIO_get_float_attribute(struct OIIO_StringView name, float default_value);
+
+struct OIIO_StringView OIIO_get_string_attribute(struct OIIO_StringView name,
+                                                 struct OIIO_StringView default_value);
+
 #define OIIO_USTRING_SIZE 8
 #define OIIO_USTRING_ALIGNMENT 8
 

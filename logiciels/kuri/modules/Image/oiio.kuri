@@ -1,3 +1,19 @@
+OIIO_get_int_attribute :: fonc (nom: chaine, valeur_défaut := 0) -> z32
+{
+    retourne OIIO_get_int_attribute(vers_oiio(nom), valeur_défaut);
+}
+
+OIIO_get_float_attribute :: fonc (nom: chaine, valeur_défaut := 0) -> z32
+{
+    retourne OIIO_get_float_attribute(vers_oiio(nom), valeur_défaut);
+}
+
+OIIO_get_string_attribute :: fonc (nom: chaine, valeur_défaut := "") -> chaine
+{
+    résultat := OIIO_get_string_attribute(vers_oiio(nom), vers_oiio(valeur_défaut));
+    retourne chaine(résultat.characters, résultat.size comme z64);
+}
+
 OIIO_ImageInput_open :: fonc (chemin: chaine, config: *OIIO_ImageSpec = nul, ioproxy: *OIIO_Filesystem_IOProxy = nul) -> *OIIO_ImageInput
 {
     retourne OIIO_ImageInput_open(vers_oiio(chemin), config, ioproxy);

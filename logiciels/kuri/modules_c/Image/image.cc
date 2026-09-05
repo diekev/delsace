@@ -510,6 +510,28 @@ int64_t OIIO_AutoStride()
     return OIIO::AutoStride;
 }
 
+int OIIO_get_int_attribute(struct OIIO_StringView name, int default_value)
+{
+    return OIIO::get_int_attribute(std::string_view(name.characters, name.size), default_value);
+}
+
+float OIIO_get_float_attribute(struct OIIO_StringView name, float default_value)
+{
+    return OIIO::get_float_attribute(std::string_view(name.characters, name.size), default_value);
+}
+
+struct OIIO_StringView OIIO_get_string_attribute(struct OIIO_StringView name,
+                                                 struct OIIO_StringView default_value)
+{
+    auto attribut = OIIO::get_string_attribute(
+        std::string_view(name.characters, name.size),
+        std::string_view(default_value.characters, default_value.size));
+    auto résultat = OIIO_StringView();
+    résultat.characters = attribut.data();
+    résultat.size = attribut.size();
+    return résultat;
+}
+
 static_assert(sizeof(OIIO::ustring) == sizeof(OIIO_ustring));
 static_assert(alignof(OIIO::ustring) == alignof(OIIO_ustring));
 
