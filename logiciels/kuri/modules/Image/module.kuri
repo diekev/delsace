@@ -1107,11 +1107,10 @@ compare_info_image_supportée_par_nom :: fonc (a: InfoFormatImageSupporté, b: I
 
 donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
 {
-    liste_extensions := IMG_donne_liste_extensions();
-    chn_liste_extensions := chaine(liste_extensions.caractères, liste_extensions.taille comme z64);
+    liste_extensions := OIIO_get_string_attribute("extension_list");
 
-    nombre_de_doubles_points := compte_occurences_de(chn_liste_extensions, ':');
-    nombre_de_virgules := compte_occurences_de(chn_liste_extensions, ',');
+    nombre_de_doubles_points := compte_occurences_de(liste_extensions, ':');
+    nombre_de_virgules := compte_occurences_de(liste_extensions, ',');
 
     nombre_d_extensions := nombre_de_virgules + nombre_de_doubles_points;
 
@@ -1119,7 +1118,7 @@ donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
     /* + 3 pour SVG, GIF, et WebP */
     tableau_réserve(*résultat, nombre_de_doubles_points + 3);
 
-    paires_type_extensions := divise(chn_liste_extensions, ';');
+    paires_type_extensions := divise(liste_extensions, ';');
     diffère déloge(*paires_type_extensions);
 
     type_et_extensions: [..]chaine;

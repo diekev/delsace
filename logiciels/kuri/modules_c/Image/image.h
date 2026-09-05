@@ -218,8 +218,6 @@ enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
                                                       struct AdaptriceImage *image,
                                                       struct ImageIO_RappelsProgression *rappels);
 
-struct ImageIO_Chaine IMG_donne_liste_extensions(void);
-
 void IMG_donne_erreur(struct ImageIO_Chaine *résultat);
 
 // ----------------------------------------------------------------------------

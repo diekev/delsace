@@ -270,15 +270,6 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
     return ResultatOperation::OK;
 }
 
-ImageIO_Chaine IMG_donne_liste_extensions(void)
-{
-    auto all_extensions = OIIO::get_string_attribute("extension_list");
-    ImageIO_Chaine résultat;
-    résultat.caractères = all_extensions.data();
-    résultat.taille = all_extensions.size();
-    return résultat;
-}
-
 void IMG_donne_erreur(ImageIO_Chaine *résultat)
 {
     auto erreur = OIIO::geterror();
