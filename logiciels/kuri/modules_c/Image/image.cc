@@ -363,35 +363,6 @@ ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
     return ResultatOperation::OK;
 }
 
-ResultatOperation IMG_ecris_image(const char *chemin, ImageIO *image)
-{
-    if (!image || image->donnees == nullptr || image->taille_donnees == 0 || image->hauteur == 0 ||
-        image->largeur == 0) {
-        return ResultatOperation::IMAGE_NULLE;
-    }
-
-    auto out = OIIO::ImageOutput::create(chemin);
-
-    if (out == nullptr) {
-        return ResultatOperation::IMAGE_INEXISTANTE;
-    }
-
-    auto type_desc = donne_typedesc_depuis_data_type(image->format);
-
-    auto spec = OIIO::ImageSpec(
-        image->largeur, image->hauteur, image->nombre_composants, type_desc);
-    out->open(chemin, spec);
-
-    if (!out->write_image(type_desc, image->donnees)) {
-        out->close();
-        return ResultatOperation::IMAGE_INEXISTANTE;
-    }
-
-    out->close();
-
-    return ResultatOperation::OK;
-}
-
 void IMG_detruit_image(ImageIO *image)
 {
     delete[] image->donnees;

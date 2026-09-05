@@ -65,8 +65,6 @@ enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
                                                     uint64_t taille,
                                                     struct ImageIO *resultat);
 
-enum ResultatOperation IMG_ecris_image(const char *chemin, struct ImageIO *image);
-
 void IMG_detruit_image(struct ImageIO *image);
 
 void IMG_calcule_empreinte_floue_octet(unsigned char *image,

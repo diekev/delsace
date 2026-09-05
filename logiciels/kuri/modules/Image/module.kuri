@@ -446,44 +446,30 @@ liboiio_util :: #bibliothèque "OpenImageIO_Util";
 
 écris_image :: fonc (chemin: CheminFichier, image: NouvelleImage)
 {
-    image_io: ImageIO = ---;
-    image_io.largeur = image.desc.largeur comme z32;
-    image_io.hauteur = image.desc.hauteur comme z32;
-    image_io.donnees = image.données comme *n8;
-
-    discr image.desc.format {
-        Gris_8 {
-            image_io.format = ImageIO_DataType.UINT8;
-            image_io.nombre_composants = 1;
-        }
-        RVB_8 {
-            image_io.format = ImageIO_DataType.UINT8;
-            image_io.nombre_composants = 3;
-        }
-        RVBA_8 {
-            image_io.format = ImageIO_DataType.UINT8;
-            image_io.nombre_composants = 4;
-        }
-        Gris_32 {
-            image_io.format = ImageIO_DataType.FLOAT;
-            image_io.nombre_composants = 1;
-        }
-        RVB_32 {
-            image_io.format = ImageIO_DataType.FLOAT;
-            image_io.nombre_composants = 3;
-        }
-        RVBA_32 {
-            image_io.format = ImageIO_DataType.FLOAT;
-            image_io.nombre_composants = 4;
-        }
+    output := OIIO_ImageOutput_create(chemin.chn);
+    saufsi output {
+        imprimeln("Impossible de créer l'écrivain pour l'image '%'", chemin.chn);
+        retourne;
     }
 
-    image_io.taille_donnees = donne_taille_données(*image.desc);
+    diffère {
+        _ := OIIO_ImageOutput_close(output);
+        OIIO_ImageOutput_delete(output);
+    }
 
-    chn_c_sortie := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(*chn_c_sortie);
+    type_desc := donne_typedesc(image.desc);
+    spec: OIIO_ImageSpec;
+    initialise_image_spec(*spec, type_desc, image.desc);
 
-    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image_io);
+    saufsi OIIO_ImageOutput_open(output, chemin.chn, *spec) {
+        imprimeln("Impossible d'ouvrir l'image '%' pour l'écriture", chemin.chn);
+        retourne;
+    }
+
+    saufsi oiio_write_image(output, type_desc, image.données, OIIO_AutoStride(), OIIO_AutoStride(), OIIO_AutoStride()) {
+        imprimeln("Impossible d'écrire l'image '%'", chemin.chn);
+        retourne;
+    }
 }
 
 /* ------------------------------------------------------------------------- */

@@ -13,6 +13,21 @@ oiio_read_image :: fonc (image: *OIIO_ImageInput, subimage: z32, miplevel: z32, 
     retourne OIIO_ImageInput_read_image(image, subimage, miplevel, chbegin, chend, format, data, xstride, ystride, zstride, progress_callback, progress_callback_data);
 }
 
+OIIO_ImageOutput_create :: fonc (chemin: chaine, ioproxy: *OIIO_Filesystem_IOProxy = nul, plugin_searchpath := "") -> *OIIO_ImageOutput
+{
+    retourne OIIO_ImageOutput_create(vers_oiio(chemin), ioproxy, vers_oiio(plugin_searchpath));
+}
+
+OIIO_ImageOutput_open :: fonc (output: *OIIO_ImageOutput, chemin: chaine, spec: *OIIO_ImageSpec, mode := OIIO_ImageOutput_OpenMode.CREATE) -> bool
+{
+    retourne OIIO_ImageOutput_open(output, vers_oiio(chemin), spec, mode);
+}
+
+oiio_write_image :: fonc (output: *OIIO_ImageOutput, format: OIIO_TypeDesc, data: *rien, xstride: z64, ystride: z64, zstride: z64, progress_callback: OIIO_ProgressCallback = nul, progress_callback_data: *rien = nul) -> bool
+{
+    retourne OIIO_ImageOutput_write_image(output, format, data, xstride, ystride, zstride, progress_callback, progress_callback_data);
+}
+
 donne_extra_attribs :: fonc (spec: *OIIO_ImageSpec) -> []OIIO_ParamValue
 {
     résultat: []OIIO_ParamValue;
@@ -92,4 +107,41 @@ donne_descriptrice_depuis_oiio :: fonc (spec: *OIIO_ImageSpec, typedesc_désiré
     }
 
     retourne desc;
+}
+
+donne_typedesc :: fonc (desc: DescriptriceImage) -> OIIO_TypeDesc
+{
+    résultat: OIIO_TypeDesc;
+    résultat.aggregate = OIIO_TYPEDESC_AGGREGATE.SCALAR comme n32 comme n8;
+
+    discr desc.format {
+        Gris_8, RVB_8, RVBA_8 {
+            résultat.basetype = OIIO_TYPEDESC_BASETYPE.UINT8 comme n32 comme n8;
+        }
+        Gris_32, RVB_32, RVBA_32 {
+            résultat.basetype = OIIO_TYPEDESC_BASETYPE.FLOAT comme n32 comme n8;
+        }
+    }
+
+    retourne résultat;
+}
+
+initialise_image_spec :: fonc (spec: *OIIO_ImageSpec, format: OIIO_TypeDesc, desc: DescriptriceImage)
+{
+    OIIO_ImageSpec_init(spec);
+    OIIO_ImageSpec_definis_width(spec, desc.largeur comme z32);
+    OIIO_ImageSpec_definis_height(spec, desc.hauteur comme z32);
+    OIIO_ImageSpec_definis_format(spec, format);
+
+    discr desc.format {
+        Gris_8, Gris_32 {
+            OIIO_ImageSpec_definis_nchannels(spec, 1);
+        }
+        RVB_8, RVB_32 {
+            OIIO_ImageSpec_definis_nchannels(spec, 3);
+        }
+        RVBA_8, RVBA_32 {
+            OIIO_ImageSpec_definis_nchannels(spec, 4);
+        }
+    }
 }
