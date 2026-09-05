@@ -213,11 +213,6 @@ enum ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
                                                       struct ImageIO_RappelsProgression *rappels,
                                                       enum ImageIO_Options_Lecture options);
 
-enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
-                                                      int64_t taille_chemin,
-                                                      struct AdaptriceImage *image,
-                                                      struct ImageIO_RappelsProgression *rappels);
-
 void IMG_donne_erreur(struct ImageIO_Chaine *résultat);
 
 // ----------------------------------------------------------------------------
