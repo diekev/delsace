@@ -500,7 +500,7 @@ const void *OIIO_ParamValue_data(OIIO_ParamValue *param)
     return oiio_param->data();
 }
 
-int OIIO_ParamValue_nvavlues(struct OIIO_ParamValue *param)
+int OIIO_ParamValue_nvalues(struct OIIO_ParamValue *param)
 {
     auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
     return oiio_param->nvalues();

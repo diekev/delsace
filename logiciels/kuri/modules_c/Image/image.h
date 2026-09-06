@@ -497,7 +497,7 @@ struct OIIO_StringView OIIO_ParamValue_name(struct OIIO_ParamValue *param);
 
 const void *OIIO_ParamValue_data(struct OIIO_ParamValue *param);
 
-int OIIO_ParamValue_nvavlues(struct OIIO_ParamValue *param);
+int OIIO_ParamValue_nvalues(struct OIIO_ParamValue *param);
 
 #define OIIO_IMAGESPEC_SIZE 160
 #define OIIO_IMAGESPEC_ALIGNMENT 8
