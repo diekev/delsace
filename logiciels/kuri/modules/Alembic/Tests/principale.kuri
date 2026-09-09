@@ -33,17 +33,38 @@ principale :: fonc ()
         // applications_et_descriptions: [..]Application_Et_Description;
 
         pour chemins {
-            test_données_manquantes_blender(it);
+            chemin_archive_courante = it;
+            archive_courante_fut_imprimée = faux;
+
+            imprime_infos_attributs(it);
         }
     }
     sinon {
-        test_données_manquantes_blender(chemin);
+        chemin_archive_courante = chemin;
+        archive_courante_fut_imprimée = faux;
+
+        imprime_infos_attributs(chemin);
     }
 
     // imprime_métadonnées_archives(chemin);
 }
 
 chemin_archive_courante: chaine;
+archive_courante_fut_imprimée: bool;
+
+imprime_chemin_archive_courante :: fonc (avec_taille := faux)
+{
+    saufsi archive_courante_fut_imprimée {
+        si avec_taille {
+            taille := détermine_taille_fichier(chemin_archive_courante);
+            imprimeln("% (% octets)", chemin_archive_courante, taille);
+        }
+        sinon {
+            imprimeln("%", chemin_archive_courante);
+        }
+        archive_courante_fut_imprimée = vrai;
+    }
+}
 
 imprime_temps_archive :: fonc (chemin: chaine)
 {
@@ -123,9 +144,6 @@ imprime_métadonnées_archives :: fonc (chemin: chaine)
 
 imprime_hiérarchie_archive :: fonc (chemin: chaine)
 {
-    chemin_archive_courante = chemin;
-    archive_courante_fut_imprimée = faux;
-
     iarchive := abc_input_archive_create(chemin);
     saufsi iarchive {
         imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
@@ -263,6 +281,8 @@ Filtre_Objet :: énum_drapeau {
     SUBD;
     XFORM;
     INSTANCE_ROOT;
+
+    ALL :: CAMERA | CURVES | LIGHT | MATERIAL | NUPATCH | POLYMESH | POINTS | SUBD | XFORM | INSTANCE_ROOT;
 }
 
 rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header, résultat: *[..]Abc_Generic_Input_Object, filtre: Filtre_Objet)
@@ -377,8 +397,6 @@ imprime_metadata :: fonc (metadata: *Abc_MetaData)
     }
 }
 
-archive_courante_fut_imprimée: bool;
-
 imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
 {
     saufsi abc_input_compound_property_valid(props) {
@@ -392,10 +410,7 @@ imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
         retourne;
     }
 
-    // saufsi archive_courante_fut_imprimée {
-    //     imprimeln("%", chemin_archive_courante);
-    //     archive_courante_fut_imprimée = vrai;
-    // }
+    // imprime_chemin_archive_courante();
 
     pour prop_index dans num {
         prop_header := abc_input_compound_property_get_property_header(props, prop_index);
@@ -582,9 +597,6 @@ imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property, prop_hea
 
 imprime_informations_subd :: fonc (chemin: chaine)
 {
-    chemin_archive_courante = chemin;
-    archive_courante_fut_imprimée = faux;
-
     iarchive := abc_input_archive_create(chemin);
     saufsi iarchive {
         imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
@@ -614,10 +626,7 @@ traverse_hiérarchie_pour_subd :: fonc (parent: Abc_Generic_Input_Object, header
         subd := abc_input_subd_get(parent, nom);
         next_object = subd;
 
-        saufsi archive_courante_fut_imprimée {
-            imprimeln("%", chemin_archive_courante);
-            archive_courante_fut_imprimée = vrai;
-        }
+        imprime_chemin_archive_courante();
 
         abc_input_object_get_full_name(next_object, *nom);
         imprimeln("    %", vers_kuri(nom));
@@ -656,9 +665,6 @@ traverse_hiérarchie_pour_subd :: fonc (parent: Abc_Generic_Input_Object, header
 
 imprime_informations_points :: fonc (chemin: chaine)
 {
-    chemin_archive_courante = chemin;
-    archive_courante_fut_imprimée = faux;
-
     iarchive := abc_input_archive_create(chemin);
     saufsi iarchive {
         imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
@@ -688,11 +694,7 @@ traverse_hiérarchie_pour_points :: fonc (parent: Abc_Generic_Input_Object, head
         points := abc_input_points_get(parent, nom);
         next_object = points;
 
-        saufsi archive_courante_fut_imprimée {
-            taille := détermine_taille_fichier(chemin_archive_courante);
-            imprimeln("% (% octets)", chemin_archive_courante, taille);
-            archive_courante_fut_imprimée = vrai;
-        }
+        imprime_chemin_archive_courante(vrai);
 
         abc_input_object_get_full_name(next_object, *nom);
         imprimeln("    %", vers_kuri(nom));
@@ -717,9 +719,6 @@ traverse_hiérarchie_pour_points :: fonc (parent: Abc_Generic_Input_Object, head
 
 test_données_manquantes_blender :: fonc (chemin: chaine)
 {
-    chemin_archive_courante = chemin;
-    archive_courante_fut_imprimée = faux;
-
     iarchive := abc_input_archive_create(chemin);
     saufsi iarchive {
         imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
@@ -799,14 +798,84 @@ donne_arb_geom_params :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Co
     résultat: *Abc_Input_Compound_Property;
 
     header := abc_input_object_get_header(objet);
-    si abc_object_header_matches_points(header) {
-        résultat = abc_input_points_get_arb_geom_params(objet.points);
+    si abc_input_object_is_instance_root(objet.object) {
+        /* Pas de .arbGeomParams. */
     }
-    sinon si abc_object_header_matches_polymesh(header) {
-        résultat = abc_input_polymesh_get_arb_geom_params(objet.polymesh);
+    sinon si abc_object_header_matches_camera(header) {
+        schema := abc_input_camera_get_schema(objet.camera);
+        résultat = abc_input_camera_schema_get_arb_geom_params(schema);
     }
     sinon si abc_object_header_matches_curves(header) {
-        résultat = abc_input_curves_get_arb_geom_params(objet.curves);
+        schema := abc_input_curves_get_schema(objet.curves);
+        résultat = abc_input_curves_schema_get_arb_geom_params(schema);
+    }
+    sinon si abc_object_header_matches_light(header) {
+        /* À FAIRE. */
+    }
+    sinon si abc_object_header_matches_material(header) {
+        /* Pas de arbGeomParams. */
+    }
+    sinon si abc_object_header_matches_nupatch(header) {
+        /* À FAIRE. */
+    }
+    sinon si abc_object_header_matches_points(header) {
+        schema := abc_input_points_get_schema(objet.points);
+        résultat = abc_input_points_schema_get_arb_geom_params(schema);
+    }
+    sinon si abc_object_header_matches_polymesh(header) {
+        schema := abc_input_polymesh_get_schema(objet.polymesh);
+        résultat = abc_input_polymesh_schema_get_arb_geom_params(schema);
+    }
+    sinon si abc_object_header_matches_subd(header) {
+        schema := abc_input_subd_get_schema(objet.subd);
+        résultat = abc_input_subd_schema_get_arb_geom_params(schema);
+    }
+    sinon si abc_object_header_matches_xform(header) {
+        /* À FAIRE. */
+    }
+
+    retourne résultat;
+}
+
+donne_user_properties :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Compound_Property
+{
+    résultat: *Abc_Input_Compound_Property;
+
+    header := abc_input_object_get_header(objet);
+    si abc_input_object_is_instance_root(objet.object) {
+        /* Pas de .arbGeomParams. */
+    }
+    sinon si abc_object_header_matches_camera(header) {
+        schema := abc_input_camera_get_schema(objet.camera);
+        résultat = abc_input_camera_schema_get_user_properties(schema);
+    }
+    sinon si abc_object_header_matches_curves(header) {
+        schema := abc_input_curves_get_schema(objet.curves);
+        résultat = abc_input_curves_schema_get_user_properties(schema);
+    }
+    sinon si abc_object_header_matches_light(header) {
+        /* À FAIRE. */
+    }
+    sinon si abc_object_header_matches_material(header) {
+        /* Pas de userProperties. */
+    }
+    sinon si abc_object_header_matches_nupatch(header) {
+        /* À FAIRE. */
+    }
+    sinon si abc_object_header_matches_points(header) {
+        schema := abc_input_points_get_schema(objet.points);
+        résultat = abc_input_points_schema_get_user_properties(schema);
+    }
+    sinon si abc_object_header_matches_polymesh(header) {
+        schema := abc_input_polymesh_get_schema(objet.polymesh);
+        résultat = abc_input_polymesh_schema_get_user_properties(schema);
+    }
+    sinon si abc_object_header_matches_subd(header) {
+        schema := abc_input_subd_get_schema(objet.subd);
+        résultat = abc_input_subd_schema_get_user_properties(schema);
+    }
+    sinon si abc_object_header_matches_xform(header) {
+        /* À FAIRE. */
     }
 
     retourne résultat;
@@ -832,9 +901,6 @@ donne_num_samples_schema :: fonc (objet: Abc_Generic_Input_Object) -> n64
 
 imprime_animation_attributs :: fonc (chemin: chaine)
 {
-    chemin_archive_courante = chemin;
-    archive_courante_fut_imprimée = faux;
-
     iarchive := abc_input_archive_create(chemin);
     saufsi iarchive {
         imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
@@ -1061,6 +1127,90 @@ rassemble_points :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             rassemble_points(next_object, header, meshes);
         }
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Infos attributs
+ * \{ */
+
+imprime_infos_attributs :: fonc (chemin: chaine)
+{
+    iarchive := abc_input_archive_create(chemin);
+    saufsi iarchive {
+        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
+        retourne;
+    }
+    diffère abc_input_archive_destroy(iarchive);
+
+    top := abc_input_archive_get_top(iarchive);
+    saufsi abc_input_object_valid(top) {
+        imprimeln("L'object top n'est pas valide");
+        retourne;
+    }
+
+    objets: [..]Abc_Generic_Input_Object;
+    filtre := Filtre_Objet.ALL;
+
+    pour abc_input_object_get_num_children(top) {
+        header := abc_input_object_get_child_header(top, it);
+        rassemble_objets(top, header, *objets, filtre);
+    }
+
+    pour objets {
+        user_properties := donne_user_properties(it);
+        si user_properties {
+            imprime_infos_properties(user_properties, donne_full_name(it), "User Properties");
+        }
+        arb_geom_params := donne_arb_geom_params(it);
+        si arb_geom_params {
+            imprime_infos_properties(arb_geom_params, donne_full_name(it), "Arb Geom Params");
+        }
+    }
+}
+
+imprime_infos_properties :: fonc (props: *Abc_Input_Compound_Property, nom_objet: chaine, message: chaine)
+{
+    saufsi abc_input_compound_property_valid(props) {
+       retourne;
+    }
+
+    num := abc_input_compound_property_get_num_properties(props);
+    si num == 0 {
+        retourne;
+    }
+
+    première := vrai;
+
+    pour prop_index dans num {
+        prop_header := abc_input_compound_property_get_property_header(props, prop_index);
+        prop_type := abc_property_header_get_property_type(prop_header);
+
+        si prop_type == Abc_Property_Type.SCALAR {
+            imprime_infos_objet(props, prop_header, nom_objet, message, première);
+            première = faux;
+        }
+        // sinon si prop_type == Abc_Property_Type.ARRAY {
+        //     imprime_infos_objet(props, prop_header, nom_objet, message, première);
+        //     première = faux;
+        // }
+    }
+}
+
+imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *Abc_Property_Header, nom_objet: chaine, message: chaine, première: bool)
+{
+    imprime_chemin_archive_courante();
+    si première {
+        imprimeln("   % on '%'", message, nom_objet);
+    }
+
+    // prop_name: Abc_String;
+    // abc_property_header_get_name(prop_header, *prop_name);
+
+    // imprimeln("       %", vers_kuri(prop_name));
+
+    imprime_propriété_scalaire(props, prop_header);
 }
 
 /** \} */

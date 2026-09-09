@@ -676,11 +676,13 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
     void abc_input_##lname##_schema_get_value(struct Abc_Input_##uname##_Schema *schema,          \
                                               struct Abc_Input_##uname##_Schema_Sample *sample,   \
                                               struct Abc_Sample_Selector selector);               \
-    void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Schema_Sample *sample);    \
-    void abc_input_##lname##_sample_get_self_bounds(                                              \
+    void abc_input_##lname##_schema_sample_destroy(                                               \
+        struct Abc_Input_##uname##_Schema_Sample *sample);                                        \
+    void abc_input_##lname##_schema_sample_get_self_bounds(                                       \
         struct Abc_Input_##uname##_Schema_Sample *sample, Abc_Box3d *r_box);                      \
-    bool abc_input_##lname##_sample_valid(struct Abc_Input_##uname##_Schema_Sample *sample);      \
-    void abc_input_##lname##_sample_reset(struct Abc_Input_##uname##_Schema_Sample *sample);
+    bool abc_input_##lname##_schema_sample_valid(                                                 \
+        struct Abc_Input_##uname##_Schema_Sample *sample);                                        \
+    void abc_input_##lname##_schema_sample_reset(struct Abc_Input_##uname##_Schema_Sample *sample);
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
@@ -750,8 +752,8 @@ bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
 DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 
-Abc_String abc_input_subd_sample_get_subdivision_scheme(
-    struct Abc_Input_SubD_Schema_Sample *subd_sample);
+Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
+    struct Abc_Input_SubD_Schema_Sample *sample);
 
 /** \} */
 

@@ -1112,7 +1112,8 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
     {                                                                                             \
         return schema->impl->isConstant();                                                        \
     }                                                                                             \
-    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname##_Schema *schema)       \
+    uint64_t abc_input_##lname##_schema_get_num_samples(                                          \
+        struct Abc_Input_##uname##_Schema *schema)                                                \
     {                                                                                             \
         auto résultat = schema->impl->getNumSamples();                                            \
         return résultat;                                                                          \
@@ -1324,13 +1325,13 @@ bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
-Abc_String abc_input_subd_sample_get_subdivision_scheme(
-    struct Abc_Input_SubD_Schema_Sample *subd_sample)
+Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
+    struct Abc_Input_SubD_Schema_Sample *sample)
 {
-    subd_sample->subdivision_scheme = subd_sample->sample.getSubdivisionScheme();
+    sample->subdivision_scheme = sample->sample.getSubdivisionScheme();
 
     Abc_String résultat;
-    vers_abc_string(&résultat, subd_sample->subdivision_scheme);
+    vers_abc_string(&résultat, sample->subdivision_scheme);
     return résultat;
 }
 
