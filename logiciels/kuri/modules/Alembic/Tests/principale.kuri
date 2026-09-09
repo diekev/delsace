@@ -623,6 +623,7 @@ imprime_animation_attributs :: fonc (chemin: chaine)
         retourne;
     }
 
+    // ----------- PolyMesh
     meshes: [..]*Abc_Input_PolyMesh;
 
     pour abc_input_object_get_num_children(top) {
@@ -640,6 +641,45 @@ imprime_animation_attributs :: fonc (chemin: chaine)
     polymesh := meshes[0];
 
     arb_geom_params := abc_input_polymesh_get_arb_geom_params(polymesh);
+
+    // ----------- Curves
+    // curves: [..]*Abc_Input_Curves;
+
+    // pour abc_input_object_get_num_children(top) {
+    //     header := abc_input_object_get_child_header(top, it);
+    //     rassemble_curves(top, header, *curves);
+    // }
+
+    // saufsi curves {
+    //     imprimeln("Aucune courbe");
+    //     retourne;
+    // }
+
+    // imprimeln("Trouvé % curves", curves.taille);
+
+    // curve := curves[0];
+
+    // arb_geom_params := abc_input_curves_get_arb_geom_params(curve);
+
+    // ----------- Points
+    // points: [..]*Abc_Input_Points;
+
+    // pour abc_input_object_get_num_children(top) {
+    //     header := abc_input_object_get_child_header(top, it);
+    //     rassemble_points(top, header, *points);
+    // }
+
+    // saufsi points {
+    //     imprimeln("Aucune courbe");
+    //     retourne;
+    // }
+
+    // imprimeln("Trouvé % points", points.taille);
+
+    // point := points[0];
+
+    // arb_geom_params := abc_input_points_get_arb_geom_params(point);
+
     saufsi abc_input_compound_property_valid(arb_geom_params) {
         retourne;
     }
@@ -658,13 +698,15 @@ imprime_animation_attributs :: fonc (chemin: chaine)
     abc_property_header_get_name(prop_header, *prop_name);
 
     geom_param := abc_input_float_geom_param_get(arb_geom_params, prop_name);
+    num_samples_geom_params := abc_input_float_geom_param_get_num_samples(geom_param);
+    imprimeln("num_samples_geom_params : %", num_samples_geom_params);
 
     ts := abc_input_float_geom_param_get_time_sampling(geom_param);
 
     start_frame, end_frame, ips := calcule_limites_animation_en_image(iarchive, ts);
 
     pour start_frame ... end_frame {
-        time := it comme r64 / ips;
+        time := indice_it comme r64 / ips;
         imprimeln("sample at time : % (frame %)", time, it);
 
         selector: Abc_Sample_Selector;
@@ -744,6 +786,54 @@ rassemble_polymesh :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Objec
         pour abc_input_object_get_num_children(next_object) {
             header = abc_input_object_get_child_header(next_object, it);
             rassemble_polymesh(next_object, header, meshes);
+        }
+    }
+}
+
+rassemble_curves :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header, meshes: *[..]*Abc_Input_Curves)
+{
+    nom: Abc_String;
+    abc_object_header_get_name(header, *nom);
+    next_object: Abc_Generic_Input_Object;
+    
+    si abc_object_header_matches_curves(header) {
+        curves := abc_input_curves_get(parent, nom);
+        next_object = curves;
+
+        tableau_ajoute(meshes, curves);
+    }
+    sinon {
+        next_object = abc_input_object_get_child(parent, nom);
+    }
+
+    si abc_input_object_valid(next_object) {
+        pour abc_input_object_get_num_children(next_object) {
+            header = abc_input_object_get_child_header(next_object, it);
+            rassemble_curves(next_object, header, meshes);
+        }
+    }
+}
+
+rassemble_points :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header, meshes: *[..]*Abc_Input_Points)
+{
+    nom: Abc_String;
+    abc_object_header_get_name(header, *nom);
+    next_object: Abc_Generic_Input_Object;
+    
+    si abc_object_header_matches_points(header) {
+        points := abc_input_points_get(parent, nom);
+        next_object = points;
+
+        tableau_ajoute(meshes, points);
+    }
+    sinon {
+        next_object = abc_input_object_get_child(parent, nom);
+    }
+
+    si abc_input_object_valid(next_object) {
+        pour abc_input_object_get_num_children(next_object) {
+            header = abc_input_object_get_child_header(next_object, it);
+            rassemble_points(next_object, header, meshes);
         }
     }
 }
