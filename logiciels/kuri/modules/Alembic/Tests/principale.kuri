@@ -24,6 +24,8 @@ principale :: fonc ()
         exit(1);
     }
 
+    nom_test := "infos-attributs";
+
     si est_un_dossier(CheminFichier(chemin)) {
         chemins: [..]chaine;
         diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -36,14 +38,14 @@ principale :: fonc ()
             chemin_archive_courante = it;
             archive_courante_fut_imprimée = faux;
 
-            imprime_infos_attributs(it);
+            fais_test_archive(it, nom_test);
         }
     }
     sinon {
         chemin_archive_courante = chemin;
         archive_courante_fut_imprimée = faux;
 
-        imprime_infos_attributs(chemin);
+        fais_test_archive(chemin, nom_test);
     }
 
     // imprime_métadonnées_archives(chemin);
@@ -63,6 +65,38 @@ imprime_chemin_archive_courante :: fonc (avec_taille := faux)
             imprimeln("%", chemin_archive_courante);
         }
         archive_courante_fut_imprimée = vrai;
+    }
+}
+
+fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
+{
+    si nom_test == "temps-archive" {
+        imprime_temps_archive(chemin);
+    }
+    sinon si nom_test == "métadonnées" {
+        imprime_métadonnées_archives(chemin);
+    }
+    sinon si nom_test == "hiérarchie" {
+        imprime_hiérarchie_archive(chemin);
+    }
+    sinon si nom_test == "subd" {
+        imprime_informations_subd(chemin);
+    }
+    sinon si nom_test == "points" {
+        imprime_informations_points(chemin);
+    }
+    sinon si nom_test == "données-manquantes-blender" {
+        test_données_manquantes_blender(chemin);
+    }
+    sinon si nom_test == "animation-attributs" {
+        imprime_animation_attributs(chemin);
+    }
+    sinon si nom_test == "infos-attributs" {
+        imprime_infos_attributs(chemin);
+    }
+    sinon {
+        imprimeln("Test '%' inconnu", nom_test);
+        exit(1);
     }
 }
 
@@ -173,19 +207,13 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
     nom: Abc_String;
     abc_object_header_get_name(header, *nom);
     next_object: Abc_Generic_Input_Object;
-    user_properties: *Abc_Input_Compound_Property;
-    arb_geom_params: *Abc_Input_Compound_Property;
     
     si abc_object_header_matches_camera(header) {
         camera := abc_input_camera_get(parent, nom);
-        user_properties = abc_input_camera_get_user_properties(camera);
-        arb_geom_params = abc_input_camera_get_arb_geom_params(camera);
         next_object = camera;
     }
     sinon si abc_object_header_matches_curves(header) {
         curves := abc_input_curves_get(parent, nom);
-        user_properties = abc_input_curves_get_user_properties(curves);
-        arb_geom_params = abc_input_curves_get_arb_geom_params(curves);
         next_object = curves;
     }
     sinon si abc_object_header_matches_faceset(header) {
@@ -193,44 +221,30 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
     }
     sinon si abc_object_header_matches_light(header) {
         light := abc_input_light_get(parent, nom);
-        user_properties = abc_input_light_get_user_properties(light);
-        arb_geom_params = abc_input_light_get_arb_geom_params(light);
         next_object = light;
     }
     sinon si abc_object_header_matches_material(header) {
         material := abc_input_material_get(parent, nom);
-        user_properties = abc_input_material_get_user_properties(material);
-        arb_geom_params = abc_input_material_get_arb_geom_params(material);
         next_object = material;
     }
     sinon si abc_object_header_matches_nupatch(header) {
         nupatch := abc_input_nupatch_get(parent, nom);
-        user_properties = abc_input_nupatch_get_user_properties(nupatch);
-        arb_geom_params = abc_input_nupatch_get_arb_geom_params(nupatch);
         next_object = nupatch;
     }
     sinon si abc_object_header_matches_points(header) {
         points := abc_input_points_get(parent, nom);
-        user_properties = abc_input_points_get_user_properties(points);
-        arb_geom_params = abc_input_points_get_arb_geom_params(points);
         next_object = points;
     }
     sinon si abc_object_header_matches_polymesh(header) {
         polymesh := abc_input_polymesh_get(parent, nom);
-        user_properties = abc_input_polymesh_get_user_properties(polymesh);
-        arb_geom_params = abc_input_polymesh_get_arb_geom_params(polymesh);
         next_object = polymesh;
     }
     sinon si abc_object_header_matches_subd(header) {
         subd := abc_input_subd_get(parent, nom);
-        user_properties = abc_input_subd_get_user_properties(subd);
-        arb_geom_params = abc_input_subd_get_arb_geom_params(subd);
         next_object = subd;
     }
     sinon si abc_object_header_matches_xform(header) {
         xform := abc_input_xform_get(parent, nom);
-        user_properties = abc_input_xform_get_user_properties(xform);
-        arb_geom_params = abc_input_xform_get_arb_geom_params(xform);
         next_object = xform;
     }
     sinon {
@@ -256,9 +270,11 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
             imprimeln("    visibility : %", visibility);
         }
 
+        user_properties := donne_user_properties(next_object);
         si user_properties {
             imprime_properties(user_properties, "User Properties");
         }
+        arb_geom_params := donne_arb_geom_params(next_object);
         si arb_geom_params {
             imprime_properties(arb_geom_params, "Arb Geom Params");
         }
@@ -634,13 +650,14 @@ traverse_hiérarchie_pour_subd :: fonc (parent: Abc_Generic_Input_Object, header
         selector: Abc_Sample_Selector;
         selector.requested_index = 0;
 
-        subd_sample := abc_input_subd_get_sample(subd, selector);
-        diffère abc_input_subd_sample_destroy(subd_sample);
+        schema := abc_input_subd_get_schema(subd);
+        subd_sample := abc_input_subd_schema_get(schema, selector);
+        diffère abc_input_subd_schema_sample_destroy(subd_sample);
 
-        face_varying_interpolate_boundary : = abc_input_subd_sample_get_face_varying_interpolate_boundary(subd_sample);
-        face_varying_propagate_corners : = abc_input_subd_sample_get_face_varying_propagate_corners(subd_sample);
-        interpolate_boundary : = abc_input_subd_sample_get_interpolate_boundary(subd_sample);
-        subdivision_scheme : = abc_input_subd_sample_get_subdivision_scheme(subd_sample);
+        face_varying_interpolate_boundary : = abc_input_subd_schema_sample_get_face_varying_interpolate_boundary(subd_sample);
+        face_varying_propagate_corners : = abc_input_subd_schema_sample_get_face_varying_propagate_corners(subd_sample);
+        interpolate_boundary : = abc_input_subd_schema_sample_get_interpolate_boundary(subd_sample);
+        subdivision_scheme : = abc_input_subd_schema_sample_get_subdivision_scheme(subd_sample);
 
         imprimeln("    face_varying_interpolate_boundary : %", face_varying_interpolate_boundary);
         imprimeln("    face_varying_propagate_corners    : %", face_varying_propagate_corners);
@@ -887,13 +904,16 @@ donne_num_samples_schema :: fonc (objet: Abc_Generic_Input_Object) -> n64
 
     header := abc_input_object_get_header(objet);
     si abc_object_header_matches_points(header) {
-        résultat = abc_input_points_get_num_samples(objet.points);
+        schema := abc_input_points_get_schema(objet.points);
+        résultat = abc_input_points_schema_get_num_samples(schema);
     }
     sinon si abc_object_header_matches_polymesh(header) {
-        résultat = abc_input_polymesh_get_num_samples(objet.polymesh);
+        schema := abc_input_polymesh_get_schema(objet.polymesh);
+        résultat = abc_input_polymesh_schema_get_num_samples(schema);
     }
     sinon si abc_object_header_matches_curves(header) {
-        résultat = abc_input_curves_get_num_samples(objet.curves);
+        schema := abc_input_curves_get_schema(objet.curves);
+        résultat = abc_input_curves_schema_get_num_samples(schema);
     }
 
     retourne résultat;
@@ -931,7 +951,8 @@ imprime_animation_attributs :: fonc (chemin: chaine)
 
     polymesh := meshes[0];
 
-    arb_geom_params := abc_input_polymesh_get_arb_geom_params(polymesh);
+    schema := abc_input_polymesh_get_schema(polymesh);
+    arb_geom_params := abc_input_polymesh_schema_get_arb_geom_params(schema);
 
     // ----------- Curves
     // curves: [..]*Abc_Input_Curves;
