@@ -1007,6 +1007,15 @@ struct Abc_Object_Header *abc_input_object_get_child_header(Abc_Generic_Input_Ob
     return résultat;
 }
 
+struct Abc_Object_Header *abc_input_object_get_header(Abc_Generic_Input_Object object)
+{
+    const AbcGeom::ObjectHeader &header = object.object->untyped_object.getHeader();
+    auto résultat = kuri_loge<Abc_Object_Header>(object.object->archive->ctx_kuri, header);
+    résultat->ctx_kuri = object.object->archive->ctx_kuri;
+    liste_ajoute(&object.object->archive->headers, résultat);
+    return résultat;
+}
+
 struct Abc_Input_Object *abc_input_object_get_child(Abc_Generic_Input_Object object,
                                                     struct Abc_String name)
 {

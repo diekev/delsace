@@ -605,6 +605,8 @@ void abc_input_object_get_full_name(union Abc_Generic_Input_Object object,
 
 bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
 
+struct Abc_Object_Header *abc_input_object_get_header(union Abc_Generic_Input_Object object);
+
 struct Abc_Input_Visibility_Property *abc_input_object_get_visibility_property(
     union Abc_Generic_Input_Object object);
 enum Abc_Object_Visibility abc_input_visibility_property_get(
