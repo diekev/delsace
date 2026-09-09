@@ -33,11 +33,11 @@ principale :: fonc ()
         // applications_et_descriptions: [..]Application_Et_Description;
 
         pour chemins {
-            imprime_animation_attributs(it);
+            test_données_manquantes_blender(it);
         }
     }
     sinon {
-        imprime_animation_attributs(chemin);
+        test_données_manquantes_blender(chemin);
     }
 
     // imprime_métadonnées_archives(chemin);
@@ -248,6 +248,116 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
         pour abc_input_object_get_num_children(next_object) {
             header = abc_input_object_get_child_header(next_object, it);
             traverse_hiérarchie(next_object, header);
+        }
+    }
+}
+
+Filtre_Objet :: énum_drapeau {
+    CAMERA;
+    CURVES;
+    LIGHT;
+    MATERIAL;
+    NUPATCH;
+    POLYMESH;
+    POINTS;
+    SUBD;
+    XFORM;
+    INSTANCE_ROOT;
+}
+
+rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header, résultat: *[..]Abc_Generic_Input_Object, filtre: Filtre_Objet)
+{
+    nom: Abc_String;
+    abc_object_header_get_name(header, *nom);
+    next_object: Abc_Generic_Input_Object;
+    
+    si abc_object_header_matches_camera(header) {
+        camera := abc_input_camera_get(parent, nom);
+        next_object = camera;
+
+        si filtre.CAMERA {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon si abc_object_header_matches_curves(header) {
+        curves := abc_input_curves_get(parent, nom);
+        next_object = curves;
+
+        si filtre.CURVES {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon si abc_object_header_matches_faceset(header) {
+        /* Les FaceSet sont gérés via les PolyMesh et SubD. */
+    }
+    sinon si abc_object_header_matches_light(header) {
+        light := abc_input_light_get(parent, nom);
+        next_object = light;
+
+        si filtre.LIGHT {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon si abc_object_header_matches_material(header) {
+        material := abc_input_material_get(parent, nom);
+        next_object = material;
+
+        si filtre.MATERIAL {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon si abc_object_header_matches_nupatch(header) {
+        nupatch := abc_input_nupatch_get(parent, nom);
+        next_object = nupatch;
+
+        si filtre.NUPATCH {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon si abc_object_header_matches_points(header) {
+        points := abc_input_points_get(parent, nom);
+        next_object = points;
+
+        si filtre.POINTS {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon si abc_object_header_matches_polymesh(header) {
+        polymesh := abc_input_polymesh_get(parent, nom);
+        next_object = polymesh;
+
+        si filtre.POLYMESH {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon si abc_object_header_matches_subd(header) {
+        subd := abc_input_subd_get(parent, nom);
+        next_object = subd;
+
+        si filtre.SUBD {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon si abc_object_header_matches_xform(header) {
+        xform := abc_input_xform_get(parent, nom);
+        next_object = xform;
+
+        si filtre.XFORM {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+    sinon {
+        next_object = abc_input_object_get_child(parent, nom);
+
+        si abc_input_object_is_instance_root(next_object.object) && filtre.INSTANCE_ROOT {
+            tableau_ajoute(résultat, next_object);
+        }
+    }
+
+    si abc_input_object_valid(next_object) {
+        pour abc_input_object_get_num_children(next_object) {
+            header = abc_input_object_get_child_header(next_object, it);
+            rassemble_objets(next_object, header, résultat, filtre);
         }
     }
 }
@@ -604,6 +714,121 @@ traverse_hiérarchie_pour_points :: fonc (parent: Abc_Generic_Input_Object, head
 /* ------------------------------------------------------------------------- */
 /** \nom Animation Attributs
  * \{ */
+
+test_données_manquantes_blender :: fonc (chemin: chaine)
+{
+    chemin_archive_courante = chemin;
+    archive_courante_fut_imprimée = faux;
+
+    iarchive := abc_input_archive_create(chemin);
+    saufsi iarchive {
+        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
+        retourne;
+    }
+    diffère abc_input_archive_destroy(iarchive);
+
+    top := abc_input_archive_get_top(iarchive);
+    saufsi abc_input_object_valid(top) {
+        imprimeln("L'object top n'est pas valide");
+        retourne;
+    }
+
+    objets: [..]Abc_Generic_Input_Object;
+    filtre: Filtre_Objet;
+    filtre.CURVES = vrai;
+    filtre.POLYMESH = vrai;
+    filtre.POINTS = vrai;
+
+    pour abc_input_object_get_num_children(top) {
+        header := abc_input_object_get_child_header(top, it);
+        rassemble_objets(top, header, *objets, filtre);
+    }
+
+    saufsi objets {
+        imprimeln("Aucun objet");
+        retourne;
+    }
+
+    pour objets {
+        arb_geom_params := donne_arb_geom_params(it);
+        nom := donne_full_name(it);
+
+        saufsi arb_geom_params {
+            imprimeln("Pas de .arbGeomParam pour '%'", nom);
+            continue;
+        }
+
+        saufsi abc_input_compound_property_valid(arb_geom_params) {
+            imprimeln(".arbGeomParam invalide pour '%'", nom);
+            continue;
+        }
+
+        num_properties := abc_input_compound_property_get_num_properties(arb_geom_params);
+        si num_properties == 0 {
+            imprimeln("aucune propriété pour '%'", nom);
+            continue;
+        }
+
+        prop_header := abc_input_compound_property_get_property_header(arb_geom_params, 0);
+        saufsi abc_input_float_geom_param_matches(prop_header) {
+            imprimeln("le premier attribut n'est pas float pour '%'", nom);
+            continue;
+        }
+
+        prop_name: Abc_String;
+        abc_property_header_get_name(prop_header, *prop_name);
+
+        geom_param := abc_input_float_geom_param_get(arb_geom_params, prop_name);
+        num_samples_geom_params := abc_input_float_geom_param_get_num_samples(geom_param);
+        imprimeln("%:", nom);
+        num_schema_samples := donne_num_samples_schema(it);
+        imprimeln("    num_schema_samples      : %", num_schema_samples);
+        imprimeln("    num_samples_geom_params : %", num_samples_geom_params);
+    }
+}
+
+donne_full_name :: fonc (objet: Abc_Generic_Input_Object) -> chaine
+{
+    nom: Abc_String;
+    abc_input_object_get_full_name(objet, *nom);
+    retourne vers_kuri(nom);
+}
+
+donne_arb_geom_params :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Compound_Property
+{
+    résultat: *Abc_Input_Compound_Property;
+
+    header := abc_input_object_get_header(objet);
+    si abc_object_header_matches_points(header) {
+        résultat = abc_input_points_get_arb_geom_params(objet.points);
+    }
+    sinon si abc_object_header_matches_polymesh(header) {
+        résultat = abc_input_polymesh_get_arb_geom_params(objet.polymesh);
+    }
+    sinon si abc_object_header_matches_curves(header) {
+        résultat = abc_input_curves_get_arb_geom_params(objet.curves);
+    }
+
+    retourne résultat;
+}
+
+donne_num_samples_schema :: fonc (objet: Abc_Generic_Input_Object) -> n64
+{
+    résultat: n64;
+
+    header := abc_input_object_get_header(objet);
+    si abc_object_header_matches_points(header) {
+        résultat = abc_input_points_get_num_samples(objet.points);
+    }
+    sinon si abc_object_header_matches_polymesh(header) {
+        résultat = abc_input_polymesh_get_num_samples(objet.polymesh);
+    }
+    sinon si abc_object_header_matches_curves(header) {
+        résultat = abc_input_curves_get_num_samples(objet.curves);
+    }
+
+    retourne résultat;
+}
 
 imprime_animation_attributs :: fonc (chemin: chaine)
 {
