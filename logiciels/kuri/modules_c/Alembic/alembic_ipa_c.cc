@@ -958,21 +958,30 @@ struct Abc_Input_Object {
     Abc_Input_Object *next = nullptr;
     AbcGeom::IObject untyped_object{};
 
+    Abc_MetaData metadata_{};
+
+    bool metadata_initialized = false;
+};
+
+struct Abc_Input_Schema {
+    Abc_Input_Archive *archive = nullptr;
+    std::vector<std::string> face_set_names_std_string{};
+    std::vector<Abc_String> face_set_names_abc_string{};
+
     Abc_Input_Compound_Property arb_geom_params{};
     Abc_Input_Compound_Property user_properties{};
-    Abc_MetaData metadata_{};
 
     bool arb_geom_params_initialized = false;
     bool user_properties_initialized = false;
-    bool metadata_initialized = false;
-
-    std::vector<std::string> face_set_names_std_string{};
-    std::vector<Abc_String> face_set_names_abc_string{};
 };
 
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
+    struct Abc_Input_##type_kuri##_Schema : public Abc_Input_Schema {                             \
+        type_abc##Schema *impl = nullptr;                                                         \
+    };                                                                                            \
     struct Abc_Input_##type_kuri : public Abc_Input_Object {                                      \
         type_abc typed_object{};                                                                  \
+        Abc_Input_##type_kuri##_Schema schema{};                                                  \
     };
 
 ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
@@ -1053,38 +1062,6 @@ Abc_Object_Visibility abc_input_visibility_property_get(Abc_Input_Visibility_Pro
     return static_cast<Abc_Object_Visibility>(valeur);
 }
 
-template <typename TypedObject>
-Abc_Input_Compound_Property *get_arb_geom_params(TypedObject *object)
-{
-    if (object->arb_geom_params_initialized == false) {
-        object->arb_geom_params.prop = object->typed_object.getSchema().getArbGeomParams();
-        object->arb_geom_params.archive = object->archive;
-        object->arb_geom_params_initialized = true;
-    }
-    return &object->arb_geom_params;
-}
-
-static Abc_Input_Compound_Property *get_arb_geom_params(Abc_Input_Material *object)
-{
-    return &object->arb_geom_params;
-}
-
-template <typename TypedObject>
-Abc_Input_Compound_Property *get_user_properties(TypedObject *object)
-{
-    if (object->user_properties_initialized == false) {
-        object->user_properties.prop = object->typed_object.getSchema().getUserProperties();
-        object->user_properties.archive = object->archive;
-        object->user_properties_initialized = true;
-    }
-    return &object->user_properties;
-}
-
-static Abc_Input_Compound_Property *get_user_properties(Abc_Input_Material *object)
-{
-    return &object->user_properties;
-}
-
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
     Abc_Input_##type_kuri *abc_input_##lname##_get(Abc_Generic_Input_Object parent,               \
                                                    Abc_String name)                               \
@@ -1093,16 +1070,6 @@ static Abc_Input_Compound_Property *get_user_properties(Abc_Input_Material *obje
         résultat->typed_object = type_abc(parent.object->untyped_object, name);                   \
         résultat->untyped_object = résultat->typed_object;                                        \
         return résultat;                                                                          \
-    }                                                                                             \
-    Abc_Input_Compound_Property *abc_input_##lname##_get_arb_geom_params(                         \
-        Abc_Input_##type_kuri *object)                                                            \
-    {                                                                                             \
-        return get_arb_geom_params(object);                                                       \
-    }                                                                                             \
-    Abc_Input_Compound_Property *abc_input_##lname##_get_user_properties(                         \
-        Abc_Input_##type_kuri *object)                                                            \
-    {                                                                                             \
-        return get_user_properties(object);                                                       \
     }
 
 ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
@@ -1127,54 +1094,59 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
     }
 
 #define DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(uname, lname)                                        \
-    struct Abc_Time_Sampling *abc_input_##lname##_schema_get_time_sampling(                       \
+    struct Abc_Input_##uname##_Schema *abc_input_##lname##_get_schema(                            \
         struct Abc_Input_##uname *lname)                                                          \
     {                                                                                             \
-        return make_time_sampling(lname->archive,                                                 \
-                                  lname->typed_object.getSchema().getTimeSampling());             \
+        if (lname->schema.impl == nullptr) {                                                      \
+            lname->schema.impl = &lname->typed_object.getSchema();                                \
+            lname->schema.archive = lname->archive;                                               \
+        }                                                                                         \
+        return &lname->schema;                                                                    \
     }                                                                                             \
-    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname)                  \
+    struct Abc_Time_Sampling *abc_input_##lname##_schema_get_time_sampling(                       \
+        struct Abc_Input_##uname##_Schema *schema)                                                \
     {                                                                                             \
-        return lname->typed_object.getSchema().isConstant();                                      \
+        return make_time_sampling(schema->archive, schema->impl->getTimeSampling());              \
     }                                                                                             \
-    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname)                 \
+    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname##_Schema *schema)        \
     {                                                                                             \
-        auto résultat = lname->typed_object.getSchema().getNumSamples();                          \
+        return schema->impl->isConstant();                                                        \
+    }                                                                                             \
+    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname##_Schema *schema)       \
+    {                                                                                             \
+        auto résultat = schema->impl->getNumSamples();                                            \
         return résultat;                                                                          \
     }                                                                                             \
-    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname)                        \
+    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname##_Schema *schema)              \
     {                                                                                             \
-        lname->typed_object.getSchema().reset();                                                  \
+        schema->impl->reset();                                                                    \
     }                                                                                             \
-    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname)                        \
+    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname##_Schema *schema)              \
     {                                                                                             \
-        return lname->typed_object.getSchema().valid();                                           \
+        return schema->impl->valid();                                                             \
+    }                                                                                             \
+    Abc_Input_Compound_Property *abc_input_##lname##_schema_get_arb_geom_params(                  \
+        Abc_Input_##uname##_Schema *schema)                                                       \
+    {                                                                                             \
+        if (schema->arb_geom_params_initialized == false) {                                       \
+            schema->arb_geom_params.prop = schema->impl->getArbGeomParams();                      \
+            schema->arb_geom_params.archive = schema->archive;                                    \
+            schema->arb_geom_params_initialized = true;                                           \
+        }                                                                                         \
+        return &schema->arb_geom_params;                                                          \
+    }                                                                                             \
+    Abc_Input_Compound_Property *abc_input_##lname##_schema_get_user_properties(                  \
+        Abc_Input_##uname##_Schema *schema)                                                       \
+    {                                                                                             \
+        if (schema->user_properties_initialized == false) {                                       \
+            schema->user_properties.prop = schema->impl->getUserProperties();                     \
+            schema->user_properties.archive = schema->archive;                                    \
+            schema->user_properties_initialized = true;                                           \
+        }                                                                                         \
+        return &schema->user_properties;                                                          \
     }
 
 #define DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                        \
-    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
-        struct Abc_Input_##uname *lname)                                                          \
-    {                                                                                             \
-        return make_time_sampling(lname->archive,                                                 \
-                                  lname->typed_object.getSchema().getTimeSampling());             \
-    }                                                                                             \
-    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname)                  \
-    {                                                                                             \
-        return lname->typed_object.getSchema().isConstant();                                      \
-    }                                                                                             \
-    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname)                 \
-    {                                                                                             \
-        auto résultat = lname->typed_object.getSchema().getNumSamples();                          \
-        return résultat;                                                                          \
-    }                                                                                             \
-    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname)                        \
-    {                                                                                             \
-        lname->typed_object.getSchema().reset();                                                  \
-    }                                                                                             \
-    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname)                        \
-    {                                                                                             \
-        return lname->typed_object.getSchema().valid();                                           \
-    }                                                                                             \
     struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
         struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector)                     \
     {                                                                                             \
@@ -1209,41 +1181,41 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
  * \{ */
 
 template <typename Input_Schema_Object_Type>
-static void abc_input_object_schema_get_face_set_names(Input_Schema_Object_Type *object,
+static void abc_input_object_schema_get_face_set_names(Input_Schema_Object_Type *schema,
                                                        Abc_String **r_names,
                                                        uint64_t *r_count)
 {
-    if (object->face_set_names_std_string.empty()) {
-        object->typed_object.getSchema().getFaceSetNames(object->face_set_names_std_string);
+    if (schema->face_set_names_std_string.empty()) {
+        schema->impl->getFaceSetNames(schema->face_set_names_std_string);
 
-        object->face_set_names_abc_string.resize(object->face_set_names_std_string.size());
+        schema->face_set_names_abc_string.resize(schema->face_set_names_std_string.size());
 
-        auto strings = object->face_set_names_abc_string.data();
-        auto num_strings = object->face_set_names_abc_string.size();
+        auto strings = schema->face_set_names_abc_string.data();
+        auto num_strings = schema->face_set_names_abc_string.size();
         for (auto i = 0ul; i < num_strings; i++) {
-            vers_abc_string(strings++, object->face_set_names_std_string[i]);
+            vers_abc_string(strings++, schema->face_set_names_std_string[i]);
         }
     }
 
-    *r_names = object->face_set_names_abc_string.data();
-    *r_count = object->face_set_names_abc_string.size();
+    *r_names = schema->face_set_names_abc_string.data();
+    *r_count = schema->face_set_names_abc_string.size();
 }
 
 template <typename Input_Schema_Object_Type>
-struct Abc_Input_FaceSet *abc_input_object_schema_get_face_set(Input_Schema_Object_Type *object,
+struct Abc_Input_FaceSet *abc_input_object_schema_get_face_set(Input_Schema_Object_Type *schema,
                                                                Abc_String face_set_name)
 {
-    Abc_Input_FaceSet *résultat = make_object<Abc_Input_FaceSet>(object->archive);
-    résultat->typed_object = object->typed_object.getSchema().getFaceSet(face_set_name);
+    Abc_Input_FaceSet *résultat = make_object<Abc_Input_FaceSet>(schema->archive);
+    résultat->typed_object = schema->impl->getFaceSet(face_set_name);
     résultat->untyped_object = résultat->typed_object;
     return résultat;
 }
 
 template <typename Input_Schema_Object_Type>
-static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *object,
+static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *schema,
                                                  Abc_String face_set_name)
 {
-    return object->typed_object.getSchema().hasFaceSet(face_set_name);
+    return schema->impl->hasFaceSet(face_set_name);
 }
 
 /** \} */
@@ -1265,25 +1237,26 @@ struct Abc_Input_PolyMesh_Sample {
     AbcGeom::IPolyMeshSchema::Sample sample{};
 };
 
+DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(PolyMesh, polymesh)
 
-void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh *polymesh,
+void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh_Schema *schema,
                                                   Abc_String **r_names,
                                                   uint64_t *r_count)
 {
-    abc_input_object_schema_get_face_set_names(polymesh, r_names, r_count);
+    abc_input_object_schema_get_face_set_names(schema, r_names, r_count);
 }
 
 struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
-    struct Abc_Input_PolyMesh *polymesh, Abc_String face_set_name)
+    struct Abc_Input_PolyMesh_Schema *schema, Abc_String face_set_name)
 {
-    return abc_input_object_schema_get_face_set(polymesh, face_set_name);
+    return abc_input_object_schema_get_face_set(schema, face_set_name);
 }
 
-bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh *polymesh,
+bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh_Schema *schema,
                                             Abc_String face_set_name)
 {
-    return abc_input_object_schema_has_face_set(polymesh, face_set_name);
+    return abc_input_object_schema_has_face_set(schema, face_set_name);
 }
 
 DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
@@ -1317,24 +1290,26 @@ struct Abc_Input_SubD_Sample {
     std::string subdivision_scheme{};
 };
 
+DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(SubD, subd)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(SubD, subd)
 
-void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD *subd,
+void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD_Schema *schema,
                                               Abc_String **r_names,
                                               uint64_t *r_count)
 {
-    abc_input_object_schema_get_face_set_names(subd, r_names, r_count);
+    abc_input_object_schema_get_face_set_names(schema, r_names, r_count);
 }
 
-struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD *subd,
+struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD_Schema *schema,
                                                              Abc_String face_set_name)
 {
-    return abc_input_object_schema_get_face_set(subd, face_set_name);
+    return abc_input_object_schema_get_face_set(schema, face_set_name);
 }
 
-bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD *subd, Abc_String face_set_name)
+bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
+                                        Abc_String face_set_name)
 {
-    return abc_input_object_schema_has_face_set(subd, face_set_name);
+    return abc_input_object_schema_has_face_set(schema, face_set_name);
 }
 
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
@@ -1363,6 +1338,7 @@ struct Abc_Input_FaceSet_Sample {
     AbcGeom::IFaceSetSchema::Sample sample{};
 };
 
+DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, face_set)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, face_set)
 
 DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
@@ -1383,6 +1359,7 @@ struct Abc_Input_Points_Sample {
     AbcGeom::IPointsSchema::Sample sample{};
 };
 
+DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Points, points)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
 
 DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
@@ -1399,6 +1376,7 @@ struct Abc_Input_Curves_Sample {
     AbcGeom::ICurvesSchema::Sample sample{};
 };
 
+DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
 
 /** \} */
@@ -1487,20 +1465,20 @@ double abc_camera_sample_get_field_of_view(struct Abc_Camera_Sample *sample)
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Camera, camera)
 
-struct Abc_Camera_Sample *abc_input_camera_schema_get_value(struct Abc_Input_Camera *camera,
+struct Abc_Camera_Sample *abc_input_camera_schema_get_value(struct Abc_Input_Camera_Schema *schema,
                                                             struct Abc_Sample_Selector selector)
 {
-    auto résultat = kuri_loge<Abc_Camera_Sample>(camera->archive->ctx_kuri);
-    résultat->ctx_kuri = camera->archive->ctx_kuri;
-    résultat->sample = camera->typed_object.getSchema().getValue(get_sample_selector(selector));
+    auto résultat = kuri_loge<Abc_Camera_Sample>(schema->archive->ctx_kuri);
+    résultat->ctx_kuri = schema->archive->ctx_kuri;
+    résultat->sample = schema->impl->getValue(get_sample_selector(selector));
     return résultat;
 }
 
-void abc_input_camera_schema_get(struct Abc_Input_Camera *camera,
+void abc_input_camera_schema_get(struct Abc_Input_Camera_Schema *schema,
                                  struct Abc_Camera_Sample *sample,
                                  struct Abc_Sample_Selector selector)
 {
-    camera->typed_object.getSchema().get(sample->sample, get_sample_selector(selector));
+    schema->impl->get(sample->sample, get_sample_selector(selector));
 }
 
 /** \} */

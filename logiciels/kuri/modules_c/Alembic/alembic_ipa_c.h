@@ -614,12 +614,9 @@ enum Abc_Object_Visibility abc_input_visibility_property_get(
 
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
     struct Abc_Input_##type_kuri;                                                                 \
+    struct Abc_Input_##type_kuri##_Schema;                                                        \
     struct Abc_Input_##type_kuri *abc_input_##lname##_get(union Abc_Generic_Input_Object parent,  \
-                                                          struct Abc_String name);                \
-    struct Abc_Input_Compound_Property *abc_input_##lname##_get_arb_geom_params(                  \
-        struct Abc_Input_##type_kuri *object);                                                    \
-    struct Abc_Input_Compound_Property *abc_input_##lname##_get_user_properties(                  \
-        struct Abc_Input_##type_kuri *object);
+                                                          struct Abc_String name);
 
 ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 
@@ -658,21 +655,22 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
         struct Abc_Input_##uname##_Sample *lname##_sample);
 
 #define DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(uname, lname)                                       \
-    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname);                 \
-    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
+    struct Abc_Input_##uname##_Schema *abc_input_##lname##_get_schema(                            \
         struct Abc_Input_##uname *lname);                                                         \
-    uint64_t abc_input_##lname##_schema_get_num_samples(struct Abc_Input_##uname *lname);         \
-    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname);                       \
-    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname);
+    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname##_Schema *schema);       \
+    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
+        struct Abc_Input_##uname##_Schema *schema);                                               \
+    uint64_t abc_input_##lname##_schema_get_num_samples(                                          \
+        struct Abc_Input_##uname##_Schema *schema);                                               \
+    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname##_Schema *schema);             \
+    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname##_Schema *schema);             \
+    struct Abc_Input_Compound_Property *abc_input_##lname##_schema_get_arb_geom_params(           \
+        struct Abc_Input_##uname##_Schema *schema);                                               \
+    struct Abc_Input_Compound_Property *abc_input_##lname##_schema_get_user_properties(           \
+        struct Abc_Input_##uname##_Schema *schema);
 
 #define DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                       \
     struct Abc_Input_##uname##_Sample;                                                            \
-    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname);                 \
-    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
-        struct Abc_Input_##uname *lname);                                                         \
-    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname);                \
-    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname);                       \
-    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname);                       \
     struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
         struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector);                    \
     void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Sample *sample);           \
@@ -685,16 +683,17 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(PolyMesh, polymesh)
 
-void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh *polymesh,
+void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh_Schema *schema,
                                                   Abc_String **r_names,
                                                   uint64_t *r_count);
 
 struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
-    struct Abc_Input_PolyMesh *polymesh, Abc_String face_set_name);
+    struct Abc_Input_PolyMesh_Schema *schema, Abc_String face_set_name);
 
-bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh *polymesh,
+bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh_Schema *schema,
                                             Abc_String face_set_name);
 
 #define DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
@@ -711,16 +710,18 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 /** \nom Abc_Input_SubD_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(SubD, subd)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(SubD, subd)
 
-void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD *subd,
+void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD_Schema *schema,
                                               Abc_String **r_names,
                                               uint64_t *r_count);
 
-struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD *subd,
+struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD_Schema *schema,
                                                              Abc_String face_set_name);
 
-bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD *subd, Abc_String face_set_name);
+bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
+                                        Abc_String face_set_name);
 
 #define DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(X)                                                 \
     X(SubD,                                                                                       \
@@ -754,6 +755,7 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
 /** \nom Abc_Input_FaceSet_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, face_set)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, face_set)
 
 #define DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
@@ -767,6 +769,7 @@ DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 /** \nom Abc_Input_Points_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Points, points)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
 
 #define DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                               \
@@ -782,6 +785,7 @@ DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION
 /** \nom Abc_Input_Curves_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
 
 /** \} */
@@ -848,10 +852,10 @@ double abc_camera_sample_get_field_of_view(struct Abc_Camera_Sample *sample);
 
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Camera, camera)
 
-struct Abc_Camera_Sample *abc_input_camera_schema_get_value(struct Abc_Input_Camera *camera,
+struct Abc_Camera_Sample *abc_input_camera_schema_get_value(struct Abc_Input_Camera_Schema *camera,
                                                             struct Abc_Sample_Selector selector);
 
-void abc_input_camera_schema_get(struct Abc_Input_Camera *camera,
+void abc_input_camera_schema_get(struct Abc_Input_Camera_Schema *camera,
                                  struct Abc_Camera_Sample *sample,
                                  struct Abc_Sample_Selector selector);
 
