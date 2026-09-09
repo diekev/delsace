@@ -779,6 +779,14 @@ DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Curves_Sample
+ * \{ */
+
+DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Camera_Sample
  * \{ */
 

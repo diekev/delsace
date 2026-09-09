@@ -1390,6 +1390,20 @@ DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Points_Sample
+ *  À FAIRE: complète
+ * \{ */
+
+struct Abc_Input_Curves_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::ICurvesSchema::Sample sample{};
+};
+
+DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Camera_Sample
  * \{ */
 
