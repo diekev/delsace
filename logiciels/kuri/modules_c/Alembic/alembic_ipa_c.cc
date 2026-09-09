@@ -1079,17 +1079,17 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 /** \} */
 
 #define DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION(uname, lname, snake_name, method, sample_type)    \
-    sample_type abc_input_##lname##_sample_##snake_name(                                          \
-        struct Abc_Input_##uname##_Sample *lname##_sample)                                        \
+    sample_type abc_input_##lname##_schema_sample_##snake_name(                                   \
+        struct Abc_Input_##uname##_Schema_Sample *sample)                                         \
     {                                                                                             \
-        return lname##_sample->sample.method();                                                   \
+        return sample->sample.method();                                                           \
     }
 
 #define DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION(uname, lname, snake_name, method, sample_type)     \
-    sample_type abc_input_##lname##_sample_##snake_name(                                          \
-        struct Abc_Input_##uname##_Sample *lname##_sample)                                        \
+    sample_type abc_input_##lname##_schema_sample_##snake_name(                                   \
+        struct Abc_Input_##uname##_Schema_Sample *sample)                                         \
     {                                                                                             \
-        auto ptr = lname##_sample->sample.method();                                               \
+        auto ptr = sample->sample.method();                                                       \
         return get_input_array_sample(ptr);                                                       \
     }
 
@@ -1147,33 +1147,42 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
     }
 
 #define DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                        \
-    struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
-        struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector)                     \
+    struct Abc_Input_##uname##_Schema_Sample *abc_input_##lname##_schema_get(                     \
+        struct Abc_Input_##uname##_Schema *schema, struct Abc_Sample_Selector selector)           \
     {                                                                                             \
-        auto résultat = kuri_loge<Abc_Input_##uname##_Sample>(lname->archive->ctx_kuri);          \
-        résultat->archive = lname->archive;                                                       \
-        lname->typed_object.getSchema().get(résultat->sample, get_sample_selector(selector));     \
+        auto résultat = kuri_loge<Abc_Input_##uname##_Schema_Sample>(schema->archive->ctx_kuri);  \
+        résultat->archive = schema->archive;                                                      \
+        schema->impl->get(résultat->sample, get_sample_selector(selector));                       \
         return résultat;                                                                          \
     }                                                                                             \
-    void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Sample *sample)            \
+    void abc_input_##lname##_schema_get_value(struct Abc_Input_##uname##_Schema *schema,          \
+                                              struct Abc_Input_##uname##_Schema_Sample *sample,   \
+                                              struct Abc_Sample_Selector selector)                \
+    {                                                                                             \
+        schema->impl->get(sample->sample, get_sample_selector(selector));                         \
+    }                                                                                             \
+    void abc_input_##lname##_schema_sample_destroy(                                               \
+        struct Abc_Input_##uname##_Schema_Sample *sample)                                         \
     {                                                                                             \
         if (sample) {                                                                             \
             kuri_deloge(sample->archive->ctx_kuri, sample);                                       \
         }                                                                                         \
     }                                                                                             \
-    void abc_input_##lname##_sample_get_self_bounds(                                              \
-        struct Abc_Input_##uname##_Sample *lname##_sample, Abc_Box3d *r_box)                      \
+    void abc_input_##lname##_schema_sample_get_self_bounds(                                       \
+        struct Abc_Input_##uname##_Schema_Sample *sample, Abc_Box3d *r_box)                       \
     {                                                                                             \
-        auto résultat = lname##_sample->sample.getSelfBounds();                                   \
+        auto résultat = sample->sample.getSelfBounds();                                           \
         *r_box = import_value_converter<Abc::Box3d>::convert_value(&résultat);                    \
     }                                                                                             \
-    bool abc_input_##lname##_sample_valid(struct Abc_Input_##uname##_Sample *lname##_sample)      \
+    bool abc_input_##lname##_schema_sample_valid(                                                 \
+        struct Abc_Input_##uname##_Schema_Sample *sample)                                         \
     {                                                                                             \
-        return lname##_sample->sample.valid();                                                    \
+        return sample->sample.valid();                                                            \
     }                                                                                             \
-    void abc_input_##lname##_sample_reset(struct Abc_Input_##uname##_Sample *lname##_sample)      \
+    void abc_input_##lname##_schema_sample_reset(                                                 \
+        struct Abc_Input_##uname##_Schema_Sample *sample)                                         \
     {                                                                                             \
-        lname##_sample->sample.reset();                                                           \
+        sample->sample.reset();                                                                   \
     }
 
 /* ------------------------------------------------------------------------- */
@@ -1221,7 +1230,7 @@ static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *schem
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Input_PolyMesh_Sample
+/** \nom Abc_Input_PolyMesh_Schema_Sample
  * À FAIRE
  *   MeshTopologyVariance getTopologyVariance() const;
  *   IV2fGeomParam getUVsParam() const
@@ -1232,7 +1241,7 @@ static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *schem
  *   Abc::IV3fArrayProperty getVelocitiesProperty() const
  * \{ */
 
-struct Abc_Input_PolyMesh_Sample {
+struct Abc_Input_PolyMesh_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::IPolyMeshSchema::Sample sample{};
 };
@@ -1264,7 +1273,7 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTIO
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Input_SubD_Sample
+/** \nom Abc_Input_SubD_Schema_Sample
  * À FAIRE
  *   MeshTopologyVariance getTopologyVariance() const;
  *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
@@ -1284,7 +1293,7 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTIO
  *   IV2fGeomParam getUVsParam() const
  * \{ */
 
-struct Abc_Input_SubD_Sample {
+struct Abc_Input_SubD_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::ISubDSchema::Sample sample{};
     std::string subdivision_scheme{};
@@ -1315,7 +1324,8 @@ bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
-Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sample *subd_sample)
+Abc_String abc_input_subd_sample_get_subdivision_scheme(
+    struct Abc_Input_SubD_Schema_Sample *subd_sample)
 {
     subd_sample->subdivision_scheme = subd_sample->sample.getSubdivisionScheme();
 
@@ -1333,7 +1343,7 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
  *    Abc::IInt32ArrayProperty getFacesProperty() const
  * \{ */
 
-struct Abc_Input_FaceSet_Sample {
+struct Abc_Input_FaceSet_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::IFaceSetSchema::Sample sample{};
 };
@@ -1354,7 +1364,7 @@ DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTIO
  *    IFloatGeomParam getWidthsParam() const
  * \{ */
 
-struct Abc_Input_Points_Sample {
+struct Abc_Input_Points_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::IPointsSchema::Sample sample{};
 };
@@ -1371,7 +1381,7 @@ DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
  *  À FAIRE: complète
  * \{ */
 
-struct Abc_Input_Curves_Sample {
+struct Abc_Input_Curves_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::ICurvesSchema::Sample sample{};
 };

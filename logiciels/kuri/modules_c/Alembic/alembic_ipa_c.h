@@ -647,12 +647,12 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 /** \} */
 
 #define DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION(uname, lname, snake_name, method, sample_type)   \
-    sample_type abc_input_##lname##_sample_##snake_name(                                          \
-        struct Abc_Input_##uname##_Sample *lname##_sample);
+    sample_type abc_input_##lname##_schema_sample_##snake_name(                                   \
+        struct Abc_Input_##uname##_Schema_Sample *sample);
 
 #define DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION(uname, lname, snake_name, method, sample_type)    \
-    struct sample_type abc_input_##lname##_sample_##snake_name(                                   \
-        struct Abc_Input_##uname##_Sample *lname##_sample);
+    struct sample_type abc_input_##lname##_schema_sample_##snake_name(                            \
+        struct Abc_Input_##uname##_Schema_Sample *_sample);
 
 #define DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(uname, lname)                                       \
     struct Abc_Input_##uname##_Schema *abc_input_##lname##_get_schema(                            \
@@ -670,14 +670,17 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
         struct Abc_Input_##uname##_Schema *schema);
 
 #define DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                       \
-    struct Abc_Input_##uname##_Sample;                                                            \
-    struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
-        struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector);                    \
-    void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Sample *sample);           \
+    struct Abc_Input_##uname##_Schema_Sample;                                                     \
+    struct Abc_Input_##uname##_Schema_Sample *abc_input_##lname##_schema_get(                     \
+        struct Abc_Input_##uname##_Schema *schema, struct Abc_Sample_Selector selector);          \
+    void abc_input_##lname##_schema_get_value(struct Abc_Input_##uname##_Schema *schema,          \
+                                              struct Abc_Input_##uname##_Schema_Sample *sample,   \
+                                              struct Abc_Sample_Selector selector);               \
+    void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Schema_Sample *sample);    \
     void abc_input_##lname##_sample_get_self_bounds(                                              \
-        struct Abc_Input_##uname##_Sample *lname##_sample, Abc_Box3d *r_box);                     \
-    bool abc_input_##lname##_sample_valid(struct Abc_Input_##uname##_Sample *lname##_sample);     \
-    void abc_input_##lname##_sample_reset(struct Abc_Input_##uname##_Sample *lname##_sample);
+        struct Abc_Input_##uname##_Schema_Sample *sample, Abc_Box3d *r_box);                      \
+    bool abc_input_##lname##_sample_valid(struct Abc_Input_##uname##_Schema_Sample *sample);      \
+    void abc_input_##lname##_sample_reset(struct Abc_Input_##uname##_Schema_Sample *sample);
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
@@ -747,7 +750,8 @@ bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
 DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 
-Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sample *subd_sample);
+Abc_String abc_input_subd_sample_get_subdivision_scheme(
+    struct Abc_Input_SubD_Schema_Sample *subd_sample);
 
 /** \} */
 
