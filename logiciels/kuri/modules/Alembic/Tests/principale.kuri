@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "xform-ops";
+    nom_test := "infos-archive";
 
     si est_un_dossier(CheminFichier(chemin)) {
         chemins: [..]chaine;
@@ -70,8 +70,8 @@ imprime_chemin_archive_courante :: fonc (avec_taille := faux)
 
 fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
 {
-    si nom_test == "temps-archive" {
-        imprime_temps_archive(chemin);
+    si nom_test == "infos-archive" {
+        imprime_infos_archive(chemin);
     }
     sinon si nom_test == "métadonnées" {
         imprime_métadonnées_archives(chemin);
@@ -103,7 +103,7 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
     }
 }
 
-imprime_temps_archive :: fonc (chemin: chaine)
+imprime_infos_archive :: fonc (chemin: chaine)
 {
     iarchive := abc_input_archive_create(chemin);
     saufsi iarchive {
@@ -116,7 +116,28 @@ imprime_temps_archive :: fonc (chemin: chaine)
     end_time: r64;
     abc_input_archive_get_start_and_end_time(iarchive, *start_time, *end_time);
 
-    imprimeln("% % %", chemin, start_time, end_time);
+    imprimeln("%", chemin);
+    imprimeln("    Start Time: %", start_time);
+    imprimeln("    End Time  : %", end_time);
+
+    metadata := abc_input_archive_get_metadata(iarchive);
+    diffère abc_metadata_destroy(metadata);
+
+    iterator := abc_metadata_get_iterator(metadata);
+
+    application: chaine;
+    description: chaine;
+
+    boucle {
+        clé: Abc_String;
+        valeur: Abc_String;
+
+        saufsi abc_metadata_iterator_next(iterator, *clé, *valeur) {
+            arrête;
+        }
+
+        imprimeln("    %: %", vers_kuri(clé), vers_kuri(valeur));
+    }
 }
 
 imprime_métadonnées_archives :: fonc (chemin: chaine)
