@@ -70,41 +70,6 @@ imprime_chemin_archive_courante :: fonc (avec_taille := faux)
 
 fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
 {
-    si nom_test == "infos-archive" {
-        imprime_infos_archive(chemin);
-    }
-    sinon si nom_test == "métadonnées" {
-        imprime_métadonnées_archives(chemin);
-    }
-    sinon si nom_test == "hiérarchie" {
-        imprime_hiérarchie_archive(chemin);
-    }
-    sinon si nom_test == "subd" {
-        imprime_informations_subd(chemin);
-    }
-    sinon si nom_test == "points" {
-        imprime_informations_points(chemin);
-    }
-    sinon si nom_test == "données-manquantes-blender" {
-        test_données_manquantes_blender(chemin);
-    }
-    sinon si nom_test == "animation-attributs" {
-        imprime_animation_attributs(chemin);
-    }
-    sinon si nom_test == "infos-attributs" {
-        imprime_infos_attributs(chemin);
-    }
-    sinon si nom_test == "xform-ops" {
-        imprime_xform_ops(chemin);
-    }
-    sinon {
-        imprimeln("Test '%' inconnu", nom_test);
-        exit(1);
-    }
-}
-
-imprime_infos_archive :: fonc (chemin: chaine)
-{
     iarchive := abc_input_archive_create(chemin);
     saufsi iarchive {
         imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
@@ -112,11 +77,46 @@ imprime_infos_archive :: fonc (chemin: chaine)
     }
     diffère abc_input_archive_destroy(iarchive);
 
+    si nom_test == "infos-archive" {
+        imprime_infos_archive(iarchive);
+    }
+    sinon si nom_test == "métadonnées" {
+        imprime_métadonnées_archives(chemin);
+    }
+    sinon si nom_test == "hiérarchie" {
+        imprime_hiérarchie_archive(iarchive);
+    }
+    sinon si nom_test == "subd" {
+        imprime_informations_subd(iarchive);
+    }
+    sinon si nom_test == "points" {
+        imprime_informations_points(iarchive);
+    }
+    sinon si nom_test == "données-manquantes-blender" {
+        test_données_manquantes_blender(iarchive);
+    }
+    sinon si nom_test == "animation-attributs" {
+        imprime_animation_attributs(iarchive);
+    }
+    sinon si nom_test == "infos-attributs" {
+        imprime_infos_attributs(iarchive);
+    }
+    sinon si nom_test == "xform-ops" {
+        imprime_xform_ops(iarchive);
+    }
+    sinon {
+        imprimeln("Test '%' inconnu", nom_test);
+        exit(1);
+    }
+}
+
+imprime_infos_archive :: fonc (iarchive: *Abc_Input_Archive)
+{
     start_time: r64;
     end_time: r64;
     abc_input_archive_get_start_and_end_time(iarchive, *start_time, *end_time);
 
-    imprimeln("%", chemin);
+    imprime_chemin_archive_courante();
     imprimeln("    Start Time: %", start_time);
     imprimeln("    End Time  : %", end_time);
 
@@ -200,15 +200,8 @@ imprime_métadonnées_archives :: fonc (chemin: chaine)
     }
 }
 
-imprime_hiérarchie_archive :: fonc (chemin: chaine)
+imprime_hiérarchie_archive :: fonc (iarchive: *Abc_Input_Archive)
 {
-    iarchive := abc_input_archive_create(chemin);
-    saufsi iarchive {
-        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
-        retourne;
-    }
-    diffère abc_input_archive_destroy(iarchive);
-
     top := abc_input_archive_get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
@@ -635,15 +628,8 @@ imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property, prop_hea
     assert(data_type.extent <= 16);
 }
 
-imprime_informations_subd :: fonc (chemin: chaine)
+imprime_informations_subd :: fonc (iarchive: *Abc_Input_Archive)
 {
-    iarchive := abc_input_archive_create(chemin);
-    saufsi iarchive {
-        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
-        retourne;
-    }
-    diffère abc_input_archive_destroy(iarchive);
-
     top := abc_input_archive_get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
@@ -704,15 +690,8 @@ traverse_hiérarchie_pour_subd :: fonc (parent: Abc_Generic_Input_Object, header
 /** \nom Points
  * \{ */
 
-imprime_informations_points :: fonc (chemin: chaine)
+imprime_informations_points :: fonc (iarchive: *Abc_Input_Archive)
 {
-    iarchive := abc_input_archive_create(chemin);
-    saufsi iarchive {
-        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
-        retourne;
-    }
-    diffère abc_input_archive_destroy(iarchive);
-
     top := abc_input_archive_get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
@@ -758,15 +737,8 @@ traverse_hiérarchie_pour_points :: fonc (parent: Abc_Generic_Input_Object, head
 /** \nom Animation Attributs
  * \{ */
 
-test_données_manquantes_blender :: fonc (chemin: chaine)
+test_données_manquantes_blender :: fonc (iarchive: *Abc_Input_Archive)
 {
-    iarchive := abc_input_archive_create(chemin);
-    saufsi iarchive {
-        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
-        retourne;
-    }
-    diffère abc_input_archive_destroy(iarchive);
-
     top := abc_input_archive_get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
@@ -943,15 +915,8 @@ donne_num_samples_schema :: fonc (objet: Abc_Generic_Input_Object) -> n64
     retourne résultat;
 }
 
-imprime_animation_attributs :: fonc (chemin: chaine)
+imprime_animation_attributs :: fonc (iarchive: *Abc_Input_Archive)
 {
-    iarchive := abc_input_archive_create(chemin);
-    saufsi iarchive {
-        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
-        retourne;
-    }
-    diffère abc_input_archive_destroy(iarchive);
-
     top := abc_input_archive_get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
@@ -1180,15 +1145,8 @@ rassemble_points :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
 /** \nom Infos attributs
  * \{ */
 
-imprime_infos_attributs :: fonc (chemin: chaine)
+imprime_infos_attributs :: fonc (iarchive: *Abc_Input_Archive)
 {
-    iarchive := abc_input_archive_create(chemin);
-    saufsi iarchive {
-        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
-        retourne;
-    }
-    diffère abc_input_archive_destroy(iarchive);
-
     top := abc_input_archive_get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
@@ -1264,15 +1222,8 @@ imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *
 /** \nom XformOp
  * \{ */
 
-imprime_xform_ops :: fonc (chemin: chaine)
+imprime_xform_ops :: fonc (iarchive: *Abc_Input_Archive)
 {
-    iarchive := abc_input_archive_create(chemin);
-    saufsi iarchive {
-        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
-        retourne;
-    }
-    diffère abc_input_archive_destroy(iarchive);
-
     top := abc_input_archive_get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
