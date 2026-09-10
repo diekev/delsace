@@ -658,7 +658,7 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
     struct Abc_Input_##uname##_Schema *abc_input_##lname##_get_schema(                            \
         struct Abc_Input_##uname *lname);                                                         \
     bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname##_Schema *schema);       \
-    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
+    struct Abc_Time_Sampling *abc_input_##lname##_schema_get_time_sampling(                       \
         struct Abc_Input_##uname##_Schema *schema);                                               \
     uint64_t abc_input_##lname##_schema_get_num_samples(                                          \
         struct Abc_Input_##uname##_Schema *schema);                                               \
