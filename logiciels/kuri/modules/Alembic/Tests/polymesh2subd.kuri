@@ -109,9 +109,10 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
     nom: Abc_String;
     abc_input_object_get_full_name(polymesh, *nom);
 
-    time_sampling := abc_input_polymesh_get_time_sampling(polymesh);
+    schema := abc_input_polymesh_get_schema(polymesh);
+    time_sampling := abc_input_polymesh_schema_get_time_sampling(schema);
 
-    num_samples := abc_input_polymesh_get_num_samples(polymesh);
+    num_samples := abc_input_polymesh_schema_get_num_samples(schema);
 
     chaine_chemin_polymesh := vers_kuri(nom);
     chemin_polymesh := CheminFichier(chaine_chemin_polymesh);
@@ -132,13 +133,13 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
         selector.requested_index = -1;
         selector.requested_time = sample_time;
 
-        sample := abc_input_polymesh_get_sample(polymesh, selector);
-        diffère abc_input_polymesh_sample_destroy(sample);
+        sample := abc_input_polymesh_schema_get(schema, selector);
+        diffère abc_input_polymesh_schema_sample_destroy(sample);
 
-        points := abc_input_polymesh_sample_get_positions(sample);
-        velocities := abc_input_polymesh_sample_get_velocities(sample);
-        face_indices := abc_input_polymesh_sample_get_face_indices(sample);
-        face_counts := abc_input_polymesh_sample_get_face_counts(sample);
+        points := abc_input_polymesh_schema_sample_get_positions(sample);
+        velocities := abc_input_polymesh_schema_sample_get_velocities(sample);
+        face_indices := abc_input_polymesh_schema_sample_get_face_indices(sample);
+        face_counts := abc_input_polymesh_schema_sample_get_face_counts(sample);
 
         subd_sample := abc_output_subd_sample_create(subd);
         diffère abc_output_subd_sample_destroy(subd_sample);
@@ -187,7 +188,7 @@ abc_output_archive_create_time_sampling :: fonc (archive: *Abc_Output_Archive, t
     retourne abc_output_archive_create_time_sampling(archive, times, num_times, time_sampling_type.time_per_cycle);
 }
 
-valide_sample :: fonc (sample: *Abc_Input_PolyMesh_Sample)
+valide_sample :: fonc (sample: *Abc_Input_PolyMesh_Schema_Sample)
 {
     donne_tranche :: fonc (sample: Abc_Int32_Array_Sample) -> []z32
     {

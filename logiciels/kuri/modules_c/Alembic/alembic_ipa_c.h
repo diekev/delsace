@@ -3,66 +3,19 @@
 
 #pragma once
 
-#include "alembic_types.h"
+#include <stdint.h>
+
+#ifdef __cplusplus
+#    include <string>
+#endif
+
+struct ContexteKuri;
 
 #ifdef __cplusplus
 extern "C" {
+#else
+typedef unsigned char bool;
 #endif
-
-/**
- * \brief Crée une archive pour lire des objets Alembic.
- *
- * Si l'archive ne peut être ouverte, retourne nul, et rapporte une erreur via le ctx.
- */
-struct ArchiveCache *ABC_cree_archive(struct ContexteKuri *ctx_kuri,
-                                      struct ContexteOuvertureArchive *ctx);
-
-void ABC_detruit_archive(struct ContexteKuri *ctx, struct ArchiveCache *archive);
-
-void ABC_traverse_archive(struct ContexteKuri *ctx_kuri,
-                          struct ArchiveCache *archive,
-                          struct ContexteTraverseArchive *ctx);
-
-struct LectriceCache *ABC_cree_lectrice_cache(struct ContexteKuri *ctx_kuri,
-                                              struct ArchiveCache *archive,
-                                              const char *ptr_nom,
-                                              uint64_t taille_nom);
-void ABC_detruit_lectrice(struct ContexteKuri *ctx_kuri, struct LectriceCache *lectrice);
-void ABC_lectrice_ajourne_donnees(struct LectriceCache *lectrice, void *donnees);
-void ABC_lis_objet(struct ContexteKuri *ctx_kuri,
-                   struct ContexteLectureCache *contexte,
-                   struct LectriceCache *lectrice,
-                   double temps);
-
-void ABC_lis_attributs(struct ContexteKuri *ctx_kuri,
-                       struct LectriceCache *lectrice,
-                       struct ConvertisseuseImportAttributs *convertisseuse,
-                       double temps);
-
-struct AutriceArchive *ABC_cree_autrice_archive(struct ContexteKuri *ctx_kuri,
-                                                struct ContexteCreationArchive *ctx,
-                                                struct ContexteEcritureCache *ctx_ecriture);
-
-void ABC_detruit_autrice(struct ContexteKuri *ctx, struct AutriceArchive *autrice);
-
-struct EcrivainCache *ABC_cree_ecrivain_cache(struct ContexteKuri *ctx,
-                                              struct AutriceArchive *archive,
-                                              struct EcrivainCache *parent,
-                                              const char *nom,
-                                              uint64_t taille_nom,
-                                              void *données,
-                                              enum eTypeObjetAbc type_objet);
-
-/** Crée une instance de `origine` comme enfant de `parent`. Retourne nul s'il est impossible de
- * créer une telle instance. */
-struct EcrivainCache *ABC_cree_instance(struct ContexteKuri *ctx,
-                                        struct AutriceArchive *archive,
-                                        struct EcrivainCache *parent,
-                                        struct EcrivainCache *origine,
-                                        const char *nom,
-                                        uint64_t taille_nom);
-
-void ABC_ecris_donnees(struct AutriceArchive *autrice);
 
 typedef struct Abc_String {
     const char *characters;
@@ -540,6 +493,9 @@ struct Abc_Input_Geom_Param;
 
 #define DECLARE_INPUT_GEOM_PARAM(type_geom, type_abc_value, type_c, nom_court)                    \
     struct Abc_Input_##type_geom##_Geom_Param;                                                    \
+    bool abc_input_##nom_court##_geom_param_matches(struct Abc_Property_Header *prop_header);     \
+    struct Abc_Input_##type_geom##_Geom_Param *abc_input_##nom_court##_geom_param_get(            \
+        struct Abc_Input_Compound_Property *prop, struct Abc_String name);                        \
     uint64_t abc_input_##nom_court##_geom_param_get_num_samples(                                  \
         struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
     void abc_input_##nom_court##_geom_param_get_data_type(                                        \
@@ -557,10 +513,8 @@ struct Abc_Input_Geom_Param;
     struct Abc_MetaData *abc_input_##nom_court##_geom_param_get_metadata(                         \
         struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
     struct Abc_Input_##type_geom##_Geom_Param_Sample {                                            \
-        type_c *values;                                                                           \
-        uint64_t num_values;                                                                      \
-        uint32_t *indices;                                                                        \
-        uint64_t num_indices;                                                                     \
+        struct Abc_##type_geom##_Array_Sample values;                                             \
+        struct Abc_UInt32_Array_Sample indices;                                                   \
         enum Abc_Geometry_Scope scope;                                                            \
     };                                                                                            \
     void abc_input_##nom_court##_geom_param_get_indexed(                                          \
@@ -649,6 +603,8 @@ void abc_input_object_get_full_name(union Abc_Generic_Input_Object object,
 
 bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
 
+struct Abc_Object_Header *abc_input_object_get_header(union Abc_Generic_Input_Object object);
+
 struct Abc_Input_Visibility_Property *abc_input_object_get_visibility_property(
     union Abc_Generic_Input_Object object);
 enum Abc_Object_Visibility abc_input_visibility_property_get(
@@ -656,12 +612,9 @@ enum Abc_Object_Visibility abc_input_visibility_property_get(
 
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
     struct Abc_Input_##type_kuri;                                                                 \
+    struct Abc_Input_##type_kuri##_Schema;                                                        \
     struct Abc_Input_##type_kuri *abc_input_##lname##_get(union Abc_Generic_Input_Object parent,  \
-                                                          struct Abc_String name);                \
-    struct Abc_Input_Compound_Property *abc_input_##lname##_get_arb_geom_params(                  \
-        struct Abc_Input_##type_kuri *object);                                                    \
-    struct Abc_Input_Compound_Property *abc_input_##lname##_get_user_properties(                  \
-        struct Abc_Input_##type_kuri *object);
+                                                          struct Abc_String name);
 
 ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 
@@ -692,51 +645,58 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 /** \} */
 
 #define DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION(uname, lname, snake_name, method, sample_type)   \
-    sample_type abc_input_##lname##_sample_##snake_name(                                          \
-        struct Abc_Input_##uname##_Sample *lname##_sample);
+    sample_type abc_input_##lname##_schema_sample_##snake_name(                                   \
+        struct Abc_Input_##uname##_Schema_Sample *sample);
 
 #define DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION(uname, lname, snake_name, method, sample_type)    \
-    struct sample_type abc_input_##lname##_sample_##snake_name(                                   \
-        struct Abc_Input_##uname##_Sample *lname##_sample);
+    struct sample_type abc_input_##lname##_schema_sample_##snake_name(                            \
+        struct Abc_Input_##uname##_Schema_Sample *_sample);
 
 #define DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(uname, lname)                                       \
-    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname);                 \
-    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
+    struct Abc_Input_##uname##_Schema *abc_input_##lname##_get_schema(                            \
         struct Abc_Input_##uname *lname);                                                         \
-    uint64_t abc_input_##lname##_schema_get_num_samples(struct Abc_Input_##uname *lname);         \
-    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname);                       \
-    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname);
+    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname##_Schema *schema);       \
+    struct Abc_Time_Sampling *abc_input_##lname##_schema_get_time_sampling(                       \
+        struct Abc_Input_##uname##_Schema *schema);                                               \
+    uint64_t abc_input_##lname##_schema_get_num_samples(                                          \
+        struct Abc_Input_##uname##_Schema *schema);                                               \
+    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname##_Schema *schema);             \
+    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname##_Schema *schema);             \
+    struct Abc_Input_Compound_Property *abc_input_##lname##_schema_get_arb_geom_params(           \
+        struct Abc_Input_##uname##_Schema *schema);                                               \
+    struct Abc_Input_Compound_Property *abc_input_##lname##_schema_get_user_properties(           \
+        struct Abc_Input_##uname##_Schema *schema);
 
 #define DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                       \
-    struct Abc_Input_##uname##_Sample;                                                            \
-    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname);                 \
-    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
-        struct Abc_Input_##uname *lname);                                                         \
-    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname);                \
-    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname);                       \
-    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname);                       \
-    struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
-        struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector);                    \
-    void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Sample *sample);           \
-    void abc_input_##lname##_sample_get_self_bounds(                                              \
-        struct Abc_Input_##uname##_Sample *lname##_sample, Abc_Box3d *r_box);                     \
-    bool abc_input_##lname##_sample_valid(struct Abc_Input_##uname##_Sample *lname##_sample);     \
-    void abc_input_##lname##_sample_reset(struct Abc_Input_##uname##_Sample *lname##_sample);
+    struct Abc_Input_##uname##_Schema_Sample;                                                     \
+    struct Abc_Input_##uname##_Schema_Sample *abc_input_##lname##_schema_get(                     \
+        struct Abc_Input_##uname##_Schema *schema, struct Abc_Sample_Selector selector);          \
+    void abc_input_##lname##_schema_get_value(struct Abc_Input_##uname##_Schema *schema,          \
+                                              struct Abc_Input_##uname##_Schema_Sample *sample,   \
+                                              struct Abc_Sample_Selector selector);               \
+    void abc_input_##lname##_schema_sample_destroy(                                               \
+        struct Abc_Input_##uname##_Schema_Sample *sample);                                        \
+    void abc_input_##lname##_schema_sample_get_self_bounds(                                       \
+        struct Abc_Input_##uname##_Schema_Sample *sample, Abc_Box3d *r_box);                      \
+    bool abc_input_##lname##_schema_sample_valid(                                                 \
+        struct Abc_Input_##uname##_Schema_Sample *sample);                                        \
+    void abc_input_##lname##_schema_sample_reset(struct Abc_Input_##uname##_Schema_Sample *sample);
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(PolyMesh, polymesh)
 
-void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh *polymesh,
+void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh_Schema *schema,
                                                   Abc_String **r_names,
                                                   uint64_t *r_count);
 
 struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
-    struct Abc_Input_PolyMesh *polymesh, Abc_String face_set_name);
+    struct Abc_Input_PolyMesh_Schema *schema, Abc_String face_set_name);
 
-bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh *polymesh,
+bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh_Schema *schema,
                                             Abc_String face_set_name);
 
 #define DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
@@ -753,16 +713,18 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 /** \nom Abc_Input_SubD_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(SubD, subd)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(SubD, subd)
 
-void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD *subd,
+void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD_Schema *schema,
                                               Abc_String **r_names,
                                               uint64_t *r_count);
 
-struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD *subd,
+struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD_Schema *schema,
                                                              Abc_String face_set_name);
 
-bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD *subd, Abc_String face_set_name);
+bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
+                                        Abc_String face_set_name);
 
 #define DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(X)                                                 \
     X(SubD,                                                                                       \
@@ -788,7 +750,8 @@ bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD *subd, Abc_String 
 DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 
-Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sample *subd_sample);
+Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
+    struct Abc_Input_SubD_Schema_Sample *sample);
 
 /** \} */
 
@@ -796,6 +759,7 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
 /** \nom Abc_Input_FaceSet_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, face_set)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, face_set)
 
 #define DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
@@ -809,6 +773,7 @@ DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 /** \nom Abc_Input_Points_Sample
  * \{ */
 
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Points, points)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
 
 #define DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                               \
@@ -817,6 +782,15 @@ DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
     X(Points, points, get_ids, getIds, Abc_UInt64_Array_Sample)
 
 DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Curves_Sample
+ * \{ */
+
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
+DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
 
 /** \} */
 
@@ -882,10 +856,10 @@ double abc_camera_sample_get_field_of_view(struct Abc_Camera_Sample *sample);
 
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Camera, camera)
 
-struct Abc_Camera_Sample *abc_input_camera_schema_get_value(struct Abc_Input_Camera *camera,
+struct Abc_Camera_Sample *abc_input_camera_schema_get_value(struct Abc_Input_Camera_Schema *camera,
                                                             struct Abc_Sample_Selector selector);
 
-void abc_input_camera_schema_get(struct Abc_Input_Camera *camera,
+void abc_input_camera_schema_get(struct Abc_Input_Camera_Schema *camera,
                                  struct Abc_Camera_Sample *sample,
                                  struct Abc_Sample_Selector selector);
 
@@ -1126,10 +1100,8 @@ void abc_output_array_property_set_from_previous(union Abc_Generic_Output_Array_
 #define DECLARE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)              \
     struct Abc_Output_##type_geom##_Geom_Param;                                                   \
     struct Abc_Output_##type_geom##_Geom_Param_Sample {                                           \
-        type_c *values;                                                                           \
-        uint64_t num_values;                                                                      \
-        uint32_t *indices;                                                                        \
-        uint64_t num_indices;                                                                     \
+        struct Abc_##type_geom##_Array_Sample values;                                             \
+        struct Abc_UInt32_Array_Sample indices;                                                   \
         enum Abc_Geometry_Scope scope;                                                            \
     };                                                                                            \
     struct Abc_Output_##type_geom##_Geom_Param *abc_output_##nom_court##_geom_param_create(       \

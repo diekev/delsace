@@ -468,7 +468,7 @@ parse_date_pour_info_type :: fonc (chn: chaine) -> (bool, Date)
     retourne vrai, date;
 } @ParsageURL
 
-// À FAIRE: Date et DateHorodotée ?
+// À FAIRE: Date et DateHorodatée ?
 parse_date_depuis_mysql :: fonc (chn: chaine) -> (bool, Date)
 {
     date := parse_date(chn, "AAAA-MM-JJ hh:mm:ss");
