@@ -1182,6 +1182,17 @@ static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *schem
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Schema_Sample
+ * \{ */
+
+struct Abc_Input_Schema_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    Array_Sample_Data sample_data{};
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Schema_Sample
  * À FAIRE
  *   MeshTopologyVariance getTopologyVariance() const;
@@ -1193,10 +1204,8 @@ static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *schem
  *   Abc::IV3fArrayProperty getVelocitiesProperty() const
  * \{ */
 
-struct Abc_Input_PolyMesh_Schema_Sample {
-    Abc_Input_Archive *archive = nullptr;
+struct Abc_Input_PolyMesh_Schema_Sample : public Abc_Input_Schema_Sample {
     AbcGeom::IPolyMeshSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
@@ -1246,11 +1255,9 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTIO
  *   IV2fGeomParam getUVsParam() const
  * \{ */
 
-struct Abc_Input_SubD_Schema_Sample {
-    Abc_Input_Archive *archive = nullptr;
+struct Abc_Input_SubD_Schema_Sample : public Abc_Input_Schema_Sample {
     AbcGeom::ISubDSchema::Sample sample{};
     std::string subdivision_scheme{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(SubD, subd)
@@ -1291,16 +1298,14 @@ Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Input_FaceSet_Sample
+/** \nom Abc_Input_FaceSet_Schema_Sample
  *  À FAIRE:
  *    FaceSetExclusivity getFaceExclusivity() const;
  *    Abc::IInt32ArrayProperty getFacesProperty() const
  * \{ */
 
-struct Abc_Input_FaceSet_Schema_Sample {
-    Abc_Input_Archive *archive = nullptr;
+struct Abc_Input_FaceSet_Schema_Sample : public Abc_Input_Schema_Sample {
     AbcGeom::IFaceSetSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, face_set)
@@ -1311,7 +1316,7 @@ DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTIO
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Input_Points_Sample
+/** \nom Abc_Input_Points_Schema_Sample
  *  À FAIRE:
  *    Abc::IP3fArrayProperty getPositionsProperty() const
  *    Abc::IV3fArrayProperty getVelocitiesProperty() const
@@ -1319,10 +1324,8 @@ DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTIO
  *    IFloatGeomParam getWidthsParam() const
  * \{ */
 
-struct Abc_Input_Points_Schema_Sample {
-    Abc_Input_Archive *archive = nullptr;
+struct Abc_Input_Points_Schema_Sample : public Abc_Input_Schema_Sample {
     AbcGeom::IPointsSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Points, points)
@@ -1333,14 +1336,12 @@ DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Input_Points_Sample
+/** \nom Abc_Input_Curves_Schema_Sample
  *  À FAIRE: complète
  * \{ */
 
-struct Abc_Input_Curves_Schema_Sample {
-    Abc_Input_Archive *archive = nullptr;
+struct Abc_Input_Curves_Schema_Sample : public Abc_Input_Schema_Sample {
     AbcGeom::ICurvesSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
