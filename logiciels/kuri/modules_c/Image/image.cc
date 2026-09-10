@@ -270,15 +270,6 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
     return ResultatOperation::OK;
 }
 
-ImageIO_Chaine IMG_donne_liste_extensions(void)
-{
-    auto all_extensions = OIIO::get_string_attribute("extension_list");
-    ImageIO_Chaine résultat;
-    résultat.caractères = all_extensions.data();
-    résultat.taille = all_extensions.size();
-    return résultat;
-}
-
 void IMG_donne_erreur(ImageIO_Chaine *résultat)
 {
     auto erreur = OIIO::geterror();
@@ -291,171 +282,6 @@ void IMG_donne_erreur(ImageIO_Chaine *résultat)
         résultat->caractères = nullptr;
         résultat->taille = 0;
     }
-}
-
-// À FAIRE : paramétrise les calques à écrire.
-ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
-                                                 int64_t taille_chemin,
-                                                 AdaptriceImage *image,
-                                                 ImageIO_RappelsProgression *rappels)
-{
-    OIIO::ProgressCallback progress_callback = rappel_progression;
-
-    if (!rappels || !rappels->rappel_progression) {
-        rappels = nullptr;
-        progress_callback = nullptr;
-    }
-
-    const auto chemin_ = std::string(chemin, size_t(taille_chemin));
-    auto out = OIIO::ImageOutput::create(chemin_);
-
-    if (out == nullptr) {
-        return ResultatOperation::IMAGE_INEXISTANTE;
-    }
-
-    DIFFERE {
-        out->close();
-    };
-
-    DescriptionImage desc;
-    image->decris_image(image, &desc);
-
-    /* Considère uniquement le premier calque. */
-    const void *calque = image->calque_pour_index(image, 0);
-    const int nombre_de_canaux = image->nombre_de_canaux(image, calque);
-
-    auto spec = OIIO::ImageSpec(
-        desc.largeur, desc.hauteur, nombre_de_canaux, OIIO::TypeDesc::FLOAT);
-    out->open(chemin_, spec);
-
-    float *donnees = new float[desc.largeur * desc.hauteur * nombre_de_canaux];
-    DIFFERE {
-        delete[] donnees;
-    };
-
-    std::vector<const float *> canaux(nombre_de_canaux);
-    for (int i = 0; i < nombre_de_canaux; i++) {
-        auto canal = image->canal_pour_index(image, calque, i);
-        canaux[i] = image->donnees_canal_pour_lecture(image, canal);
-    }
-
-    auto index = 0;
-    for (int y = 0; y < desc.hauteur; y++) {
-        for (int x = 0; x < desc.largeur; x++, index++) {
-            auto index_ptr = index * nombre_de_canaux;
-
-            for (int c = 0; c < nombre_de_canaux; c++) {
-                donnees[index_ptr + c] = canaux[c][index];
-            }
-        }
-    }
-
-    if (!out->write_image(OIIO::TypeDesc::FLOAT,
-                          donnees,
-                          OIIO::AutoStride,
-                          OIIO::AutoStride,
-                          OIIO::AutoStride,
-                          progress_callback,
-                          rappels)) {
-        return ResultatOperation::IMAGE_INEXISTANTE;
-    }
-
-    return ResultatOperation::OK;
-}
-
-struct ImageIOProxy *IMG_cree_proxy_memoire(void *buf, uint64_t size)
-{
-    return reinterpret_cast<ImageIOProxy *>(new OIIO::Filesystem::IOMemReader(buf, size));
-}
-
-void IMG_detruit_proxy(ImageIOProxy *proxy)
-{
-    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
-    delete ioproxy;
-}
-
-ResultatOperation IMG_ouvre_image(const char *chemin, ImageIO *image, ImageIO_DataType format)
-{
-    return IMG_ouvre_image_avec_proxy(chemin, image, nullptr, format);
-}
-
-ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
-                                             ImageIO *image,
-                                             ImageIOProxy *proxy,
-                                             ImageIO_DataType format)
-{
-    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
-    auto input = OIIO::ImageInput::open(chemin, nullptr, ioproxy);
-
-    if (input == nullptr) {
-        return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
-    }
-
-    if (proxy && !input->supports("ioproxy")) {
-        return ResultatOperation::PROXY_NON_SUPPORTE;
-    }
-
-    const auto &spec = input->spec();
-    int xres = spec.width;
-    int yres = spec.height;
-    int channels = spec.nchannels;
-
-    if (format == IMAGEIO_DATATYPE_UNKNOWN || format == IMAGEIO_DATATYPE_NONE) {
-        if (spec.format.basetype == OIIO::TypeDesc::UNKNOWN ||
-            spec.format.basetype == OIIO::TypeDesc::NONE) {
-            format = IMAGEIO_DATATYPE_FLOAT;
-        }
-        else {
-            format = convertis_data_type(OIIO::TypeDesc::BASETYPE(spec.format.basetype));
-        }
-    }
-
-    auto typedesc_désiré = donne_typedesc_depuis_data_type(format);
-
-    image->donnees = new uint8_t[xres * yres * channels * typedesc_désiré.basesize()];
-    image->taille_donnees = xres * yres * channels * typedesc_désiré.basesize();
-    image->largeur = xres;
-    image->hauteur = yres;
-    image->nombre_composants = channels;
-    image->format = format;
-
-    if (!input->read_image(0, 0, 0, -1, typedesc_désiré, image->donnees)) {
-        input->close();
-        return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
-    }
-
-    input->close();
-
-    return ResultatOperation::OK;
-}
-
-ResultatOperation IMG_ecris_image(const char *chemin, ImageIO *image)
-{
-    if (!image || image->donnees == nullptr || image->taille_donnees == 0 || image->hauteur == 0 ||
-        image->largeur == 0) {
-        return ResultatOperation::IMAGE_NULLE;
-    }
-
-    auto out = OIIO::ImageOutput::create(chemin);
-
-    if (out == nullptr) {
-        return ResultatOperation::IMAGE_INEXISTANTE;
-    }
-
-    auto type_desc = donne_typedesc_depuis_data_type(image->format);
-
-    auto spec = OIIO::ImageSpec(
-        image->largeur, image->hauteur, image->nombre_composants, type_desc);
-    out->open(chemin, spec);
-
-    if (!out->write_image(type_desc, image->donnees)) {
-        out->close();
-        return ResultatOperation::IMAGE_INEXISTANTE;
-    }
-
-    out->close();
-
-    return ResultatOperation::OK;
 }
 
 void IMG_detruit_image(ImageIO *image)
@@ -595,4 +421,464 @@ void SVG_image_detruit(SVGImage *image)
     }
     image->width = 0.0f;
     image->height = 0.0f;
+}
+
+// ----------------------------------------------------------------------------
+// OIIO.
+
+int64_t OIIO_AutoStride()
+{
+    return OIIO::AutoStride;
+}
+
+int OIIO_get_int_attribute(struct OIIO_StringView name, int default_value)
+{
+    return OIIO::get_int_attribute(std::string_view(name.characters, name.size), default_value);
+}
+
+float OIIO_get_float_attribute(struct OIIO_StringView name, float default_value)
+{
+    return OIIO::get_float_attribute(std::string_view(name.characters, name.size), default_value);
+}
+
+struct OIIO_StringView OIIO_get_string_attribute(struct OIIO_StringView name,
+                                                 struct OIIO_StringView default_value)
+{
+    auto attribut = OIIO::get_string_attribute(
+        std::string_view(name.characters, name.size),
+        std::string_view(default_value.characters, default_value.size));
+    auto résultat = OIIO_StringView();
+    résultat.characters = attribut.data();
+    résultat.size = attribut.size();
+    return résultat;
+}
+
+static_assert(sizeof(OIIO::ustring) == sizeof(OIIO_ustring));
+static_assert(alignof(OIIO::ustring) == alignof(OIIO_ustring));
+
+const char *OIIO_ustring_c_str(struct OIIO_ustring *str)
+{
+    auto oiio_str = reinterpret_cast<OIIO::ustring *>(str);
+    return oiio_str->c_str();
+}
+
+uint64_t OIIO_ustring_size(struct OIIO_ustring *str)
+{
+    auto oiio_str = reinterpret_cast<OIIO::ustring *>(str);
+    return oiio_str->size();
+}
+
+uint64_t OIIO_TypeDesc_basesize(struct OIIO_TypeDesc *type_desc)
+{
+    auto oiio_desc = reinterpret_cast<OIIO::TypeDesc *>(type_desc);
+    return oiio_desc->basesize();
+}
+
+static_assert(sizeof(OIIO::ParamValue) == sizeof(OIIO_ParamValue));
+static_assert(alignof(OIIO::ParamValue) == alignof(OIIO_ParamValue));
+
+OIIO_TypeDesc OIIO_ParamValue_type(OIIO_ParamValue *param)
+{
+    auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
+    auto résultat = oiio_param->type();
+    return *reinterpret_cast<OIIO_TypeDesc *>(&résultat);
+}
+
+OIIO_StringView OIIO_ParamValue_name(OIIO_ParamValue *param)
+{
+    auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
+    auto name = oiio_param->name();
+    auto résultat = OIIO_StringView();
+    résultat.characters = name.c_str();
+    résultat.size = name.size();
+    return résultat;
+}
+
+const void *OIIO_ParamValue_data(OIIO_ParamValue *param)
+{
+    auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
+    return oiio_param->data();
+}
+
+int OIIO_ParamValue_nvalues(struct OIIO_ParamValue *param)
+{
+    auto oiio_param = reinterpret_cast<OIIO::ParamValue *>(param);
+    return oiio_param->nvalues();
+}
+
+static_assert(sizeof(OIIO::ImageSpec) == sizeof(OIIO_ImageSpec));
+static_assert(alignof(OIIO::ImageSpec) == alignof(OIIO_ImageSpec));
+
+void OIIO_ImageSpec_init(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    new (oiio_spec) OIIO::ImageSpec;
+}
+
+int OIIO_ImageSpec_donne_width(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->width;
+}
+
+void OIIO_ImageSpec_definis_width(struct OIIO_ImageSpec *spec, int width)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    oiio_spec->width = width;
+}
+
+int OIIO_ImageSpec_donne_height(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->height;
+}
+
+void OIIO_ImageSpec_definis_height(struct OIIO_ImageSpec *spec, int height)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    oiio_spec->height = height;
+}
+
+int OIIO_ImageSpec_donne_nchannels(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->nchannels;
+}
+
+void OIIO_ImageSpec_definis_nchannels(struct OIIO_ImageSpec *spec, int nchannels)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    oiio_spec->nchannels = nchannels;
+}
+
+struct OIIO_TypeDesc OIIO_ImageSpec_donne_format(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return *reinterpret_cast<OIIO_TypeDesc *>(&oiio_spec->format);
+}
+
+OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return reinterpret_cast<OIIO_ParamValue *>(oiio_spec->extra_attribs.data());
+}
+
+void OIIO_ImageSpec_definis_format(struct OIIO_ImageSpec *spec, struct OIIO_TypeDesc format)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    oiio_spec->format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
+}
+
+uint64_t OIIO_ImageSpec_donne_extra_attribs_size(OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->extra_attribs.size();
+}
+
+struct OIIO_Filesystem_IOProxy *OIIO_Filesytem_IOMemReader_new(void *buf, uint64_t size)
+{
+    return reinterpret_cast<OIIO_Filesystem_IOProxy *>(
+        new OIIO::Filesystem::IOMemReader(buf, size));
+}
+
+class Custom_IOProxy final : public OIIO::Filesystem::IOProxy {
+    OIIO_IOProxy_Callbacks *m_callbacks = nullptr;
+
+  public:
+    Custom_IOProxy(OIIO_IOProxy_Callbacks *callbacks)
+        : OIIO::Filesystem::IOProxy(), m_callbacks(callbacks)
+    {
+    }
+
+    const char *proxytype() const override
+    {
+        if (m_callbacks->proxytype) {
+            return m_callbacks->proxytype(m_callbacks);
+        }
+        return "";
+    }
+
+    void close() override
+    {
+        if (m_callbacks->close) {
+            m_callbacks->close(m_callbacks);
+        }
+    }
+
+    bool opened() const override
+    {
+        if (m_callbacks->opened) {
+            m_callbacks->opened(m_callbacks);
+        }
+        return OIIO::Filesystem::IOProxy::opened();
+    }
+
+    int64_t tell() const override
+    {
+        if (m_callbacks->tell) {
+            m_callbacks->tell(m_callbacks);
+        }
+        return OIIO::Filesystem::IOProxy::tell();
+    }
+
+    bool seek(int64_t offset) override
+    {
+        if (m_callbacks->seek) {
+            m_callbacks->seek(m_callbacks, offset);
+        }
+        return OIIO::Filesystem::IOProxy::seek(offset);
+    }
+
+    size_t read(void *buf, size_t size) override
+    {
+        if (m_callbacks->read) {
+            return m_callbacks->read(m_callbacks, buf, size);
+        }
+        return 0;
+    }
+
+    size_t write(const void *buf, size_t size) override
+    {
+        if (m_callbacks->write) {
+            return m_callbacks->write(m_callbacks, buf, size);
+        }
+        return 0;
+    }
+
+    size_t pread(void *buf, size_t size, int64_t offset) override
+    {
+        if (m_callbacks->pread) {
+            return m_callbacks->pread(m_callbacks, buf, size, offset);
+        }
+        return 0;
+    }
+
+    size_t pwrite(const void *buf, size_t size, int64_t offset) override
+    {
+        if (m_callbacks->pwrite) {
+            return m_callbacks->pwrite(m_callbacks, buf, size, offset);
+        }
+        return 0;
+    }
+
+    size_t size() const override
+    {
+        if (m_callbacks->size) {
+            m_callbacks->size(m_callbacks);
+        }
+        return OIIO::Filesystem::IOProxy::size();
+    }
+
+    void flush() override
+    {
+        if (m_callbacks->flush) {
+            m_callbacks->flush(m_callbacks);
+        }
+    }
+};
+
+struct OIIO_Filesystem_IOProxy *OIIO_Filesystem_IOProxy_new_from_callbacks(
+    struct OIIO_IOProxy_Callbacks *callbacks)
+{
+    auto résultat = reinterpret_cast<OIIO_Filesystem_IOProxy *>(new Custom_IOProxy(callbacks));
+    callbacks->proxy = résultat;
+    return résultat;
+}
+
+void OIIO_Filesystem_IOProxy_delete(struct OIIO_Filesystem_IOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    delete ioproxy;
+}
+
+const char *OIIO_Filesytem_IOProxy_proxytype(struct OIIO_Filesystem_IOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    return ioproxy->proxytype();
+}
+
+enum OIIO_Filesystem_IOProxy_Mode OIIO_Filesystem_IOProxy_mode(
+    struct OIIO_Filesystem_IOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    return static_cast<OIIO_Filesystem_IOProxy_Mode>(ioproxy->mode());
+}
+
+OIIO_StringView OIIO_Filesystem_IOProxy_filename(struct OIIO_Filesystem_IOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    auto résultat = OIIO_StringView();
+    résultat.characters = ioproxy->filename().c_str();
+    résultat.size = ioproxy->filename().size();
+    return résultat;
+}
+
+OIIO_ImageInput *OIIO_ImageInput_open(OIIO_StringView chemin,
+                                      OIIO_ImageSpec *config,
+                                      OIIO_Filesystem_IOProxy *ioproxy)
+{
+    auto filename = std::string(chemin.characters, chemin.size);
+    auto oiio_config = reinterpret_cast<OIIO::ImageSpec *>(config);
+    auto oiio_proxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(ioproxy);
+    auto résultat = OIIO::ImageInput::open(filename, oiio_config, oiio_proxy);
+    return reinterpret_cast<OIIO_ImageInput *>(résultat.release());
+}
+
+bool OIIO_ImageInput_close(OIIO_ImageInput *image)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    return oiio_image->close();
+}
+
+void OIIO_ImageInput_delete(OIIO_ImageInput *image)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    delete oiio_image;
+}
+
+OIIO_ImageSpec *OIIO_ImageInput_spec(OIIO_ImageInput *image)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    auto résultat = &oiio_image->spec();
+    return reinterpret_cast<OIIO_ImageSpec *>(const_cast<OIIO::ImageSpec *>(résultat));
+}
+
+bool OIIO_ImageInput_supports(OIIO_ImageInput *image, OIIO_StringView feature)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    auto oiio_feature = std::string_view(feature.characters, feature.size);
+    return oiio_image->supports(oiio_feature);
+}
+
+bool OIIO_ImageInput_read_image(OIIO_ImageInput *image,
+                                int subimage,
+                                int miplevel,
+                                int chbegin,
+                                int chend,
+                                OIIO_TypeDesc format,
+                                void *data,
+                                int64_t xstride,
+                                int64_t ystride,
+                                int64_t zstride,
+                                OIIO_ProgressCallback progress_callback,
+                                void *progress_callback_data)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    auto oiio_format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
+    return oiio_image->read_image(subimage,
+                                  miplevel,
+                                  chbegin,
+                                  chend,
+                                  oiio_format,
+                                  data,
+                                  xstride,
+                                  ystride,
+                                  zstride,
+                                  progress_callback,
+                                  progress_callback_data);
+}
+
+OIIO_ImageOutput *OIIO_ImageOutput_create(OIIO_StringView filename,
+                                          OIIO_Filesystem_IOProxy *ioproxy,
+                                          OIIO_StringView plugin_searchpath)
+{
+    auto oiio_filename = std::string_view(filename.characters, filename.size);
+    auto oiio_ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(ioproxy);
+    auto oiio_plugin_searchpath = std::string_view(plugin_searchpath.characters,
+                                                   plugin_searchpath.size);
+    auto résultat = OIIO::ImageOutput::create(oiio_filename, oiio_ioproxy, oiio_plugin_searchpath);
+    return reinterpret_cast<OIIO_ImageOutput *>(résultat.release());
+}
+
+bool OIIO_ImageOutput_close(struct OIIO_ImageOutput *output)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    return oiio_output->close();
+}
+
+void OIIO_ImageOutput_delete(struct OIIO_ImageOutput *output)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    delete oiio_output;
+}
+
+bool OIIO_ImageOutput_open(struct OIIO_ImageOutput *output,
+                           struct OIIO_StringView filename,
+                           struct OIIO_ImageSpec *newspec,
+                           enum OIIO_ImageOutput_OpenMode open_mode)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_filename = std::string(filename.characters, filename.size);
+    auto oiio_newspec = reinterpret_cast<OIIO::ImageSpec *>(newspec);
+    auto oiio_open_mode = static_cast<OIIO::ImageOutput::OpenMode>(open_mode);
+    return oiio_output->open(oiio_filename, *oiio_newspec, oiio_open_mode);
+}
+
+bool OIIO_ImageOutput_open_subimages(struct OIIO_ImageOutput *output,
+                                     struct OIIO_StringView filename,
+                                     struct OIIO_ImageSpec *newspec,
+                                     int specnum)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_filename = std::string(filename.characters, filename.size);
+    auto oiio_newspec = reinterpret_cast<OIIO::ImageSpec *>(newspec);
+    return oiio_output->open(oiio_filename, specnum, oiio_newspec);
+}
+
+OIIO_ImageSpec *OIIO_ImageOutput_spec(OIIO_ImageOutput *output)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto résultat = &oiio_output->spec();
+    return reinterpret_cast<OIIO_ImageSpec *>(const_cast<OIIO::ImageSpec *>(résultat));
+}
+
+bool OIIO_ImageOutput_supports(OIIO_ImageOutput *output, OIIO_StringView feature)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_feature = std::string_view(feature.characters, feature.size);
+    return oiio_output->supports(oiio_feature);
+}
+
+bool OIIO_ImageOutput_write_image(struct OIIO_ImageOutput *output,
+                                  struct OIIO_TypeDesc format,
+                                  const void *data,
+                                  int64_t xstride,
+                                  int64_t ystride,
+                                  int64_t zstride,
+                                  OIIO_ProgressCallback progress_callback,
+                                  void *progress_callback_data)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
+    return oiio_output->write_image(
+        oiio_format, data, xstride, ystride, zstride, progress_callback, progress_callback_data);
+}
+
+bool OIIO_ImageOutput_write_scanline(int y,
+                                     struct OIIO_ImageOutput *output,
+                                     struct OIIO_TypeDesc format,
+                                     uint8_t *bytes,
+                                     uint64_t num_bytes)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
+    auto const &spec = oiio_output->spec();
+    const OIIO::span<std::byte> data(reinterpret_cast<std::byte *>(bytes), num_bytes);
+    const OIIO::image_span<std::byte> image_data(data.data(), spec.nchannels, spec.width, 1, 1);
+    return oiio_output->write_scanline(y, oiio_format, image_data);
+}
+
+bool OIIO_ImageOutput_write_scanlines(int ybegin,
+                                      int yend,
+                                      struct OIIO_ImageOutput *output,
+                                      struct OIIO_TypeDesc format,
+                                      uint8_t *bytes,
+                                      uint64_t num_bytes)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto oiio_format = *reinterpret_cast<OIIO::TypeDesc *>(&format);
+    auto const &spec = oiio_output->spec();
+    const OIIO::span<std::byte> data(reinterpret_cast<std::byte *>(bytes), num_bytes);
+    const OIIO::image_span<std::byte> image_data(data.data(), spec.nchannels, spec.width, 1, 1);
+    return oiio_output->write_scanlines(ybegin, yend, oiio_format, image_data);
 }

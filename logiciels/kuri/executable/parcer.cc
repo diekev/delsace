@@ -556,6 +556,8 @@ struct DéclarationStruct : public Syntaxème {
 
     kuri::chaine nom = "";
     kuri::tableau<Syntaxème *> rubriques{};
+    bool possède_attribut_aligned = false;
+    long long alignement_désiré = 0;
 };
 
 struct DéclarationUnion : public Syntaxème {
@@ -1547,6 +1549,7 @@ struct Convertisseuse {
                 rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
                 break;
             }
+            case CXCursorKind::CXCursor_AlignedAttr:
             case CXCursorKind::CXCursor_InclusionDirective:
             case CXCursorKind::CXCursor_MacroExpansion:
             {
@@ -1596,8 +1599,15 @@ struct Convertisseuse {
 
                 auto enfants_filtres = kuri::tableau<CXCursor>();
 
+                auto possède_attribut_aligned = false;
+
                 for (auto enfant : enfants) {
                     if (enfant.kind == CXCursorKind::CXCursor_VisibilityAttr) {
+                        continue;
+                    }
+
+                    if (enfant.kind == CXCursorKind::CXCursor_AlignedAttr) {
+                        possède_attribut_aligned = true;
                         continue;
                     }
 
@@ -1611,6 +1621,8 @@ struct Convertisseuse {
 
                 auto structure = syntaxeuse.crée<DéclarationStruct>(cursor);
                 structure->nom = nom_structure;
+                structure->possède_attribut_aligned = possède_attribut_aligned;
+                structure->alignement_désiré = clang_Type_getAlignOf(clang_getCursorType(cursor));
 
                 if (!enfants_filtres.est_vide()) {
                     syntaxeuse.noeud_courant.empile(structure);
@@ -2717,6 +2729,10 @@ struct Convertisseuse {
                 if (structure->rubriques.taille() == 0) {
                     os << ";\n";
                     break;
+                }
+
+                if (structure->possède_attribut_aligned) {
+                    os << " #aligne " << structure->alignement_désiré;
                 }
 
                 os << " {\n";
