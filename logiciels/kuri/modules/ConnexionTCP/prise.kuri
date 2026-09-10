@@ -23,7 +23,7 @@ Prise :: struct {
 
     /* délais */
     délai: z32; // secondes
-    horodotage_délai: z32; // quand le délai fut mis en place
+    horodatage_délai: z32; // quand le délai fut mis en place
 
     est_ssl_ : bool = faux;
 }
@@ -51,7 +51,7 @@ accède_données_serveuse :: fonc (prise: *Prise, $T: type_de_données) -> *T
 mute_délai :: fonc (prise: *Prise, délai: z32)
 {
     prise.délai = délai;
-    prise.horodotage_délai = secondes(maintenant_précis()) comme z32;
+    prise.horodatage_délai = secondes(maintenant_précis()) comme z32;
 }
 
 données_utilisateur :: fonc (prise: *Prise, $TypeDonnées: type_de_données) -> *TypeDonnées

@@ -1,0 +1,110 @@
+importe Chaine;
+importe Fondation;
+importe Sérialisation;
+importe Temps;
+
+Horloge :: struct {
+    heures: n64;
+    minutes: n8;
+    secondes: n8;
+}
+
+donne_secondes :: fonc (horloge: *Horloge) -> n64
+{
+    retourne horloge.heures * 60 * 60 + horloge.minutes comme n64 * 60 + horloge.secondes;
+}
+
+ajoute_secondes :: fonc (horloge: *Horloge, secondes: n64)
+{
+    secondes += donne_secondes(horloge);
+
+    horloge.secondes = (secondes % 60) comme n8;
+
+    minutes := secondes / 60;
+    horloge.minutes = (minutes % 60) comme n8;
+
+    heures := minutes / 60;
+    horloge.heures = heures;
+}
+
+imprime_horloge :: fonc (horloge: Horloge, tampon: *TamponFixe(z8, 8))
+{
+    ajoute(tampon, '0' + (horloge.heures / 10) comme z8);
+    ajoute(tampon, '0' + (horloge.heures % 10) comme z8);
+    ajoute(tampon, ':');
+    ajoute(tampon, '0' + (horloge.minutes / 10) comme z8);
+    ajoute(tampon, '0' + (horloge.minutes % 10) comme z8);
+    ajoute(tampon, ':');
+    ajoute(tampon, '0' + (horloge.secondes / 10) comme z8);
+    ajoute(tampon, '0' + (horloge.secondes % 10) comme z8);
+}
+
+imprime_horloge :: fonc (horloge: Horloge) -> TamponFixe(z8, 8)
+{
+    résultat: TamponFixe(z8, 8);
+    imprime_horloge(horloge, *résultat);
+    retourne résultat;
+}
+
+donne_chaine :: fonc (horloge: Horloge) -> chaine
+{
+    tampon := imprime_horloge(horloge);
+    résultat := donne_chaine(*tampon);
+    retourne copie_chaine(résultat);
+}
+
+donne_chaine :: fonc (tampon: *TamponFixe(z8, 8)) -> chaine
+{
+    retourne chaine(tampon.données.données, tampon.curseur);
+}
+
+principale :: fonc ()
+{
+    test_nombre_de_jours_dans_mois();
+    test_calendrier_républicain();
+    test_horloge();
+}
+
+test_nombre_de_jours_dans_mois :: fonc ()
+{
+    imprime("30 : %\n", FormatEntier(30, base=2));
+    pour 1 ... 12 {
+        M := it;
+        M_3 := M >> 3;
+        M_x_M_3 := M ^ M_3;
+        imprime("M % | M >> 3 % | (M ^ (M >> 3) %)\n", FormatEntier(M, base=2), FormatEntier(M_3, base=2), FormatEntier(M_x_M_3, base=2));
+    }
+
+    pour 1 ... 12 {
+        n := nombre_de_jours_dans_mois(it, 2023);
+        imprime("Nombre de jours dans mois : %\n", n);
+    }
+}
+
+test_calendrier_républicain :: fonc ()
+{
+    moment := hui_système();
+    date := donne_date_républicaine(moment);
+    imprime("%\n", donne_chaine_date_républicaine(date));
+
+    imprime("1792 est bissextile %\n", est_année_bissextile(1792));
+}
+
+test_horloge :: fonc ()
+{
+    {
+        horloge := Horloge(8, 32, 39);
+        ajoute_secondes(*horloge, 793);
+        imprimeln("%", donne_chaine(horloge));
+    }
+    {
+        horloge := Horloge(8, 18, 47);
+        ajoute_secondes(*horloge, 1620);
+        imprimeln("%", donne_chaine(horloge));
+    }
+    {
+        horloge := Horloge(9, 0, 3);
+        ajoute_secondes(*horloge, 192);
+        imprimeln("%", donne_chaine(horloge));
+    }
+}
