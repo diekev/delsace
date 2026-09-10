@@ -26,29 +26,22 @@ principale :: fonc ()
 
     nom_test := "infos-archive";
 
+    chemins: [..]chaine;
+    diffère déloge_tableau_et_ses_éléments(*chemins);
+
     si est_un_dossier(CheminFichier(chemin)) {
-        chemins: [..]chaine;
-        diffère déloge_tableau_et_ses_éléments(*chemins);
-
         donne_chemins_du_dossier_récursif(chemin, *chemins, ".abc");
-
-        // applications_et_descriptions: [..]Application_Et_Description;
-
-        pour chemins {
-            chemin_archive_courante = it;
-            archive_courante_fut_imprimée = faux;
-
-            fais_test_archive(it, nom_test);
-        }
     }
     sinon {
-        chemin_archive_courante = chemin;
-        archive_courante_fut_imprimée = faux;
-
-        fais_test_archive(chemin, nom_test);
+        tableau_ajoute(*chemins, copie_chaine(chemin));
     }
 
-    // imprime_métadonnées_archives(chemin);
+    pour chemins {
+        chemin_archive_courante = it;
+        archive_courante_fut_imprimée = faux;
+
+        fais_test_archive(it, nom_test);
+    }
 }
 
 chemin_archive_courante: chaine;
