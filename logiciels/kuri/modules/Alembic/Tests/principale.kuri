@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "infos-attributs";
+    nom_test := "hiérarchie";
 
     si est_un_dossier(CheminFichier(chemin)) {
         chemins: [..]chaine;
@@ -1029,8 +1029,8 @@ imprime_animation_attributs :: fonc (chemin: chaine)
         abc_input_float_geom_param_get_expanded(geom_param, *geom_param_sample, selector);
 
         tranche: []r32;
-        tranche.données = geom_param_sample.values;
-        tranche.taille = geom_param_sample.num_values comme z64;
+        tranche.données = geom_param_sample.values.values;
+        tranche.taille = geom_param_sample.values.num_values comme z64;
 
         imprimeln("% (% valeur(s))", vers_kuri(prop_name), tranche.taille);
 

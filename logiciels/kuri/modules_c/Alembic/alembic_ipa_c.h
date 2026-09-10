@@ -513,10 +513,8 @@ struct Abc_Input_Geom_Param;
     struct Abc_MetaData *abc_input_##nom_court##_geom_param_get_metadata(                         \
         struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
     struct Abc_Input_##type_geom##_Geom_Param_Sample {                                            \
-        type_c *values;                                                                           \
-        uint64_t num_values;                                                                      \
-        uint32_t *indices;                                                                        \
-        uint64_t num_indices;                                                                     \
+        struct Abc_##type_geom##_Array_Sample values;                                             \
+        struct Abc_UInt32_Array_Sample indices;                                                   \
         enum Abc_Geometry_Scope scope;                                                            \
     };                                                                                            \
     void abc_input_##nom_court##_geom_param_get_indexed(                                          \

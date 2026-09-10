@@ -217,6 +217,7 @@ ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(DECLARE_VALUE_CONVERTER)
 
 struct Array_Sample_Data {
     std::vector<std::string> strings{};
+    std::vector<Abc_String> input_strings{};
 };
 
 template <typename Abc_Sample_Type, typename T>
@@ -235,6 +236,29 @@ auto make_array_sample<AbcGeom::StringArraySample>(Abc_String *values,
         sample_data->strings[i] = vers_std_string(*values++);
     }
     return AbcGeom::StringArraySample(sample_data->strings.data(), num_values);
+}
+
+template <typename IPA_Type, typename Alembic_Type>
+auto make_input_array_sample(std::shared_ptr<Alembic_Type> ptr, Array_Sample_Data &)
+{
+    using value_type = typename Alembic_Type::value_type;
+    auto values = const_cast<value_type *>((*ptr).get());
+    return IPA_Type{reinterpret_cast<decltype(IPA_Type::values)>(values), (*ptr).size()};
+}
+
+template <>
+auto make_input_array_sample<Abc_String_Array_Sample, AbcGeom::StringArraySample>(
+    AbcGeom::StringArraySamplePtr ptr, Array_Sample_Data &data)
+{
+    data.input_strings.resize(ptr->size());
+
+    for (auto i = 0ul; i < ptr->size(); i++) {
+        auto string = ptr->get() + i;
+        data.input_strings[i].characters = string->c_str();
+        data.input_strings[i].size = string->size();
+    }
+
+    return Abc_String_Array_Sample{data.input_strings.data(), data.input_strings.size()};
 }
 
 #define MAKE_TYPED_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)                     \
@@ -800,6 +824,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
 struct Abc_Input_Geom_Param {
     Abc_Input_Archive *archive = nullptr;
     Abc_Input_Geom_Param *next = nullptr;
+    Array_Sample_Data sample_data{};
 
     virtual ~Abc_Input_Geom_Param() = default;
 };
@@ -876,11 +901,10 @@ T *make_input_geom_param(Abc_Input_Archive *archive)
     {                                                                                             \
         param->param.getIndexed(param->sample, get_sample_selector(selector));                    \
         if (sample) {                                                                             \
-            sample->values = reinterpret_cast<type_c *>(                                          \
-                const_cast<type_abc_value *>(param->sample.getVals()->get()));                    \
-            sample->num_values = param->sample.getVals()->size();                                 \
-            sample->indices = const_cast<uint32_t *>(param->sample.getIndices()->get());          \
-            sample->num_indices = param->sample.getIndices()->size();                             \
+            sample->values = make_input_array_sample<Abc_##type_geom##_Array_Sample>(             \
+                param->sample.getVals(), param->sample_data);                                     \
+            sample->indices = make_input_array_sample<Abc_UInt32_Array_Sample>(                   \
+                param->sample.getIndices(), param->sample_data);                                  \
             sample->scope = static_cast<Abc_Geometry_Scope>(param->sample.getScope());            \
         }                                                                                         \
     }                                                                                             \
@@ -891,9 +915,8 @@ T *make_input_geom_param(Abc_Input_Archive *archive)
     {                                                                                             \
         param->param.getExpanded(param->sample, get_sample_selector(selector));                   \
         if (sample) {                                                                             \
-            sample->values = reinterpret_cast<type_c *>(                                          \
-                const_cast<type_abc_value *>(param->sample.getVals()->get()));                    \
-            sample->num_values = param->sample.getVals()->size();                                 \
+            sample->values = make_input_array_sample<Abc_##type_geom##_Array_Sample>(             \
+                param->sample.getVals(), param->sample_data);                                     \
             sample->scope = static_cast<Abc_Geometry_Scope>(param->sample.getScope());            \
         }                                                                                         \
     }
