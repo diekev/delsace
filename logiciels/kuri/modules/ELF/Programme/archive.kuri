@@ -60,7 +60,7 @@ principale :: fonc ()
 
 Fichier_Archivé :: struct {
     identifiant: chaine;
-    horodotage_modification: chaine;
+    horodatage_modification: chaine;
     id_propriétaire: n32;
     id_groupe: n32;
     mode_fichier: n32;

@@ -36,26 +36,12 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-    AbcKuri/alembic_archive.cc
-    AbcKuri/alembic_export.cc
-    AbcKuri/alembic_export_attributs.cc
-    AbcKuri/alembic_import.cc
-    AbcKuri/utilitaires.cc
-
     alembic_ipa_c.cc
-
-    AbcKuri/alembic_archive.hh
-    AbcKuri/alembic_export.hh
-    AbcKuri/alembic_export_attributs.hh
-    AbcKuri/alembic_import.hh
-    AbcKuri/utilitaires.hh
 
     alembic.h
     alembic_ipa_c.h
-    alembic_types.h
 
     ${CMAKE_CURRENT_SOURCE_DIR}/../InterfaceCKuri/contexte_kuri.hh
 )
 
-# À FAIRE : depends alembic_types.h
 compile_module_c(${NOM_PROJET} alembic alembic_ipa_c.h Alembic "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")

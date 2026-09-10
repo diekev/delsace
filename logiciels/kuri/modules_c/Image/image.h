@@ -60,49 +60,12 @@ struct ImageIO {
     enum ImageIO_DataType format;
 };
 
-struct ImageIOProxy;
-
-struct ImageIOProxy *IMG_cree_proxy_memoire(void *buf, uint64_t size);
-
-void IMG_detruit_proxy(struct ImageIOProxy *proxy);
-
-enum ResultatOperation IMG_ouvre_image(const char *chemin,
-                                       struct ImageIO *image,
-                                       enum ImageIO_DataType format);
-enum ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
-                                                  struct ImageIO *image,
-                                                  struct ImageIOProxy *proxy,
-                                                  enum ImageIO_DataType format);
-
 enum ResultatOperation IMG_ouvre_gif_depuis_fichier(const char *chemin, struct ImageIO *resultat);
 enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
                                                     uint64_t taille,
                                                     struct ImageIO *resultat);
 
-enum ResultatOperation IMG_ecris_image(const char *chemin, struct ImageIO *image);
-
 void IMG_detruit_image(struct ImageIO *image);
-
-void IMG_calcule_empreinte_floue_octet(unsigned char *image,
-                                       int largeur,
-                                       int hauteur,
-                                       int nombre_canaux,
-                                       int composant_x,
-                                       int composant_y,
-                                       char *resultat,
-                                       int64_t *taille_resultat);
-
-void IMG_calcule_empreinte_floue_reel(float *image,
-                                      int largeur,
-                                      int hauteur,
-                                      int nombre_canaux,
-                                      int composant_x,
-                                      int composant_y,
-                                      char *resultat,
-                                      int64_t *taille_resultat);
-
-uint8_t *IMG_decode_empreinte_floue(
-    const char *empreinte, int largeur, int hauteur, int punch, int canaux);
 
 /** Structure pour décrire la résolution d'une image.
  */
@@ -228,13 +191,6 @@ enum ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
                                                       struct AdaptriceImage *image,
                                                       struct ImageIO_RappelsProgression *rappels,
                                                       enum ImageIO_Options_Lecture options);
-
-enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
-                                                      int64_t taille_chemin,
-                                                      struct AdaptriceImage *image,
-                                                      struct ImageIO_RappelsProgression *rappels);
-
-struct ImageIO_Chaine IMG_donne_liste_extensions(void);
 
 void IMG_donne_erreur(struct ImageIO_Chaine *résultat);
 
@@ -416,6 +372,308 @@ bool SVG_parse_image_depuis_contenu(char *data, struct SVGImage *resultat);
 void SVG_image_ratisse(struct SVGImage *image, uint8_t *sortie, int largeur, int hauteur);
 
 void SVG_image_detruit(struct SVGImage *image);
+
+// ----------------------------------------------------------------------------
+// OIIO.
+
+int64_t OIIO_AutoStride();
+
+struct OIIO_StringView {
+    const char *characters;
+    uint64_t size;
+};
+
+int OIIO_get_int_attribute(struct OIIO_StringView name, int default_value);
+
+float OIIO_get_float_attribute(struct OIIO_StringView name, float default_value);
+
+struct OIIO_StringView OIIO_get_string_attribute(struct OIIO_StringView name,
+                                                 struct OIIO_StringView default_value);
+
+#define OIIO_USTRING_SIZE 8
+#define OIIO_USTRING_ALIGNMENT 8
+
+struct OIIO_ustring {
+    char data[OIIO_USTRING_SIZE];
+} __attribute__((aligned(OIIO_USTRING_ALIGNMENT)));
+
+const char *OIIO_ustring_c_str(struct OIIO_ustring *str);
+
+uint64_t OIIO_ustring_size(struct OIIO_ustring *str);
+
+struct OIIO_TypeDesc {
+    unsigned char basetype;      ///< C data type at the heart of our type
+    unsigned char aggregate;     ///< What kind of AGGREGATE is it?
+    unsigned char vecsemantics;  ///< Hint: What does the aggregate represent?
+    unsigned char reserved;      ///< Reserved for future expansion
+    int arraylen;                ///< Array length, 0 = not array, -1 = unsized
+};
+
+/// BASETYPE is a simple enum describing the base data types that
+/// correspond (mostly) to the C/C++ built-in types.
+enum OIIO_TYPEDESC_BASETYPE {
+    OIIO_TYPEDESC_BASETYPE_UNKNOWN,  ///< unknown type
+    OIIO_TYPEDESC_BASETYPE_NONE,     ///< void/no type
+    OIIO_TYPEDESC_BASETYPE_UINT8,    ///< 8-bit unsigned int values ranging from 0..255,
+                                     ///<   (C/C++ `unsigned char`).
+    OIIO_TYPEDESC_BASETYPE_UCHAR = OIIO_TYPEDESC_BASETYPE_UINT8,
+    OIIO_TYPEDESC_BASETYPE_INT8,  ///< 8-bit int values ranging from -128..127,
+                                  ///<   (C/C++ `char`).
+    OIIO_TYPEDESC_BASETYPE_CHAR = OIIO_TYPEDESC_BASETYPE_INT8,
+    OIIO_TYPEDESC_BASETYPE_UINT16,  ///< 16-bit int values ranging from 0..65535,
+                                    ///<   (C/C++ `unsigned short`).
+    OIIO_TYPEDESC_BASETYPE_USHORT = OIIO_TYPEDESC_BASETYPE_UINT16,
+    OIIO_TYPEDESC_BASETYPE_INT16,  ///< 16-bit int values ranging from -32768..32767,
+                                   ///<   (C/C++ `short`).
+    OIIO_TYPEDESC_BASETYPE_SHORT = OIIO_TYPEDESC_BASETYPE_INT16,
+    OIIO_TYPEDESC_BASETYPE_UINT32,  ///< 32-bit unsigned int values (C/C++ `unsigned int`).
+    OIIO_TYPEDESC_BASETYPE_UINT = OIIO_TYPEDESC_BASETYPE_UINT32,
+    OIIO_TYPEDESC_BASETYPE_INT32,  ///< signed 32-bit int values (C/C++ `int`).
+    OIIO_TYPEDESC_BASETYPE_INT = OIIO_TYPEDESC_BASETYPE_INT32,
+    OIIO_TYPEDESC_BASETYPE_UINT64,  ///< 64-bit unsigned int values (C/C++
+                                    ///<   `unsigned long long` on most architectures).
+    OIIO_TYPEDESC_BASETYPE_ULONGLONG = OIIO_TYPEDESC_BASETYPE_UINT64,
+    OIIO_TYPEDESC_BASETYPE_INT64,  ///< signed 64-bit int values (C/C++ `long long`
+                                   ///<   on most architectures).
+    OIIO_TYPEDESC_BASETYPE_LONGLONG = OIIO_TYPEDESC_BASETYPE_INT64,
+    OIIO_TYPEDESC_BASETYPE_HALF,         ///< 16-bit IEEE floating point values (OpenEXR `half`).
+    OIIO_TYPEDESC_BASETYPE_FLOAT,        ///< 32-bit IEEE floating point values, (C/C++ `float`).
+    OIIO_TYPEDESC_BASETYPE_DOUBLE,       ///< 64-bit IEEE floating point values, (C/C++ `double`).
+    OIIO_TYPEDESC_BASETYPE_STRING,       ///< Character string.
+    OIIO_TYPEDESC_BASETYPE_PTR,          ///< A pointer value.
+    OIIO_TYPEDESC_BASETYPE_USTRINGHASH,  ///< A uint64 that is the hash of a ustring.
+    OIIO_TYPEDESC_BASETYPE_LASTBASE
+};
+
+/// AGGREGATE describes whether our TypeDesc is a simple scalar of one
+/// of the BASETYPE's, or one of several simple aggregates.
+///
+/// Note that aggregates and arrays are different. A `TypeDesc(FLOAT,3)`
+/// is an array of three floats, a `TypeDesc(FLOAT,VEC3)` is a single
+/// 3-component vector comprised of floats, and `TypeDesc(FLOAT,3,VEC3)`
+/// is an array of 3 vectors, each of which is comprised of 3 floats.
+enum OIIO_TYPEDESC_AGGREGATE {
+    OIIO_TYPEDESC_AGGREGATE_SCALAR = 1,    ///< A single scalar value (such as a raw `int` or
+                                           ///<   `float` in C).  This is the default.
+    OIIO_TYPEDESC_AGGREGATE_VEC2 = 2,      ///< 2 values representing a 2D vector.
+    OIIO_TYPEDESC_AGGREGATE_VEC3 = 3,      ///< 3 values representing a 3D vector.
+    OIIO_TYPEDESC_AGGREGATE_VEC4 = 4,      ///< 4 values representing a 4D vector.
+    OIIO_TYPEDESC_AGGREGATE_MATRIX33 = 9,  ///< 9 values representing a 3x3 matrix.
+    OIIO_TYPEDESC_AGGREGATE_MATRIX44 = 16  ///< 16 values representing a 4x4 matrix.
+};
+
+/// VECSEMANTICS gives hints about what the data represent (for example,
+/// if a spatial vector quantity should transform as a point, direction
+/// vector, or surface normal).
+enum OIIO_TYPEDESC_VECSEMANTICS {
+    OIIO_TYPEDESC_VECSEMANTICS_NOXFORM = 0,      ///< No semantic hints.
+    OIIO_TYPEDESC_VECSEMANTICS_NOSEMANTICS = 0,  ///< No semantic hints.
+    OIIO_TYPEDESC_VECSEMANTICS_COLOR,            ///< Color
+    OIIO_TYPEDESC_VECSEMANTICS_POINT,            ///< Point: a spatial location
+    OIIO_TYPEDESC_VECSEMANTICS_VECTOR,           ///< Vector: a spatial direction
+    OIIO_TYPEDESC_VECSEMANTICS_NORMAL,           ///< Normal: a surface normal
+    OIIO_TYPEDESC_VECSEMANTICS_TIMECODE,  ///< indicates an `int[2]` representing the standard
+                                          ///<   4-byte encoding of an SMPTE timecode.
+    OIIO_TYPEDESC_VECSEMANTICS_KEYCODE,   ///< indicates an `int[7]` representing the standard
+                                          ///<   28-byte encoding of an SMPTE keycode.
+    OIIO_TYPEDESC_VECSEMANTICS_RATIONAL,  ///< A VEC2 representing a rational number `val[0] /
+                                          ///< val[1]`
+    OIIO_TYPEDESC_VECSEMANTICS_BOX,  ///< A VEC2[2] or VEC3[2] that represents a 2D or 3D bounds
+                                     ///< (min/max)
+};
+
+uint64_t OIIO_TypeDesc_basesize(struct OIIO_TypeDesc *type_desc);
+
+#define OIIO_PARAMVALUE_SIZE 40
+#define OIIO_PARAMVALUE_ALIGNMENT 8
+
+struct OIIO_ParamValue {
+    char data[OIIO_PARAMVALUE_SIZE];
+} __attribute__((aligned(OIIO_PARAMVALUE_ALIGNMENT)));
+
+struct OIIO_TypeDesc OIIO_ParamValue_type(struct OIIO_ParamValue *param);
+
+struct OIIO_StringView OIIO_ParamValue_name(struct OIIO_ParamValue *param);
+
+const void *OIIO_ParamValue_data(struct OIIO_ParamValue *param);
+
+int OIIO_ParamValue_nvalues(struct OIIO_ParamValue *param);
+
+#define OIIO_IMAGESPEC_SIZE 160
+#define OIIO_IMAGESPEC_ALIGNMENT 8
+
+struct OIIO_ImageSpec {
+    char data[OIIO_IMAGESPEC_SIZE];
+} __attribute__((aligned(OIIO_IMAGESPEC_ALIGNMENT)));
+
+void OIIO_ImageSpec_init(struct OIIO_ImageSpec *spec);
+
+int OIIO_ImageSpec_donne_width(struct OIIO_ImageSpec *spec);
+
+void OIIO_ImageSpec_definis_width(struct OIIO_ImageSpec *spec, int width);
+
+int OIIO_ImageSpec_donne_height(struct OIIO_ImageSpec *spec);
+
+void OIIO_ImageSpec_definis_height(struct OIIO_ImageSpec *spec, int height);
+
+int OIIO_ImageSpec_donne_nchannels(struct OIIO_ImageSpec *spec);
+
+void OIIO_ImageSpec_definis_nchannels(struct OIIO_ImageSpec *spec, int nchannels);
+
+struct OIIO_TypeDesc OIIO_ImageSpec_donne_format(struct OIIO_ImageSpec *spec);
+
+void OIIO_ImageSpec_definis_format(struct OIIO_ImageSpec *spec, struct OIIO_TypeDesc format);
+
+struct OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(struct OIIO_ImageSpec *spec);
+
+uint64_t OIIO_ImageSpec_donne_extra_attribs_size(struct OIIO_ImageSpec *spec);
+
+struct OIIO_Filesystem_IOProxy;
+
+struct OIIO_Filesystem_IOProxy *OIIO_Filesytem_IOMemReader_new(void *buf, uint64_t size);
+
+struct OIIO_IOProxy_Callbacks {
+    const char *(*proxytype)(struct OIIO_IOProxy_Callbacks *base);
+    void (*close)(struct OIIO_IOProxy_Callbacks *base);
+    bool (*opened)(struct OIIO_IOProxy_Callbacks *base);
+    int64_t (*tell)(struct OIIO_IOProxy_Callbacks *base);
+    // Seek to the position, returning true on success, false on failure.
+    // Note the difference between this and std::fseek() which returns 0 on
+    // success, and -1 on failure.
+    bool (*seek)(struct OIIO_IOProxy_Callbacks *base, int64_t offset);
+    // Read `size` bytes at the current position into `buf[]`, returning the
+    // number of bytes successfully read.
+    uint64_t (*read)(struct OIIO_IOProxy_Callbacks *base, void *buf, uint64_t size);
+    // Write `size` bytes from `buf[]` at the current position, returning the
+    // number of bytes successfully written.
+    uint64_t (*write)(struct OIIO_IOProxy_Callbacks *base, const void *buf, uint64_t size);
+
+    /// Read `size` bytes starting at the `offset` position into `buf[]`,
+    /// returning the number of bytes successfully read. This function does
+    /// not alter the current file position. This function is thread-safe against
+    /// all other concurrent calls to pread() and pwrite(), but not against any
+    /// other function of IOProxy.
+    uint64_t (*pread)(struct OIIO_IOProxy_Callbacks *base,
+                      void *buf,
+                      uint64_t size,
+                      int64_t offset);
+
+    /// Write `size` bytes from `buf[]` to file starting at the `offset` position,
+    /// returning the number of bytes successfully written. This function does
+    /// not alter the current file position. This function is thread-safe against
+    /// all other concurrent calls to pread() and pwrite(), but not against any
+    /// other function of IOProxy.
+    uint64_t (*pwrite)(struct OIIO_IOProxy_Callbacks *base,
+                       const void *buf,
+                       uint64_t size,
+                       int64_t offset);
+
+    // Return the total size of the proxy data, in bytes.
+    uint64_t (*size)(struct OIIO_IOProxy_Callbacks *base);
+    void (*flush)(struct OIIO_IOProxy_Callbacks *base);
+
+    // Filled by OIIO_IOProxy_Filesystem_new_from_callbacks
+    struct OIIO_Filesystem_IOProxy *proxy;
+};
+
+struct OIIO_Filesystem_IOProxy *OIIO_Filesystem_IOProxy_new_from_callbacks(
+    struct OIIO_IOProxy_Callbacks *callbacks);
+
+void OIIO_Filesystem_IOProxy_delete(struct OIIO_Filesystem_IOProxy *proxy);
+
+const char *OIIO_Filesytem_IOProxy_proxytype(struct OIIO_Filesystem_IOProxy *proxy);
+
+enum OIIO_Filesystem_IOProxy_Mode {
+    OIIO_FILESYSTEM_IOPROXY_MODE_CREATE = 0,
+    OIIO_FILESYSTEM_IOPROXY_MODE_READ = 114,
+    OIIO_FILESYSTEM_IOPROXY_MODE_WRITE = 119,
+};
+
+enum OIIO_Filesystem_IOProxy_Mode OIIO_Filesystem_IOProxy_mode(
+    struct OIIO_Filesystem_IOProxy *proxy);
+
+struct OIIO_StringView OIIO_Filesystem_IOProxy_filename(struct OIIO_Filesystem_IOProxy *proxy);
+
+struct OIIO_ImageInput;
+
+struct OIIO_ImageInput *OIIO_ImageInput_open(struct OIIO_StringView chemin,
+                                             struct OIIO_ImageSpec *config,
+                                             struct OIIO_Filesystem_IOProxy *ioproxy);
+
+bool OIIO_ImageInput_close(struct OIIO_ImageInput *image);
+
+void OIIO_ImageInput_delete(struct OIIO_ImageInput *image);
+
+struct OIIO_ImageSpec *OIIO_ImageInput_spec(struct OIIO_ImageInput *image);
+
+bool OIIO_ImageInput_supports(struct OIIO_ImageInput *image, struct OIIO_StringView feature);
+
+typedef bool (*OIIO_ProgressCallback)(void *data, float progress);
+
+bool OIIO_ImageInput_read_image(struct OIIO_ImageInput *image,
+                                int subimage,
+                                int miplevel,
+                                int chbegin,
+                                int chend,
+                                struct OIIO_TypeDesc format,
+                                void *data,
+                                int64_t xstride,
+                                int64_t ystride,
+                                int64_t zstride,
+                                OIIO_ProgressCallback progress_callback,
+                                void *progress_callback_data);
+
+struct OIIO_ImageOutput;
+
+struct OIIO_ImageOutput *OIIO_ImageOutput_create(struct OIIO_StringView filename,
+                                                 struct OIIO_Filesystem_IOProxy *ioproxy,
+                                                 struct OIIO_StringView plugin_searchpath);
+
+bool OIIO_ImageOutput_close(struct OIIO_ImageOutput *output);
+
+void OIIO_ImageOutput_delete(struct OIIO_ImageOutput *output);
+
+enum OIIO_ImageOutput_OpenMode {
+    OIIO_IMAGEOUTPUT_OPENMODE_CREATE,
+    OIIO_IMAGEOUTPUT_OPENMODE_APPEND_SUB_IMAGE,
+    OIIO_IMAGEOUTPUT_OPENMODE_APPEND_MIP_LEVEL,
+};
+
+bool OIIO_ImageOutput_open(struct OIIO_ImageOutput *output,
+                           struct OIIO_StringView filename,
+                           struct OIIO_ImageSpec *newspec,
+                           enum OIIO_ImageOutput_OpenMode open_mode);
+
+bool OIIO_ImageOutput_open_subimages(struct OIIO_ImageOutput *output,
+                                     struct OIIO_StringView filename,
+                                     struct OIIO_ImageSpec *newspec,
+                                     int specnum);
+
+struct OIIO_ImageSpec *OIIO_ImageOutput_spec(struct OIIO_ImageOutput *output);
+
+bool OIIO_ImageOutput_supports(struct OIIO_ImageOutput *output, struct OIIO_StringView feature);
+
+bool OIIO_ImageOutput_write_image(struct OIIO_ImageOutput *output,
+                                  struct OIIO_TypeDesc format,
+                                  const void *data,
+                                  int64_t xstride,
+                                  int64_t ystride,
+                                  int64_t zstride,
+                                  OIIO_ProgressCallback progress_callback,
+                                  void *progress_callback_data);
+
+bool OIIO_ImageOutput_write_scanline(int y,
+                                     struct OIIO_ImageOutput *output,
+                                     struct OIIO_TypeDesc format,
+                                     uint8_t *bytes,
+                                     uint64_t num_bytes);
+
+bool OIIO_ImageOutput_write_scanlines(int ybegin,
+                                      int yend,
+                                      struct OIIO_ImageOutput *output,
+                                      struct OIIO_TypeDesc format,
+                                      uint8_t *bytes,
+                                      uint64_t num_bytes);
 
 #ifdef __cplusplus
 }
