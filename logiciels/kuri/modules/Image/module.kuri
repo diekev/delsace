@@ -10,6 +10,7 @@ importe PThread;
 charge "empreinte_floue";
 charge "filtrage";
 charge "gif";
+charge "oiio";
 
 libtbb :: #bibliothèque "tbb";
 
@@ -120,60 +121,6 @@ crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, haute
     résultat.desc.direction = direction;
     résultat.source_données = SourceDonnéesImage.Externe;
     retourne résultat;
-}
-
-crée_image_depuis_image_io :: fonc (image: *ImageIO) -> NouvelleImage
-{
-    desc := donne_descriptice_depuis_image_io(image);
-    résultat := crée_image(*desc);
-    copie_mem_nonsur(src = image.donnees, dst = résultat.données, taille = donne_taille_données(*desc));
-    retourne résultat;
-}
-
-donne_descriptice_depuis_image_io :: fonc (image: *ImageIO) -> DescriptriceImage
-{
-    desc: DescriptriceImage;
-    desc.largeur = image.largeur comme n32;
-    desc.hauteur = image.hauteur comme n32;
-
-    si image.nombre_composants == 1 {
-        si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
-            desc.format = FormatPixel.Gris_8;
-        }
-        sinon si image.format == ImageIO_DataType.FLOAT {
-            desc.format = FormatPixel.Gris_32;
-        }
-        sinon {
-            panique("type image non supporté : %", image.format);
-        }
-    }
-    sinon si image.nombre_composants == 3 {
-        si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
-            desc.format = FormatPixel.RVB_8;
-        }
-        sinon si image.format == ImageIO_DataType.FLOAT {
-            desc.format = FormatPixel.RVB_32;
-        }
-        sinon {
-            panique("type image non supporté : %", image.format);
-        }
-    }
-    sinon si image.nombre_composants == 4 {
-        si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
-            desc.format = FormatPixel.RVBA_8;
-        }
-        sinon si image.format == ImageIO_DataType.FLOAT {
-            desc.format = FormatPixel.RVBA_32;
-        }
-        sinon {
-            panique("type image non supporté : %", image.format);
-        }
-    }
-    sinon {
-        panique("nombre de composant non-géré : %", image.nombre_composants);
-    }
-
-    retourne desc;
 }
 
 copie_image :: fonc (image: NouvelleImage) -> NouvelleImage
@@ -295,21 +242,47 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
         }
     }
 
-    proxy_image := IMG_cree_proxy_memoire(données.données, données.taille comme n64);
-    diffère IMG_detruit_proxy(proxy_image);
+    proxy_image := OIIO_Filesytem_IOMemReader_new(données.données, données.taille comme n64);
+    diffère OIIO_Filesystem_IOProxy_delete(proxy_image);
 
-    chn_c_chemin := crée_chaine_c(chemin);
-    diffère détruit_chaine_c(*chn_c_chemin);
-
-    image: ImageIO;
-    résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *image, proxy_image, ImageIO_DataType.UNKNOWN);
-    si résultat_lecture_image != ResultatOperation.OK {
-        imprime("Impossible de lire l'image : %\n", résultat_lecture_image);
+    input := OIIO_ImageInput_open(chemin, nul, proxy_image);
+    saufsi input {
+        imprime("Impossible de lire l'image '%'\n", chemin);
         retourne faux, NouvelleImage();
     }
 
-    résultat := crée_image_depuis_image_io(*image);
-    IMG_detruit_image(*image);
+    diffère {
+        _ := OIIO_ImageInput_close(input);
+        OIIO_ImageInput_delete(input);
+    }
+
+    saufsi OIIO_ImageInput_supports(input, "ioproxy") {
+        imprime("Impossible de lire l'image depuis un tampon mémoire '%'\n", chemin);
+        retourne faux, NouvelleImage();
+    }
+
+    spec := OIIO_ImageInput_spec(input);
+
+    spec_format := OIIO_ImageSpec_donne_format(spec);
+    spec_format_basetype := spec_format.basetype comme n32 comme OIIO_TYPEDESC_BASETYPE;
+
+    typedesc_désiré: OIIO_TypeDesc;
+    typedesc_désiré.basetype = spec_format.basetype;
+    typedesc_désiré.aggregate = OIIO_TYPEDESC_AGGREGATE.SCALAR comme n32 comme n8;
+
+    si spec_format_basetype == OIIO_TYPEDESC_BASETYPE.UNKNOWN || spec_format_basetype == OIIO_TYPEDESC_BASETYPE.NONE {
+        typedesc_désiré.basetype = OIIO_TYPEDESC_BASETYPE.FLOAT comme n32 comme n8;
+    }
+
+    desc_résultat := donne_descriptrice_depuis_oiio(spec, typedesc_désiré);
+    résultat := crée_image(*desc_résultat);
+
+    saufsi oiio_read_image(input, 0, 0, 0, -1, typedesc_désiré, résultat.données, OIIO_AutoStride(), OIIO_AutoStride(), OIIO_AutoStride()) {
+        détruit_données_image(*résultat);
+        imprime("Impossible de lire les données de l'image : '%'\n", chemin);
+        retourne faux, NouvelleImage();
+    }
+
     retourne vrai, résultat;
 }
 
@@ -473,44 +446,30 @@ liboiio_util :: #bibliothèque "OpenImageIO_Util";
 
 écris_image :: fonc (chemin: CheminFichier, image: NouvelleImage)
 {
-    image_io: ImageIO = ---;
-    image_io.largeur = image.desc.largeur comme z32;
-    image_io.hauteur = image.desc.hauteur comme z32;
-    image_io.donnees = image.données comme *n8;
-
-    discr image.desc.format {
-        Gris_8 {
-            image_io.format = ImageIO_DataType.UINT8;
-            image_io.nombre_composants = 1;
-        }
-        RVB_8 {
-            image_io.format = ImageIO_DataType.UINT8;
-            image_io.nombre_composants = 3;
-        }
-        RVBA_8 {
-            image_io.format = ImageIO_DataType.UINT8;
-            image_io.nombre_composants = 4;
-        }
-        Gris_32 {
-            image_io.format = ImageIO_DataType.FLOAT;
-            image_io.nombre_composants = 1;
-        }
-        RVB_32 {
-            image_io.format = ImageIO_DataType.FLOAT;
-            image_io.nombre_composants = 3;
-        }
-        RVBA_32 {
-            image_io.format = ImageIO_DataType.FLOAT;
-            image_io.nombre_composants = 4;
-        }
+    output := OIIO_ImageOutput_create(chemin.chn);
+    saufsi output {
+        imprimeln("Impossible de créer l'écrivain pour l'image '%'", chemin.chn);
+        retourne;
     }
 
-    image_io.taille_donnees = donne_taille_données(*image.desc);
+    diffère {
+        _ := OIIO_ImageOutput_close(output);
+        OIIO_ImageOutput_delete(output);
+    }
 
-    chn_c_sortie := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(*chn_c_sortie);
+    type_desc := donne_typedesc(image.desc);
+    spec: OIIO_ImageSpec;
+    initialise_image_spec(*spec, type_desc, image.desc);
 
-    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image_io);
+    saufsi OIIO_ImageOutput_open(output, chemin.chn, *spec) {
+        imprimeln("Impossible d'ouvrir l'image '%' pour l'écriture", chemin.chn);
+        retourne;
+    }
+
+    saufsi oiio_write_image(output, type_desc, image.données, OIIO_AutoStride(), OIIO_AutoStride(), OIIO_AutoStride()) {
+        imprimeln("Impossible d'écrire l'image '%'", chemin.chn);
+        retourne;
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1148,11 +1107,10 @@ compare_info_image_supportée_par_nom :: fonc (a: InfoFormatImageSupporté, b: I
 
 donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
 {
-    liste_extensions := IMG_donne_liste_extensions();
-    chn_liste_extensions := chaine(liste_extensions.caractères, liste_extensions.taille comme z64);
+    liste_extensions := OIIO_get_string_attribute("extension_list");
 
-    nombre_de_doubles_points := compte_occurences_de(chn_liste_extensions, ':');
-    nombre_de_virgules := compte_occurences_de(chn_liste_extensions, ',');
+    nombre_de_doubles_points := compte_occurences_de(liste_extensions, ':');
+    nombre_de_virgules := compte_occurences_de(liste_extensions, ',');
 
     nombre_d_extensions := nombre_de_virgules + nombre_de_doubles_points;
 
@@ -1160,7 +1118,7 @@ donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
     /* + 3 pour SVG, GIF, et WebP */
     tableau_réserve(*résultat, nombre_de_doubles_points + 3);
 
-    paires_type_extensions := divise(chn_liste_extensions, ';');
+    paires_type_extensions := divise(liste_extensions, ';');
     diffère déloge(*paires_type_extensions);
 
     type_et_extensions: [..]chaine;

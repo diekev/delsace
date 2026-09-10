@@ -59,7 +59,7 @@ InterfaceServeuseCourriel :: struct {
 SessionPOP :: struct {
     /* Pour les paramètres APOP */
     id_processus: z32
-    horodotage: z64
+    horodatage: z64
 
     interface_serveuse: InterfaceServeuseCourriel
 
