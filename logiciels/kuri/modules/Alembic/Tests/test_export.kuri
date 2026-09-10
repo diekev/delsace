@@ -211,12 +211,14 @@ principale :: fonc ()
     // crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
     // crée_test_rayons_points("/tmp/point-without-width.abc", faux);
 
-    crée_test_scope_rayons_points("/tmp/points-width-constant-scope.abc", Abc_Geometry_Scope.CONSTANT);
-    crée_test_scope_rayons_points("/tmp/points-width-vertex-scope.abc", Abc_Geometry_Scope.VERTEX);
+    // crée_test_scope_rayons_points("/tmp/points-width-constant-scope.abc", Abc_Geometry_Scope.CONSTANT);
+    // crée_test_scope_rayons_points("/tmp/points-width-vertex-scope.abc", Abc_Geometry_Scope.VERTEX);
 
-    crée_test_scope_rayons_courbes("/tmp/curves-width-constant-scope.abc", Abc_Geometry_Scope.CONSTANT);
-    crée_test_scope_rayons_courbes("/tmp/curves-width-vertex-scope.abc", Abc_Geometry_Scope.VERTEX);
-    crée_test_scope_rayons_courbes("/tmp/curves-width-uniform-scope.abc", Abc_Geometry_Scope.UNIFORM);
+    // crée_test_scope_rayons_courbes("/tmp/curves-width-constant-scope.abc", Abc_Geometry_Scope.CONSTANT);
+    // crée_test_scope_rayons_courbes("/tmp/curves-width-vertex-scope.abc", Abc_Geometry_Scope.VERTEX);
+    // crée_test_scope_rayons_courbes("/tmp/curves-width-uniform-scope.abc", Abc_Geometry_Scope.UNIFORM);
+
+    crée_test_attributs();
 
     // crée_test_visibilité("/tmp/visibility-hidden.abc");
     // crée_test_visibilité("/tmp/visibility-parent-hidden-child-visible.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.VISIBLE);
@@ -1039,4 +1041,68 @@ crée_points_vides :: fonc ()
     abc_output_points_sample_ids_set(point_sample, ids);
 
     abc_output_points_sample_set(points, point_sample);
+}
+
+crée_test_attributs :: fonc ()
+{
+    chemin := "/tmp/attributs-polymesh.abc";
+
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_objet_mesh := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
+    mesh := abc_output_polymesh_create(matrice_objet_mesh, "PolyMeshShape", ts_défaut);
+
+    mesh_sample := abc_output_polymesh_sample_create(mesh);
+    diffère abc_output_polymesh_sample_destroy(mesh_sample);
+
+    positions := [
+        Vec3(-1.0, 0.0, -1.0),
+        Vec3( 1.0, 0.0, -1.0),
+        Vec3( 1.0, 0.0,  1.0),
+        Vec3(-1.0, 0.0,  1.0),
+    ];
+
+    abc_output_polymesh_sample_positions_set(mesh_sample, positions);
+
+    face_indices := [0, 1, 2, 3];
+    abc_output_polymesh_sample_face_indices_set(mesh_sample, face_indices);
+
+    face_counts := [4];
+    abc_output_polymesh_sample_face_counts_set(mesh_sample, face_counts);
+
+    abc_output_polymesh_sample_set(mesh, mesh_sample);
+
+    arb_geom_params := abc_output_polymesh_arb_geom_params_get(mesh);
+
+    geom_param := abc_output_float_geom_param_create(arb_geom_params, vers_abc_string("test"), faux, Abc_Geometry_Scope.UNIFORM, 1);
+
+    échantillons := [1.0 / metadata.fps];
+    temps_par_cycle := 1.0 / metadata.fps;
+    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+
+    abc_output_float_geom_param_set_time_sampling(geom_param, ts_animation);
+
+    values := r32.[4, 5, 6, 7];
+
+    pour 9 {
+        sample: Abc_Output_Float_Geom_Param_Sample;
+        sample.scope = Abc_Geometry_Scope.UNIFORM;
+        sample.values.values = values.données;
+
+        si 4 <= indice_it <= 7 {
+            sample.values.values = values.données + indice_it - 4;
+            sample.values.num_values = 1;
+        }
+
+        abc_output_float_geom_param_sample_set(geom_param, *sample);
+    }
 }

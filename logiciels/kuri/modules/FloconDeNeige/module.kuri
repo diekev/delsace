@@ -27,7 +27,7 @@ ParamètresFlocon :: struct {
     flocon_travailleur : z64 = 0;
     flocon_centre_données : z64 = 0;
     séquence : z64 = 0;
-    dernier_horodotage : z64 = -1;
+    dernier_horodatage : z64 = -1;
 }
 
 Flocon :: #opaque z64;
@@ -35,40 +35,40 @@ Délai :: #opaque z64;
 
 flocon_suivant :: fonc (empl paramètres: *ParamètresFlocon) -> Flocon | Délai
 {
-    horodotage := génère_temps();
+    horodatage := génère_temps();
 
-    si horodotage < dernier_horodotage {
+    si horodatage < dernier_horodatage {
         // Le temps recule, retourne un délai pour indiquer le temps à attendre pour générer un nouvel Flocon
-        retourne Délai(dernier_horodotage - horodotage);
+        retourne Délai(dernier_horodatage - horodatage);
     }
 
-    si dernier_horodotage == horodotage {
+    si dernier_horodatage == horodatage {
         séquence = (séquence + 1) & MASQUE_SÉQUENCE;
 
         si séquence == 0 {
-            horodotage = jusque_prochaine_millis(dernier_horodotage);
+            horodatage = jusque_prochaine_millis(dernier_horodatage);
         }
     }
     sinon {
         séquence = 0;
     }
 
-    dernier_horodotage = horodotage;
+    dernier_horodatage = horodatage;
 
-    résultat := ((horodotage - ÉPOQUE_DLS) << DÉCALAGE_GAUCHE_HORODOTAGE) | (flocon_centre_données << DÉCALAGE_ID_CENTRE_DONNÉES) | (flocon_travailleur << DÉCALAGE_ID_TRAVAILLEUR) | séquence;
+    résultat := ((horodatage - ÉPOQUE_DLS) << DÉCALAGE_GAUCHE_HORODOTAGE) | (flocon_centre_données << DÉCALAGE_ID_CENTRE_DONNÉES) | (flocon_travailleur << DÉCALAGE_ID_TRAVAILLEUR) | séquence;
 
     retourne Flocon(résultat);
 }
 
-jusque_prochaine_millis :: fonc (dernier_horodotage: z64) -> z64
+jusque_prochaine_millis :: fonc (dernier_horodatage: z64) -> z64
 {
-    horodotage := génère_temps();
+    horodatage := génère_temps();
 
-    tantque horodotage <= dernier_horodotage {
-        horodotage = génère_temps();
+    tantque horodatage <= dernier_horodatage {
+        horodatage = génère_temps();
     }
 
-    retourne horodotage;
+    retourne horodatage;
 }
 
 /*
@@ -88,7 +88,7 @@ test :: fonc ()
             }
             Flocon {
                 imprime("% Nous avons un Flocon : % !\n", it, flocon comme Flocon)
-                //paramètres.dernier_horodotage += 10
+                //paramètres.dernier_horodatage += 10
             }
         }
     }
