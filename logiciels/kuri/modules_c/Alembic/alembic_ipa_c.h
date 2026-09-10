@@ -813,6 +813,13 @@ void abc_input_xform_schema_get(struct Abc_Input_Xform_Schema *schema,
                                 struct Abc_Xform_Sample *sample,
                                 struct Abc_Sample_Selector selector);
 
+bool abc_input_xform_schema_is_constant_identity(struct Abc_Input_Xform_Schema *schema);
+
+bool abc_input_xform_schema_get_inherits_xform(struct Abc_Input_Xform_Schema *schema,
+                                               struct Abc_Sample_Selector selector);
+
+uint64_t abc_input_xform_schema_get_num_ops(struct Abc_Input_Xform_Schema *schema);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

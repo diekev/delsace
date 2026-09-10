@@ -1401,6 +1401,22 @@ void abc_input_xform_schema_get(Abc_Input_Xform_Schema *schema,
     schema->impl->get(sample->sample, get_sample_selector(selector));
 }
 
+bool abc_input_xform_schema_is_constant_identity(Abc_Input_Xform_Schema *schema)
+{
+    return schema->impl->isConstantIdentity();
+}
+
+bool abc_input_xform_schema_get_inherits_xform(Abc_Input_Xform_Schema *schema,
+                                               Abc_Sample_Selector selector)
+{
+    return schema->impl->getInheritsXforms(get_sample_selector(selector));
+}
+
+uint64_t abc_input_xform_schema_get_num_ops(Abc_Input_Xform_Schema *schema)
+{
+    return schema->impl->getNumOps();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
