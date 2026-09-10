@@ -125,9 +125,6 @@ imprime_infos_archive :: fonc (iarchive: *Abc_Input_Archive)
 
     iterator := abc_metadata_get_iterator(metadata);
 
-    application: chaine;
-    description: chaine;
-
     boucle {
         clé: Abc_String;
         valeur: Abc_String;
@@ -613,7 +610,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
     }
 }
 
-imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property, prop_header: *Abc_Property_Header)
+imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property @inutilisée, prop_header: *Abc_Property_Header)
 {
     prop_name: Abc_String;
     abc_property_header_get_name(prop_header, *prop_name);
