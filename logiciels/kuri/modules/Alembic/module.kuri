@@ -204,7 +204,7 @@ crée_xform_neutre_pour_objet :: fonc (parent: *Abc_Output_Xform, nom: chaine, t
     résultat := abc_output_xform_create(parent, nom, ts);
 
     matrix_sample := abc_output_xform_sample_create(résultat);
-    diffère abc_output_xform_sample_destroy(matrix_sample);
+    diffère abc_xform_sample_destroy(matrix_sample);
 
     matrix: Abc_M44d;
     matrix.x[0][0] = 1.0;
@@ -212,7 +212,7 @@ crée_xform_neutre_pour_objet :: fonc (parent: *Abc_Output_Xform, nom: chaine, t
     matrix.x[2][2] = 1.0;
     matrix.x[3][3] = 1.0;
 
-    abc_output_xform_sample_set_matrix(matrix_sample, *matrix);
+    abc_xform_sample_set_matrix(matrix_sample, *matrix);
 
     abc_output_xform_sample_set(résultat, matrix_sample);
 

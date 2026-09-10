@@ -795,6 +795,27 @@ DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Xform_Schema
+ * \{ */
+
+struct Abc_Xform_Sample;
+void abc_xform_sample_reset(struct Abc_Xform_Sample *sample);
+void abc_xform_sample_destroy(struct Abc_Xform_Sample *sample);
+void abc_xform_sample_set_matrix(struct Abc_Xform_Sample *sample, Abc_M44d *matrix);
+void abc_xform_sample_set_inherits_xform(struct Abc_Xform_Sample *sample, bool inherits);
+
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Xform, xform)
+
+struct Abc_Xform_Sample *abc_input_xform_schema_get_value(struct Abc_Input_Xform_Schema *schema,
+                                                          struct Abc_Sample_Selector selector);
+
+void abc_input_xform_schema_get(struct Abc_Input_Xform_Schema *schema,
+                                struct Abc_Xform_Sample *sample,
+                                struct Abc_Sample_Selector selector);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Camera_Sample
  * \{ */
 
@@ -1143,11 +1164,8 @@ struct Abc_Output_Xform *abc_output_xform_create(struct Abc_Output_Xform *parent
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Xform, xform)
 
-struct Abc_Output_Xform_Sample;
-DECLARE_COMMON_SAMPLE_FONCTIONS(Xform, xform)
-void abc_output_xform_sample_set_matrix(struct Abc_Output_Xform_Sample *sample, Abc_M44d *matrix);
-void abc_output_xform_sample_set_inherits_xform(struct Abc_Output_Xform_Sample *sample,
-                                                bool inherits);
+struct Abc_Xform_Sample *abc_output_xform_sample_create(struct Abc_Output_Xform *xform);
+void abc_output_xform_sample_set(struct Abc_Output_Xform *xform, struct Abc_Xform_Sample *sample);
 
 /** \} */
 

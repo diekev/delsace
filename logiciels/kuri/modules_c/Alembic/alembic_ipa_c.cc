@@ -1350,6 +1350,60 @@ DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Xform_Schema
+ *  À FAIRE: complète
+ * \{ */
+
+struct Abc_Xform_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::XformSample sample{};
+};
+
+void abc_xform_sample_reset(Abc_Xform_Sample *sample)
+{
+    sample->sample.reset();
+}
+
+void abc_xform_sample_destroy(Abc_Xform_Sample *sample)
+{
+    if (sample) {
+        kuri_deloge(sample->ctx_kuri, sample);
+    }
+}
+
+void abc_xform_sample_set_matrix(Abc_Xform_Sample *sample, Abc_M44d *matrix)
+{
+    // À FAIRE : généralise les assertions
+    static_assert(sizeof(Abc_M44d) == sizeof(Abc::M44d));
+    sample->sample.setMatrix(*reinterpret_cast<Abc::M44d *>(matrix));
+}
+
+void abc_xform_sample_set_inherits_xform(Abc_Xform_Sample *sample, bool inherits)
+{
+    sample->sample.setInheritsXforms(inherits);
+}
+
+DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Xform, xform)
+
+Abc_Xform_Sample *abc_input_xform_schema_get_value(Abc_Input_Xform_Schema *schema,
+                                                   Abc_Sample_Selector selector)
+{
+    auto résultat = kuri_loge<Abc_Xform_Sample>(schema->archive->ctx_kuri);
+    résultat->ctx_kuri = schema->archive->ctx_kuri;
+    résultat->sample = schema->impl->getValue(get_sample_selector(selector));
+    return résultat;
+}
+
+void abc_input_xform_schema_get(Abc_Input_Xform_Schema *schema,
+                                Abc_Xform_Sample *sample,
+                                Abc_Sample_Selector selector)
+{
+    schema->impl->get(sample->sample, get_sample_selector(selector));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Camera_Sample
  * \{ */
 
@@ -2054,6 +2108,18 @@ Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
+Abc_Xform_Sample *abc_output_xform_sample_create(Abc_Output_Xform *xform)
+{
+    auto résultat = kuri_loge<Abc_Xform_Sample>(xform->archive->ctx_kuri);
+    résultat->ctx_kuri = xform->archive->ctx_kuri;
+    return résultat;
+}
+
+void abc_output_xform_sample_set(Abc_Output_Xform *xform, Abc_Xform_Sample *sample)
+{
+    xform->set_sample(sample->sample);
+}
+
 #define DEFINE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                            \
     Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(            \
         Abc_Output_##uppercase_name *lowercase_name)                                              \
@@ -2079,25 +2145,6 @@ Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
     {                                                                                             \
         lowercase_name->set_sample(sample->sample);                                               \
     }
-
-struct Abc_Output_Xform_Sample {
-    ContexteKuri *ctx_kuri = nullptr;
-    AbcGeom::XformSample sample{};
-};
-
-DEFINE_COMMON_SAMPLE_FONCTIONS(Xform, xform)
-
-void abc_output_xform_sample_set_matrix(Abc_Output_Xform_Sample *sample, Abc_M44d *matrix)
-{
-    // À FAIRE : généralise les assertions
-    static_assert(sizeof(Abc_M44d) == sizeof(Abc::M44d));
-    sample->sample.setMatrix(*reinterpret_cast<Abc::M44d *>(matrix));
-}
-
-void abc_output_xform_sample_set_inherits_xform(Abc_Output_Xform_Sample *sample, bool inherits)
-{
-    sample->sample.setInheritsXforms(inherits);
-}
 
 /** \} */
 
