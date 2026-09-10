@@ -1100,10 +1100,8 @@ void abc_output_array_property_set_from_previous(union Abc_Generic_Output_Array_
 #define DECLARE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)              \
     struct Abc_Output_##type_geom##_Geom_Param;                                                   \
     struct Abc_Output_##type_geom##_Geom_Param_Sample {                                           \
-        type_c *values;                                                                           \
-        uint64_t num_values;                                                                      \
-        uint32_t *indices;                                                                        \
-        uint64_t num_indices;                                                                     \
+        struct Abc_##type_geom##_Array_Sample values;                                             \
+        struct Abc_UInt32_Array_Sample indices;                                                   \
         enum Abc_Geometry_Scope scope;                                                            \
     };                                                                                            \
     struct Abc_Output_##type_geom##_Geom_Param *abc_output_##nom_court##_geom_param_create(       \

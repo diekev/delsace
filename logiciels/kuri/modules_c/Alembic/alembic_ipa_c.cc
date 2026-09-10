@@ -220,24 +220,6 @@ struct Array_Sample_Data {
     std::vector<Abc_String> input_strings{};
 };
 
-template <typename Abc_Sample_Type, typename T>
-auto make_array_sample(T *values, uint64_t num_values, Array_Sample_Data *)
-{
-    return Abc_Sample_Type(values, num_values);
-}
-
-template <>
-auto make_array_sample<AbcGeom::StringArraySample>(Abc_String *values,
-                                                   uint64_t num_values,
-                                                   Array_Sample_Data *sample_data)
-{
-    sample_data->strings.resize(num_values);
-    for (uint64_t i = 0; i < num_values; i++) {
-        sample_data->strings[i] = vers_std_string(*values++);
-    }
-    return AbcGeom::StringArraySample(sample_data->strings.data(), num_values);
-}
-
 template <typename IPA_Type, typename Alembic_Type>
 auto make_input_array_sample(std::shared_ptr<Alembic_Type> ptr, Array_Sample_Data &)
 {
@@ -261,13 +243,30 @@ auto make_input_array_sample<Abc_String_Array_Sample, AbcGeom::StringArraySample
     return Abc_String_Array_Sample{data.input_strings.data(), data.input_strings.size()};
 }
 
+template <typename Abc_Sample_Type, typename IPA_Type>
+auto make_array_sample(IPA_Type sample, Array_Sample_Data *)
+{
+    return Abc_Sample_Type(sample.values, sample.num_values);
+}
+
+template <>
+auto make_array_sample<AbcGeom::StringArraySample>(Abc_String_Array_Sample sample,
+                                                   Array_Sample_Data *sample_data)
+{
+    sample_data->strings.resize(sample.num_values);
+    for (uint64_t i = 0; i < sample.num_values; i++) {
+        sample_data->strings[i] = vers_std_string(*sample.values++);
+    }
+    return AbcGeom::StringArraySample(sample_data->strings.data(), sample.num_values);
+}
+
 #define MAKE_TYPED_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)                     \
     template <>                                                                                   \
     auto make_array_sample<AbcGeom::type_geom##ArraySample>(                                      \
-        type_c * values, uint64_t num_values, Array_Sample_Data *)                                \
+        Abc_##type_geom##_Array_Sample sample, Array_Sample_Data *)                               \
     {                                                                                             \
-        return AbcGeom::type_geom##ArraySample(reinterpret_cast<type_abc_value *>(values),        \
-                                               num_values);                                       \
+        return AbcGeom::type_geom##ArraySample(reinterpret_cast<type_abc_value *>(sample.values), \
+                                               sample.num_values);                                \
     }
 
 ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
@@ -278,18 +277,17 @@ ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
     static AbcGeom::type_geom##ArraySample make_typed_sample(                                     \
         Abc_##type_geom##_Array_Sample sample, Array_Sample_Data *sample_data)                    \
     {                                                                                             \
-        return make_array_sample<AbcGeom::type_geom##ArraySample>(                                \
-            sample.values, sample.num_values, sample_data);                                       \
+        return make_array_sample<AbcGeom::type_geom##ArraySample>(sample, sample_data);           \
     }                                                                                             \
     static AbcGeom::O##type_geom##GeomParam::Sample make_typed_sample(                            \
         Abc_Output_##type_geom##_Geom_Param_Sample param_sample, Array_Sample_Data *sample_data)  \
     {                                                                                             \
         auto array_sample = make_array_sample<AbcGeom::type_geom##ArraySample>(                   \
-            param_sample.values, param_sample.num_values, sample_data);                           \
+            param_sample.values, sample_data);                                                    \
         auto abc_scope = static_cast<AbcGeom::GeometryScope>(param_sample.scope);                 \
-        if (param_sample.indices) {                                                               \
-            auto indices = AbcGeom::UInt32ArraySample(param_sample.indices,                       \
-                                                      param_sample.num_indices);                  \
+        if (param_sample.indices.values) {                                                        \
+            auto indices = make_array_sample<AbcGeom::UInt32ArraySample>(param_sample.indices,    \
+                                                                         sample_data);            \
             return AbcGeom::O##type_geom##GeomParam::Sample(array_sample, indices, abc_scope);    \
         }                                                                                         \
         auto sample = AbcGeom::O##type_geom##GeomParam::Sample(array_sample, abc_scope);          \
@@ -1844,7 +1842,7 @@ T *make_output_geom_param(Abc_Output_Archive *archive)
         struct Abc_Output_##type_geom##_Geom_Param *param,                                        \
         struct Abc_Output_##type_geom##_Geom_Param_Sample *sample)                                \
     {                                                                                             \
-        if (sample->values) {                                                                     \
+        if (sample->values.values) {                                                              \
             auto param_sample = make_typed_sample(*sample, &param->sample_data);                  \
             param->param.set(param_sample);                                                       \
         }                                                                                         \

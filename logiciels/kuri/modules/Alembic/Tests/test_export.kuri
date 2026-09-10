@@ -1096,11 +1096,11 @@ crée_test_attributs :: fonc ()
     pour 9 {
         sample: Abc_Output_Float_Geom_Param_Sample;
         sample.scope = Abc_Geometry_Scope.UNIFORM;
-        sample.values = values.données;
+        sample.values.values = values.données;
 
         si 4 <= indice_it <= 7 {
-            sample.values = values.données + indice_it - 4;
-            sample.num_values = 1;
+            sample.values.values = values.données + indice_it - 4;
+            sample.values.num_values = 1;
         }
 
         abc_output_float_geom_param_sample_set(geom_param, *sample);
