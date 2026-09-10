@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "hiérarchie";
+    nom_test := "xform-ops";
 
     si est_un_dossier(CheminFichier(chemin)) {
         chemins: [..]chaine;
@@ -93,6 +93,9 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
     }
     sinon si nom_test == "infos-attributs" {
         imprime_infos_attributs(chemin);
+    }
+    sinon si nom_test == "xform-ops" {
+        imprime_xform_ops(chemin);
     }
     sinon {
         imprimeln("Test '%' inconnu", nom_test);
@@ -1232,6 +1235,45 @@ imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *
     // imprimeln("       %", vers_kuri(prop_name));
 
     imprime_propriété_scalaire(props, prop_header);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom XformOp
+ * \{ */
+
+imprime_xform_ops :: fonc (chemin: chaine)
+{
+    iarchive := abc_input_archive_create(chemin);
+    saufsi iarchive {
+        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
+        retourne;
+    }
+    diffère abc_input_archive_destroy(iarchive);
+
+    top := abc_input_archive_get_top(iarchive);
+    saufsi abc_input_object_valid(top) {
+        imprimeln("L'object top n'est pas valide");
+        retourne;
+    }
+
+    objets: [..]Abc_Generic_Input_Object;
+    filtre := Filtre_Objet.XFORM;
+
+    pour abc_input_object_get_num_children(top) {
+        header := abc_input_object_get_child_header(top, it);
+        rassemble_objets(top, header, *objets, filtre);
+    }
+
+    pour objets {
+        xform_schema := abc_input_xform_get_schema(it.xform);
+        num_ops := abc_input_xform_schema_get_num_ops(xform_schema);
+        si num_ops > 1 {
+            imprime_chemin_archive_courante();
+            imprimeln("    % ops sur '%'", num_ops, donne_full_name(it));
+        }
+    }
 }
 
 /** \} */
