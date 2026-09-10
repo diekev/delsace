@@ -298,76 +298,6 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
 
 #undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
 
-static Abc_P3f_Array_Sample get_input_array_sample(const Abc::P3fArraySamplePtr &ptr)
-{
-    auto résultat = Abc_P3f_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
-
-static Abc_V3f_Array_Sample get_input_array_sample(const Abc::V3fArraySamplePtr &ptr)
-{
-    auto résultat = Abc_V3f_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
-
-static Abc_Int32_Array_Sample get_input_array_sample(const Abc::Int32ArraySamplePtr &ptr)
-{
-    auto résultat = Abc_Int32_Array_Sample();
-    if (ptr) {
-        résultat.values = const_cast<int32_t *>(ptr->get());
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
-
-static Abc_UInt64_Array_Sample get_input_array_sample(const Abc::UInt64ArraySamplePtr &ptr)
-{
-    auto résultat = Abc_UInt64_Array_Sample();
-    if (ptr) {
-        résultat.values = const_cast<uint64_t *>(ptr->get());
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
-
-static Abc_Float_Array_Sample get_input_array_sample(const Abc::FloatArraySamplePtr &ptr)
-{
-    auto résultat = Abc_Float_Array_Sample();
-    if (ptr) {
-        résultat.values = const_cast<float *>(ptr->get());
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1111,7 +1041,7 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
         struct Abc_Input_##uname##_Schema_Sample *sample)                                         \
     {                                                                                             \
         auto ptr = sample->sample.method();                                                       \
-        return get_input_array_sample(ptr);                                                       \
+        return make_input_array_sample<sample_type>(ptr, sample->sample_data);                    \
     }
 
 #define DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(uname, lname)                                        \
@@ -1266,6 +1196,7 @@ static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *schem
 struct Abc_Input_PolyMesh_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::IPolyMeshSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
@@ -1319,6 +1250,7 @@ struct Abc_Input_SubD_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::ISubDSchema::Sample sample{};
     std::string subdivision_scheme{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(SubD, subd)
@@ -1368,6 +1300,7 @@ Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
 struct Abc_Input_FaceSet_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::IFaceSetSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, face_set)
@@ -1389,6 +1322,7 @@ DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTIO
 struct Abc_Input_Points_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::IPointsSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Points, points)
@@ -1406,6 +1340,7 @@ DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 struct Abc_Input_Curves_Schema_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::ICurvesSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
