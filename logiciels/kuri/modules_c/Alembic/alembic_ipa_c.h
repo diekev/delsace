@@ -807,6 +807,57 @@ DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Xform_Op
+ * \{ */
+
+enum Abc_Matrix_Hint {
+    ABC_MATRIX_HINT_MATRIX_HINT = 0,
+    ABC_MATRIX_HINT_MAYA_SHEAR_HINT = 1,
+};
+
+enum Abc_Rotate_Hint {
+    ABC_ROTATE_HINT_ROTATE_HINT = 0,
+    ABC_ROTATE_HINT_ROTATE_ORIENTATION_HINT = 1,
+};
+
+enum Abc_Scale_Hint { ABC_SCALE_HINT_SCALE_HINT = 0 };
+
+enum Abc_Translate_Hint {
+    ABC_TRANSLATE_HINT_TRANSLATE_HINT = 0,
+    ABC_TRANSLATE_HINT_SCALE_PIVOT_POINT_HINT = 1,
+    ABC_TRANSLATE_HINT_SCALE_PIVOT_TRANSLATION_HINT = 2,
+    ABC_TRANSLATE_HINT_ROTATE_PIVOT_POINT_HINT = 3,
+    ABC_TRANSLATE_HINT_ROTATE_PIVOT_TRANSLATION_HINT = 4,
+};
+
+enum Abc_Xform_Operation_Type {
+    ABC_XFORM_OPERATION_TYPE_SCALE_OPERATION = 0,
+    ABC_XFORM_OPERATION_TYPE_TRANSLATE_OPERATION = 1,
+    ABC_XFORM_OPERATION_TYPE_ROTATE_OPERATION = 2,
+    ABC_XFORM_OPERATION_TYPE_MATRIX_OPERATION = 3,
+    ABC_XFORM_OPERATION_TYPE_ROTATE_X_OPERATION = 4,
+    ABC_XFORM_OPERATION_TYPE_ROTATE_Y_OPERATION = 5,
+    ABC_XFORM_OPERATION_TYPE_ROTATE_Z_OPERATION = 6,
+};
+
+#define ABC_XFORM_OP_SIZE 80
+#define ABC_XFROM_OP_ALIGN 8
+
+struct Abc_Xform_Op {
+    uint64_t data[ABC_XFORM_OP_SIZE / ABC_XFROM_OP_ALIGN];
+};
+
+void abc_xform_op_init(struct Abc_Xform_Op *op);
+
+enum Abc_Xform_Operation_Type abc_xform_op_get_type(struct Abc_Xform_Op *op);
+uint8_t abc_xform_op_get_hint(struct Abc_Xform_Op *op);
+uint64_t abc_xform_op_get_num_channels(struct Abc_Xform_Op *op);
+double abc_xform_op_get_default_channel_value(struct Abc_Xform_Op *op, uint64_t index);
+double abc_xform_op_get_channel_value(struct Abc_Xform_Op *op, uint64_t index);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Xform_Schema
  * \{ */
 
@@ -815,6 +866,13 @@ void abc_xform_sample_reset(struct Abc_Xform_Sample *sample);
 void abc_xform_sample_destroy(struct Abc_Xform_Sample *sample);
 void abc_xform_sample_set_matrix(struct Abc_Xform_Sample *sample, Abc_M44d *matrix);
 void abc_xform_sample_set_inherits_xform(struct Abc_Xform_Sample *sample, bool inherits);
+
+uint64_t abc_xform_sample_get_num_ops(struct Abc_Xform_Sample *sample);
+uint64_t abc_xform_sample_get_num_op_channels(struct Abc_Xform_Sample *sample);
+
+void abc_xform_sample_get_op(struct Abc_Xform_Sample *sample,
+                             uint64_t index,
+                             struct Abc_Xform_Op *op);
 
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Xform, xform)
 

@@ -1361,6 +1361,51 @@ DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Xform_Op
+ * \{ */
+
+static_assert(sizeof(Abc_Xform_Op) == sizeof(AbcGeom::XformOp));
+static_assert(alignof(Abc_Xform_Op) == alignof(AbcGeom::XformOp));
+
+void abc_xform_op_init(struct Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    new (abc_op) AbcGeom::XformOp;
+}
+
+enum Abc_Xform_Operation_Type abc_xform_op_get_type(struct Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return static_cast<Abc_Xform_Operation_Type>(abc_op->getType());
+}
+
+uint8_t abc_xform_op_get_hint(struct Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->getHint();
+}
+
+uint64_t abc_xform_op_get_num_channels(struct Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->getNumChannels();
+}
+
+double abc_xform_op_get_default_channel_value(struct Abc_Xform_Op *op, uint64_t index)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->getDefaultChannelValue(index);
+}
+
+double abc_xform_op_get_channel_value(struct Abc_Xform_Op *op, uint64_t index)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->getChannelValue(index);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Xform_Schema
  *  À FAIRE: complète
  * \{ */
@@ -1392,6 +1437,24 @@ void abc_xform_sample_set_matrix(Abc_Xform_Sample *sample, Abc_M44d *matrix)
 void abc_xform_sample_set_inherits_xform(Abc_Xform_Sample *sample, bool inherits)
 {
     sample->sample.setInheritsXforms(inherits);
+}
+
+uint64_t abc_xform_sample_get_num_ops(struct Abc_Xform_Sample *sample)
+{
+    return sample->sample.getNumOps();
+}
+
+uint64_t abc_xform_sample_get_num_op_channels(struct Abc_Xform_Sample *sample)
+{
+    return sample->sample.getNumOpChannels();
+}
+
+void abc_xform_sample_get_op(struct Abc_Xform_Sample *sample,
+                             uint64_t index,
+                             struct Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    *abc_op = sample->sample.getOp(index);
 }
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Xform, xform)

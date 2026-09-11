@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "infos-archive";
+    nom_test := "xform-ops";
 
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -1234,9 +1234,77 @@ imprime_xform_ops :: fonc (iarchive: *Abc_Input_Archive)
     pour objets {
         xform_schema := abc_input_xform_get_schema(it.xform);
         num_ops := abc_input_xform_schema_get_num_ops(xform_schema);
-        si num_ops > 1 {
-            imprime_chemin_archive_courante();
-            imprimeln("    % ops sur '%'", num_ops, donne_full_name(it));
+        si num_ops <= 1 {
+            continue;
+        }
+
+        imprime_chemin_archive_courante();
+        imprimeln("    % ops sur '%'", num_ops, donne_full_name(it));
+
+        sample := abc_input_xform_schema_get_value(xform_schema, Abc_Sample_Selector());
+        diffère abc_xform_sample_destroy(sample);
+
+        pour op_index dans num_ops {
+            xform_op: Abc_Xform_Op = ---;
+            abc_xform_op_init(*xform_op);
+
+            abc_xform_sample_get_op(sample, op_index, *xform_op);
+
+            op_type := abc_xform_op_get_type(*xform_op);
+            imprime("        [%] %", op_index, op_type);
+
+            hint := abc_xform_op_get_hint(*xform_op);
+            discr op_type {
+                SCALE_OPERATION {
+                    scale_hint := hint comme n32 comme Abc_Scale_Hint;
+                    imprimeln(" (%)", scale_hint);
+                }
+                TRANSLATE_OPERATION {
+                    translate_hint := hint comme n32 comme Abc_Translate_Hint;
+                    imprimeln(" (%)", translate_hint);
+                }
+                ROTATE_OPERATION,
+                ROTATE_X_OPERATION,
+                ROTATE_Y_OPERATION,
+                ROTATE_Z_OPERATION {
+                    rotate_hint := hint comme n32 comme Abc_Rotate_Hint;
+                    imprimeln(" (%)", rotate_hint);
+                }
+                MATRIX_OPERATION {
+                    matrix_hint := hint comme n32 comme Abc_Matrix_Hint;
+                    imprimeln(" (%)", matrix_hint);
+                }
+                sinon {
+                    imprimeln("");
+                }
+            }
+
+            num_channels := abc_xform_op_get_num_channels(*xform_op);
+            si num_channels == 1 {
+                imprimeln("            %", abc_xform_op_get_channel_value(*xform_op, 0));
+            }
+            sinon si num_channels == 3 {
+                x := abc_xform_op_get_channel_value(*xform_op, 0);
+                y := abc_xform_op_get_channel_value(*xform_op, 1);
+                z := abc_xform_op_get_channel_value(*xform_op, 2);
+                imprimeln("            % % %", x, y, z);
+            }
+            sinon si num_channels == 4 {
+                x := abc_xform_op_get_channel_value(*xform_op, 0);
+                y := abc_xform_op_get_channel_value(*xform_op, 1);
+                z := abc_xform_op_get_channel_value(*xform_op, 2);
+                w := abc_xform_op_get_channel_value(*xform_op, 3);
+                imprimeln("            % % % %", x, y, z, w);
+            }
+            sinon si num_channels == 16 {
+                pour row dans 4 comme n64 {
+                    x := abc_xform_op_get_channel_value(*xform_op, row * 4 + 0);
+                    y := abc_xform_op_get_channel_value(*xform_op, row * 4 + 1);
+                    z := abc_xform_op_get_channel_value(*xform_op, row * 4 + 2);
+                    w := abc_xform_op_get_channel_value(*xform_op, row * 4 + 3);
+                    imprimeln("            % % % %", x, y, z, w);
+                }
+            }
         }
     }
 }
