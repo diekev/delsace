@@ -68,6 +68,20 @@ typedef struct Abc_Seconds {
 #endif
 } Abc_Seconds;
 
+typedef struct Abc_Degrees {
+    double value;
+
+#ifdef __cplusplus
+    Abc_Degrees(double v) : value(v)
+    {
+    }
+    operator double()
+    {
+        return value;
+    }
+#endif
+} Abc_Degrees;
+
 typedef struct Abc_Half {
     uint16_t value;
 } Abc_Half;
@@ -848,12 +862,48 @@ struct Abc_Xform_Op {
 };
 
 void abc_xform_op_init(struct Abc_Xform_Op *op);
+void abc_xform_op_init_type_hint(struct Abc_Xform_Op *op,
+                                 enum Abc_Xform_Operation_Type type,
+                                 uint8_t hint);
 
 enum Abc_Xform_Operation_Type abc_xform_op_get_type(struct Abc_Xform_Op *op);
+void abc_xform_op_set_type(struct Abc_Xform_Op *op, enum Abc_Xform_Operation_Type type);
 uint8_t abc_xform_op_get_hint(struct Abc_Xform_Op *op);
+void abc_xform_op_set_hint(struct Abc_Xform_Op *op, uint8_t hint);
+bool abc_xform_op_is_x_animated(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_y_animated(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_z_animated(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_angle_animated(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_channel_animated(struct Abc_Xform_Op *op, uint64_t index);
 uint64_t abc_xform_op_get_num_channels(struct Abc_Xform_Op *op);
 double abc_xform_op_get_default_channel_value(struct Abc_Xform_Op *op, uint64_t index);
 double abc_xform_op_get_channel_value(struct Abc_Xform_Op *op, uint64_t index);
+void abc_xform_op_set_channel_value(struct Abc_Xform_Op *op, uint64_t index, double val);
+void abc_xform_op_set_vector(struct Abc_Xform_Op *op, Abc_V3d *vec);
+void abc_xform_op_set_translate(struct Abc_Xform_Op *op, Abc_V3d *trans);
+void abc_xform_op_set_scale(struct Abc_Xform_Op *op, Abc_V3d *scale);
+void abc_xform_op_set_axis(struct Abc_Xform_Op *op, Abc_V3d *axis);
+void abc_xform_op_set_angle(struct Abc_Xform_Op *op, double angle);
+void abc_xform_op_set_matrix(struct Abc_Xform_Op *op, Abc_M44d *matrix);
+void abc_xform_op_set_x_rotation(struct Abc_Xform_Op *op, double angle);
+void abc_xform_op_set_y_rotation(struct Abc_Xform_Op *op, double angle);
+void abc_xform_op_set_z_rotation(struct Abc_Xform_Op *op, double angle);
+void abc_xform_op_get_vector(struct Abc_Xform_Op *op, Abc_V3d *r_vec);
+void abc_xform_op_get_translate(struct Abc_Xform_Op *op, Abc_V3d *r_trans);
+void abc_xform_op_get_scale(struct Abc_Xform_Op *op, Abc_V3d *r_scale);
+void abc_xform_op_get_axis(struct Abc_Xform_Op *op, Abc_V3d *r_axis);
+double abc_xform_op_get_angle(struct Abc_Xform_Op *op);
+void abc_xform_op_get_matrix(struct Abc_Xform_Op *op, Abc_M44d *r_matrix);
+double abc_xform_op_get_x_rotation(struct Abc_Xform_Op *op);
+double abc_xform_op_get_y_rotation(struct Abc_Xform_Op *op);
+double abc_xform_op_get_z_rotation(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_translate_op(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_scale_op(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_rotate_op(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_matrix_op(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_rotate_x_op(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_rotate_y_op(struct Abc_Xform_Op *op);
+bool abc_xform_op_is_rotate_z_op(struct Abc_Xform_Op *op);
 
 /** \} */
 
@@ -862,17 +912,49 @@ double abc_xform_op_get_channel_value(struct Abc_Xform_Op *op, uint64_t index);
  * \{ */
 
 struct Abc_Xform_Sample;
-void abc_xform_sample_reset(struct Abc_Xform_Sample *sample);
 void abc_xform_sample_destroy(struct Abc_Xform_Sample *sample);
-void abc_xform_sample_set_matrix(struct Abc_Xform_Sample *sample, Abc_M44d *matrix);
-void abc_xform_sample_set_inherits_xform(struct Abc_Xform_Sample *sample, bool inherits);
-
-uint64_t abc_xform_sample_get_num_ops(struct Abc_Xform_Sample *sample);
-uint64_t abc_xform_sample_get_num_op_channels(struct Abc_Xform_Sample *sample);
-
+uint64_t abc_xform_sample_add_traslate_or_scale_op(struct Abc_Xform_Sample *sample,
+                                                   struct Abc_Xform_Op *translate_or_scale_op,
+                                                   Abc_V3d *val);
+uint64_t abc_xform_sample_add_rotate_op(struct Abc_Xform_Sample *sample,
+                                        struct Abc_Xform_Op *rotate_op,
+                                        Abc_V3d *axis,
+                                        Abc_Degrees degrees);
+uint64_t abc_xform_sample_add_matrix_op(struct Abc_Xform_Sample *sample,
+                                        struct Abc_Xform_Op *matrix_op,
+                                        Abc_M44d *matrix);
+uint64_t abc_xform_sample_add_single_rotate_op(struct Abc_Xform_Sample *sample,
+                                               struct Abc_Xform_Op *single_rotate_op,
+                                               Abc_Degrees single_axis_rotation);
+uint64_t abc_xform_sample_add_op(struct Abc_Xform_Sample *sample, struct Abc_Xform_Op *op);
 void abc_xform_sample_get_op(struct Abc_Xform_Sample *sample,
                              uint64_t index,
                              struct Abc_Xform_Op *op);
+uint64_t abc_xform_sample_get_num_ops(struct Abc_Xform_Sample *sample);
+uint64_t abc_xform_sample_get_num_op_channels(struct Abc_Xform_Sample *sample);
+void abc_xform_sample_set_inherits_xforms(struct Abc_Xform_Sample *sample, bool inherits);
+bool abc_xform_sample_get_inherits_xforms(struct Abc_Xform_Sample *sample);
+void abc_xform_sample_set_translation(struct Abc_Xform_Sample *sample, Abc_V3d *trans);
+void abc_xform_sample_get_translation(struct Abc_Xform_Sample *sample, Abc_V3d *trans);
+void abc_xform_sample_set_rotation(struct Abc_Xform_Sample *sample,
+                                   Abc_V3d *axis,
+                                   Abc_Degrees degrees);
+void abc_xform_sample_et_axis(struct Abc_Xform_Sample *sample, Abc_V3d *r_axis);
+double abc_xform_sample_get_angle(struct Abc_Xform_Sample *sample);
+void abc_xform_sample_set_x_rotation(struct Abc_Xform_Sample *sample, Abc_Degrees degrees);
+void abc_xform_sample_get_x_rotation(struct Abc_Xform_Sample *sample, Abc_Degrees *r_degrees);
+void abc_xform_sample_set_y_rotation(struct Abc_Xform_Sample *sample, Abc_Degrees degrees);
+void abc_xform_sample_get_y_rotation(struct Abc_Xform_Sample *sample, Abc_Degrees *r_degrees);
+void abc_xform_sample_set_z_rotation(struct Abc_Xform_Sample *sample, Abc_Degrees degrees);
+void abc_xform_sample_get_z_rotation(struct Abc_Xform_Sample *sample, Abc_Degrees *r_degrees);
+void abc_xform_sample_set_scale(struct Abc_Xform_Sample *sample, Abc_V3d *scale);
+void abc_xform_sample_get_scale(struct Abc_Xform_Sample *sample, Abc_V3d *scale);
+void abc_xform_sample_set_matrix(struct Abc_Xform_Sample *sample, Abc_M44d *matrix);
+void abc_xform_sample_get_matrix(struct Abc_Xform_Sample *sample, Abc_M44d *r_matrix);
+bool abc_xform_sample_is_topology_equal(struct Abc_Xform_Sample *sample,
+                                        struct Abc_Xform_Sample *other);
+bool abc_xform_sample_get_is_topology_frozen(struct Abc_Xform_Sample *sample);
+void abc_xform_sample_reset(struct Abc_Xform_Sample *sample);
 
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Xform, xform)
 

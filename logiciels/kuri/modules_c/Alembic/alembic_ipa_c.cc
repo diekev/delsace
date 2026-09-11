@@ -1373,16 +1373,66 @@ void abc_xform_op_init(struct Abc_Xform_Op *op)
     new (abc_op) AbcGeom::XformOp;
 }
 
+void abc_xform_op_init_type_hint(struct Abc_Xform_Op *op,
+                                 enum Abc_Xform_Operation_Type type,
+                                 uint8_t hint)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    new (abc_op) AbcGeom::XformOp(static_cast<AbcGeom::XformOperationType>(type), hint);
+}
+
 enum Abc_Xform_Operation_Type abc_xform_op_get_type(struct Abc_Xform_Op *op)
 {
     auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
     return static_cast<Abc_Xform_Operation_Type>(abc_op->getType());
 }
 
+void abc_xform_op_set_type(Abc_Xform_Op *op, Abc_Xform_Operation_Type type)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    abc_op->setType(static_cast<AbcGeom::XformOperationType>(type));
+}
+
 uint8_t abc_xform_op_get_hint(struct Abc_Xform_Op *op)
 {
     auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
     return abc_op->getHint();
+}
+
+void abc_xform_op_set_hint(Abc_Xform_Op *op, uint8_t hint)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    abc_op->setHint(hint);
+}
+
+bool abc_xform_op_is_x_animated(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isXAnimated();
+}
+
+bool abc_xform_op_is_y_animated(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isYAnimated();
+}
+
+bool abc_xform_op_is_z_animated(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isZAnimated();
+}
+
+bool abc_xform_op_is_angle_animated(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isAngleAnimated();
+}
+
+bool abc_xform_op_is_channel_animated(Abc_Xform_Op *op, uint64_t index)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isChannelAnimated(index);
 }
 
 uint64_t abc_xform_op_get_num_channels(struct Abc_Xform_Op *op)
@@ -1403,6 +1453,172 @@ double abc_xform_op_get_channel_value(struct Abc_Xform_Op *op, uint64_t index)
     return abc_op->getChannelValue(index);
 }
 
+void abc_xform_op_set_channel_value(Abc_Xform_Op *op, uint64_t index, double val)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    abc_op->setChannelValue(index, val);
+}
+
+void abc_xform_op_set_vector(Abc_Xform_Op *op, Abc_V3d *vec)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto abc_vec = *reinterpret_cast<Abc::V3d *>(vec);
+    abc_op->setVector(abc_vec);
+}
+
+void abc_xform_op_set_translate(Abc_Xform_Op *op, Abc_V3d *trans)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto abc_trans = *reinterpret_cast<Abc::V3d *>(trans);
+    abc_op->setTranslate(abc_trans);
+}
+
+void abc_xform_op_set_scale(Abc_Xform_Op *op, Abc_V3d *scale)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto abc_scale = *reinterpret_cast<Abc::V3d *>(scale);
+    abc_op->setScale(abc_scale);
+}
+
+void abc_xform_op_set_axis(Abc_Xform_Op *op, Abc_V3d *axis)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto abc_axis = *reinterpret_cast<Abc::V3d *>(axis);
+    abc_op->setAxis(abc_axis);
+}
+
+void abc_xform_op_set_angle(Abc_Xform_Op *op, double angle)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    abc_op->setAngle(angle);
+}
+
+void abc_xform_op_set_matrix(Abc_Xform_Op *op, Abc_M44d *matrix)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto abc_matrix = *reinterpret_cast<Abc::M44d *>(matrix);
+    abc_op->setMatrix(abc_matrix);
+}
+
+void abc_xform_op_set_x_rotation(Abc_Xform_Op *op, double angle)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->setXRotation(angle);
+}
+
+void abc_xform_op_set_y_rotation(Abc_Xform_Op *op, double angle)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->setYRotation(angle);
+}
+
+void abc_xform_op_set_z_rotation(Abc_Xform_Op *op, double angle)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->setZRotation(angle);
+}
+
+void abc_xform_op_get_vector(Abc_Xform_Op *op, Abc_V3d *r_vec)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto vec = abc_op->getVector();
+    *r_vec = *reinterpret_cast<Abc_V3d *>(&vec);
+}
+
+void abc_xform_op_get_translate(Abc_Xform_Op *op, Abc_V3d *r_trans)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto trans = abc_op->getTranslate();
+    *r_trans = *reinterpret_cast<Abc_V3d *>(&trans);
+}
+
+void abc_xform_op_get_scale(Abc_Xform_Op *op, Abc_V3d *r_scale)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto scale = abc_op->getScale();
+    *r_scale = *reinterpret_cast<Abc_V3d *>(&scale);
+}
+
+void abc_xform_op_get_axis(Abc_Xform_Op *op, Abc_V3d *r_axis)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto axis = abc_op->getAxis();
+    *r_axis = *reinterpret_cast<Abc_V3d *>(&axis);
+}
+
+double abc_xform_op_get_angle(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->getAngle();
+}
+
+void abc_xform_op_get_matrix(Abc_Xform_Op *op, Abc_M44d *r_matrix)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    auto matrix = abc_op->getMatrix();
+    *r_matrix = *reinterpret_cast<Abc_M44d *>(&matrix);
+}
+
+double abc_xform_op_get_x_rotation(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->getXRotation();
+}
+
+double abc_xform_op_get_y_rotation(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->getYRotation();
+}
+
+double abc_xform_op_get_z_rotation(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->getZRotation();
+}
+
+bool abc_xform_op_is_translate_op(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isTranslateOp();
+}
+
+bool abc_xform_op_is_scale_op(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isScaleOp();
+}
+
+bool abc_xform_op_is_rotate_op(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isRotateOp();
+}
+
+bool abc_xform_op_is_matrix_op(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isMatrixOp();
+}
+
+bool abc_xform_op_is_rotate_x_op(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isRotateXOp();
+}
+
+bool abc_xform_op_is_rotate_y_op(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isRotateYOp();
+}
+
+bool abc_xform_op_is_rotate_z_op(Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    return abc_op->isRotateZOp();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1410,15 +1626,34 @@ double abc_xform_op_get_channel_value(struct Abc_Xform_Op *op, uint64_t index)
  *  À FAIRE: complète
  * \{ */
 
+static Abc::V3d convertis_vers_abc(Abc_V3d *v)
+{
+    static_assert(sizeof(Abc::V3d) == sizeof(Abc_V3d));
+    return *reinterpret_cast<Abc::V3d *>(v);
+}
+
+static void convertis_vers_kuri(Abc_V3d *résultat, Abc::V3d v)
+{
+    static_assert(sizeof(Abc::V3d) == sizeof(Abc_V3d));
+    *reinterpret_cast<Abc::V3d *>(résultat) = v;
+}
+
+static Abc::M44d convertis_vers_abc(Abc_M44d *v)
+{
+    static_assert(sizeof(Abc::M44d) == sizeof(Abc_M44d));
+    return *reinterpret_cast<Abc::M44d *>(v);
+}
+
+static void convertis_vers_kuri(Abc_M44d *résultat, Abc::M44d v)
+{
+    static_assert(sizeof(Abc::M44d) == sizeof(Abc_M44d));
+    *reinterpret_cast<Abc::M44d *>(résultat) = v;
+}
+
 struct Abc_Xform_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::XformSample sample{};
 };
-
-void abc_xform_sample_reset(Abc_Xform_Sample *sample)
-{
-    sample->sample.reset();
-}
 
 void abc_xform_sample_destroy(Abc_Xform_Sample *sample)
 {
@@ -1427,16 +1662,54 @@ void abc_xform_sample_destroy(Abc_Xform_Sample *sample)
     }
 }
 
-void abc_xform_sample_set_matrix(Abc_Xform_Sample *sample, Abc_M44d *matrix)
+uint64_t abc_xform_sample_add_traslate_or_scale_op(Abc_Xform_Sample *sample,
+                                                   Abc_Xform_Op *translate_or_scale_op,
+                                                   Abc_V3d *val)
 {
-    // À FAIRE : généralise les assertions
-    static_assert(sizeof(Abc_M44d) == sizeof(Abc::M44d));
-    sample->sample.setMatrix(*reinterpret_cast<Abc::M44d *>(matrix));
+    auto abc_op = *reinterpret_cast<AbcGeom::XformOp *>(translate_or_scale_op);
+    auto abc_val = convertis_vers_abc(val);
+    return sample->sample.addOp(abc_op, abc_val);
 }
 
-void abc_xform_sample_set_inherits_xform(Abc_Xform_Sample *sample, bool inherits)
+uint64_t abc_xform_sample_add_rotate_op(Abc_Xform_Sample *sample,
+                                        Abc_Xform_Op *rotate_op,
+                                        Abc_V3d *axis,
+                                        Abc_Degrees degrees)
 {
-    sample->sample.setInheritsXforms(inherits);
+    auto abc_op = *reinterpret_cast<AbcGeom::XformOp *>(rotate_op);
+    auto abc_axis = convertis_vers_abc(axis);
+    return sample->sample.addOp(abc_op, abc_axis, degrees);
+}
+
+uint64_t abc_xform_sample_add_matrix_op(Abc_Xform_Sample *sample,
+                                        Abc_Xform_Op *matrix_op,
+                                        Abc_M44d *matrix)
+{
+    auto abc_op = *reinterpret_cast<AbcGeom::XformOp *>(matrix_op);
+    auto abc_matrix = convertis_vers_abc(matrix);
+    return sample->sample.addOp(abc_op, abc_matrix);
+}
+
+uint64_t abc_xform_sample_add_single_rotate_op(Abc_Xform_Sample *sample,
+                                               Abc_Xform_Op *single_rotate_op,
+                                               Abc_Degrees single_axis_rotation)
+{
+    auto abc_op = *reinterpret_cast<AbcGeom::XformOp *>(single_rotate_op);
+    return sample->sample.addOp(abc_op, single_axis_rotation);
+}
+
+uint64_t abc_xform_sample_add_op(Abc_Xform_Sample *sample, Abc_Xform_Op *op)
+{
+    auto abc_op = *reinterpret_cast<AbcGeom::XformOp *>(op);
+    return sample->sample.addOp(abc_op);
+}
+
+void abc_xform_sample_get_op(struct Abc_Xform_Sample *sample,
+                             uint64_t index,
+                             struct Abc_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
+    *abc_op = sample->sample.getOp(index);
 }
 
 uint64_t abc_xform_sample_get_num_ops(struct Abc_Xform_Sample *sample)
@@ -1449,12 +1722,112 @@ uint64_t abc_xform_sample_get_num_op_channels(struct Abc_Xform_Sample *sample)
     return sample->sample.getNumOpChannels();
 }
 
-void abc_xform_sample_get_op(struct Abc_Xform_Sample *sample,
-                             uint64_t index,
-                             struct Abc_Xform_Op *op)
+void abc_xform_sample_set_inherits_xforms(Abc_Xform_Sample *sample, bool inherits)
 {
-    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
-    *abc_op = sample->sample.getOp(index);
+    sample->sample.setInheritsXforms(inherits);
+}
+
+bool abc_xform_sample_get_inherits_xforms(Abc_Xform_Sample *sample)
+{
+    return sample->sample.getInheritsXforms();
+}
+
+void abc_xform_sample_set_translation(Abc_Xform_Sample *sample, Abc_V3d *trans)
+{
+    auto abc_trans = convertis_vers_abc(trans);
+    sample->sample.setTranslation(abc_trans);
+}
+
+void abc_xform_sample_get_translation(Abc_Xform_Sample *sample, Abc_V3d *r_trans)
+{
+    auto trans = sample->sample.getTranslation();
+    convertis_vers_kuri(r_trans, trans);
+}
+
+void abc_xform_sample_set_rotation(Abc_Xform_Sample *sample, Abc_V3d *axis, Abc_Degrees degrees)
+{
+    auto abc_axis = convertis_vers_abc(axis);
+    sample->sample.setRotation(abc_axis, degrees);
+}
+
+void abc_xform_sample_et_axis(Abc_Xform_Sample *sample, Abc_V3d *r_axis)
+{
+    auto axis = sample->sample.getAxis();
+    convertis_vers_kuri(r_axis, axis);
+}
+
+double abc_xform_sample_get_angle(Abc_Xform_Sample *sample)
+{
+    return sample->sample.getAngle();
+}
+
+void abc_xform_sample_set_x_rotation(Abc_Xform_Sample *sample, Abc_Degrees degrees)
+{
+    return sample->sample.setXRotation(degrees);
+}
+
+void abc_xform_sample_get_x_rotation(Abc_Xform_Sample *sample, Abc_Degrees *r_degrees)
+{
+    *r_degrees = sample->sample.getXRotation();
+}
+
+void abc_xform_sample_set_y_rotation(Abc_Xform_Sample *sample, Abc_Degrees degrees)
+{
+    return sample->sample.setYRotation(degrees);
+}
+
+void abc_xform_sample_get_y_rotation(Abc_Xform_Sample *sample, Abc_Degrees *r_degrees)
+{
+    *r_degrees = sample->sample.getYRotation();
+}
+
+void abc_xform_sample_set_z_rotation(Abc_Xform_Sample *sample, Abc_Degrees degrees)
+{
+    return sample->sample.setZRotation(degrees);
+}
+
+void abc_xform_sample_get_z_rotation(Abc_Xform_Sample *sample, Abc_Degrees *r_degrees)
+{
+    *r_degrees = sample->sample.getZRotation();
+}
+
+void abc_xform_sample_set_scale(Abc_Xform_Sample *sample, Abc_V3d *scale)
+{
+    auto abc_scale = convertis_vers_abc(scale);
+    sample->sample.setScale(abc_scale);
+}
+
+void abc_xform_sample_get_scale(Abc_Xform_Sample *sample, Abc_V3d *r_scale)
+{
+    auto scale = sample->sample.getScale();
+    convertis_vers_kuri(r_scale, scale);
+}
+
+void abc_xform_sample_set_matrix(Abc_Xform_Sample *sample, Abc_M44d *matrix)
+{
+    auto abc_matrix = convertis_vers_abc(matrix);
+    sample->sample.setMatrix(abc_matrix);
+}
+
+void abc_xform_sample_get_matrix(Abc_Xform_Sample *sample, Abc_M44d *r_matrix)
+{
+    auto matrix = sample->sample.getMatrix();
+    convertis_vers_kuri(r_matrix, matrix);
+}
+
+bool abc_xform_sample_is_topology_equal(Abc_Xform_Sample *sample, Abc_Xform_Sample *other)
+{
+    return sample->sample.isTopologyEqual(other->sample);
+}
+
+bool abc_xform_sample_get_is_topology_frozen(Abc_Xform_Sample *sample)
+{
+    return sample->sample.getIsTopologyFrozen();
+}
+
+void abc_xform_sample_reset(Abc_Xform_Sample *sample)
+{
+    sample->sample.reset();
 }
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Xform, xform)
