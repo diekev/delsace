@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "xform-ops";
+    nom_test := "infos-caméra";
 
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -99,6 +99,9 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
     }
     sinon si nom_test == "infos-maillage" {
         imprime_infos_maillage(iarchive);
+    }
+    sinon si nom_test == "infos-caméra" {
+        imprime_infos_caméra(iarchive);
     }
     sinon {
         imprimeln("Test '%' inconnu", nom_test);
@@ -1349,3 +1352,45 @@ imprime_infos_maillage :: fonc (iarchive: *Abc_Input_Archive)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Infos caméra
+ * \{ */
+
+imprime_infos_caméra :: fonc (iarchive: *Abc_Input_Archive)
+{
+    top := abc_input_archive_get_top(iarchive);
+    saufsi abc_input_object_valid(top) {
+        imprimeln("L'object top n'est pas valide");
+        retourne;
+    }
+
+    objets: [..]Abc_Generic_Input_Object;
+    filtre := Filtre_Objet.CAMERA;
+
+    pour abc_input_object_get_num_children(top) {
+        header := abc_input_object_get_child_header(top, it);
+        rassemble_objets(top, header, *objets, filtre);
+    }
+
+    imprime_chemin_archive_courante();
+    saufsi objets {
+        imprimeln("L'archive n'a pas de Camera");
+        retourne;
+    }
+
+    pour objets {
+        imprimeln("%", donne_full_name(it));
+
+        camera := it.camera;
+        schema := abc_input_camera_get_schema(camera);
+
+        sample := abc_input_camera_schema_get_value(schema, Abc_Sample_Selector());
+        child_bounds: Abc_Box3d;
+        abc_camera_sample_get_child_bounds(sample, *child_bounds);
+        imprimeln("child bounds : %", child_bounds);
+    }
+}
+
+/** \} */
+

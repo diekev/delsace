@@ -1017,6 +1017,9 @@ ENUMERATE_CAMERA_SAMPLE_PROPERTIES_SIMPLE(DECLARE_CAMERA_SAMPLE_GET_SET)
 
 ENUMERATE_CAMERA_SAMPLE_PROPERTIES_COMPLEX(DECLARE_CAMERA_SAMPLE_GET_SET)
 
+void abc_camera_sample_get_child_bounds(struct Abc_Camera_Sample *sample, Abc_Box3d *value);
+void abc_camera_sample_set_child_bounds(struct Abc_Camera_Sample *sample, Abc_Box3d *value);
+
 #undef DECLARE_CAMERA_SAMPLE_GET_SET
 
 void abc_camera_sample_reset(struct Abc_Camera_Sample *sample);

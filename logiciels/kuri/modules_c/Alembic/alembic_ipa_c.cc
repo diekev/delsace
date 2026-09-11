@@ -1632,6 +1632,18 @@ static void convertis_vers_kuri(Abc_M44d *résultat, Abc::M44d v)
     *reinterpret_cast<Abc::M44d *>(résultat) = v;
 }
 
+static Abc::Box3d convertis_vers_abc(Abc_Box3d *v)
+{
+    static_assert(sizeof(Abc::Box3d) == sizeof(Abc_Box3d));
+    return *reinterpret_cast<Abc::Box3d *>(v);
+}
+
+static void convertis_vers_kuri(Abc_Box3d *résultat, Abc::Box3d v)
+{
+    static_assert(sizeof(Abc::Box3d) == sizeof(Abc_Box3d));
+    *reinterpret_cast<Abc::Box3d *>(résultat) = v;
+}
+
 struct Abc_Xform_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::XformSample sample{};
@@ -1899,6 +1911,18 @@ ENUMERATE_CAMERA_SAMPLE_PROPERTIES_SIMPLE(DEFINE_CAMERA_SAMPLE_GET_SET);
     }
 
 ENUMERATE_CAMERA_SAMPLE_PROPERTIES_COMPLEX(DEFINE_CAMERA_SAMPLE_GET_SET);
+
+void abc_camera_sample_get_child_bounds(struct Abc_Camera_Sample *sample, Abc_Box3d *r_value)
+{
+    auto value = sample->sample.getChildBounds();
+    convertis_vers_kuri(r_value, value);
+}
+
+void abc_camera_sample_set_child_bounds(struct Abc_Camera_Sample *sample, Abc_Box3d *value)
+{
+    auto abc_value = convertis_vers_abc(value);
+    sample->sample.setChildBounds(abc_value);
+}
 
 #undef DEFINE_CAMERA_SAMPLE_GET_SET
 
