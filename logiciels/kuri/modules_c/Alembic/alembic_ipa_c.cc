@@ -1500,24 +1500,6 @@ void abc_xform_op_set_matrix(Abc_Xform_Op *op, Abc_M44d *matrix)
     abc_op->setMatrix(abc_matrix);
 }
 
-void abc_xform_op_set_x_rotation(Abc_Xform_Op *op, double angle)
-{
-    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
-    return abc_op->setXRotation(angle);
-}
-
-void abc_xform_op_set_y_rotation(Abc_Xform_Op *op, double angle)
-{
-    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
-    return abc_op->setYRotation(angle);
-}
-
-void abc_xform_op_set_z_rotation(Abc_Xform_Op *op, double angle)
-{
-    auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
-    return abc_op->setZRotation(angle);
-}
-
 void abc_xform_op_get_vector(Abc_Xform_Op *op, Abc_V3d *r_vec)
 {
     auto abc_op = reinterpret_cast<AbcGeom::XformOp *>(op);
