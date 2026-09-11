@@ -686,6 +686,12 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
 
+enum Abc_Mesh_Topology_Variance {
+    ABC_MESH_TOPOLOGY_VARIANCE_CONSTANT_TOPOLOGYŒŒ = 0,
+    ABC_MESH_TOPOLOGY_VARIANCE_HOMOGENEOUS_TOPOLOGY = 1,
+    ABC_MESH_TOPOLOGY_VARIANCE_HETEROGENEOUS_TOPOLOGY = 2,
+};
+
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(PolyMesh, polymesh)
 
@@ -706,6 +712,9 @@ bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh_Schema *sc
     X(PolyMesh, polymesh, get_face_counts, getFaceCounts, Abc_Int32_Array_Sample)
 
 DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+enum Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
+    struct Abc_Input_PolyMesh_Schema *schema);
 
 /** \} */
 
@@ -752,6 +761,9 @@ DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 
 Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
     struct Abc_Input_SubD_Schema_Sample *sample);
+
+enum Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
+    struct Abc_Input_SubD_Schema *schema);
 
 /** \} */
 

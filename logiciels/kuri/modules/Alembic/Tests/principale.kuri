@@ -97,6 +97,9 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
     sinon si nom_test == "xform-ops" {
         imprime_xform_ops(iarchive);
     }
+    sinon si nom_test == "infos-maillage" {
+        imprime_infos_maillage(iarchive);
+    }
     sinon {
         imprimeln("Test '%' inconnu", nom_test);
         exit(1);
@@ -1235,6 +1238,45 @@ imprime_xform_ops :: fonc (iarchive: *Abc_Input_Archive)
             imprime_chemin_archive_courante();
             imprimeln("    % ops sur '%'", num_ops, donne_full_name(it));
         }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Infos maillage
+ * \{ */
+
+imprime_infos_maillage :: fonc (iarchive: *Abc_Input_Archive)
+{
+    top := abc_input_archive_get_top(iarchive);
+    saufsi abc_input_object_valid(top) {
+        imprimeln("L'object top n'est pas valide");
+        retourne;
+    }
+
+    objets: [..]Abc_Generic_Input_Object;
+    filtre := Filtre_Objet.POLYMESH;
+
+    pour abc_input_object_get_num_children(top) {
+        header := abc_input_object_get_child_header(top, it);
+        rassemble_objets(top, header, *objets, filtre);
+    }
+
+    imprime_chemin_archive_courante();
+    saufsi objets {
+        imprimeln("L'archive n'a pas de PolyMesh");
+        retourne;
+    }
+
+    pour objets {
+        imprimeln("%", donne_full_name(it));
+
+        polymesh := it.polymesh;
+        schema := abc_input_polymesh_get_schema(polymesh);
+
+        variance := abc_input_polymesh_schema_get_topology_variance(schema);
+        imprimeln("    %", variance);
     }
 }
 

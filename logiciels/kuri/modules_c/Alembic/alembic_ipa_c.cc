@@ -1195,7 +1195,6 @@ struct Abc_Input_Schema_Sample {
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Schema_Sample
  * À FAIRE
- *   MeshTopologyVariance getTopologyVariance() const;
  *   IV2fGeomParam getUVsParam() const
  *   IN3fGeomParam getNormalsParam() const
  *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
@@ -1231,6 +1230,12 @@ bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh_Schema *sc
 }
 
 DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
+    Abc_Input_PolyMesh_Schema *schema)
+{
+    return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
+}
 
 /** \} */
 
@@ -1293,6 +1298,12 @@ Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
     Abc_String résultat;
     vers_abc_string(&résultat, sample->subdivision_scheme);
     return résultat;
+}
+
+Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
+    Abc_Input_SubD_Schema *schema)
+{
+    return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
 }
 
 /** \} */
