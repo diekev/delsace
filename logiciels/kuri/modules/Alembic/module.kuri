@@ -25,6 +25,11 @@ opérateur == :: (a: Abc_String, b: chaine) -> bool
     retourne vers_kuri(a) == b;
 }
 
+vers_kuri :: fonc (chn: Abc_New_String) -> chaine
+{
+    retourne chaine(chn.characters, chn.size comme z64);
+}
+
 vers_abc_half :: fonc (v: r16) -> Abc_Half
 {
     résultat: Abc_Half = ---;

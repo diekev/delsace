@@ -26,6 +26,13 @@ typedef struct Abc_String {
 #endif
 } Abc_String;
 
+struct Abc_New_String {
+    const char *characters;
+    uint64_t size;
+};
+
+void abc_new_string_destroy(struct Abc_New_String *new_string);
+
 typedef struct Abc_Milimeters {
     double value;
 
@@ -972,6 +979,49 @@ uint64_t abc_input_xform_schema_get_num_ops(struct Abc_Input_Xform_Schema *schem
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Film_Back_Xform_Op
+ * \{ */
+
+enum Abc_Film_Back_Xform_Operation_Type {
+    ABC_FILM_BACK_XFORM_OPERATION_TYPE_SCALE = 0,
+    ABC_FILM_BACK_XFORM_OPERATION_TYPE_TRANSLATE = 1,
+    ABC_FILM_BACK_XFORM_OPERATION_TYPE_MATRIX = 2,
+};
+
+#define ABC_FILM_BACK_XFORM_OP_SIZE 64
+#define ABC_FILM_BACK_XFROM_OP_ALIGN 8
+
+struct Abc_Film_Back_Xform_Op {
+    uint64_t data[ABC_FILM_BACK_XFORM_OP_SIZE / ABC_FILM_BACK_XFROM_OP_ALIGN];
+};
+
+void abc_film_back_xform_op_init(struct Abc_Film_Back_Xform_Op *op);
+void abc_film_back_xform_op_init_type_hint(struct Abc_Film_Back_Xform_Op *op,
+                                           enum Abc_Film_Back_Xform_Operation_Type type,
+                                           struct Abc_String hint);
+
+enum Abc_Film_Back_Xform_Operation_Type abc_film_back_xform_op_get_type(
+    struct Abc_Film_Back_Xform_Op *op);
+struct Abc_New_String abc_film_back_xform_op_get_hint(struct Abc_Film_Back_Xform_Op *op);
+struct Abc_New_String abc_film_back_xform_op_get_type_and_hint(struct Abc_Film_Back_Xform_Op *op);
+uint64_t abc_film_back_xform_op_get_num_channels(struct Abc_Film_Back_Xform_Op *op);
+double abc_film_back_xform_op_get_channel_value(struct Abc_Film_Back_Xform_Op *op, uint64_t index);
+void abc_film_back_xform_op_set_channel_value(struct Abc_Film_Back_Xform_Op *op,
+                                              uint64_t index,
+                                              double val);
+void abc_film_back_xform_op_setTranslate(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *trans);
+void abc_film_back_xform_op_setScale(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *scale);
+void abc_film_back_xform_op_setMatrix(struct Abc_Film_Back_Xform_Op *op, Abc_M33d *matrix);
+void abc_film_back_xform_op_getTranslate(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *result);
+void abc_film_back_xform_op_getScale(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *result);
+void abc_film_back_xform_op_getMatrix(struct Abc_Film_Back_Xform_Op *op, Abc_M33d *result);
+bool abc_film_back_xform_op_isTranslateOp(struct Abc_Film_Back_Xform_Op *op);
+bool abc_film_back_xform_op_isScaleOp(struct Abc_Film_Back_Xform_Op *op);
+bool abc_film_back_xform_op_isMatrixOp(struct Abc_Film_Back_Xform_Op *op);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Camera_Sample
  * \{ */
 
@@ -1027,6 +1077,15 @@ void abc_camera_sample_reset(struct Abc_Camera_Sample *sample);
 double abc_camera_sample_get_core_value(struct Abc_Camera_Sample *sample, uint64_t index);
 
 double abc_camera_sample_get_field_of_view(struct Abc_Camera_Sample *sample);
+
+uint64_t abc_camera_sample_add_op(struct Abc_Camera_Sample *sample,
+                                  struct Abc_Film_Back_Xform_Op *op);
+void abc_camera_sample_get_op(struct Abc_Camera_Sample *sample,
+                              uint64_t index,
+                              struct Abc_Film_Back_Xform_Op *r_op);
+void abc_camera_sample_get_film_back_matrix(struct Abc_Camera_Sample *sample, Abc_M33d *r_matrix);
+uint64_t abc_camera_sample_get_num_ops(struct Abc_Camera_Sample *sample);
+uint64_t abc_camera_sample_get_num_op_channels(struct Abc_Camera_Sample *sample);
 
 /** \} */
 

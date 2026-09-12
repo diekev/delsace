@@ -1373,11 +1373,11 @@ imprime_infos_caméra :: fonc (iarchive: *Abc_Input_Archive)
         rassemble_objets(top, header, *objets, filtre);
     }
 
-    imprime_chemin_archive_courante();
     saufsi objets {
-        imprimeln("L'archive n'a pas de Camera");
         retourne;
     }
+
+    imprime_chemin_archive_courante();
 
     pour objets {
         imprimeln("%", donne_full_name(it));
@@ -1388,7 +1388,23 @@ imprime_infos_caméra :: fonc (iarchive: *Abc_Input_Archive)
         sample := abc_input_camera_schema_get_value(schema, Abc_Sample_Selector());
         child_bounds: Abc_Box3d;
         abc_camera_sample_get_child_bounds(sample, *child_bounds);
-        imprimeln("child bounds : %", child_bounds);
+        imprimeln("    child bounds : %", child_bounds);
+
+        num_ops := abc_camera_sample_get_num_ops(sample);
+        imprimeln("    num_ops : %", num_ops);
+
+        pour op_index dans num_ops {
+            op: Abc_Film_Back_Xform_Op = ---;
+            abc_film_back_xform_op_init(*op);
+
+            abc_camera_sample_get_op(sample, op_index, *op);
+
+            op_type := abc_film_back_xform_op_get_type(*op);
+            op_hint := abc_film_back_xform_op_get_hint(*op);
+            diffère abc_new_string_destroy(*op_hint);
+
+            imprimeln("        [%] % (hint : %)", op_index, op_type, vers_kuri(op_hint));
+        }
     }
 }
 

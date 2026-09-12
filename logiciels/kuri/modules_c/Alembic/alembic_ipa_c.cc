@@ -136,6 +136,29 @@ static void vers_abc_string(Abc_String *result, const std::string &name)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_String
+ * \{ */
+
+static Abc_New_String make_new_string(std::string_view str)
+{
+    auto characters = new char[str.size()];
+    memcpy(characters, str.data(), str.size());
+    Abc_New_String résultat;
+    résultat.characters = characters;
+    résultat.size = str.size();
+    return résultat;
+}
+
+void abc_new_string_destroy(struct Abc_New_String *new_string)
+{
+    delete[] new_string->characters;
+    new_string->characters = nullptr;
+    new_string->size = 0;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom value_converter
  * \{ */
 
@@ -1608,6 +1631,18 @@ bool abc_xform_op_is_rotate_z_op(Abc_Xform_Op *op)
  *  À FAIRE: complète
  * \{ */
 
+static Abc::V2d convertis_vers_abc(Abc_V2d *v)
+{
+    static_assert(sizeof(Abc::V2d) == sizeof(Abc_V2d));
+    return *reinterpret_cast<Abc::V2d *>(v);
+}
+
+static void convertis_vers_kuri(Abc_V2d *résultat, Abc::V2d v)
+{
+    static_assert(sizeof(Abc::V2d) == sizeof(Abc_V2d));
+    *reinterpret_cast<Abc::V2d *>(résultat) = v;
+}
+
 static Abc::V3d convertis_vers_abc(Abc_V3d *v)
 {
     static_assert(sizeof(Abc::V3d) == sizeof(Abc_V3d));
@@ -1618,6 +1653,18 @@ static void convertis_vers_kuri(Abc_V3d *résultat, Abc::V3d v)
 {
     static_assert(sizeof(Abc::V3d) == sizeof(Abc_V3d));
     *reinterpret_cast<Abc::V3d *>(résultat) = v;
+}
+
+static Abc::M33d convertis_vers_abc(Abc_M33d *v)
+{
+    static_assert(sizeof(Abc::M33d) == sizeof(Abc_M33d));
+    return *reinterpret_cast<Abc::M33d *>(v);
+}
+
+static void convertis_vers_kuri(Abc_M33d *résultat, Abc::M33d v)
+{
+    static_assert(sizeof(Abc::M33d) == sizeof(Abc_M33d));
+    *reinterpret_cast<Abc::M33d *>(résultat) = v;
 }
 
 static Abc::M44d convertis_vers_abc(Abc_M44d *v)
@@ -1861,6 +1908,131 @@ uint64_t abc_input_xform_schema_get_num_ops(Abc_Input_Xform_Schema *schema)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Film_Back_Xform_Op
+ * \{ */
+
+static_assert(sizeof(Abc_Film_Back_Xform_Op) == sizeof(AbcGeom::FilmBackXformOp));
+static_assert(alignof(Abc_Film_Back_Xform_Op) == alignof(AbcGeom::FilmBackXformOp));
+
+void abc_film_back_xform_op_init(struct Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    new (abc_op) AbcGeom::FilmBackXformOp();
+}
+
+void abc_film_back_xform_op_init_type_hint(struct Abc_Film_Back_Xform_Op *op,
+                                           enum Abc_Film_Back_Xform_Operation_Type type,
+                                           struct Abc_String hint)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto abc_type = static_cast<AbcGeom::FilmBackXformOperationType>(type);
+    new (abc_op) AbcGeom::FilmBackXformOp(abc_type, hint);
+}
+
+Abc_Film_Back_Xform_Operation_Type abc_film_back_xform_op_get_type(
+    struct Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    return static_cast<Abc_Film_Back_Xform_Operation_Type>(abc_op->getType());
+}
+
+Abc_New_String abc_film_back_xform_op_get_hint(struct Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto hint = abc_op->getHint();
+    return make_new_string(hint);
+}
+
+Abc_New_String abc_film_back_xform_op_get_type_and_hint(struct Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto type_and_hint = abc_op->getTypeAndHint();
+    return make_new_string(type_and_hint);
+}
+
+uint64_t abc_film_back_xform_op_get_num_channels(struct Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    return abc_op->getNumChannels();
+}
+
+double abc_film_back_xform_op_get_channel_value(struct Abc_Film_Back_Xform_Op *op, uint64_t index)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    return abc_op->getChannelValue(index);
+}
+
+void abc_film_back_xform_op_set_channel_value(struct Abc_Film_Back_Xform_Op *op,
+                                              uint64_t index,
+                                              double val)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    return abc_op->setChannelValue(index, val);
+}
+
+void abc_film_back_xform_op_setTranslate(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *trans)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto abc_trans = convertis_vers_abc(trans);
+    abc_op->setTranslate(abc_trans);
+}
+
+void abc_film_back_xform_op_setScale(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *scale)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto abc_scale = convertis_vers_abc(scale);
+    abc_op->setScale(abc_scale);
+}
+
+void abc_film_back_xform_op_setMatrix(struct Abc_Film_Back_Xform_Op *op, Abc_M33d *matrix)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto abc_matrix = convertis_vers_abc(matrix);
+    abc_op->setMatrix(abc_matrix);
+}
+
+void abc_film_back_xform_op_getTranslate(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *result)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto abc_trans = abc_op->getTranslate();
+    convertis_vers_kuri(result, abc_trans);
+}
+
+void abc_film_back_xform_op_getScale(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *result)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto abc_scale = abc_op->getScale();
+    convertis_vers_kuri(result, abc_scale);
+}
+
+void abc_film_back_xform_op_getMatrix(struct Abc_Film_Back_Xform_Op *op, Abc_M33d *result)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    auto abc_matrix = abc_op->getMatrix();
+    convertis_vers_kuri(result, abc_matrix);
+}
+
+bool abc_film_back_xform_op_isTranslateOp(struct Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    return abc_op->isTranslateOp();
+}
+
+bool abc_film_back_xform_op_isScaleOp(struct Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    return abc_op->isScaleOp();
+}
+
+bool abc_film_back_xform_op_isMatrixOp(struct Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    return abc_op->isMatrixOp();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Camera_Sample
  * \{ */
 
@@ -1946,6 +2118,37 @@ double abc_camera_sample_get_core_value(struct Abc_Camera_Sample *sample, uint64
 double abc_camera_sample_get_field_of_view(struct Abc_Camera_Sample *sample)
 {
     return sample->sample.getFieldOfView();
+}
+
+uint64_t abc_camera_sample_add_op(Abc_Camera_Sample *sample, Abc_Film_Back_Xform_Op *op)
+{
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(op);
+    return sample->sample.addOp(*abc_op);
+}
+
+void abc_camera_sample_get_op(Abc_Camera_Sample *sample,
+                              uint64_t index,
+                              Abc_Film_Back_Xform_Op *r_op)
+{
+    auto op = sample->sample.getOp(index);
+    auto abc_op = reinterpret_cast<AbcGeom::FilmBackXformOp *>(r_op);
+    *abc_op = op;
+}
+
+void abc_camera_sample_get_film_back_matrix(Abc_Camera_Sample *sample, Abc_M33d *r_matrix)
+{
+    auto matrix = sample->sample.getFilmBackMatrix();
+    convertis_vers_kuri(r_matrix, matrix);
+}
+
+uint64_t abc_camera_sample_get_num_ops(Abc_Camera_Sample *sample)
+{
+    return sample->sample.getNumOps();
+}
+
+uint64_t abc_camera_sample_get_num_op_channels(Abc_Camera_Sample *sample)
+{
+    return sample->sample.getNumOpChannels();
 }
 
 /** \} */
