@@ -19,6 +19,43 @@ struct Abc_MetaData {
     Abc_MetaData_Iterator *iterators = nullptr;
 };
 
+Abc_MetaData *make_metadata(ContexteKuri *ctx_kuri, const Abc::MetaData &metadata);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Time_Sampling
+ * \{ */
+
+struct Abc_Time_Sampling {
+    Abc_Time_Sampling *next = nullptr;
+    Abc::TimeSamplingPtr ptr = nullptr;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Property_Header
+ * \{ */
+
+struct Abc_Property_Header {
+    const Alembic::AbcCoreAbstract::PropertyHeader &header;
+    Abc_Property_Header *next;
+    ContexteKuri *ctx_kuri;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Object_Header
+ * \{ */
+
+struct Abc_Object_Header {
+    const AbcGeom::ObjectHeader &header;
+    Abc_Object_Header *next = nullptr;
+    ContexteKuri *ctx_kuri = nullptr;
+};
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -97,6 +134,15 @@ inline std::string vers_std_string_ou_défaut(struct Abc_String string, std::str
         return std::string(défaut.data(), défaut.size());
     }
     return std::string(string.characters, string.size);
+}
+
+inline void make_abc_data_type(const AbcGeom::DataType &abc_data_type,
+                               struct Abc_Data_Type *r_data_type)
+{
+    if (r_data_type) {
+        r_data_type->pod_type = static_cast<Abc_Plain_Old_Data_Type>(abc_data_type.getPod());
+        r_data_type->extent = abc_data_type.getExtent();
+    }
 }
 
 /** \} */
