@@ -198,7 +198,8 @@ principale :: fonc ()
 {
     // imprime_infos_types_attributs_pour_python();
 
-    crée_points_vides();
+    // crée_points_vides();
+    crée_courbes_vides();
 
     // crée_test_mauvaise_géométrie_maillage();
 
@@ -218,7 +219,7 @@ principale :: fonc ()
     // crée_test_scope_rayons_courbes("/tmp/curves-width-vertex-scope.abc", Abc_Geometry_Scope.VERTEX);
     // crée_test_scope_rayons_courbes("/tmp/curves-width-uniform-scope.abc", Abc_Geometry_Scope.UNIFORM);
 
-    crée_test_attributs();
+    // crée_test_attributs();
 
     // crée_test_visibilité("/tmp/visibility-hidden.abc");
     // crée_test_visibilité("/tmp/visibility-parent-hidden-child-visible.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.VISIBLE);
@@ -1104,5 +1105,55 @@ crée_test_attributs :: fonc ()
         }
 
         abc_output_float_geom_param_sample_set(geom_param, *sample);
+    }
+}
+
+crée_courbes_vides :: fonc ()
+{
+    chemin := "/tmp/empty-curves.abc";
+
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    échantillons := [1.0 / metadata.fps];
+    temps_par_cycle := 1.0 / metadata.fps;
+    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
+   
+    curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
+
+    curves_sample := abc_output_curves_sample_create(curves);
+    diffère abc_output_curves_sample_destroy(curves_sample);
+
+    positions_pleines := [Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)];
+    num_vertices_pleins := z32.[2];
+
+    pour 10 {
+        abc_output_curves_sample_reset(curves_sample);
+
+        abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
+        abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+
+        positions: []Vec3;
+        num_vertices: []z32;
+
+        si (it + 1) % 2 == 0 {
+            positions = positions_pleines;
+            num_vertices = num_vertices_pleins;
+        }
+
+        abc_output_curves_sample_positions_set(curves_sample, positions);
+        abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+
+        abc_output_curves_sample_set(curves, curves_sample);
     }
 }

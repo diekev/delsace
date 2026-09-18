@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "infos-caméra";
+    nom_test := "données-manquantes-blender";
 
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -761,25 +761,29 @@ test_données_manquantes_blender :: fonc (iarchive: *Abc_Input_Archive)
         arb_geom_params := donne_arb_geom_params(it);
         nom := donne_full_name(it);
 
+        imprimeln("%:", nom);
+        num_schema_samples := donne_num_samples_schema(it);
+        imprimeln("    num_schema_samples      : %", num_schema_samples);
+
         saufsi arb_geom_params {
-            imprimeln("Pas de .arbGeomParam pour '%'", nom);
+            imprimeln("    pas de .arbGeomParam");
             continue;
         }
 
         saufsi abc_input_compound_property_valid(arb_geom_params) {
-            imprimeln(".arbGeomParam invalide pour '%'", nom);
+            imprimeln("    .arbGeomParam invalide");
             continue;
         }
 
         num_properties := abc_input_compound_property_get_num_properties(arb_geom_params);
         si num_properties == 0 {
-            imprimeln("aucune propriété pour '%'", nom);
+            imprimeln("    aucune propriété sur .arbGeomParams");
             continue;
         }
 
         prop_header := abc_input_compound_property_get_property_header(arb_geom_params, 0);
         saufsi abc_input_float_geom_param_matches(prop_header) {
-            imprimeln("le premier attribut n'est pas float pour '%'", nom);
+            imprimeln("    le premier attribut n'est pas float");
             continue;
         }
 
@@ -788,9 +792,6 @@ test_données_manquantes_blender :: fonc (iarchive: *Abc_Input_Archive)
 
         geom_param := abc_input_float_geom_param_get(arb_geom_params, prop_name);
         num_samples_geom_params := abc_input_float_geom_param_get_num_samples(geom_param);
-        imprimeln("%:", nom);
-        num_schema_samples := donne_num_samples_schema(it);
-        imprimeln("    num_schema_samples      : %", num_schema_samples);
         imprimeln("    num_samples_geom_params : %", num_samples_geom_params);
     }
 }
