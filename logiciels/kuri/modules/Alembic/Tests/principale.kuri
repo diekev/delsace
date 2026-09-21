@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "données-manquantes-blender";
+    nom_test := "facesets";
 
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -102,6 +102,9 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
     }
     sinon si nom_test == "infos-caméra" {
         imprime_infos_caméra(iarchive);
+    }
+    sinon si nom_test == "facesets" {
+        imprime_infos_facesets(iarchive);
     }
     sinon {
         imprimeln("Test '%' inconnu", nom_test);
@@ -1411,3 +1414,87 @@ imprime_infos_caméra :: fonc (iarchive: *Abc_Input_Archive)
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom FaceSets
+ * \{ */
+
+imprime_infos_facesets :: fonc (iarchive: *Abc_Input_Archive)
+{
+    top := abc_input_archive_get_top(iarchive);
+    saufsi abc_input_object_valid(top) {
+        imprimeln("L'object top n'est pas valide");
+        retourne;
+    }
+
+    objets: [..]Abc_Generic_Input_Object;
+    filtre := Filtre_Objet.POLYMESH;
+    filtre.SUBD = vrai;
+
+    pour abc_input_object_get_num_children(top) {
+        header := abc_input_object_get_child_header(top, it);
+        rassemble_objets(top, header, *objets, filtre);
+    }
+
+    saufsi objets {
+        retourne;
+    }
+
+    imprime_chemin_archive_courante();
+
+    pour objets {
+        imprimeln("%", donne_full_name(it));
+        header := abc_input_object_get_header(it);
+
+        si abc_object_header_matches_polymesh(header) {
+            polymesh := it.polymesh;
+            schema := abc_input_polymesh_get_schema(polymesh);
+
+            names: []Abc_String;
+            abc_input_polymesh_schema_get_faceset_names(schema, *names.données, *names.taille comme *n64);
+
+            pour abc_name dans names {
+                faceset := abc_input_polymesh_schema_get_faceset(schema, abc_name);
+                imprime_info_faceset(faceset);
+            }
+        }
+        sinon si abc_object_header_matches_subd(header) {
+            subd := it.subd;
+            schema := abc_input_subd_get_schema(subd);
+
+            names: []Abc_String;
+            abc_input_subd_schema_get_faceset_names(schema, *names.données, *names.taille comme *n64);
+
+            pour abc_name dans names {
+                faceset := abc_input_subd_schema_get_faceset(schema, abc_name);
+                imprime_info_faceset(faceset);
+            }
+        }
+        sinon {
+            imprimeln("L'objet n'est ni un PolyMesh ni un SubD");
+        }
+    }
+}
+
+imprime_info_faceset :: fonc (faceset: *Abc_Input_FaceSet)
+{
+    abc_name: Abc_String;
+    abc_input_object_get_name(faceset, *abc_name);
+    name := vers_kuri(abc_name);
+
+    faceset_schema := abc_input_faceset_get_schema(faceset);
+    num_faceset_samples := abc_input_faceset_schema_get_num_samples(faceset_schema);
+    imprimeln("    % : % samples", name, num_faceset_samples);
+
+    // pour num_faceset_samples {
+    //     selector := Abc_Sample_Selector();
+    //     selector.requested_index = it comme z64;
+
+    //     sample := abc_input_faceset_schema_get(faceset_schema, selector);
+    //     diffère abc_input_faceset_schema_sample_destroy(sample);
+
+    //     faces := abc_input_faceset_schema_sample_get_faces(sample);
+    //     imprimeln("        num_faces %", faces.num_values);
+    // }
+}
+
+/** \} */
