@@ -716,15 +716,15 @@ enum Abc_Mesh_Topology_Variance {
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(PolyMesh, polymesh)
 
-void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh_Schema *schema,
-                                                  Abc_String **r_names,
-                                                  uint64_t *r_count);
+void abc_input_polymesh_schema_get_faceset_names(struct Abc_Input_PolyMesh_Schema *schema,
+                                                 Abc_String **r_names,
+                                                 uint64_t *r_count);
 
-struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
-    struct Abc_Input_PolyMesh_Schema *schema, Abc_String face_set_name);
+struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_faceset(
+    struct Abc_Input_PolyMesh_Schema *schema, Abc_String faceset_name);
 
-bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh_Schema *schema,
-                                            Abc_String face_set_name);
+bool abc_input_polymesh_schema_has_faceset(struct Abc_Input_PolyMesh_Schema *schema,
+                                           Abc_String faceset_name);
 
 #define DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
     X(PolyMesh, polymesh, get_positions, getPositions, Abc_P3f_Array_Sample)                      \
@@ -746,15 +746,15 @@ enum Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(SubD, subd)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(SubD, subd)
 
-void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD_Schema *schema,
-                                              Abc_String **r_names,
-                                              uint64_t *r_count);
+void abc_input_subd_schema_get_faceset_names(struct Abc_Input_SubD_Schema *schema,
+                                             Abc_String **r_names,
+                                             uint64_t *r_count);
 
-struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD_Schema *schema,
-                                                             Abc_String face_set_name);
+struct Abc_Input_FaceSet *abc_input_subd_schema_get_faceset(struct Abc_Input_SubD_Schema *schema,
+                                                            Abc_String faceset_name);
 
-bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
-                                        Abc_String face_set_name);
+bool abc_input_subd_schema_has_faceset(struct Abc_Input_SubD_Schema *schema,
+                                       Abc_String faceset_name);
 
 #define DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(X)                                                 \
     X(SubD,                                                                                       \
@@ -792,11 +792,11 @@ enum Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
 /** \nom Abc_Input_FaceSet_Sample
  * \{ */
 
-DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, face_set)
-DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, face_set)
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, faceset)
+DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, faceset)
 
 #define DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
-    X(FaceSet, face_set, get_faces, getFaces, Abc_Int32_Array_Sample)
+    X(FaceSet, faceset, get_faces, getFaces, Abc_Int32_Array_Sample)
 
 DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
@@ -1504,8 +1504,8 @@ struct Abc_Output_PolyMesh *abc_output_polymesh_create(
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
-struct Abc_Output_FaceSet *abc_output_polymesh_create_face_set(struct Abc_Output_PolyMesh *mesh,
-                                                               struct Abc_String name);
+struct Abc_Output_FaceSet *abc_output_polymesh_create_faceset(struct Abc_Output_PolyMesh *mesh,
+                                                              struct Abc_String name);
 
 void abc_output_polymesh_set_uv_source_name(struct Abc_Output_PolyMesh *mesh,
                                             struct Abc_String name);
@@ -1539,8 +1539,8 @@ struct Abc_Output_SubD *abc_output_subd_create(struct Abc_Output_Xform *parent,
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
-struct Abc_Output_FaceSet *abc_output_subd_create_face_set(struct Abc_Output_SubD *subd,
-                                                           struct Abc_String name);
+struct Abc_Output_FaceSet *abc_output_subd_create_faceset(struct Abc_Output_SubD *subd,
+                                                          struct Abc_String name);
 
 void abc_output_subd_set_uv_source_name(struct Abc_Output_SubD *subd, struct Abc_String name);
 

@@ -365,8 +365,8 @@ struct Abc_Input_Object {
 
 struct Abc_Input_Schema {
     Abc_Input_Archive *archive = nullptr;
-    std::vector<std::string> face_set_names_std_string{};
-    std::vector<Abc_String> face_set_names_abc_string{};
+    std::vector<std::string> faceset_names_std_string{};
+    std::vector<Abc_String> faceset_names_abc_string{};
 
     Abc_Input_Compound_Property arb_geom_params{};
     Abc_Input_Compound_Property user_properties{};
@@ -591,41 +591,41 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
  * \{ */
 
 template <typename Input_Schema_Object_Type>
-static void abc_input_object_schema_get_face_set_names(Input_Schema_Object_Type *schema,
-                                                       Abc_String **r_names,
-                                                       uint64_t *r_count)
+static void abc_input_object_schema_get_faceset_names(Input_Schema_Object_Type *schema,
+                                                      Abc_String **r_names,
+                                                      uint64_t *r_count)
 {
-    if (schema->face_set_names_std_string.empty()) {
-        schema->impl->getFaceSetNames(schema->face_set_names_std_string);
+    if (schema->faceset_names_std_string.empty()) {
+        schema->impl->getFaceSetNames(schema->faceset_names_std_string);
 
-        schema->face_set_names_abc_string.resize(schema->face_set_names_std_string.size());
+        schema->faceset_names_abc_string.resize(schema->faceset_names_std_string.size());
 
-        auto strings = schema->face_set_names_abc_string.data();
-        auto num_strings = schema->face_set_names_abc_string.size();
+        auto strings = schema->faceset_names_abc_string.data();
+        auto num_strings = schema->faceset_names_abc_string.size();
         for (auto i = 0ul; i < num_strings; i++) {
-            vers_abc_string(strings++, schema->face_set_names_std_string[i]);
+            vers_abc_string(strings++, schema->faceset_names_std_string[i]);
         }
     }
 
-    *r_names = schema->face_set_names_abc_string.data();
-    *r_count = schema->face_set_names_abc_string.size();
+    *r_names = schema->faceset_names_abc_string.data();
+    *r_count = schema->faceset_names_abc_string.size();
 }
 
 template <typename Input_Schema_Object_Type>
-struct Abc_Input_FaceSet *abc_input_object_schema_get_face_set(Input_Schema_Object_Type *schema,
-                                                               Abc_String face_set_name)
+struct Abc_Input_FaceSet *abc_input_object_schema_get_faceset(Input_Schema_Object_Type *schema,
+                                                              Abc_String faceset_name)
 {
     Abc_Input_FaceSet *résultat = make_object<Abc_Input_FaceSet>(schema->archive);
-    résultat->typed_object = schema->impl->getFaceSet(face_set_name);
+    résultat->typed_object = schema->impl->getFaceSet(faceset_name);
     résultat->untyped_object = résultat->typed_object;
     return résultat;
 }
 
 template <typename Input_Schema_Object_Type>
-static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *schema,
-                                                 Abc_String face_set_name)
+static bool abc_input_object_schema_has_faceset(Input_Schema_Object_Type *schema,
+                                                Abc_String faceset_name)
 {
-    return schema->impl->hasFaceSet(face_set_name);
+    return schema->impl->hasFaceSet(faceset_name);
 }
 
 /** \} */
@@ -659,23 +659,23 @@ struct Abc_Input_PolyMesh_Schema_Sample : public Abc_Input_Schema_Sample {
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(PolyMesh, polymesh)
 
-void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh_Schema *schema,
-                                                  Abc_String **r_names,
-                                                  uint64_t *r_count)
+void abc_input_polymesh_schema_get_faceset_names(struct Abc_Input_PolyMesh_Schema *schema,
+                                                 Abc_String **r_names,
+                                                 uint64_t *r_count)
 {
-    abc_input_object_schema_get_face_set_names(schema, r_names, r_count);
+    abc_input_object_schema_get_faceset_names(schema, r_names, r_count);
 }
 
-struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
-    struct Abc_Input_PolyMesh_Schema *schema, Abc_String face_set_name)
+struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_faceset(
+    struct Abc_Input_PolyMesh_Schema *schema, Abc_String faceset_name)
 {
-    return abc_input_object_schema_get_face_set(schema, face_set_name);
+    return abc_input_object_schema_get_faceset(schema, faceset_name);
 }
 
-bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh_Schema *schema,
-                                            Abc_String face_set_name)
+bool abc_input_polymesh_schema_has_faceset(struct Abc_Input_PolyMesh_Schema *schema,
+                                           Abc_String faceset_name)
 {
-    return abc_input_object_schema_has_face_set(schema, face_set_name);
+    return abc_input_object_schema_has_faceset(schema, faceset_name);
 }
 
 DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
@@ -717,23 +717,23 @@ struct Abc_Input_SubD_Schema_Sample : public Abc_Input_Schema_Sample {
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(SubD, subd)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(SubD, subd)
 
-void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD_Schema *schema,
-                                              Abc_String **r_names,
-                                              uint64_t *r_count)
+void abc_input_subd_schema_get_faceset_names(struct Abc_Input_SubD_Schema *schema,
+                                             Abc_String **r_names,
+                                             uint64_t *r_count)
 {
-    abc_input_object_schema_get_face_set_names(schema, r_names, r_count);
+    abc_input_object_schema_get_faceset_names(schema, r_names, r_count);
 }
 
-struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD_Schema *schema,
-                                                             Abc_String face_set_name)
+struct Abc_Input_FaceSet *abc_input_subd_schema_get_faceset(struct Abc_Input_SubD_Schema *schema,
+                                                            Abc_String faceset_name)
 {
-    return abc_input_object_schema_get_face_set(schema, face_set_name);
+    return abc_input_object_schema_get_faceset(schema, faceset_name);
 }
 
-bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD_Schema *schema,
-                                        Abc_String face_set_name)
+bool abc_input_subd_schema_has_faceset(struct Abc_Input_SubD_Schema *schema,
+                                       Abc_String faceset_name)
 {
-    return abc_input_object_schema_has_face_set(schema, face_set_name);
+    return abc_input_object_schema_has_faceset(schema, faceset_name);
 }
 
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
@@ -768,8 +768,8 @@ struct Abc_Input_FaceSet_Schema_Sample : public Abc_Input_Schema_Sample {
     AbcGeom::IFaceSetSchema::Sample sample{};
 };
 
-DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, face_set)
-DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, face_set)
+DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, faceset)
+DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, faceset)
 
 DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
