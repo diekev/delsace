@@ -619,6 +619,8 @@ struct Abc_Object_Header *abc_input_object_get_child_header(union Abc_Generic_In
 struct Abc_Input_Object *abc_input_object_get_child(union Abc_Generic_Input_Object object,
                                                     struct Abc_String name);
 
+void abc_input_object_get_name(union Abc_Generic_Input_Object object, struct Abc_String *name);
+
 void abc_input_object_get_full_name(union Abc_Generic_Input_Object object,
                                     struct Abc_String *name);
 

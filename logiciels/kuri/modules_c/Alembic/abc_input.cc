@@ -433,6 +433,11 @@ struct Abc_Input_Object *abc_input_object_get_child(Abc_Generic_Input_Object obj
     return résultat;
 }
 
+void abc_input_object_get_name(Abc_Generic_Input_Object object, struct Abc_String *name)
+{
+    vers_abc_string(name, object.object->untyped_object.getName());
+}
+
 void abc_input_object_get_full_name(Abc_Generic_Input_Object object, struct Abc_String *name)
 {
     vers_abc_string(name, object.object->untyped_object.getFullName());
