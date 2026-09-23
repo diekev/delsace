@@ -64,6 +64,9 @@ template <typename IPA_Type, typename Alembic_Type>
 auto make_input_array_sample(std::shared_ptr<Alembic_Type> ptr, Array_Sample_Data &)
 {
     using value_type = typename Alembic_Type::value_type;
+    if (!ptr) {
+        return IPA_Type(nullptr, 0);
+    }
     auto values = const_cast<value_type *>((*ptr).get());
     return IPA_Type{reinterpret_cast<decltype(IPA_Type::values)>(values), (*ptr).size()};
 }
@@ -72,6 +75,9 @@ template <>
 auto make_input_array_sample<Abc_String_Array_Sample, AbcGeom::StringArraySample>(
     AbcGeom::StringArraySamplePtr ptr, Array_Sample_Data &data)
 {
+    if (!ptr) {
+        return Abc_String_Array_Sample(nullptr, 0);
+    }
     data.input_strings.resize(ptr->size());
 
     for (auto i = 0ul; i < ptr->size(); i++) {
