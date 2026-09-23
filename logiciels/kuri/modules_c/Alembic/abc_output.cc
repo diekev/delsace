@@ -848,7 +848,7 @@ Abc_Output_PolyMesh *abc_output_polymesh_create(Abc_Output_Xform *parent,
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
-Abc_Output_FaceSet *abc_output_polymesh_create_face_set(Abc_Output_PolyMesh *mesh, Abc_String name)
+Abc_Output_FaceSet *abc_output_polymesh_create_faceset(Abc_Output_PolyMesh *mesh, Abc_String name)
 {
     auto result = crée_objet_sortie<Abc_Output_FaceSet>(mesh->archive);
     result->object = mesh->object.getSchema().createFaceSet(vers_std_string(name));
@@ -923,7 +923,7 @@ Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
-Abc_Output_FaceSet *abc_output_subd_create_face_set(Abc_Output_SubD *subd, Abc_String name)
+Abc_Output_FaceSet *abc_output_subd_create_faceset(Abc_Output_SubD *subd, Abc_String name)
 {
     auto result = crée_objet_sortie<Abc_Output_FaceSet>(subd->archive);
     result->object = subd->object.getSchema().createFaceSet(vers_std_string(name));
