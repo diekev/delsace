@@ -1200,7 +1200,8 @@ imprime_info_faceset :: fonc (faceset: *Abc_Input_FaceSet)
 
     faceset_schema := abc_input_faceset_get_schema(faceset);
     num_faceset_samples := abc_input_faceset_schema_get_num_samples(faceset_schema);
-    imprimeln("    % : % samples", name, num_faceset_samples);
+    exclusivity := abc_input_faceset_schema_get_face_exclusivity(faceset_schema);
+    imprimeln("    % : % samples (%)", name, num_faceset_samples, exclusivity);
 
     // pour num_faceset_samples {
     //     selector := Abc_Sample_Selector();

@@ -784,6 +784,12 @@ DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, faceset)
 
 DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
+enum Abc_FaceSet_Exclusivity abc_input_faceset_schema_get_face_exclusivity(
+    struct Abc_Input_FaceSet_Schema *schema)
+{
+    return static_cast<Abc_FaceSet_Exclusivity>(schema->impl->getFaceExclusivity());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

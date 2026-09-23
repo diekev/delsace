@@ -794,6 +794,11 @@ enum Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
 /** \nom Abc_Input_FaceSet_Sample
  * \{ */
 
+enum Abc_FaceSet_Exclusivity {
+    ABC_FACESET_EXCLUSIVITY_NON_EXCLUSIVE,
+    ABC_FACESET_EXCLUSIVITY_EXCLUSIVE,
+};
+
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(FaceSet, faceset)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, faceset)
 
@@ -801,6 +806,9 @@ DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, faceset)
     X(FaceSet, faceset, get_faces, getFaces, Abc_Int32_Array_Sample)
 
 DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+enum Abc_FaceSet_Exclusivity abc_input_faceset_schema_get_face_exclusivity(
+    struct Abc_Input_FaceSet_Schema *schema);
 
 /** \} */
 
