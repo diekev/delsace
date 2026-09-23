@@ -1162,6 +1162,10 @@ imprime_infos_facesets :: fonc (object: Abc_Generic_Input_Object)
         names: []Abc_String;
         abc_input_polymesh_schema_get_faceset_names(schema, *names.données, *names.taille comme *n64);
 
+        si names {
+            imprimeln("  %", donne_full_name(object));
+        }
+
         pour abc_name dans names {
             faceset := abc_input_polymesh_schema_get_faceset(schema, abc_name);
             imprime_info_faceset(faceset);
@@ -1173,6 +1177,10 @@ imprime_infos_facesets :: fonc (object: Abc_Generic_Input_Object)
 
         names: []Abc_String;
         abc_input_subd_schema_get_faceset_names(schema, *names.données, *names.taille comme *n64);
+
+        si names {
+            imprimeln("  %", donne_full_name(object));
+        }
 
         pour abc_name dans names {
             faceset := abc_input_subd_schema_get_faceset(schema, abc_name);
@@ -1203,6 +1211,10 @@ imprime_info_faceset :: fonc (faceset: *Abc_Input_FaceSet)
 
     //     faces := abc_input_faceset_schema_sample_get_faces(sample);
     //     imprimeln("        num_faces %", faces.num_values);
+
+    //     self_bounds: Abc_Box3d;
+    //     abc_input_faceset_schema_sample_get_self_bounds(sample, *self_bounds);
+    //     imprimeln("        min : (%, %, %), max (%, %, %)", self_bounds.min.x, self_bounds.min.y, self_bounds.min.z, self_bounds.max.x, self_bounds.max.y, self_bounds.max.z);
     // }
 }
 
