@@ -154,6 +154,53 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
 
         abc_output_subd_sample_set(subd, subd_sample);
     }
+
+    faceset_names := get_faceset_names(schema);
+
+    pour faceset_names {
+        input_faceset := abc_input_polymesh_schema_get_faceset(schema, it);
+        faceset_schema := abc_input_faceset_get_schema(input_faceset);
+
+        ts_faceset := abc_input_faceset_schema_get_time_sampling(faceset_schema);
+        ts_output_facest := abc_output_archive_create_time_sampling(archive, ts_faceset);
+
+        num_samples_faceset := abc_input_faceset_schema_get_num_samples(faceset_schema);
+
+        output_faceset := abc_output_subd_create_faceset(subd, it);
+        abc_output_faceset_schema_set_time_sampling(output_faceset, ts_output_facest);
+
+        exclusivity := abc_input_faceset_schema_get_face_exclusivity(faceset_schema);
+        abc_output_faceset_schema_set_face_exclusivity(output_faceset, exclusivity);
+
+        output_sample := abc_output_faceset_sample_create(output_faceset);
+        diffère abc_output_faceset_sample_destroy(output_sample);
+
+        pour sample_index dans num_samples_faceset {
+            abc_output_faceset_sample_reset(output_sample);
+
+            selector: Abc_Sample_Selector;
+            selector.requested_index = sample_index comme z64;
+
+            faceset_sample := abc_input_faceset_schema_get(faceset_schema, selector);
+            diffère abc_input_faceset_schema_sample_destroy(faceset_sample);
+
+            faces := abc_input_faceset_schema_sample_get_faces(faceset_sample);
+            abc_output_faceset_sample_faces_set(output_sample, faces);
+
+            self_bounds: Abc_Box3d;
+            abc_input_faceset_schema_sample_get_self_bounds(faceset_sample, *self_bounds);
+            abc_output_faceset_schema_sample_set_self_bounds(output_sample, *self_bounds);
+
+            abc_output_faceset_sample_set(output_faceset, output_sample);
+        }
+    }
+}
+
+get_faceset_names :: fonc (schema: *Abc_Input_PolyMesh_Schema) -> []Abc_String
+{
+    résultat: []Abc_String;
+    abc_input_polymesh_schema_get_faceset_names(schema, *résultat.données, *résultat.taille comme *n64);
+    retourne résultat;
 }
 
 imprime_time_sampling :: fonc (time_sampling: *Abc_Time_Sampling)
