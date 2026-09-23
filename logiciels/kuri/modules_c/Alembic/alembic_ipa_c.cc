@@ -614,66 +614,6 @@ bool abc_xform_op_is_rotate_z_op(Abc_Xform_Op *op)
 /** \nom Abc_Xform_Sample
  * \{ */
 
-static Abc::V2d convertis_vers_abc(Abc_V2d *v)
-{
-    static_assert(sizeof(Abc::V2d) == sizeof(Abc_V2d));
-    return *reinterpret_cast<Abc::V2d *>(v);
-}
-
-static void convertis_vers_kuri(Abc_V2d *résultat, Abc::V2d v)
-{
-    static_assert(sizeof(Abc::V2d) == sizeof(Abc_V2d));
-    *reinterpret_cast<Abc::V2d *>(résultat) = v;
-}
-
-static Abc::V3d convertis_vers_abc(Abc_V3d *v)
-{
-    static_assert(sizeof(Abc::V3d) == sizeof(Abc_V3d));
-    return *reinterpret_cast<Abc::V3d *>(v);
-}
-
-static void convertis_vers_kuri(Abc_V3d *résultat, Abc::V3d v)
-{
-    static_assert(sizeof(Abc::V3d) == sizeof(Abc_V3d));
-    *reinterpret_cast<Abc::V3d *>(résultat) = v;
-}
-
-static Abc::M33d convertis_vers_abc(Abc_M33d *v)
-{
-    static_assert(sizeof(Abc::M33d) == sizeof(Abc_M33d));
-    return *reinterpret_cast<Abc::M33d *>(v);
-}
-
-static void convertis_vers_kuri(Abc_M33d *résultat, Abc::M33d v)
-{
-    static_assert(sizeof(Abc::M33d) == sizeof(Abc_M33d));
-    *reinterpret_cast<Abc::M33d *>(résultat) = v;
-}
-
-static Abc::M44d convertis_vers_abc(Abc_M44d *v)
-{
-    static_assert(sizeof(Abc::M44d) == sizeof(Abc_M44d));
-    return *reinterpret_cast<Abc::M44d *>(v);
-}
-
-static void convertis_vers_kuri(Abc_M44d *résultat, Abc::M44d v)
-{
-    static_assert(sizeof(Abc::M44d) == sizeof(Abc_M44d));
-    *reinterpret_cast<Abc::M44d *>(résultat) = v;
-}
-
-static Abc::Box3d convertis_vers_abc(Abc_Box3d *v)
-{
-    static_assert(sizeof(Abc::Box3d) == sizeof(Abc_Box3d));
-    return *reinterpret_cast<Abc::Box3d *>(v);
-}
-
-static void convertis_vers_kuri(Abc_Box3d *résultat, Abc::Box3d v)
-{
-    static_assert(sizeof(Abc::Box3d) == sizeof(Abc_Box3d));
-    *reinterpret_cast<Abc::Box3d *>(résultat) = v;
-}
-
 void abc_xform_sample_destroy(Abc_Xform_Sample *sample)
 {
     if (sample) {

@@ -1499,6 +1499,17 @@ struct Abc_Output_FaceSet_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(FaceSet, faceset)
 ENUMERATE_FACESET_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
+void abc_output_faceset_schema_set_time_sampling(struct Abc_Output_FaceSet *faceset,
+                                                 struct Abc_Time_Sample_Index index);
+uint64_t abc_output_faceset_schema_get_num_samples(struct Abc_Output_FaceSet *faceset);
+enum Abc_FaceSet_Exclusivity abc_output_faceset_schema_get_face_exclusivity(
+    struct Abc_Output_FaceSet *faceset);
+void abc_output_faceset_schema_set_face_exclusivity(struct Abc_Output_FaceSet *faceset,
+                                                    enum Abc_FaceSet_Exclusivity exclusivity);
+
+void abc_output_faceset_schema_sample_set_self_bounds(struct Abc_Output_FaceSet_Sample *sample,
+                                                      struct Abc_Box3d *bounds);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

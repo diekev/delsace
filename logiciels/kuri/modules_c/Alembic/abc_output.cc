@@ -795,6 +795,37 @@ DEFINE_COMMON_SAMPLE_FONCTIONS(FaceSet, faceset)
 
 ENUMERATE_FACESET_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 
+void abc_output_faceset_schema_set_time_sampling(struct Abc_Output_FaceSet *faceset,
+                                                 struct Abc_Time_Sample_Index index)
+{
+    faceset->object.getSchema().setTimeSampling(index.value);
+}
+
+uint64_t abc_output_faceset_schema_get_num_samples(struct Abc_Output_FaceSet *faceset)
+{
+    return faceset->object.getSchema().getNumSamples();
+}
+
+enum Abc_FaceSet_Exclusivity abc_output_faceset_schema_get_face_exclusivity(
+    struct Abc_Output_FaceSet *faceset)
+{
+    return static_cast<Abc_FaceSet_Exclusivity>(faceset->object.getSchema().getFaceExclusivity());
+}
+
+void abc_output_faceset_schema_set_face_exclusivity(struct Abc_Output_FaceSet *faceset,
+                                                    enum Abc_FaceSet_Exclusivity exclusivity)
+{
+    faceset->object.getSchema().setFaceExclusivity(
+        static_cast<AbcGeom::FaceSetExclusivity>(exclusivity));
+}
+
+void abc_output_faceset_schema_sample_set_self_bounds(struct Abc_Output_FaceSet_Sample *sample,
+                                                      struct Abc_Box3d *bounds)
+{
+    auto abc_bounds = convertis_vers_abc(bounds);
+    sample->sample.setSelfBounds(abc_bounds);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
