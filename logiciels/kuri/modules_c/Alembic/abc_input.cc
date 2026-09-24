@@ -655,7 +655,6 @@ struct Abc_Input_Schema_Sample {
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Schema_Sample
  * À FAIRE
- *   IN3fGeomParam getNormalsParam() const
  *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
  *   Abc::IInt32ArrayProperty getFaceIndicesProperty() const
  *   Abc::IP3fArrayProperty getPositionsProperty() const
@@ -717,7 +716,6 @@ Abc_Input_N3f_Geom_Param *abc_input_polymesh_schema_get_normals_param(
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_SubD_Schema_Sample
  * À FAIRE
- *   MeshTopologyVariance getTopologyVariance() const;
  *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
  *   Abc::IInt32ArrayProperty getFaceIndicesProperty() const
  *   Abc::IP3fArrayProperty getPositionsProperty() const
