@@ -99,6 +99,7 @@ struct Configuration {
     kuri::ensemble<kuri::chaine> types_à_ignorer{};
 
     bool supprime_préfixes_fonctions = false;
+    bool génère_enveloppe_fonctions_retours_paramétriques = false;
 
     kuri::chaine nom_type_chaine{};
 };
@@ -585,6 +586,19 @@ struct DéclarationVariable : public Syntaxème {
 
     kuri::chaine nom{};
     Expression *expression = nullptr;
+
+    bool est_paramètre_retour() const
+    {
+        if (est_variadique) {
+            return false;
+        }
+
+        if (type_c->kind != CXTypeKind::CXType_Pointer) {
+            return false;
+        }
+
+        return nom == "result" || commence_par(nom, "r_");
+    }
 };
 
 struct DéclarationConstante : public Syntaxème {
@@ -2814,13 +2828,14 @@ struct Convertisseuse {
 
                     imprime_tab(os);
 
+                    kuri::chaine_statique nom_fonction;
                     if (supprime_préfixe) {
-                        os << nom_sans_préfixe;
+                        nom_fonction = nom_sans_préfixe;
                     }
                     else {
-                        os << fonction->nom;
+                        nom_fonction = fonction->nom;
                     }
-                    os << " :: fonc ";
+                    os << nom_fonction << " :: fonc ";
 
                     kuri::chaine_statique virgule = "(";
                     POUR (fonction->paramètres) {
@@ -2845,6 +2860,8 @@ struct Convertisseuse {
                         os << " \"" << fonction->nom << "\"";
                     }
                     os << ";\n";
+
+                    génère_enveloppe_fonction_retour_paramétrique(fonction, nom_fonction, os);
                 }
 
                 break;
@@ -2987,6 +3004,64 @@ struct Convertisseuse {
         }
 
         profondeur -= 1;
+    }
+
+    void génère_enveloppe_fonction_retour_paramétrique(DéclarationFonction *fonction,
+                                                       kuri::chaine_statique nom_fonction,
+                                                       std::ostream &os)
+    {
+        if (!config->génère_enveloppe_fonctions_retours_paramétriques) {
+            return;
+        }
+
+        if (fonction->type_sortie.kind != CXTypeKind::CXType_Void ||
+            fonction->paramètres.taille() == 0) {
+            return;
+        }
+
+        auto eu_paramètre_sortie = false;
+        POUR (fonction->paramètres) {
+            if (it->est_paramètre_retour()) {
+                if (eu_paramètre_sortie) {
+                    return;
+                }
+                eu_paramètre_sortie = true;
+            }
+        }
+
+        auto dernier_paramètre = fonction->paramètres[fonction->paramètres.taille() - 1];
+        if (!dernier_paramètre->est_paramètre_retour()) {
+            return;
+        }
+
+        os << "\n" << nom_fonction << " :: fonc ";
+        kuri::chaine_statique virgule = "(";
+        for (int i = 0; i < fonction->paramètres.taille() - 1; i++) {
+            auto paramètre = fonction->paramètres[i];
+            os << virgule << paramètre->nom << ": "
+               << convertis_type(paramètre->type_c.value(), typedefs, nombre_anonymes);
+            virgule = ", ";
+        }
+        if (virgule == "(") {
+            os << virgule;
+        }
+        os << ")";
+
+        auto type_sortie = clang_getPointeeType(*dernier_paramètre->type_c);
+        auto chaine_type_sortie = convertis_type(type_sortie, typedefs, nombre_anonymes);
+        os << " -> " << chaine_type_sortie << "\n";
+        os << "{\n";
+        os << "    résultat: " << chaine_type_sortie << ";\n";
+        os << "    " << nom_fonction;
+        virgule = "(";
+        for (int i = 0; i < fonction->paramètres.taille() - 1; i++) {
+            auto paramètre = fonction->paramètres[i];
+            os << virgule << paramètre->nom;
+            virgule = ", ";
+        }
+        os << virgule << "*résultat);\n";
+        os << "    retourne résultat;\n";
+        os << "}\n";
     }
 
     bool doit_ignorer_déclaration(Syntaxème *syntaxème)
