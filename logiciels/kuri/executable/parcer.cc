@@ -3318,6 +3318,7 @@ int main(int argc, char **argv)
     // À FAIRE : généralise ceci.
     if (config.nom_bibliothèque == "alembic") {
         config.supprime_préfixes_fonctions = true;
+        config.génère_enveloppe_fonctions_retours_paramétriques = true;
         config.nom_type_chaine = "Abc_String";
     }
 

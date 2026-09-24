@@ -52,6 +52,11 @@ abc_input_archive_create :: fonc (chemin: chaine) -> *Abc_Input_Archive
     retourne abc_input_archive_create(*ctx_kuri_pour_alembic, *chemin_abc, 1);
 }
 
+get_full_name :: fonc (object: Abc_Generic_Input_Object) -> chaine
+{
+    retourne abc_input_object_get_full_name(object);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

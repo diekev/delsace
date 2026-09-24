@@ -106,8 +106,7 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
 
 convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xform, polymesh: *Abc_Input_PolyMesh, ts_parent: Abc_Time_Sample_Index)
 {
-    nom: Abc_String;
-    abc_input_object_get_full_name(polymesh, *nom);
+    nom := abc_input_object_get_full_name(polymesh);
 
     schema := get_schema(polymesh);
     time_sampling := get_time_sampling(schema);
@@ -214,8 +213,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
             faces := get_faces(faceset_sample);
             set_faces(output_sample, faces);
 
-            self_bounds: Abc_Box3d;
-            get_self_bounds(faceset_sample, *self_bounds);
+            self_bounds := get_self_bounds(faceset_sample);
             abc_output_faceset_schema_sample_set_self_bounds(output_sample, *self_bounds);
 
             sample_set(output_faceset, output_sample);

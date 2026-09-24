@@ -301,9 +301,9 @@ void abc_time_sampling_get_near_index(struct Abc_Time_Sampling *time_sampling,
 /** \nom Abc_Property_Header
  * \{ */
 
-void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc_String *name)
+void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc_String *r_name)
 {
-    vers_abc_string(name, header->header.getName());
+    vers_abc_string(r_name, header->header.getName());
 }
 
 enum Abc_Property_Type abc_property_header_get_property_type(struct Abc_Property_Header *header)
@@ -350,14 +350,14 @@ void abc_property_header_get_data_type(struct Abc_Property_Header *header,
 /** \nom Abc_Object_Header
  * \{ */
 
-void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *name)
+void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *r_name)
 {
-    vers_abc_string(name, header->header.getName());
+    vers_abc_string(r_name, header->header.getName());
 }
 
-void abc_object_header_get_full_name(struct Abc_Object_Header *header, Abc_String *name)
+void abc_object_header_get_full_name(struct Abc_Object_Header *header, Abc_String *r_name)
 {
-    vers_abc_string(name, header->header.getFullName());
+    vers_abc_string(r_name, header->header.getFullName());
 }
 
 Abc_MetaData *abc_object_header_get_metadata(struct Abc_Object_Header *header)

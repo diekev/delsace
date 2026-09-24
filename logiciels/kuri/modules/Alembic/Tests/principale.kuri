@@ -249,8 +249,7 @@ imprime_hiérarchie_archive :: fonc (iarchive: *Abc_Input_Archive)
 
 traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header)
 {
-    nom: Abc_String;
-    get_name(header, *nom);
+    nom := get_name(header);
     next_object: Abc_Generic_Input_Object;
     
     si matches_camera(header) {
@@ -296,13 +295,13 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
         next_object = abc_input_object_get_child(parent, nom);
 
         si is_instance_root(next_object.object) {
-            abc_input_object_get_full_name(next_object, *nom);
+            nom = get_full_name(next_object);
             imprimeln("%", nom);
         }
     }
 
     si abc_input_object_valid(next_object) {
-        abc_input_object_get_full_name(next_object, *nom);
+        nom = get_full_name(next_object);
         imprimeln("%", nom);
 
         metadata := get_metadata(header);
@@ -348,8 +347,7 @@ Filtre_Objet :: énum_drapeau {
 
 rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header, résultat: *[..]Abc_Generic_Input_Object, filtre: Filtre_Objet)
 {
-    nom: Abc_String;
-    get_name(header, *nom);
+    nom := get_name(header);
     next_object: Abc_Generic_Input_Object;
     
     si matches_camera(header) {
@@ -493,8 +491,7 @@ imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
 
 imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_header: *Abc_Property_Header)
 {
-    prop_name: Abc_String;
-    get_name(prop_header, *prop_name);
+    prop_name := get_name(prop_header);
 
     prop_type := get_property_type(prop_header);
 
@@ -643,8 +640,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
 
 imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property @inutilisée, prop_header: *Abc_Property_Header)
 {
-    prop_name: Abc_String;
-    get_name(prop_header, *prop_name);
+    prop_name := get_name(prop_header);
 
     prop_type := get_property_type(prop_header);
 
@@ -660,7 +656,7 @@ imprime_informations_subd :: fonc (object: Abc_Generic_Input_Object)
 {
     imprime_chemin_archive_courante();
 
-    nom := donne_full_name(object);
+    nom := get_full_name(object);
     imprimeln("    %", nom);
 
     subd := object.subd;
@@ -690,7 +686,7 @@ imprime_informations_subd :: fonc (object: Abc_Generic_Input_Object)
 imprime_informations_points :: fonc (object: Abc_Generic_Input_Object)
 {
     imprime_chemin_archive_courante(vrai);
-    full_name := donne_full_name(object);
+    full_name := get_full_name(object);
     imprimeln("    %", full_name);
 }
 
@@ -703,7 +699,7 @@ imprime_informations_points :: fonc (object: Abc_Generic_Input_Object)
 test_données_manquantes_blender :: fonc (object: Abc_Generic_Input_Object)
 {
     arb_geom_params := donne_arb_geom_params(object);
-    nom := donne_full_name(object);
+    nom := get_full_name(object);
 
     imprimeln("%:", nom);
     num_schema_samples := donne_num_samples_schema(object);
@@ -731,19 +727,11 @@ test_données_manquantes_blender :: fonc (object: Abc_Generic_Input_Object)
         retourne;
     }
 
-    prop_name: Abc_String;
-    get_name(prop_header, *prop_name);
+    prop_name := get_name(prop_header);
 
     geom_param := abc_input_float_geom_param_get(arb_geom_params, prop_name);
     num_samples_geom_params := get_num_samples(geom_param);
     imprimeln("    num_samples_geom_params : %", num_samples_geom_params);
-}
-
-donne_full_name :: fonc (objet: Abc_Generic_Input_Object) -> chaine
-{
-    nom: Abc_String;
-    abc_input_object_get_full_name(objet, *nom);
-    retourne nom;
 }
 
 donne_arb_geom_params :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Compound_Property
@@ -876,8 +864,7 @@ imprime_animation_attributs :: fonc (object: Abc_Generic_Input_Object)
         retourne;
     }
 
-    prop_name: Abc_String;
-    get_name(prop_header, *prop_name);
+    prop_name := get_name(prop_header);
 
     geom_param := abc_input_float_geom_param_get(arb_geom_params, prop_name);
     num_samples_geom_params := get_num_samples(geom_param);
@@ -958,11 +945,11 @@ imprime_infos_attributs :: fonc (object: Abc_Generic_Input_Object)
 {
     user_properties := donne_user_properties(object);
     si user_properties {
-        imprime_infos_properties(user_properties, donne_full_name(object), "User Properties");
+        imprime_infos_properties(user_properties, get_full_name(object), "User Properties");
     }
     arb_geom_params := donne_arb_geom_params(object);
     si arb_geom_params {
-        imprime_infos_properties(arb_geom_params, donne_full_name(object), "Arb Geom Params");
+        imprime_infos_properties(arb_geom_params, get_full_name(object), "Arb Geom Params");
     }
 }
 
@@ -1001,9 +988,7 @@ imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *
         imprimeln("   % on '%'", message, nom_objet);
     }
 
-    // prop_name: Abc_String;
-    // get_name(prop_header, *prop_name);
-
+    // prop_name := get_name(prop_header);
     // imprimeln("       %", prop_name);
 
     imprime_propriété_scalaire(props, prop_header);
@@ -1024,7 +1009,7 @@ imprime_xform_ops :: fonc (object: Abc_Generic_Input_Object)
     }
 
     imprime_chemin_archive_courante();
-    imprimeln("    % ops sur '%'", num_ops, donne_full_name(object));
+    imprimeln("    % ops sur '%'", num_ops, get_full_name(object));
 
     sample := get_value(xform_schema, Abc_Sample_Selector());
     diffère destroy(sample);
@@ -1101,7 +1086,7 @@ imprime_xform_ops :: fonc (object: Abc_Generic_Input_Object)
 
 imprime_infos_maillage :: fonc (object: Abc_Generic_Input_Object)
 {
-    imprimeln("%", donne_full_name(object));
+    imprimeln("%", get_full_name(object));
 
     polymesh := object.polymesh;
     schema := get_schema(polymesh);
@@ -1118,7 +1103,7 @@ imprime_infos_maillage :: fonc (object: Abc_Generic_Input_Object)
 
 imprime_infos_caméra :: fonc (object: Abc_Generic_Input_Object)
 {
-    imprimeln("%", donne_full_name(object));
+    imprimeln("%", get_full_name(object));
 
     camera := object.camera;
     schema := get_schema(camera);
@@ -1163,7 +1148,7 @@ imprime_infos_facesets :: fonc (object: Abc_Generic_Input_Object)
         get_faceset_names(schema, *names.données, *names.taille comme *n64);
 
         si names {
-            imprimeln("  %", donne_full_name(object));
+            imprimeln("  %", get_full_name(object));
         }
 
         pour abc_name dans names {
@@ -1179,7 +1164,7 @@ imprime_infos_facesets :: fonc (object: Abc_Generic_Input_Object)
         get_faceset_names(schema, *names.données, *names.taille comme *n64);
 
         si names {
-            imprimeln("  %", donne_full_name(object));
+            imprimeln("  %", get_full_name(object));
         }
 
         pour abc_name dans names {
@@ -1194,9 +1179,7 @@ imprime_infos_facesets :: fonc (object: Abc_Generic_Input_Object)
 
 imprime_info_faceset :: fonc (faceset: *Abc_Input_FaceSet)
 {
-    abc_name: Abc_String;
-    abc_input_object_get_name(faceset, *abc_name);
-    name := abc_name;
+    name := abc_input_object_get_name(faceset);
 
     faceset_schema := get_schema(faceset);
     num_faceset_samples := get_num_samples(faceset_schema);
@@ -1213,8 +1196,7 @@ imprime_info_faceset :: fonc (faceset: *Abc_Input_FaceSet)
     //     faces := get_faces(sample);
     //     imprimeln("        num_faces %", faces.num_values);
 
-    //     self_bounds: Abc_Box3d;
-    //     get_self_bounds(sample, *self_bounds);
+    //     self_bounds := get_self_bounds(sample);
     //     imprimeln("        min : (%, %, %), max (%, %, %)", self_bounds.min.x, self_bounds.min.y, self_bounds.min.z, self_bounds.max.x, self_bounds.max.y, self_bounds.max.z);
     // }
 }

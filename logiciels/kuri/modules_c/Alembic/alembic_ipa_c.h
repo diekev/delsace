@@ -429,7 +429,7 @@ struct Abc_Sample_Selector {
  * \{ */
 
 struct Abc_Property_Header;
-void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc_String *name);
+void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc_String *r_name);
 enum Abc_Property_Type abc_property_header_get_property_type(struct Abc_Property_Header *header);
 bool abc_property_header_is_scalar(struct Abc_Property_Header *header);
 bool abc_property_header_is_array(struct Abc_Property_Header *header);
@@ -566,9 +566,9 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_INPUT_GEOM_PARAM)
 
 struct Abc_Object_Header;
 
-void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *name);
+void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *r_name);
 
-void abc_object_header_get_full_name(struct Abc_Object_Header *header, Abc_String *name);
+void abc_object_header_get_full_name(struct Abc_Object_Header *header, Abc_String *r_name);
 
 struct Abc_MetaData *abc_object_header_get_metadata(struct Abc_Object_Header *header);
 
@@ -626,10 +626,10 @@ struct Abc_Object_Header *abc_input_object_get_child_header(union Abc_Generic_In
 struct Abc_Input_Object *abc_input_object_get_child(union Abc_Generic_Input_Object object,
                                                     struct Abc_String name);
 
-void abc_input_object_get_name(union Abc_Generic_Input_Object object, struct Abc_String *name);
+void abc_input_object_get_name(union Abc_Generic_Input_Object object, struct Abc_String *r_name);
 
 void abc_input_object_get_full_name(union Abc_Generic_Input_Object object,
-                                    struct Abc_String *name);
+                                    struct Abc_String *r_name);
 
 bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
 
