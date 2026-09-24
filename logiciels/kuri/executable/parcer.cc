@@ -97,6 +97,8 @@ struct Configuration {
     kuri::ensemble<kuri::chaine> fonctions_à_ignorer{};
     kuri::ensemble<kuri::chaine> fichiers_à_inclure{};
     kuri::ensemble<kuri::chaine> types_à_ignorer{};
+
+    bool supprime_préfixes_fonctions = false;
 };
 
 static kuri::tableau<kuri::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
@@ -2770,8 +2772,47 @@ struct Convertisseuse {
                 if (!fonctions_déjà_déclarées.possède(fonction->nom)) {
                     fonctions_déjà_déclarées.insère(fonction->nom);
 
+                    auto supprime_préfixe = false;
+                    if (config->supprime_préfixes_fonctions) {
+                        supprime_préfixe = fonction->paramètres.taille() > 0 &&
+                                           fonction->paramètres[0]->est_variadique == false;
+                    }
+
+                    kuri::chaine nom_sans_préfixe = "";
+                    if (supprime_préfixe) {
+                        auto param = fonction->paramètres[0];
+                        auto type_param = convertis_type(
+                            param->type_c.value(), typedefs, nombre_anonymes);
+
+                        if (type_param[0] == '*') {
+                            type_param = type_param.sous_chaine(1);
+                        }
+
+                        POUR (type_param) {
+                            if (it >= 'A' && it <= 'Z') {
+                                it = it - 'A' + 'a';
+                            }
+                        }
+
+                        if (commence_par(fonction->nom, type_param) &&
+                            fonction->nom != type_param) {
+                            nom_sans_préfixe = fonction->nom.sous_chaine(type_param.taille() + 1);
+                            supprime_préfixe = nom_sans_préfixe != "create";
+                        }
+                        else {
+                            supprime_préfixe = false;
+                        }
+                    }
+
                     imprime_tab(os);
-                    os << fonction->nom << " :: fonc ";
+
+                    if (supprime_préfixe) {
+                        os << nom_sans_préfixe;
+                    }
+                    else {
+                        os << fonction->nom;
+                    }
+                    os << " :: fonc ";
 
                     kuri::chaine_statique virgule = "(";
                     POUR (fonction->paramètres) {
@@ -2791,7 +2832,11 @@ struct Convertisseuse {
 
                     os << ") -> "
                        << convertis_type(fonction->type_sortie, typedefs, nombre_anonymes);
-                    os << " #externe lib" << nom_bibliothèque_sûr << ";\n";
+                    os << " #externe lib" << nom_bibliothèque_sûr;
+                    if (supprime_préfixe) {
+                        os << " \"" << fonction->nom << "\"";
+                    }
+                    os << ";\n";
                 }
 
                 break;
