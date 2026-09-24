@@ -99,6 +99,8 @@ struct Configuration {
     kuri::ensemble<kuri::chaine> types_à_ignorer{};
 
     bool supprime_préfixes_fonctions = false;
+
+    kuri::chaine nom_type_chaine{};
 };
 
 static kuri::tableau<kuri::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
@@ -2726,6 +2728,12 @@ struct Convertisseuse {
                 auto structure = static_cast<DéclarationStruct *>(syntaxème);
 
                 imprime_tab(os);
+
+                if (structure->nom == config->nom_type_chaine) {
+                    os << structure->nom << " :: chaine;\n";
+                    break;
+                }
+
                 os << structure->nom << " :: struct #externe";
 
                 if (structure->rubriques.taille() == 0) {
