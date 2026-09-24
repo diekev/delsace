@@ -1035,15 +1035,15 @@ double abc_film_back_xform_op_get_channel_value(struct Abc_Film_Back_Xform_Op *o
 void abc_film_back_xform_op_set_channel_value(struct Abc_Film_Back_Xform_Op *op,
                                               uint64_t index,
                                               double val);
-void abc_film_back_xform_op_setTranslate(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *trans);
-void abc_film_back_xform_op_setScale(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *scale);
-void abc_film_back_xform_op_setMatrix(struct Abc_Film_Back_Xform_Op *op, Abc_M33d *matrix);
-void abc_film_back_xform_op_getTranslate(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *result);
-void abc_film_back_xform_op_getScale(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *result);
-void abc_film_back_xform_op_getMatrix(struct Abc_Film_Back_Xform_Op *op, Abc_M33d *result);
-bool abc_film_back_xform_op_isTranslateOp(struct Abc_Film_Back_Xform_Op *op);
-bool abc_film_back_xform_op_isScaleOp(struct Abc_Film_Back_Xform_Op *op);
-bool abc_film_back_xform_op_isMatrixOp(struct Abc_Film_Back_Xform_Op *op);
+void abc_film_back_xform_op_set_translate(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *trans);
+void abc_film_back_xform_op_set_scale(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *scale);
+void abc_film_back_xform_op_set_matrix(struct Abc_Film_Back_Xform_Op *op, Abc_M33d *matrix);
+void abc_film_back_xform_op_get_translate(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *result);
+void abc_film_back_xform_op_get_scale(struct Abc_Film_Back_Xform_Op *op, Abc_V2d *result);
+void abc_film_back_xform_op_get_matrix(struct Abc_Film_Back_Xform_Op *op, Abc_M33d *result);
+bool abc_film_back_xform_op_is_translate_op(struct Abc_Film_Back_Xform_Op *op);
+bool abc_film_back_xform_op_is_scale_op(struct Abc_Film_Back_Xform_Op *op);
+bool abc_film_back_xform_op_is_matrix_op(struct Abc_Film_Back_Xform_Op *op);
 
 /** \} */
 
