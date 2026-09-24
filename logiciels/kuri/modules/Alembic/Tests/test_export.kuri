@@ -271,7 +271,7 @@ crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, f
         set_positions(sample, positions);
         set_face_indices(sample, face_indices);
         set_face_counts(sample, face_counts);
-        sample_set(subd, sample);
+        set(schema, sample);
     }
     sinon {
         matrice_objet_mesh := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
@@ -285,7 +285,7 @@ crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, f
         set_positions(sample, positions);
         set_face_indices(sample, face_indices);
         set_face_counts(sample, face_counts);
-        sample_set(mesh, sample);
+        set(schema, sample);
     }
 }
 
@@ -315,13 +315,13 @@ crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: 
     ids := n64.[0];
     set_ids(point_sample, ids);
 
-    sample_set(objet_point, point_sample);
+    set(schema, point_sample);
 
     user_props := si dans_user_props {
-        get_user_properties(objet_point);
+        get_user_properties(schema);
     }
     sinon {
-        get_arb_geom_params(objet_point);
+        get_arb_geom_params(schema);
     };
 
     si scalaire {
@@ -827,7 +827,7 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
             set_widths(point_sample, geom_param);
         }
 
-        sample_set(objet_point, point_sample);
+        set(schema, point_sample);
     }
 }
 
@@ -878,7 +878,7 @@ crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scop
         set_widths(point_sample, geom_param);
     }
 
-    sample_set(objet_point, point_sample);
+    set(schema, point_sample);
 }
 
 crée_test_visibilité :: fonc (chemin: chaine)
@@ -1094,7 +1094,7 @@ crée_test_attributs :: fonc ()
 
     set(schema, mesh_sample);
 
-    arb_geom_params := get_arb_geom_params(mesh);
+    arb_geom_params := get_arb_geom_params(schema);
 
     geom_param := abc_output_float_geom_param_create(arb_geom_params, "test", faux, Abc_Geometry_Scope.UNIFORM, 1);
 
