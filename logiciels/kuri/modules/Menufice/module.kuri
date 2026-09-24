@@ -336,6 +336,9 @@ donne_info_cotation_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDe
                 }
             }
             SousMenu {
+                si params.donne_image_pour_icone {
+                    résultat.un_élément_possède_une_icone = vrai;
+                }
                 largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32;
                 si largeur_texte > résultat.largeur_max_texte {
                     résultat.largeur_max_texte = largeur_texte;
