@@ -1,4 +1,5 @@
 interface_alembic.kuri
+Tests/alemprime
 Tests/test_export
 Tests/polymesh2subd
 
