@@ -976,25 +976,25 @@ DEFINE_COMMON_SAMPLE_FONCTIONS(SubD, subd)
 
 ENUMERATE_SUBD_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 
-void abc_output_subd_sample_face_varying_interpolate_boundary_set(
+void abc_output_subd_sample_set_face_varying_interpolate_boundary(
     struct Abc_Output_SubD_Sample *sample, int value)
 {
     sample->sample.setFaceVaryingInterpolateBoundary(value);
 }
 
-void abc_output_subd_sample_face_varying_propagate_corners_set(
+void abc_output_subd_sample_set_face_varying_propagate_corners(
     struct Abc_Output_SubD_Sample *sample, int value)
 {
     sample->sample.setFaceVaryingPropagateCorners(value);
 }
 
-void abc_output_subd_sample_interpolate_boundary_set(struct Abc_Output_SubD_Sample *sample,
+void abc_output_subd_sample_set_interpolate_boundary(struct Abc_Output_SubD_Sample *sample,
                                                      int value)
 {
     sample->sample.setInterpolateBoundary(value);
 }
 
-void abc_output_subd_sample_subdivision_scheme_set(struct Abc_Output_SubD_Sample *sample,
+void abc_output_subd_sample_set_subdivision_scheme(struct Abc_Output_SubD_Sample *sample,
                                                    Abc_String value)
 {
     sample->sample.setSubdivisionScheme(vers_std_string(value));

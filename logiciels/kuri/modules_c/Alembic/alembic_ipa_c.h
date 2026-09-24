@@ -1600,16 +1600,16 @@ DECLARE_COMMON_SAMPLE_FONCTIONS(SubD, subd)
 
 ENUMERATE_SUBD_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
-void abc_output_subd_sample_face_varying_interpolate_boundary_set(
+void abc_output_subd_sample_set_face_varying_interpolate_boundary(
     struct Abc_Output_SubD_Sample *sample, int value);
 
-void abc_output_subd_sample_face_varying_propagate_corners_set(
+void abc_output_subd_sample_set_face_varying_propagate_corners(
     struct Abc_Output_SubD_Sample *sample, int value);
 
-void abc_output_subd_sample_interpolate_boundary_set(struct Abc_Output_SubD_Sample *sample,
+void abc_output_subd_sample_set_interpolate_boundary(struct Abc_Output_SubD_Sample *sample,
                                                      int value);
 
-void abc_output_subd_sample_subdivision_scheme_set(struct Abc_Output_SubD_Sample *sample,
+void abc_output_subd_sample_set_subdivision_scheme(struct Abc_Output_SubD_Sample *sample,
                                                    struct Abc_String value);
 
 /** \} */
