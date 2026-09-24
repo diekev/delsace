@@ -151,7 +151,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
         face_indices := get_face_indices(sample);
         face_counts := get_face_counts(sample);
 
-        subd_sample := sample_create(subd);
+        subd_sample := sample_create(subd_schema);
         diffère destroy(subd_sample);
 
         set_positions(subd_sample, points);
@@ -200,7 +200,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
         exclusivity := get_face_exclusivity(faceset_schema);
         set_face_exclusivity(output_schema, exclusivity);
 
-        output_sample := sample_create(output_faceset);
+        output_sample := sample_create(output_schema);
         diffère destroy(output_sample);
 
         pour sample_index dans num_samples_faceset {
@@ -216,7 +216,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
             set_faces(output_sample, faces);
 
             self_bounds := get_self_bounds(faceset_sample);
-            abc_output_faceset_schema_sample_set_self_bounds(output_sample, *self_bounds);
+            set_self_bounds(output_sample, *self_bounds);
 
             set(output_schema, output_sample);
         }

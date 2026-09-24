@@ -272,24 +272,25 @@ struct Abc_Attribute_Type_Descriptor *abc_get_attribute_type_descriptors(uint64_
 struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_len);
 
 #define DECLARE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                           \
-    struct Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(     \
-        struct Abc_Output_##uppercase_name *lowercase_name);                                      \
-    void abc_output_##lowercase_name##_sample_reset(                                              \
-        struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
-    void abc_output_##lowercase_name##_sample_destroy(                                            \
-        struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
-    void abc_output_##lowercase_name##_sample_set_self_bounds(                                    \
-        struct Abc_Output_##uppercase_name##_Sample *sample, struct Abc_Box3d *bounds);           \
-    void abc_output_##lowercase_name##_sample_get_self_bounds(                                    \
-        struct Abc_Output_##uppercase_name##_Sample *sample, struct Abc_Box3d *r_bounds);
+    struct Abc_Output_##uppercase_name##_Schema_Sample                                            \
+        *abc_output_##lowercase_name##_schema_sample_create(                                      \
+            struct Abc_Output_##uppercase_name##_Schema *schema);                                 \
+    void abc_output_##lowercase_name##_schema_sample_reset(                                       \
+        struct Abc_Output_##uppercase_name##_Schema_Sample *sample);                              \
+    void abc_output_##lowercase_name##_schema_sample_destroy(                                     \
+        struct Abc_Output_##uppercase_name##_Schema_Sample *sample);                              \
+    void abc_output_##lowercase_name##_schema_sample_set_self_bounds(                             \
+        struct Abc_Output_##uppercase_name##_Schema_Sample *sample, struct Abc_Box3d *bounds);    \
+    void abc_output_##lowercase_name##_schema_sample_get_self_bounds(                             \
+        struct Abc_Output_##uppercase_name##_Schema_Sample *sample, struct Abc_Box3d *r_bounds);
 
 #define DECLARE_OUTPUT_SAMPLE_SET_FUNCTION(uname, lname, snake_name, method, sample_type)         \
-    void abc_output_##lname##_sample_##snake_name(                                                \
-        struct Abc_Output_##uname##_Sample *lname##_sample, struct sample_type sample);
+    void abc_output_##lname##_schema_sample_##snake_name(                                         \
+        struct Abc_Output_##uname##_Schema_Sample *lname##_sample, struct sample_type sample);
 
 #define DECLARE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS(uname, lname, snake_name, method, sample_type)     \
-    void abc_output_##lname##_sample_##snake_name(                                                \
-        struct Abc_Output_##uname##_Sample *lname##_sample, sample_type sample);
+    void abc_output_##lname##_schema_sample_##snake_name(                                         \
+        struct Abc_Output_##uname##_Schema_Sample *lname##_sample, sample_type sample);
 
 #define DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                      \
     struct Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname);
@@ -1438,7 +1439,8 @@ DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Xform, xform)
 DECLARE_OUTPUT_SCHEMA_SET(Xform, xform, Xform)
 DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Xform, xform)
 
-struct Abc_Xform_Sample *abc_output_xform_sample_create(struct Abc_Output_Xform *xform);
+struct Abc_Xform_Sample *abc_output_xform_schema_sample_create(
+    struct Abc_Output_Xform_Schema *schema);
 
 /** \} */
 
@@ -1459,10 +1461,10 @@ struct Abc_Output_Points *abc_output_points_create(struct Abc_Output_Xform *pare
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
 
 struct Abc_Output_Points_Schema;
-struct Abc_Output_Points_Sample;
+struct Abc_Output_Points_Schema_Sample;
 
 DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Points, points)
-DECLARE_OUTPUT_SCHEMA_SET(Points, points, Output_Points)
+DECLARE_OUTPUT_SCHEMA_SET(Points, points, Output_Points_Schema)
 DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Points, points)
 
 // X(uname, lname, snake_name, method, sample_type)
@@ -1510,10 +1512,10 @@ struct Abc_Output_Curves *abc_output_curves_create(struct Abc_Output_Xform *pare
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
 
 struct Abc_Output_Curves_Schema;
-struct Abc_Output_Curves_Sample;
+struct Abc_Output_Curves_Schema_Sample;
 
 DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Curves, curves)
-DECLARE_OUTPUT_SCHEMA_SET(Curves, curves, Output_Curves)
+DECLARE_OUTPUT_SCHEMA_SET(Curves, curves, Output_Curves_Schema)
 DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Curves, curves)
 
 // X(uname, lname, snake_name, method, sample_type)
@@ -1531,12 +1533,12 @@ DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Curves, curves)
 DECLARE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
 ENUMERATE_CURVES_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
-void abc_output_curves_sample_set_type(struct Abc_Output_Curves_Sample *sample,
-                                       enum Abc_Curve_Type type);
-void abc_output_curves_sample_set_wrap(struct Abc_Output_Curves_Sample *sample,
-                                       enum Abc_Curve_Periodicity wrap);
-void abc_output_curves_sample_set_basis(struct Abc_Output_Curves_Sample *sample,
-                                        enum Abc_Basis_Type basis);
+void abc_output_curves_schema_sample_set_type(struct Abc_Output_Curves_Schema_Sample *sample,
+                                              enum Abc_Curve_Type type);
+void abc_output_curves_schema_sample_set_wrap(struct Abc_Output_Curves_Schema_Sample *sample,
+                                              enum Abc_Curve_Periodicity wrap);
+void abc_output_curves_schema_sample_set_basis(struct Abc_Output_Curves_Schema_Sample *sample,
+                                               enum Abc_Basis_Type basis);
 
 /** \} */
 
@@ -1549,10 +1551,10 @@ struct Abc_Output_FaceSet;
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
 
 struct Abc_Output_FaceSet_Schema;
-struct Abc_Output_FaceSet_Sample;
+struct Abc_Output_FaceSet_Schema_Sample;
 
 DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(FaceSet, faceset)
-DECLARE_OUTPUT_SCHEMA_SET(FaceSet, faceset, Output_FaceSet)
+DECLARE_OUTPUT_SCHEMA_SET(FaceSet, faceset, Output_FaceSet_Schema)
 
 enum Abc_FaceSet_Exclusivity abc_output_faceset_schema_get_face_exclusivity(
     struct Abc_Output_FaceSet_Schema *schema);
@@ -1565,9 +1567,6 @@ void abc_output_faceset_schema_set_face_exclusivity(struct Abc_Output_FaceSet_Sc
 
 DECLARE_COMMON_SAMPLE_FONCTIONS(FaceSet, faceset)
 ENUMERATE_FACESET_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
-
-void abc_output_faceset_schema_sample_set_self_bounds(struct Abc_Output_FaceSet_Sample *sample,
-                                                      struct Abc_Box3d *bounds);
 
 /** \} */
 
@@ -1585,10 +1584,10 @@ struct Abc_Output_PolyMesh *abc_output_polymesh_create(
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
 struct Abc_Output_PolyMesh_Schema;
-struct Abc_Output_PolyMesh_Sample;
+struct Abc_Output_PolyMesh_Schema_Sample;
 
 DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
-DECLARE_OUTPUT_SCHEMA_SET(PolyMesh, polymesh, Output_PolyMesh)
+DECLARE_OUTPUT_SCHEMA_SET(PolyMesh, polymesh, Output_PolyMesh_Schema)
 DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(PolyMesh, polymesh)
 
 struct Abc_Output_FaceSet *abc_output_polymesh_schema_create_faceset(
@@ -1625,10 +1624,10 @@ struct Abc_Output_SubD *abc_output_subd_create(struct Abc_Output_Xform *parent,
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
 struct Abc_Output_SubD_Schema;
-struct Abc_Output_SubD_Sample;
+struct Abc_Output_SubD_Schema_Sample;
 
 DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(SubD, subd)
-DECLARE_OUTPUT_SCHEMA_SET(SubD, subd, Output_SubD)
+DECLARE_OUTPUT_SCHEMA_SET(SubD, subd, Output_SubD_Schema)
 DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(SubD, subd)
 
 struct Abc_Output_FaceSet *abc_output_subd_schema_create_faceset(
@@ -1654,17 +1653,17 @@ DECLARE_COMMON_SAMPLE_FONCTIONS(SubD, subd)
 
 ENUMERATE_SUBD_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
-void abc_output_subd_sample_set_face_varying_interpolate_boundary(
-    struct Abc_Output_SubD_Sample *sample, int value);
+void abc_output_subd_schema_sample_set_face_varying_interpolate_boundary(
+    struct Abc_Output_SubD_Schema_Sample *sample, int value);
 
-void abc_output_subd_sample_set_face_varying_propagate_corners(
-    struct Abc_Output_SubD_Sample *sample, int value);
+void abc_output_subd_schema_sample_set_face_varying_propagate_corners(
+    struct Abc_Output_SubD_Schema_Sample *sample, int value);
 
-void abc_output_subd_sample_set_interpolate_boundary(struct Abc_Output_SubD_Sample *sample,
-                                                     int value);
+void abc_output_subd_schema_sample_set_interpolate_boundary(
+    struct Abc_Output_SubD_Schema_Sample *sample, int value);
 
-void abc_output_subd_sample_set_subdivision_scheme(struct Abc_Output_SubD_Sample *sample,
-                                                   struct Abc_String value);
+void abc_output_subd_schema_sample_set_subdivision_scheme(
+    struct Abc_Output_SubD_Schema_Sample *sample, struct Abc_String value);
 
 /** \} */
 
@@ -1705,10 +1704,10 @@ struct Abc_Output_NuPatch *abc_output_nupatch_create(
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
 
 struct Abc_Output_NuPatch_Schema;
-struct Abc_Output_NuPatch_Sample;
+struct Abc_Output_NuPatch_Schema_Sample;
 
 DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(NuPatch, nupatch)
-DECLARE_OUTPUT_SCHEMA_SET(NuPatch, nupatch, Output_NuPatch)
+DECLARE_OUTPUT_SCHEMA_SET(NuPatch, nupatch, Output_NuPatch_Schema)
 DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(NuPatch, nupatch)
 
 #define ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(X)                                       \
@@ -1731,17 +1730,18 @@ DECLARE_COMMON_SAMPLE_FONCTIONS(NuPatch, nupatch)
 ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(DECLARE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
 ENUMERATE_OUTPUT_NUPATCH_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
-void abc_output_nupatch_sample_set_trim_curve(struct Abc_Output_NuPatch_Sample *sample,
-                                              int32_t trim_n_loops,
-                                              struct Abc_Int32_Array_Sample trim_n_curves,
-                                              struct Abc_Int32_Array_Sample trim_n,
-                                              struct Abc_Int32_Array_Sample trim_order,
-                                              struct Abc_Float_Array_Sample trim_knot,
-                                              struct Abc_Float_Array_Sample trim_min,
-                                              struct Abc_Float_Array_Sample trim_max,
-                                              struct Abc_Float_Array_Sample trim_u,
-                                              struct Abc_Float_Array_Sample trim_v,
-                                              struct Abc_Float_Array_Sample trim_w);
+void abc_output_nupatch_schema_sample_set_trim_curve(
+    struct Abc_Output_NuPatch_Schema_Sample *sample,
+    int32_t trim_n_loops,
+    struct Abc_Int32_Array_Sample trim_n_curves,
+    struct Abc_Int32_Array_Sample trim_n,
+    struct Abc_Int32_Array_Sample trim_order,
+    struct Abc_Float_Array_Sample trim_knot,
+    struct Abc_Float_Array_Sample trim_min,
+    struct Abc_Float_Array_Sample trim_max,
+    struct Abc_Float_Array_Sample trim_u,
+    struct Abc_Float_Array_Sample trim_v,
+    struct Abc_Float_Array_Sample trim_w);
 
 /** \} */
 

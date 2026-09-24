@@ -80,7 +80,7 @@ create_time_sampling :: fonc (archive: *Abc_Output_Archive, échantillons: []r64
     retourne create_time_sampling(archive, échantillons.données, échantillons.taille comme n64, temps_par_cycle);
 }
 
-set_positions :: fonc (sample: *Abc_Output_Points_Sample, positions: []Vec3)
+set_positions :: fonc (sample: *Abc_Output_Points_Schema_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
     array_sample.values = positions.données comme *Abc_V3f;
@@ -88,7 +88,7 @@ set_positions :: fonc (sample: *Abc_Output_Points_Sample, positions: []Vec3)
     set_positions(sample, array_sample);
 }
 
-set_ids :: fonc (sample: *Abc_Output_Points_Sample, ids: []n64)
+set_ids :: fonc (sample: *Abc_Output_Points_Schema_Sample, ids: []n64)
 {
     array_sample: Abc_UInt64_Array_Sample = ---;
     array_sample.values = ids.données;
@@ -96,7 +96,7 @@ set_ids :: fonc (sample: *Abc_Output_Points_Sample, ids: []n64)
     set_ids(sample, array_sample);
 }
 
-set_positions :: fonc (sample: *Abc_Output_Curves_Sample, positions: []Vec3)
+set_positions :: fonc (sample: *Abc_Output_Curves_Schema_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
     array_sample.values = positions.données comme *Abc_V3f;
@@ -104,7 +104,7 @@ set_positions :: fonc (sample: *Abc_Output_Curves_Sample, positions: []Vec3)
     set_positions(sample, array_sample);
 }
 
-set_curves_num_vertices :: fonc (sample: *Abc_Output_Curves_Sample, num_vertices: []z32)
+set_curves_num_vertices :: fonc (sample: *Abc_Output_Curves_Schema_Sample, num_vertices: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = num_vertices.données;
@@ -112,7 +112,7 @@ set_curves_num_vertices :: fonc (sample: *Abc_Output_Curves_Sample, num_vertices
     set_curves_num_vertices(sample, array_sample);
 }
 
-set_widths :: fonc (sample: *Abc_Output_Curves_Sample, values: []r32, scope: Abc_Geometry_Scope)
+set_widths :: fonc (sample: *Abc_Output_Curves_Schema_Sample, values: []r32, scope: Abc_Geometry_Scope)
 {
     geom_param: Abc_Output_Float_Geom_Param_Sample;
     geom_param.values.values = values.données;
@@ -121,7 +121,7 @@ set_widths :: fonc (sample: *Abc_Output_Curves_Sample, values: []r32, scope: Abc
     set_widths(sample, geom_param);
 }
 
-set_positions :: fonc (sample: *Abc_Output_SubD_Sample, positions: []Vec3)
+set_positions :: fonc (sample: *Abc_Output_SubD_Schema_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
     array_sample.values = positions.données comme *Abc_V3f;
@@ -129,7 +129,7 @@ set_positions :: fonc (sample: *Abc_Output_SubD_Sample, positions: []Vec3)
     set_positions(sample, array_sample);
 }
 
-set_face_counts :: fonc (sample: *Abc_Output_SubD_Sample, values: []z32)
+set_face_counts :: fonc (sample: *Abc_Output_SubD_Schema_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = values.données;
@@ -137,7 +137,7 @@ set_face_counts :: fonc (sample: *Abc_Output_SubD_Sample, values: []z32)
     set_face_counts(sample, array_sample);
 }
 
-set_face_indices :: fonc (sample: *Abc_Output_SubD_Sample, values: []z32)
+set_face_indices :: fonc (sample: *Abc_Output_SubD_Schema_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = values.données;
@@ -145,7 +145,7 @@ set_face_indices :: fonc (sample: *Abc_Output_SubD_Sample, values: []z32)
     set_face_indices(sample, array_sample);
 }
 
-set_positions :: fonc (sample: *Abc_Output_PolyMesh_Sample, positions: []Vec3)
+set_positions :: fonc (sample: *Abc_Output_PolyMesh_Schema_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
     array_sample.values = positions.données comme *Abc_V3f;
@@ -153,7 +153,7 @@ set_positions :: fonc (sample: *Abc_Output_PolyMesh_Sample, positions: []Vec3)
     set_positions(sample, array_sample);
 }
 
-set_face_counts :: fonc (sample: *Abc_Output_PolyMesh_Sample, values: []z32)
+set_face_counts :: fonc (sample: *Abc_Output_PolyMesh_Schema_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = values.données;
@@ -161,7 +161,7 @@ set_face_counts :: fonc (sample: *Abc_Output_PolyMesh_Sample, values: []z32)
     set_face_counts(sample, array_sample);
 }
 
-set_face_indices :: fonc (sample: *Abc_Output_PolyMesh_Sample, values: []z32)
+set_face_indices :: fonc (sample: *Abc_Output_PolyMesh_Schema_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = values.données;
@@ -174,7 +174,7 @@ crée_xform_neutre_pour_objet :: fonc (parent: *Abc_Output_Xform, nom: chaine, t
     résultat := abc_output_xform_create(parent, nom, ts);
     schema := get_schema(résultat);
 
-    matrix_sample := sample_create(résultat);
+    matrix_sample := sample_create(schema);
     diffère destroy(matrix_sample);
 
     matrix: Abc_M44d;

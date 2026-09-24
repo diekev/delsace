@@ -263,8 +263,9 @@ crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, f
         matrice_objet_subd := crée_xform_neutre_pour_objet(racine, "SubD", ts_défaut);
 
         subd := abc_output_subd_create(matrice_objet_subd, "SubDShape", ts_défaut);
+        schema := get_schema(subd);
 
-        sample := sample_create(subd);
+        sample := sample_create(schema);
         diffère destroy(sample);
 
         set_positions(sample, positions);
@@ -276,8 +277,9 @@ crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, f
         matrice_objet_mesh := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
 
         mesh := abc_output_polymesh_create(matrice_objet_mesh, "PolyMeshShape", ts_défaut);
+        schema := get_schema(mesh);
 
-        sample := sample_create(mesh);
+        sample := sample_create(schema);
         diffère destroy(sample);
 
         set_positions(sample, positions);
@@ -303,7 +305,8 @@ crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_défaut);
-    point_sample := sample_create(objet_point);
+    schema := get_schema(objet_point);
+    point_sample := sample_create(schema);
     diffère destroy(point_sample);
 
     position := Vec3(0.0, 0.0, 0.0);
@@ -672,7 +675,7 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
     schema := get_schema(curves);
 
-    curves_sample := sample_create(curves);
+    curves_sample := sample_create(schema);
     diffère destroy(curves_sample);
 
     cx := 0.0;
@@ -733,7 +736,7 @@ crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Sco
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_défaut);
     schema := get_schema(curves);
 
-    curves_sample := sample_create(curves);
+    curves_sample := sample_create(schema);
     diffère destroy(curves_sample);
 
     set_type(curves_sample, Abc_Curve_Type.LINEAR);
@@ -782,7 +785,8 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_animation);
-    point_sample := sample_create(objet_point);
+    schema := get_schema(objet_point);
+    point_sample := sample_create(schema);
     diffère destroy(point_sample);
 
     cx := 0.0;
@@ -843,7 +847,8 @@ crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scop
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_défaut);
-    point_sample := sample_create(objet_point);
+    schema := get_schema(objet_point);
+    point_sample := sample_create(schema);
     diffère destroy(point_sample);
 
     positions := [Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0)];
@@ -982,7 +987,7 @@ initialise_points_simple :: fonc (points: *Abc_Output_Points)
 {
     schema := get_schema(points);
 
-    point_sample := sample_create(points);
+    point_sample := sample_create(schema);
     diffère destroy(point_sample);
 
     position := Vec3(0.0, 0.0, 0.0);
@@ -1001,7 +1006,7 @@ crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: 
     curves := abc_output_curves_create(matrice_curves, "Curves", ts);
     schema := get_schema(curves);
 
-    curves_sample := sample_create(curves);
+    curves_sample := sample_create(schema);
     diffère destroy(curves_sample);
 
     set_type(curves_sample, Abc_Curve_Type.LINEAR);
@@ -1038,7 +1043,7 @@ crée_points_vides :: fonc ()
     points := abc_output_points_create(matrice_objet_point, "PointCloudShape", ts_défaut);
     schema := get_schema(points);
 
-    point_sample := sample_create(points);
+    point_sample := sample_create(schema);
     diffère destroy(point_sample);
 
     positions: []Vec3;
@@ -1069,7 +1074,7 @@ crée_test_attributs :: fonc ()
     mesh := abc_output_polymesh_create(matrice_objet_mesh, "PolyMeshShape", ts_défaut);
     schema := get_schema(mesh);
 
-    mesh_sample := sample_create(mesh);
+    mesh_sample := sample_create(schema);
     diffère destroy(mesh_sample);
 
     positions := [
@@ -1139,7 +1144,7 @@ crée_courbes_vides :: fonc ()
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
     schema := get_schema(curves);
 
-    curves_sample := sample_create(curves);
+    curves_sample := sample_create(schema);
     diffère destroy(curves_sample);
 
     positions_pleines := [Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)];
