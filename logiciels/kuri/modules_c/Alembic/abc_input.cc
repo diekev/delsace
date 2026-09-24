@@ -655,7 +655,6 @@ struct Abc_Input_Schema_Sample {
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Schema_Sample
  * À FAIRE
- *   IV2fGeomParam getUVsParam() const
  *   IN3fGeomParam getNormalsParam() const
  *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
  *   Abc::IInt32ArrayProperty getFaceIndicesProperty() const
@@ -697,6 +696,22 @@ Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
     return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
 }
 
+Abc_Input_V2f_Geom_Param *abc_input_polymesh_schema_get_uvs_param(
+    struct Abc_Input_PolyMesh_Schema *schema)
+{
+    auto résultat = make_input_geom_param<Abc_Input_V2f_Geom_Param>(schema->archive);
+    résultat->param = schema->impl->getUVsParam();
+    return résultat;
+}
+
+Abc_Input_N3f_Geom_Param *abc_input_polymesh_schema_get_normals_param(
+    struct Abc_Input_PolyMesh_Schema *schema)
+{
+    auto résultat = make_input_geom_param<Abc_Input_N3f_Geom_Param>(schema->archive);
+    résultat->param = schema->impl->getNormalsParam();
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -717,7 +732,6 @@ Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
  *   Abc::IInt32ArrayProperty getHolesProperty() const { return m_holesProperty; }
  *   Abc::IStringProperty getSubdivisionSchemeProperty() const
  *   Abc::IV3fArrayProperty getVelocitiesProperty() const
- *   IV2fGeomParam getUVsParam() const
  * \{ */
 
 struct Abc_Input_SubD_Schema_Sample : public Abc_Input_Schema_Sample {
@@ -764,6 +778,13 @@ Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
     Abc_Input_SubD_Schema *schema)
 {
     return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
+}
+
+Abc_Input_V2f_Geom_Param *abc_input_subd_schema_get_uvs_param(struct Abc_Input_SubD_Schema *schema)
+{
+    auto résultat = make_input_geom_param<Abc_Input_V2f_Geom_Param>(schema->archive);
+    résultat->param = schema->impl->getUVsParam();
+    return résultat;
 }
 
 /** \} */

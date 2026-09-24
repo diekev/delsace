@@ -739,6 +739,12 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 enum Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
     struct Abc_Input_PolyMesh_Schema *schema);
 
+struct Abc_Input_V2f_Geom_Param *abc_input_polymesh_schema_get_uvs_param(
+    struct Abc_Input_PolyMesh_Schema *schema);
+
+struct Abc_Input_N3f_Geom_Param *abc_input_polymesh_schema_get_normals_param(
+    struct Abc_Input_PolyMesh_Schema *schema);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -786,6 +792,9 @@ Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
     struct Abc_Input_SubD_Schema_Sample *sample);
 
 enum Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
+    struct Abc_Input_SubD_Schema *schema);
+
+struct Abc_Input_V2f_Geom_Param *abc_input_subd_schema_get_uvs_param(
     struct Abc_Input_SubD_Schema *schema);
 
 /** \} */
