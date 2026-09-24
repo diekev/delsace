@@ -97,6 +97,11 @@ struct Configuration {
     kuri::ensemble<kuri::chaine> fonctions_à_ignorer{};
     kuri::ensemble<kuri::chaine> fichiers_à_inclure{};
     kuri::ensemble<kuri::chaine> types_à_ignorer{};
+
+    bool supprime_préfixes_fonctions = false;
+    bool génère_enveloppe_fonctions_retours_paramétriques = false;
+
+    kuri::chaine nom_type_chaine{};
 };
 
 static kuri::tableau<kuri::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
@@ -581,6 +586,19 @@ struct DéclarationVariable : public Syntaxème {
 
     kuri::chaine nom{};
     Expression *expression = nullptr;
+
+    bool est_paramètre_retour() const
+    {
+        if (est_variadique) {
+            return false;
+        }
+
+        if (type_c->kind != CXTypeKind::CXType_Pointer) {
+            return false;
+        }
+
+        return nom == "result" || commence_par(nom, "r_");
+    }
 };
 
 struct DéclarationConstante : public Syntaxème {
@@ -2724,6 +2742,12 @@ struct Convertisseuse {
                 auto structure = static_cast<DéclarationStruct *>(syntaxème);
 
                 imprime_tab(os);
+
+                if (structure->nom == config->nom_type_chaine) {
+                    os << structure->nom << " :: chaine;\n";
+                    break;
+                }
+
                 os << structure->nom << " :: struct #externe";
 
                 if (structure->rubriques.taille() == 0) {
@@ -2770,8 +2794,48 @@ struct Convertisseuse {
                 if (!fonctions_déjà_déclarées.possède(fonction->nom)) {
                     fonctions_déjà_déclarées.insère(fonction->nom);
 
+                    auto supprime_préfixe = false;
+                    if (config->supprime_préfixes_fonctions) {
+                        supprime_préfixe = fonction->paramètres.taille() > 0 &&
+                                           fonction->paramètres[0]->est_variadique == false;
+                    }
+
+                    kuri::chaine nom_sans_préfixe = "";
+                    if (supprime_préfixe) {
+                        auto param = fonction->paramètres[0];
+                        auto type_param = convertis_type(
+                            param->type_c.value(), typedefs, nombre_anonymes);
+
+                        if (type_param[0] == '*') {
+                            type_param = type_param.sous_chaine(1);
+                        }
+
+                        POUR (type_param) {
+                            if (it >= 'A' && it <= 'Z') {
+                                it = it - 'A' + 'a';
+                            }
+                        }
+
+                        if (commence_par(fonction->nom, type_param) &&
+                            fonction->nom != type_param) {
+                            nom_sans_préfixe = fonction->nom.sous_chaine(type_param.taille() + 1);
+                            supprime_préfixe = nom_sans_préfixe != "create";
+                        }
+                        else {
+                            supprime_préfixe = false;
+                        }
+                    }
+
                     imprime_tab(os);
-                    os << fonction->nom << " :: fonc ";
+
+                    kuri::chaine_statique nom_fonction;
+                    if (supprime_préfixe) {
+                        nom_fonction = nom_sans_préfixe;
+                    }
+                    else {
+                        nom_fonction = fonction->nom;
+                    }
+                    os << nom_fonction << " :: fonc ";
 
                     kuri::chaine_statique virgule = "(";
                     POUR (fonction->paramètres) {
@@ -2791,7 +2855,13 @@ struct Convertisseuse {
 
                     os << ") -> "
                        << convertis_type(fonction->type_sortie, typedefs, nombre_anonymes);
-                    os << " #externe lib" << nom_bibliothèque_sûr << ";\n";
+                    os << " #externe lib" << nom_bibliothèque_sûr;
+                    if (supprime_préfixe) {
+                        os << " \"" << fonction->nom << "\"";
+                    }
+                    os << ";\n";
+
+                    génère_enveloppe_fonction_retour_paramétrique(fonction, nom_fonction, os);
                 }
 
                 break;
@@ -2934,6 +3004,64 @@ struct Convertisseuse {
         }
 
         profondeur -= 1;
+    }
+
+    void génère_enveloppe_fonction_retour_paramétrique(DéclarationFonction *fonction,
+                                                       kuri::chaine_statique nom_fonction,
+                                                       std::ostream &os)
+    {
+        if (!config->génère_enveloppe_fonctions_retours_paramétriques) {
+            return;
+        }
+
+        if (fonction->type_sortie.kind != CXTypeKind::CXType_Void ||
+            fonction->paramètres.taille() == 0) {
+            return;
+        }
+
+        auto eu_paramètre_sortie = false;
+        POUR (fonction->paramètres) {
+            if (it->est_paramètre_retour()) {
+                if (eu_paramètre_sortie) {
+                    return;
+                }
+                eu_paramètre_sortie = true;
+            }
+        }
+
+        auto dernier_paramètre = fonction->paramètres[fonction->paramètres.taille() - 1];
+        if (!dernier_paramètre->est_paramètre_retour()) {
+            return;
+        }
+
+        os << "\n" << nom_fonction << " :: fonc ";
+        kuri::chaine_statique virgule = "(";
+        for (int i = 0; i < fonction->paramètres.taille() - 1; i++) {
+            auto paramètre = fonction->paramètres[i];
+            os << virgule << paramètre->nom << ": "
+               << convertis_type(paramètre->type_c.value(), typedefs, nombre_anonymes);
+            virgule = ", ";
+        }
+        if (virgule == "(") {
+            os << virgule;
+        }
+        os << ")";
+
+        auto type_sortie = clang_getPointeeType(*dernier_paramètre->type_c);
+        auto chaine_type_sortie = convertis_type(type_sortie, typedefs, nombre_anonymes);
+        os << " -> " << chaine_type_sortie << "\n";
+        os << "{\n";
+        os << "    résultat: " << chaine_type_sortie << ";\n";
+        os << "    " << nom_fonction;
+        virgule = "(";
+        for (int i = 0; i < fonction->paramètres.taille() - 1; i++) {
+            auto paramètre = fonction->paramètres[i];
+            os << virgule << paramètre->nom;
+            virgule = ", ";
+        }
+        os << virgule << "*résultat);\n";
+        os << "    retourne résultat;\n";
+        os << "}\n";
     }
 
     bool doit_ignorer_déclaration(Syntaxème *syntaxème)
@@ -3185,6 +3313,13 @@ int main(int argc, char **argv)
         }
 
         exit(-1);
+    }
+
+    // À FAIRE : généralise ceci.
+    if (config.nom_bibliothèque == "alembic") {
+        config.supprime_préfixes_fonctions = true;
+        config.génère_enveloppe_fonctions_retours_paramétriques = true;
+        config.nom_type_chaine = "Abc_String";
     }
 
     auto convertisseuse = Convertisseuse();
