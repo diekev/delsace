@@ -77,6 +77,7 @@ struct Abc_Output_Archive {
 
     Abc_Output_Object *objects = nullptr;
 
+    Abc_Object_Header *headers = nullptr;
     Abc_Output_Compound_Property *compound_props = nullptr;
     Abc_Output_Scalar_Property *scalar_props = nullptr;
     Abc_Output_Array_Property *array_props = nullptr;
@@ -307,6 +308,8 @@ struct Abc_Output_Object {
     Abc_Output_Object *next = nullptr;
     Abc_Output_Archive *archive = nullptr;
 
+    Abc_Output_Object *parent = nullptr;
+
     bool metadata_initialized = false;
     Abc_MetaData metadata_{};
 
@@ -314,6 +317,27 @@ struct Abc_Output_Object {
 
     virtual AbcGeom::OObject &get_object() = 0;
 };
+
+Abc_Object_Header *abc_generic_output_object_get_header(Abc_Generic_Output_Object object)
+{
+    const AbcGeom::ObjectHeader &header = object.object->get_object().getHeader();
+    auto résultat = kuri_loge<Abc_Object_Header>(object.object->archive->ctx_kuri, header);
+    résultat->ctx_kuri = object.object->archive->ctx_kuri;
+    liste_ajoute(&object.object->archive->headers, résultat);
+    return résultat;
+}
+
+void abc_generic_output_object_get_name(Abc_Generic_Output_Object object,
+                                        struct Abc_String *r_name)
+{
+    vers_abc_string(r_name, object.object->get_object().getName());
+}
+
+void abc_generic_output_object_get_full_name(Abc_Generic_Output_Object object,
+                                             struct Abc_String *name)
+{
+    vers_abc_string(name, object.object->get_object().getFullName());
+}
 
 Abc_MetaData *abc_generic_output_object_get_metadata(Abc_Generic_Output_Object object)
 {
@@ -324,6 +348,18 @@ Abc_MetaData *abc_generic_output_object_get_metadata(Abc_Generic_Output_Object o
         obj->metadata_initialized = true;
     }
     return &obj->metadata_;
+}
+
+Abc_Output_Archive *abc_generic_output_object_get_archive(Abc_Generic_Output_Object object)
+{
+    return object.object->archive;
+}
+
+Abc_Generic_Output_Object abc_generic_output_object_get_parent(Abc_Generic_Output_Object object)
+{
+    Abc_Generic_Output_Object résultat;
+    résultat.object = object.object->parent;
+    return résultat;
 }
 
 struct Abc_Output_Visibility_Property : public Abc_Output_Scalar_Property {};
@@ -434,6 +470,7 @@ void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
         kuri_deloge_liste(archive->ctx_kuri, archive->array_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->geom_params);
         kuri_deloge_liste(archive->ctx_kuri, archive->compound_props);
+        kuri_deloge_liste(archive->ctx_kuri, archive->headers);
         kuri_deloge_liste(archive->ctx_kuri, archive->objects);
         kuri_deloge(archive->ctx_kuri, archive->archive);
         kuri_deloge(archive->ctx_kuri, archive);
@@ -614,6 +651,7 @@ Abc_Output_Xform *abc_output_archive_get_root_object(Abc_Output_Archive *archive
     auto racine = crée_objet_sortie<Abc_Output_Xform>(archive);
     racine->top = archive->archive->getTop();
     racine->is_top = true;
+    racine->parent = nullptr;
     archive->racine = racine;
     return racine;
 }
@@ -627,6 +665,7 @@ Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
     auto oxform = AbcGeom::OXform(
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
     résultat->object = oxform;
+    résultat->parent = parent;
     résultat->is_top = false;
     return résultat;
 }
@@ -670,6 +709,7 @@ Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
     auto résultat = crée_objet_sortie<Abc_Output_Points>(archive);
     résultat->object = AbcGeom::OPoints(
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
+    résultat->parent = parent;
     return résultat;
 }
 
@@ -713,6 +753,7 @@ Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
     auto résultat = crée_objet_sortie<Abc_Output_Curves>(archive);
     résultat->object = AbcGeom::OCurves(
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
+    résultat->parent = parent;
     return résultat;
 }
 
@@ -820,6 +861,7 @@ Abc_Output_PolyMesh *abc_output_polymesh_create(Abc_Output_Xform *parent,
     auto résultat = crée_objet_sortie<Abc_Output_PolyMesh>(archive);
     résultat->object = AbcGeom::OPolyMesh(
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
+    résultat->parent = parent;
     return résultat;
 }
 
@@ -877,6 +919,7 @@ Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
     auto résultat = crée_objet_sortie<Abc_Output_SubD>(archive);
     résultat->object = AbcGeom::OSubD(
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
+    résultat->parent = parent;
     return résultat;
 }
 
@@ -957,6 +1000,7 @@ Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
     auto résultat = crée_objet_sortie<Abc_Output_Camera>(archive);
     résultat->object = AbcGeom::OCamera(
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
+    résultat->parent = parent;
     return résultat;
 }
 
@@ -1009,6 +1053,7 @@ Abc_Output_NuPatch *abc_output_nupatch_create(Abc_Output_Xform *parent,
     auto résultat = crée_objet_sortie<Abc_Output_NuPatch>(archive);
     résultat->object = AbcGeom::ONuPatch(
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
+    résultat->parent = parent;
     return résultat;
 }
 
@@ -1087,6 +1132,7 @@ Abc_Output_Light *abc_output_light_create(Abc_Output_Xform *parent,
     auto résultat = crée_objet_sortie<Abc_Output_Light>(archive);
     résultat->object = AbcGeom::OLight(
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
+    résultat->parent = parent;
     return résultat;
 }
 
@@ -1124,6 +1170,7 @@ Abc_Output_Material *abc_output_material_create(Abc_Output_Xform *parent, Abc_St
     auto archive = parent->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Material>(archive);
     résultat->object = AbcMaterial::OMaterial(parent->get_object(), nom);
+    résultat->parent = parent;
     return résultat;
 }
 

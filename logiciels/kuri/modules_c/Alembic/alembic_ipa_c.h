@@ -1259,7 +1259,17 @@ union Abc_Generic_Output_Object {
     struct Abc_Output_Material *material;
 };
 
+struct Abc_Object_Header *abc_generic_output_object_get_header(
+    union Abc_Generic_Output_Object object);
+void abc_generic_output_object_get_name(union Abc_Generic_Output_Object object,
+                                        struct Abc_String *r_name);
+void abc_generic_output_object_get_full_name(union Abc_Generic_Output_Object object,
+                                             struct Abc_String *name);
 struct Abc_MetaData *abc_generic_output_object_get_metadata(
+    union Abc_Generic_Output_Object object);
+struct Abc_Output_Archive *abc_generic_output_object_get_archive(
+    union Abc_Generic_Output_Object object);
+union Abc_Generic_Output_Object abc_generic_output_object_get_parent(
     union Abc_Generic_Output_Object object);
 
 struct Abc_Output_Visibility_Property;
