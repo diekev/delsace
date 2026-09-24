@@ -725,20 +725,20 @@ DEFINE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
 
 ENUMERATE_CURVES_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 
-void abc_output_curves_sample_type_set(Abc_Output_Curves_Sample *sample, Abc_Curve_Type type)
+void abc_output_curves_sample_set_type(Abc_Output_Curves_Sample *sample, Abc_Curve_Type type)
 {
     AbcGeom::CurveType itype = static_cast<AbcGeom::CurveType>(type);
     sample->sample.setType(itype);
 }
 
-void abc_output_curves_sample_wrap_set(Abc_Output_Curves_Sample *sample,
+void abc_output_curves_sample_set_wrap(Abc_Output_Curves_Sample *sample,
                                        Abc_Curve_Periodicity wrap)
 {
     AbcGeom::CurvePeriodicity iwrap = static_cast<AbcGeom::CurvePeriodicity>(wrap);
     sample->sample.setWrap(iwrap);
 }
 
-void abc_output_curves_sample_basis_set(Abc_Output_Curves_Sample *sample, Abc_Basis_Type basis)
+void abc_output_curves_sample_set_basis(Abc_Output_Curves_Sample *sample, Abc_Basis_Type basis)
 {
     AbcGeom::BasisType ibasis = static_cast<AbcGeom::BasisType>(basis);
     sample->sample.setBasis(ibasis);
@@ -1140,7 +1140,7 @@ DEFINE_COMMON_SAMPLE_FONCTIONS(NuPatch, nupatch)
 ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
 ENUMERATE_OUTPUT_NUPATCH_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 
-void abc_output_nupatch_sample_trim_curve_set(Abc_Output_NuPatch_Sample *sample,
+void abc_output_nupatch_sample_set_trim_curve(Abc_Output_NuPatch_Sample *sample,
                                               int32_t trim_n_loops,
                                               Abc_Int32_Array_Sample trim_n_curves,
                                               Abc_Int32_Array_Sample trim_n,

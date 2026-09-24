@@ -154,12 +154,12 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
         subd_sample := abc_output_subd_sample_create(subd);
         diffère abc_output_subd_sample_destroy(subd_sample);
 
-        abc_output_subd_sample_positions_set(subd_sample, points);
-        abc_output_subd_sample_face_indices_set(subd_sample, face_indices);
-        abc_output_subd_sample_face_counts_set(subd_sample, face_counts);
+        abc_output_subd_sample_set_positions(subd_sample, points);
+        abc_output_subd_sample_set_face_indices(subd_sample, face_indices);
+        abc_output_subd_sample_set_face_counts(subd_sample, face_counts);
 
         si velocities.values {
-            abc_output_subd_sample_velocities_set(subd_sample, velocities);
+            abc_output_subd_sample_set_velocities(subd_sample, velocities);
         }
 
         si abc_input_v2f_geom_param_valid(uvs_param) {
@@ -176,7 +176,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
             output_uvs.values = input_uvs.values;
             output_uvs.indices = input_uvs.indices;
             output_uvs.scope = input_uvs.scope;
-            abc_output_subd_sample_uvs_set(subd_sample, output_uvs);
+            abc_output_subd_sample_set_uvs(subd_sample, output_uvs);
         }
 
         abc_output_subd_sample_set(subd, subd_sample);
@@ -212,7 +212,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
             diffère abc_input_faceset_schema_sample_destroy(faceset_sample);
 
             faces := abc_input_faceset_schema_sample_get_faces(faceset_sample);
-            abc_output_faceset_sample_faces_set(output_sample, faces);
+            abc_output_faceset_sample_set_faces(output_sample, faces);
 
             self_bounds: Abc_Box3d;
             abc_input_faceset_schema_sample_get_self_bounds(faceset_sample, *self_bounds);

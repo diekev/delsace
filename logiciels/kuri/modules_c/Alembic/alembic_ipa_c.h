@@ -1431,10 +1431,10 @@ DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_POINTS_SAMPLE_INTERFACE(X)                                                      \
-    X(Points, points, positions_set, setPositions, Abc_P3f_Array_Sample)                          \
-    X(Points, points, velocities_set, setVelocities, Abc_V3f_Array_Sample)                        \
-    X(Points, points, ids_set, setIds, Abc_UInt64_Array_Sample)                                   \
-    X(Points, points, widths_set, setWidths, Abc_Output_Float_Geom_Param_Sample)
+    X(Points, points, set_positions, setPositions, Abc_P3f_Array_Sample)                          \
+    X(Points, points, set_velocities, setVelocities, Abc_V3f_Array_Sample)                        \
+    X(Points, points, set_ids, setIds, Abc_UInt64_Array_Sample)                                   \
+    X(Points, points, set_widths, setWidths, Abc_Output_Float_Geom_Param_Sample)
 
 struct Abc_Output_Points_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(Points, points)
@@ -1476,25 +1476,25 @@ DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_CURVES_SAMPLE_INTERFACE(X)                                                      \
-    X(Curves, curves, positions_set, setPositions, Abc_P3f_Array_Sample)                          \
-    X(Curves, curves, velocities_set, setVelocities, Abc_V3f_Array_Sample)                        \
-    X(Curves, curves, position_weights_set, setPositionWeights, Abc_Float_Array_Sample)           \
-    X(Curves, curves, curves_num_vertices_set, setCurvesNumVertices, Abc_Int32_Array_Sample)      \
-    X(Curves, curves, orders_set, setOrders, Abc_Uchar_Array_Sample)                              \
-    X(Curves, curves, knots_set, setKnots, Abc_Float_Array_Sample)                                \
-    X(Curves, curves, widths_set, setWidths, Abc_Output_Float_Geom_Param_Sample)                  \
-    X(Curves, curves, uvs_set, setUVs, Abc_Output_V2f_Geom_Param_Sample)                          \
-    X(Curves, curves, normals_set, setNormals, Abc_Output_N3f_Geom_Param_Sample)
+    X(Curves, curves, set_positions, setPositions, Abc_P3f_Array_Sample)                          \
+    X(Curves, curves, set_velocities, setVelocities, Abc_V3f_Array_Sample)                        \
+    X(Curves, curves, set_position_weights, setPositionWeights, Abc_Float_Array_Sample)           \
+    X(Curves, curves, set_curves_num_vertices, setCurvesNumVertices, Abc_Int32_Array_Sample)      \
+    X(Curves, curves, set_orders, setOrders, Abc_Uchar_Array_Sample)                              \
+    X(Curves, curves, set_knots, setKnots, Abc_Float_Array_Sample)                                \
+    X(Curves, curves, set_widths, setWidths, Abc_Output_Float_Geom_Param_Sample)                  \
+    X(Curves, curves, set_uvs, setUVs, Abc_Output_V2f_Geom_Param_Sample)                          \
+    X(Curves, curves, set_normals, setNormals, Abc_Output_N3f_Geom_Param_Sample)
 
 struct Abc_Output_Curves_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
 ENUMERATE_CURVES_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
-void abc_output_curves_sample_type_set(struct Abc_Output_Curves_Sample *sample,
+void abc_output_curves_sample_set_type(struct Abc_Output_Curves_Sample *sample,
                                        enum Abc_Curve_Type type);
-void abc_output_curves_sample_wrap_set(struct Abc_Output_Curves_Sample *sample,
+void abc_output_curves_sample_set_wrap(struct Abc_Output_Curves_Sample *sample,
                                        enum Abc_Curve_Periodicity wrap);
-void abc_output_curves_sample_basis_set(struct Abc_Output_Curves_Sample *sample,
+void abc_output_curves_sample_set_basis(struct Abc_Output_Curves_Sample *sample,
                                         enum Abc_Basis_Type basis);
 
 /** \} */
@@ -1509,7 +1509,7 @@ DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_FACESET_SAMPLE_INTERFACE(X)                                                     \
-    X(FaceSet, faceset, faces_set, setFaces, Abc_Int32_Array_Sample)
+    X(FaceSet, faceset, set_faces, setFaces, Abc_Int32_Array_Sample)
 
 struct Abc_Output_FaceSet_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(FaceSet, faceset)
@@ -1549,12 +1549,12 @@ void abc_output_polymesh_set_uv_source_name(struct Abc_Output_PolyMesh *mesh,
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_POLYMESH_SAMPLE_INTERFACE(X)                                                    \
-    X(PolyMesh, polymesh, positions_set, setPositions, Abc_P3f_Array_Sample)                      \
-    X(PolyMesh, polymesh, velocities_set, setVelocities, Abc_V3f_Array_Sample)                    \
-    X(PolyMesh, polymesh, face_indices_set, setFaceIndices, Abc_Int32_Array_Sample)               \
-    X(PolyMesh, polymesh, face_counts_set, setFaceCounts, Abc_Int32_Array_Sample)                 \
-    X(PolyMesh, polymesh, uvs_set, setUVs, Abc_Output_V2f_Geom_Param_Sample)                      \
-    X(PolyMesh, polymesh, normals_set, setNormals, Abc_Output_N3f_Geom_Param_Sample)
+    X(PolyMesh, polymesh, set_positions, setPositions, Abc_P3f_Array_Sample)                      \
+    X(PolyMesh, polymesh, set_velocities, setVelocities, Abc_V3f_Array_Sample)                    \
+    X(PolyMesh, polymesh, set_face_indices, setFaceIndices, Abc_Int32_Array_Sample)               \
+    X(PolyMesh, polymesh, set_face_counts, setFaceCounts, Abc_Int32_Array_Sample)                 \
+    X(PolyMesh, polymesh, set_uvs, setUVs, Abc_Output_V2f_Geom_Param_Sample)                      \
+    X(PolyMesh, polymesh, set_normals, setNormals, Abc_Output_N3f_Geom_Param_Sample)
 
 struct Abc_Output_PolyMesh_Sample;
 
@@ -1582,17 +1582,17 @@ struct Abc_Output_FaceSet *abc_output_subd_create_faceset(struct Abc_Output_SubD
 void abc_output_subd_set_uv_source_name(struct Abc_Output_SubD *subd, struct Abc_String name);
 
 #define ENUMERATE_SUBD_SAMPLE_INTERFACE(X)                                                        \
-    X(SubD, subd, positions_set, setPositions, Abc_P3f_Array_Sample)                              \
-    X(SubD, subd, velocities_set, setVelocities, Abc_V3f_Array_Sample)                            \
-    X(SubD, subd, face_indices_set, setFaceIndices, Abc_Int32_Array_Sample)                       \
-    X(SubD, subd, face_counts_set, setFaceCounts, Abc_Int32_Array_Sample)                         \
-    X(SubD, subd, uvs_set, setUVs, Abc_Output_V2f_Geom_Param_Sample)                              \
-    X(SubD, subd, crease_indices_set, setCreaseIndices, Abc_Int32_Array_Sample)                   \
-    X(SubD, subd, crease_lenghts_set, setCreaseLengths, Abc_Int32_Array_Sample)                   \
-    X(SubD, subd, crease_sharpnesses_set, setCreaseSharpnesses, Abc_Float_Array_Sample)           \
-    X(SubD, subd, corner_indices_set, setCornerIndices, Abc_Int32_Array_Sample)                   \
-    X(SubD, subd, corner_sharpnesses_set, setCornerSharpnesses, Abc_Float_Array_Sample)           \
-    X(SubD, subd, holes_set, setHoles, Abc_Int32_Array_Sample)
+    X(SubD, subd, set_positions, setPositions, Abc_P3f_Array_Sample)                              \
+    X(SubD, subd, set_velocities, setVelocities, Abc_V3f_Array_Sample)                            \
+    X(SubD, subd, set_face_indices, setFaceIndices, Abc_Int32_Array_Sample)                       \
+    X(SubD, subd, set_face_counts, setFaceCounts, Abc_Int32_Array_Sample)                         \
+    X(SubD, subd, set_uvs, setUVs, Abc_Output_V2f_Geom_Param_Sample)                              \
+    X(SubD, subd, set_crease_indices, setCreaseIndices, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, set_crease_lenghts, setCreaseLengths, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, set_crease_sharpnesses, setCreaseSharpnesses, Abc_Float_Array_Sample)           \
+    X(SubD, subd, set_corner_indices, setCornerIndices, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, set_corner_sharpnesses, setCornerSharpnesses, Abc_Float_Array_Sample)           \
+    X(SubD, subd, set_holes, setHoles, Abc_Int32_Array_Sample)
 
 struct Abc_Output_SubD_Sample;
 
@@ -1648,19 +1648,19 @@ struct Abc_Output_NuPatch *abc_output_nupatch_create(
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
 
 #define ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(X)                                       \
-    X(NuPatch, nupatch, nu_set, setNu, int32_t)                                                   \
-    X(NuPatch, nupatch, nv_set, setNv, int32_t)                                                   \
-    X(NuPatch, nupatch, u_order_set, setUOrder, int32_t)                                          \
-    X(NuPatch, nupatch, v_order_set, setVOrder, int32_t)
+    X(NuPatch, nupatch, set_nu, setNu, int32_t)                                                   \
+    X(NuPatch, nupatch, set_nv, setNv, int32_t)                                                   \
+    X(NuPatch, nupatch, set_u_order, setUOrder, int32_t)                                          \
+    X(NuPatch, nupatch, set_v_order, setVOrder, int32_t)
 
 #define ENUMERATE_OUTPUT_NUPATCH_SAMPLE_INTERFACE(X)                                              \
-    X(NuPatch, nupatch, positions_set, setPositions, Abc_P3f_Array_Sample)                        \
-    X(NuPatch, nupatch, positions_weights_set, setPositionWeights, Abc_Float_Array_Sample)        \
-    X(NuPatch, nupatch, u_knot_set, setUKnot, Abc_Float_Array_Sample)                             \
-    X(NuPatch, nupatch, v_knot_set, setVKnot, Abc_Float_Array_Sample)                             \
-    X(NuPatch, nupatch, uvs_set, setUVs, Abc_Output_V2f_Geom_Param_Sample)                        \
-    X(NuPatch, nupatch, normals_set, setNormals, Abc_Output_N3f_Geom_Param_Sample)                \
-    X(NuPatch, nupatch, velocities_set, setVelocities, Abc_V3f_Array_Sample)
+    X(NuPatch, nupatch, set_positions, setPositions, Abc_P3f_Array_Sample)                        \
+    X(NuPatch, nupatch, set_positions_weights, setPositionWeights, Abc_Float_Array_Sample)        \
+    X(NuPatch, nupatch, set_u_knot, setUKnot, Abc_Float_Array_Sample)                             \
+    X(NuPatch, nupatch, set_v_knot, setVKnot, Abc_Float_Array_Sample)                             \
+    X(NuPatch, nupatch, set_uvs, setUVs, Abc_Output_V2f_Geom_Param_Sample)                        \
+    X(NuPatch, nupatch, set_normals, setNormals, Abc_Output_N3f_Geom_Param_Sample)                \
+    X(NuPatch, nupatch, set_velocities, setVelocities, Abc_V3f_Array_Sample)
 
 struct Abc_Output_NuPatch_Sample;
 
@@ -1669,7 +1669,7 @@ DECLARE_COMMON_SAMPLE_FONCTIONS(NuPatch, nupatch)
 ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(DECLARE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
 ENUMERATE_OUTPUT_NUPATCH_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
-void abc_output_nupatch_sample_trim_curve_set(struct Abc_Output_NuPatch_Sample *sample,
+void abc_output_nupatch_sample_set_trim_curve(struct Abc_Output_NuPatch_Sample *sample,
                                               int32_t trim_n_loops,
                                               struct Abc_Int32_Array_Sample trim_n_curves,
                                               struct Abc_Int32_Array_Sample trim_n,

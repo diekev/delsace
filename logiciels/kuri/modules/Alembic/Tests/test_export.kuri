@@ -267,7 +267,7 @@ crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, f
         sample := abc_output_subd_sample_create(subd);
         diffère abc_output_subd_sample_destroy(sample);
 
-        abc_output_subd_sample_positions_set(sample, positions);
+        abc_output_subd_sample_set_positions(sample, positions);
         abc_output_subd_sample_face_indices_set(sample, face_indices);
         abc_output_subd_sample_face_counts_set(sample, face_counts);
         abc_output_subd_sample_set(subd, sample);
@@ -280,7 +280,7 @@ crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, f
         sample := abc_output_polymesh_sample_create(mesh);
         diffère abc_output_polymesh_sample_destroy(sample);
 
-        abc_output_polymesh_sample_positions_set(sample, positions);
+        abc_output_polymesh_sample_set_positions(sample, positions);
         abc_output_polymesh_sample_face_indices_set(sample, face_indices);
         abc_output_polymesh_sample_face_counts_set(sample, face_counts);
         abc_output_polymesh_sample_set(mesh, sample);
@@ -307,7 +307,7 @@ crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: 
     diffère abc_output_points_sample_destroy(point_sample);
 
     position := Vec3(0.0, 0.0, 0.0);
-    abc_output_points_sample_positions_set(point_sample, [position]);
+    abc_output_points_sample_set_positions(point_sample, [position]);
 
     ids := n64.[0];
     abc_output_points_sample_ids_set(point_sample, ids);
@@ -699,10 +699,10 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
         abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
 
         positions := [Vec3(0.0, 0.0, 0.0), Vec3(ca0, 0.0, sa0)];
-        abc_output_curves_sample_positions_set(curves_sample, positions);
+        abc_output_curves_sample_set_positions(curves_sample, positions);
 
         num_vertices := z32.[2];
-        abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+        abc_output_curves_sample_set_curves_num_vertices(curves_sample, num_vertices);
 
         si export_rayon {
             width := 50 - abs((it + 1) - 50);
@@ -738,10 +738,10 @@ crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Sco
     abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
 
     positions := [Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Vec3(1.0, 0.0, 0.0), Vec3(1.0, 1.0, 0.0)];
-    abc_output_curves_sample_positions_set(curves_sample, positions);
+    abc_output_curves_sample_set_positions(curves_sample, positions);
 
     num_vertices := z32.[2, 2];
-    abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+    abc_output_curves_sample_set_curves_num_vertices(curves_sample, num_vertices);
 
     si scope == Abc_Geometry_Scope.CONSTANT {
         widths := [0.2];
@@ -804,7 +804,7 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
         phi += phi_delta;
 
         position := Vec3(ca0, 0.0, sa0);
-        abc_output_points_sample_positions_set(point_sample, [position]);
+        abc_output_points_sample_set_positions(point_sample, [position]);
 
         ids := n64.[0];
         abc_output_points_sample_ids_set(point_sample, ids);
@@ -845,7 +845,7 @@ crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scop
     diffère abc_output_points_sample_destroy(point_sample);
 
     positions := [Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0)];
-    abc_output_points_sample_positions_set(point_sample, positions);
+    abc_output_points_sample_set_positions(point_sample, positions);
 
     ids := n64.[0, 1];
     abc_output_points_sample_ids_set(point_sample, ids);
@@ -982,7 +982,7 @@ initialise_points_simple :: fonc (points: *Abc_Output_Points)
     diffère abc_output_points_sample_destroy(point_sample);
 
     position := Vec3(0.0, 0.0, 0.0);
-    abc_output_points_sample_positions_set(point_sample, [position]);
+    abc_output_points_sample_set_positions(point_sample, [position]);
 
     ids := n64.[0];
     abc_output_points_sample_ids_set(point_sample, ids);
@@ -1004,10 +1004,10 @@ crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: 
     abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
 
     positions := [Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)];
-    abc_output_curves_sample_positions_set(curves_sample, positions);
+    abc_output_curves_sample_set_positions(curves_sample, positions);
 
     num_vertices := z32.[2];
-    abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+    abc_output_curves_sample_set_curves_num_vertices(curves_sample, num_vertices);
 
     abc_output_curves_sample_set(curves, curves_sample);
 
@@ -1036,7 +1036,7 @@ crée_points_vides :: fonc ()
     diffère abc_output_points_sample_destroy(point_sample);
 
     positions: []Vec3;
-    abc_output_points_sample_positions_set(point_sample, positions);
+    abc_output_points_sample_set_positions(point_sample, positions);
 
     ids: []n64;
     abc_output_points_sample_ids_set(point_sample, ids);
@@ -1072,7 +1072,7 @@ crée_test_attributs :: fonc ()
         Vec3(-1.0, 0.0,  1.0),
     ];
 
-    abc_output_polymesh_sample_positions_set(mesh_sample, positions);
+    abc_output_polymesh_sample_set_positions(mesh_sample, positions);
 
     face_indices := [0, 1, 2, 3];
     abc_output_polymesh_sample_face_indices_set(mesh_sample, face_indices);
@@ -1140,8 +1140,8 @@ crée_courbes_vides :: fonc ()
     pour 10 {
         abc_output_curves_sample_reset(curves_sample);
 
-        abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
-        abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+        abc_output_curves_sample_set_type(curves_sample, Abc_Curve_Type.LINEAR);
+        abc_output_curves_sample_set_basis(curves_sample, Abc_Basis_Type.NO_BASIS);
 
         positions: []Vec3;
         num_vertices: []z32;
@@ -1151,8 +1151,8 @@ crée_courbes_vides :: fonc ()
             num_vertices = num_vertices_pleins;
         }
 
-        abc_output_curves_sample_positions_set(curves_sample, positions);
-        abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+        abc_output_curves_sample_set_positions(curves_sample, positions);
+        abc_output_curves_sample_set_curves_num_vertices(curves_sample, num_vertices);
 
         abc_output_curves_sample_set(curves, curves_sample);
     }
