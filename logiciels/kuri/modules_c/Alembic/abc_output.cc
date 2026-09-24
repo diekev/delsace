@@ -633,7 +633,7 @@ struct Abc_Output_Xform : public Abc_Output_Object {
     Abc_Output_Xform_Schema schema{};
 };
 
-Abc_Output_Object *abc_output_archive_get_root_object(Abc_Output_Archive *archive)
+Abc_Output_Object *abc_output_archive_get_top(Abc_Output_Archive *archive)
 {
     if (archive->racine) {
         return archive->racine;

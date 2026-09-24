@@ -257,7 +257,7 @@ crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, f
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     si exporte_en_subd {
         matrice_objet_subd := crée_xform_neutre_pour_objet(racine, "SubD", ts_défaut);
@@ -300,7 +300,7 @@ crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: 
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
@@ -664,7 +664,7 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
 
@@ -729,7 +729,7 @@ crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Sco
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
 
@@ -776,7 +776,7 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     échantillons := [1.0 / metadata.fps];
     temps_par_cycle := 1.0 / metadata.fps;
@@ -842,7 +842,7 @@ crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scop
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
@@ -892,7 +892,7 @@ crée_test_visibilité :: fonc (chemin: chaine)
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     _ := crée_objet_points_simple(racine, "VISIBLE", ts_défaut);
 
@@ -913,7 +913,7 @@ crée_test_visibilité :: fonc (chemin: chaine, visibilité_parent: Abc_Object_V
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     nom_parent := imprime_chaine("%", visibilité_parent);
     nom_enfant := imprime_chaine("%", visibilité_enfant);
@@ -939,7 +939,7 @@ crée_test_visibilité_animée :: fonc (chemin: chaine)
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     parent := crée_xform_neutre_pour_objet(racine, "ANIMATED", ts_défaut);
 
@@ -1037,7 +1037,7 @@ crée_points_vides :: fonc ()
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
     points := abc_output_points_create(matrice_objet_point, "PointCloudShape", ts_défaut);
@@ -1068,7 +1068,7 @@ crée_test_attributs :: fonc ()
 
     ts_défaut := default_time_sampling(archive);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     matrice_objet_mesh := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
     mesh := abc_output_polymesh_create(matrice_objet_mesh, "PolyMeshShape", ts_défaut);
@@ -1137,7 +1137,7 @@ crée_courbes_vides :: fonc ()
     temps_par_cycle := 1.0 / metadata.fps;
     ts_animation := create_time_sampling(archive, échantillons, temps_par_cycle);
 
-    racine := get_root_object(archive);
+    racine := get_top(archive);
 
     matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
    

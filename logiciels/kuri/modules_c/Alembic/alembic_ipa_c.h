@@ -1427,9 +1427,9 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
  * \{ */
 
 /**
- * @brief abc_output_archive_get_root_object Retourne l'objet racine de l'archive.
+ * @brief abc_output_archive_get_top Retourne l'objet racine de l'archive.
  */
-struct Abc_Output_Object *abc_output_archive_get_root_object(struct Abc_Output_Archive *archive);
+struct Abc_Output_Object *abc_output_archive_get_top(struct Abc_Output_Archive *archive);
 
 /**
  * @brief abc_output_xform_create Crée un object de type Xform.
