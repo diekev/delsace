@@ -719,7 +719,7 @@ void abc_xform_sample_set_rotation(Abc_Xform_Sample *sample, Abc_V3d *axis, Abc_
     sample->sample.setRotation(abc_axis, degrees);
 }
 
-void abc_xform_sample_et_axis(Abc_Xform_Sample *sample, Abc_V3d *r_axis)
+void abc_xform_sample_set_axis(Abc_Xform_Sample *sample, Abc_V3d *r_axis)
 {
     auto axis = sample->sample.getAxis();
     convertis_vers_kuri(r_axis, axis);

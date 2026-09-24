@@ -969,7 +969,7 @@ void abc_xform_sample_get_translation(struct Abc_Xform_Sample *sample, Abc_V3d *
 void abc_xform_sample_set_rotation(struct Abc_Xform_Sample *sample,
                                    Abc_V3d *axis,
                                    Abc_Degrees degrees);
-void abc_xform_sample_et_axis(struct Abc_Xform_Sample *sample, Abc_V3d *r_axis);
+void abc_xform_sample_set_axis(struct Abc_Xform_Sample *sample, Abc_V3d *r_axis);
 double abc_xform_sample_get_angle(struct Abc_Xform_Sample *sample);
 void abc_xform_sample_set_x_rotation(struct Abc_Xform_Sample *sample, Abc_Degrees degrees);
 void abc_xform_sample_get_x_rotation(struct Abc_Xform_Sample *sample, Abc_Degrees *r_degrees);
