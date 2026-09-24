@@ -36,8 +36,11 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
+    abc_input.cc
+    abc_output.cc
     alembic_ipa_c.cc
 
+    abc_common.hh
     alembic.h
     alembic_ipa_c.h
 
