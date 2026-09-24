@@ -322,6 +322,9 @@ bool abc_metadata_iterator_next(struct Abc_MetaData_Iterator *iterator,
                                 struct Abc_String *key,
                                 struct Abc_String *value);
 
+void abc_set_source_name(struct Abc_MetaData *metadata, struct Abc_String source_name);
+struct Abc_New_String abc_get_source_name(struct Abc_MetaData *metadata);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

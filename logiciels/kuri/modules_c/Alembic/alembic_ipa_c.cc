@@ -212,6 +212,16 @@ bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
     return true;
 }
 
+void abc_set_source_name(struct Abc_MetaData *metadata, struct Abc_String source_name)
+{
+    Abc::SetSourceName(metadata->metadata, vers_std_string(source_name));
+}
+
+struct Abc_New_String abc_get_source_name(struct Abc_MetaData *metadata)
+{
+    return make_new_string(Abc::GetSourceName(metadata->metadata));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
