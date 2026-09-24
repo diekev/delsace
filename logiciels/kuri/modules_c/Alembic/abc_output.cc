@@ -314,7 +314,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname)             \
     {                                                                                             \
         if (!lname->metadata_initialized) {                                                       \
-            lname->get_metadata(&lname->metadata_);                                               \
+            lname->metadata_.metadata = lname->get_object().getMetaData();                        \
             lname->metadata_.ctx_kuri = lname->archive->ctx_kuri;                                 \
             lname->metadata_initialized = true;                                                   \
         }                                                                                         \
@@ -555,11 +555,6 @@ struct Abc_Output_Xform : public Abc_Output_Object {
     Abc_Output_Xform_Schema schema{};
     bool is_top = false;
 
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
     AbcGeom::OObject &get_object() override
     {
         return is_top ? top : object;
@@ -640,11 +635,6 @@ struct Abc_Output_Points : public Abc_Output_Object {
     AbcGeom::OPoints object{};
     Abc_Output_Points_Schema schema{};
 
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
     AbcGeom::OObject &get_object() override
     {
         return object;
@@ -691,11 +681,6 @@ struct Abc_Output_Curves_Schema : public Abc_Output_Schema {
 struct Abc_Output_Curves : public Abc_Output_Object {
     AbcGeom::OCurves object{};
     Abc_Output_Curves_Schema schema{};
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
 
     AbcGeom::OObject &get_object() override
     {
@@ -763,11 +748,6 @@ struct Abc_Output_FaceSet : public Abc_Output_Object {
     AbcGeom::OFaceSet object{};
     Abc_Output_FaceSet_Schema schema{};
 
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
     AbcGeom::OObject &get_object() override
     {
         return object;
@@ -821,11 +801,6 @@ struct Abc_Output_PolyMesh_Schema : public Abc_Output_Schema {
 struct Abc_Output_PolyMesh : public Abc_Output_Object {
     AbcGeom::OPolyMesh object{};
     Abc_Output_PolyMesh_Schema schema{};
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
 
     AbcGeom::OObject &get_object() override
     {
@@ -887,11 +862,6 @@ struct Abc_Output_SubD_Schema : public Abc_Output_Schema {
 struct Abc_Output_SubD : public Abc_Output_Object {
     AbcGeom::OSubD object{};
     Abc_Output_SubD_Schema schema{};
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
 
     AbcGeom::OObject &get_object() override
     {
@@ -977,11 +947,6 @@ struct Abc_Output_Camera : public Abc_Output_Object {
     AbcGeom::OCamera object{};
     Abc_Output_Camera_Schema schema{};
 
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
     AbcGeom::OObject &get_object() override
     {
         return object;
@@ -1035,11 +1000,6 @@ struct Abc_Output_NuPatch_Schema : public Abc_Output_Schema {
 struct Abc_Output_NuPatch : public Abc_Output_Object {
     AbcGeom::ONuPatch object{};
     Abc_Output_NuPatch_Schema schema{};
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
 
     AbcGeom::OObject &get_object() override
     {
@@ -1123,11 +1083,6 @@ struct Abc_Output_Light : public Abc_Output_Object {
     AbcGeom::OLight object{};
     Abc_Output_Light_Schema schema{};
 
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
     AbcGeom::OObject &get_object() override
     {
         return object;
@@ -1170,11 +1125,6 @@ struct Abc_Output_Material : public Abc_Output_Object {
     AbcMaterial::OMaterial object{};
     Abc_Output_Material_Schema schema{};
 
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
     AbcGeom::OObject &get_object() override
     {
         return object;
@@ -1192,7 +1142,7 @@ Abc_Output_Material *abc_output_material_create(Abc_Output_Xform *parent, Abc_St
 Abc_MetaData *abc_output_material_get_metadata(struct Abc_Output_Material *metarial)
 {
     if (!metarial->metadata_initialized) {
-        metarial->get_metadata(&metarial->metadata_);
+        metarial->metadata_.metadata = metarial->get_object().getMetaData();
         metarial->metadata_.ctx_kuri = metarial->archive->ctx_kuri;
         metarial->metadata_initialized = true;
     }
