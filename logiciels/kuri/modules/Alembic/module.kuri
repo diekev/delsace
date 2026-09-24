@@ -169,7 +169,7 @@ set_face_indices :: fonc (sample: *Abc_Output_PolyMesh_Schema_Sample, values: []
     set_face_indices(sample, array_sample);
 }
 
-crée_xform_neutre_pour_objet :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
+crée_xform_neutre_pour_objet :: fonc (parent: Abc_Generic_Output_Object, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
 {
     résultat := abc_output_xform_create(parent, nom, ts);
     schema := get_schema(résultat);

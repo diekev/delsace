@@ -73,7 +73,7 @@ struct Abc_Output_Archive {
     ContexteKuri *ctx_kuri = nullptr;
     Abc::OArchive *archive = nullptr;
 
-    Abc_Output_Xform *racine = nullptr;
+    Abc_Output_Object *racine = nullptr;
 
     Abc_Output_Object *objects = nullptr;
 
@@ -308,7 +308,7 @@ struct Abc_Output_Object {
     Abc_Output_Object *next = nullptr;
     Abc_Output_Archive *archive = nullptr;
 
-    Abc_Output_Object *parent = nullptr;
+    Abc_Generic_Output_Object parent{};
 
     Abc::OObject untyped_object{};
 
@@ -357,9 +357,7 @@ Abc_Output_Archive *abc_generic_output_object_get_archive(Abc_Generic_Output_Obj
 
 Abc_Generic_Output_Object abc_generic_output_object_get_parent(Abc_Generic_Output_Object object)
 {
-    Abc_Generic_Output_Object résultat;
-    résultat.object = object.object->parent;
-    return résultat;
+    return object.object->parent;
 }
 
 struct Abc_Output_Visibility_Property : public Abc_Output_Scalar_Property {};
@@ -635,27 +633,27 @@ struct Abc_Output_Xform : public Abc_Output_Object {
     Abc_Output_Xform_Schema schema{};
 };
 
-Abc_Output_Xform *abc_output_archive_get_root_object(Abc_Output_Archive *archive)
+Abc_Output_Object *abc_output_archive_get_root_object(Abc_Output_Archive *archive)
 {
     if (archive->racine) {
         return archive->racine;
     }
 
-    auto racine = crée_objet_sortie<Abc_Output_Xform>(archive);
+    auto racine = crée_objet_sortie<Abc_Output_Object>(archive);
     racine->untyped_object = archive->archive->getTop();
-    racine->parent = nullptr;
+    racine->parent.object = nullptr;
     archive->racine = racine;
     return racine;
 }
 
-Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
+Abc_Output_Xform *abc_output_xform_create(Abc_Generic_Output_Object parent,
                                           Abc_String nom,
                                           Abc_Time_Sample_Index time_sample_index)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Xform>(archive);
     résultat->typed_object = AbcGeom::OXform(
-        parent->untyped_object, vers_std_string(nom), time_sample_index.value);
+        parent.object->untyped_object, vers_std_string(nom), time_sample_index.value);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;
@@ -687,14 +685,14 @@ struct Abc_Output_Points : public Abc_Output_Object {
     Abc_Output_Points_Schema schema{};
 };
 
-Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
+Abc_Output_Points *abc_output_points_create(Abc_Generic_Output_Object parent,
                                             Abc_String nom,
                                             Abc_Time_Sample_Index time_sample_index)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Points>(archive);
     résultat->typed_object = AbcGeom::OPoints(
-        parent->untyped_object, vers_std_string(nom), time_sample_index.value);
+        parent.object->untyped_object, vers_std_string(nom), time_sample_index.value);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;
@@ -727,14 +725,14 @@ struct Abc_Output_Curves : public Abc_Output_Object {
     Abc_Output_Curves_Schema schema{};
 };
 
-Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
+Abc_Output_Curves *abc_output_curves_create(Abc_Generic_Output_Object parent,
                                             Abc_String nom,
                                             Abc_Time_Sample_Index time_sample_index)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Curves>(archive);
     résultat->typed_object = AbcGeom::OCurves(
-        parent->untyped_object, vers_std_string(nom), time_sample_index.value);
+        parent.object->untyped_object, vers_std_string(nom), time_sample_index.value);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;
@@ -826,14 +824,14 @@ struct Abc_Output_PolyMesh : public Abc_Output_Object {
     Abc_Output_PolyMesh_Schema schema{};
 };
 
-Abc_Output_PolyMesh *abc_output_polymesh_create(Abc_Output_Xform *parent,
+Abc_Output_PolyMesh *abc_output_polymesh_create(Abc_Generic_Output_Object parent,
                                                 Abc_String nom,
                                                 Abc_Time_Sample_Index time_sample_index)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_PolyMesh>(archive);
     résultat->typed_object = AbcGeom::OPolyMesh(
-        parent->untyped_object, vers_std_string(nom), time_sample_index.value);
+        parent.object->untyped_object, vers_std_string(nom), time_sample_index.value);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;
@@ -881,14 +879,14 @@ struct Abc_Output_SubD : public Abc_Output_Object {
     Abc_Output_SubD_Schema schema{};
 };
 
-Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
+Abc_Output_SubD *abc_output_subd_create(Abc_Generic_Output_Object parent,
                                         Abc_String nom,
                                         Abc_Time_Sample_Index time_sample_index)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_SubD>(archive);
     résultat->typed_object = AbcGeom::OSubD(
-        parent->untyped_object, vers_std_string(nom), time_sample_index.value);
+        parent.object->untyped_object, vers_std_string(nom), time_sample_index.value);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;
@@ -959,14 +957,14 @@ struct Abc_Output_Camera : public Abc_Output_Object {
     Abc_Output_Camera_Schema schema{};
 };
 
-Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
+Abc_Output_Camera *abc_output_camera_create(Abc_Generic_Output_Object parent,
                                             Abc_String nom,
                                             Abc_Time_Sample_Index time_sample_index)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Camera>(archive);
     résultat->typed_object = AbcGeom::OCamera(
-        parent->untyped_object, vers_std_string(nom), time_sample_index.value);
+        parent.object->untyped_object, vers_std_string(nom), time_sample_index.value);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;
@@ -1008,14 +1006,14 @@ struct Abc_Output_NuPatch : public Abc_Output_Object {
     Abc_Output_NuPatch_Schema schema{};
 };
 
-Abc_Output_NuPatch *abc_output_nupatch_create(Abc_Output_Xform *parent,
+Abc_Output_NuPatch *abc_output_nupatch_create(Abc_Generic_Output_Object parent,
                                               Abc_String nom,
                                               Abc_Time_Sample_Index time_sample_index)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_NuPatch>(archive);
     résultat->typed_object = AbcGeom::ONuPatch(
-        parent->untyped_object, vers_std_string(nom), time_sample_index.value);
+        parent.object->untyped_object, vers_std_string(nom), time_sample_index.value);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;
@@ -1083,14 +1081,14 @@ struct Abc_Output_Light : public Abc_Output_Object {
     Abc_Output_Light_Schema schema{};
 };
 
-Abc_Output_Light *abc_output_light_create(Abc_Output_Xform *parent,
+Abc_Output_Light *abc_output_light_create(Abc_Generic_Output_Object parent,
                                           Abc_String nom,
                                           Abc_Time_Sample_Index time_sample_index)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Light>(archive);
     résultat->typed_object = AbcGeom::OLight(
-        parent->untyped_object, vers_std_string(nom), time_sample_index.value);
+        parent.object->untyped_object, vers_std_string(nom), time_sample_index.value);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;
@@ -1120,11 +1118,11 @@ struct Abc_Output_Material : public Abc_Output_Object {
     Abc_Output_Material_Schema schema{};
 };
 
-Abc_Output_Material *abc_output_material_create(Abc_Output_Xform *parent, Abc_String nom)
+Abc_Output_Material *abc_output_material_create(Abc_Generic_Output_Object parent, Abc_String nom)
 {
-    auto archive = parent->archive;
+    auto archive = parent.object->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Material>(archive);
-    résultat->typed_object = AbcMaterial::OMaterial(parent->untyped_object, nom);
+    résultat->typed_object = AbcMaterial::OMaterial(parent.object->untyped_object, nom);
     résultat->untyped_object = résultat->typed_object;
     résultat->parent = parent;
     return résultat;

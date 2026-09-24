@@ -1429,7 +1429,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
 /**
  * @brief abc_output_archive_get_root_object Retourne l'objet racine de l'archive.
  */
-struct Abc_Output_Xform *abc_output_archive_get_root_object(struct Abc_Output_Archive *archive);
+struct Abc_Output_Object *abc_output_archive_get_root_object(struct Abc_Output_Archive *archive);
 
 /**
  * @brief abc_output_xform_create Crée un object de type Xform.
@@ -1437,7 +1437,7 @@ struct Abc_Output_Xform *abc_output_archive_get_root_object(struct Abc_Output_Ar
  * @param nom Le nom de l'objet. Doit être unique au sein du parent.
  * @return L'objet xform créé.
  */
-struct Abc_Output_Xform *abc_output_xform_create(struct Abc_Output_Xform *parent,
+struct Abc_Output_Xform *abc_output_xform_create(union Abc_Generic_Output_Object parent,
                                                  struct Abc_String nom,
                                                  struct Abc_Time_Sample_Index time_sample_index);
 
@@ -1462,7 +1462,7 @@ struct Abc_Xform_Sample *abc_output_xform_schema_sample_create(
  * @param nom Le nom de l'objet. Doit être unique au sein du parent.
  * @return L'objet points créé.
  */
-struct Abc_Output_Points *abc_output_points_create(struct Abc_Output_Xform *parent,
+struct Abc_Output_Points *abc_output_points_create(union Abc_Generic_Output_Object parent,
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
@@ -1511,7 +1511,7 @@ enum Abc_Basis_Type {
 
 struct Abc_Output_Curves;
 
-struct Abc_Output_Curves *abc_output_curves_create(struct Abc_Output_Xform *parent,
+struct Abc_Output_Curves *abc_output_curves_create(union Abc_Generic_Output_Object parent,
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
@@ -1579,7 +1579,7 @@ ENUMERATE_FACESET_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 struct Abc_Output_PolyMesh;
 
 struct Abc_Output_PolyMesh *abc_output_polymesh_create(
-    struct Abc_Output_Xform *parent,
+    union Abc_Generic_Output_Object parent,
     struct Abc_String nom,
     struct Abc_Time_Sample_Index time_sample_index);
 
@@ -1617,7 +1617,7 @@ ENUMERATE_POLYMESH_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
 struct Abc_Output_SubD;
 
-struct Abc_Output_SubD *abc_output_subd_create(struct Abc_Output_Xform *parent,
+struct Abc_Output_SubD *abc_output_subd_create(union Abc_Generic_Output_Object parent,
                                                struct Abc_String nom,
                                                struct Abc_Time_Sample_Index time_sample_index);
 
@@ -1671,7 +1671,7 @@ void abc_output_subd_schema_sample_set_subdivision_scheme(
 
 struct Abc_Output_Camera;
 
-struct Abc_Output_Camera *abc_output_camera_create(struct Abc_Output_Xform *parent,
+struct Abc_Output_Camera *abc_output_camera_create(union Abc_Generic_Output_Object parent,
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
@@ -1693,7 +1693,7 @@ struct Abc_Camera_Sample *abc_output_camera_sample_create_window(
  * \{ */
 
 struct Abc_Output_NuPatch *abc_output_nupatch_create(
-    struct Abc_Output_Xform *parent,
+    union Abc_Generic_Output_Object parent,
     struct Abc_String nom,
     struct Abc_Time_Sample_Index time_sample_index);
 
@@ -1743,7 +1743,7 @@ void abc_output_nupatch_schema_sample_set_trim_curve(
 /** \nom Abc_Output_Light
  * \{ */
 
-struct Abc_Output_Light *abc_output_light_create(struct Abc_Output_Xform *parent,
+struct Abc_Output_Light *abc_output_light_create(union Abc_Generic_Output_Object parent,
                                                  struct Abc_String nom,
                                                  struct Abc_Time_Sample_Index time_sample_index);
 
@@ -1761,7 +1761,7 @@ void abc_output_light_schema_set_camera_sample(struct Abc_Output_Light_Schema *s
 /** \nom Abc_Output_Material
  * \{ */
 
-struct Abc_Output_Material *abc_output_material_create(struct Abc_Output_Xform *parent,
+struct Abc_Output_Material *abc_output_material_create(union Abc_Generic_Output_Object parent,
                                                        struct Abc_String nom);
 
 struct Abc_MetaData *abc_output_material_get_metadata(struct Abc_Output_Material *metarial);

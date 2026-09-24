@@ -975,7 +975,7 @@ crée_test_visibilité_animée :: fonc (chemin: chaine)
     }
 }
 
-crée_objet_points_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
+crée_objet_points_simple :: fonc (parent: Abc_Generic_Output_Object, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
 {
     matrice_objet_point := crée_xform_neutre_pour_objet(parent, nom, ts);
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloud", ts);
@@ -999,7 +999,7 @@ initialise_points_simple :: fonc (points: *Abc_Output_Points)
     set(schema, point_sample);
 }
 
-crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
+crée_objet_courbes_simple :: fonc (parent: Abc_Generic_Output_Object, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
 {
     matrice_curves := crée_xform_neutre_pour_objet(parent, nom, ts);
 

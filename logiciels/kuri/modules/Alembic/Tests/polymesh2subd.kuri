@@ -104,7 +104,7 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
     }
 }
 
-convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xform, polymesh: *Abc_Input_PolyMesh, ts_parent: Abc_Time_Sample_Index)
+convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Object, polymesh: *Abc_Input_PolyMesh, ts_parent: Abc_Time_Sample_Index)
 {
     nom := abc_input_object_get_full_name(polymesh);
 
