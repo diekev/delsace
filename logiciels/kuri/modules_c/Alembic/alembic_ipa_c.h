@@ -277,7 +277,11 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
     void abc_output_##lowercase_name##_sample_reset(                                              \
         struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
     void abc_output_##lowercase_name##_sample_destroy(                                            \
-        struct Abc_Output_##uppercase_name##_Sample *sample);
+        struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
+    void abc_output_##lowercase_name##_sample_set_self_bounds(                                    \
+        struct Abc_Output_##uppercase_name##_Sample *sample, struct Abc_Box3d *bounds);           \
+    void abc_output_##lowercase_name##_sample_get_self_bounds(                                    \
+        struct Abc_Output_##uppercase_name##_Sample *sample, struct Abc_Box3d *r_bounds);
 
 #define DECLARE_OUTPUT_SAMPLE_SET_FUNCTION(uname, lname, snake_name, method, sample_type)         \
     void abc_output_##lname##_sample_##snake_name(                                                \

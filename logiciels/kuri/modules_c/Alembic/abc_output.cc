@@ -569,6 +569,16 @@ struct Abc_Output_Schema_Sample {
         if (sample) {                                                                             \
             kuri_deloge(sample->ctx_kuri, sample);                                                \
         }                                                                                         \
+    }                                                                                             \
+    void abc_output_##lowercase_name##_sample_set_self_bounds(                                    \
+        Abc_Output_##uppercase_name##_Sample *sample, Abc_Box3d *bounds)                          \
+    {                                                                                             \
+        sample->sample.setSelfBounds(convertis_vers_abc(bounds));                                 \
+    }                                                                                             \
+    void abc_output_##lowercase_name##_sample_get_self_bounds(                                    \
+        Abc_Output_##uppercase_name##_Sample *sample, Abc_Box3d *r_bounds)                        \
+    {                                                                                             \
+        convertis_vers_kuri(r_bounds, sample->sample.getSelfBounds());                            \
     }
 
 /** \} */
