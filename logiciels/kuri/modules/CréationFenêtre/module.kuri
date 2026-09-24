@@ -1238,12 +1238,27 @@ x11_fenêtre_donne_géométrie :: fonc (fenêtre: Port_Fenêtre_Native) -> Recta
                       *border_w_return,
                       *depth_return);
 
+    x_écran, y_écran := x11_donne_position_écran_depuis_client(fenêtre.données_x11.display, fenêtre.données_x11.window, fenêtre.données_x11.visual, 0, 0);
+
     résultat: RectanglePosDim(z32) = ---;
-    résultat.x = x_return;
-    résultat.y = y_return;
+    résultat.x = x_écran;
+    résultat.y = y_écran;
     résultat.largeur = w_return comme z32;
     résultat.hauteur = h_return comme z32;
     retourne résultat;
+}
+
+x11_donne_position_écran_depuis_client :: fonc (display: *Display, window: Window, visual: *XVisualInfo, x: z32, y: z32) -> (x_écran: z32, y_écran: z32)
+{
+    temp: Window;
+    root_window := RootWindow(display, visual.screen);
+    ax, ay: z32;
+
+    _ := XTranslateCoordinates(display, window, root_window, x, y, *ax, *ay, *temp);
+
+    x_écran = ax;
+    y_écran = ay;
+    retourne x_écran, y_écran;
 }
 
 x11_donne_taille_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native) -> (largeur: z32, hauteur: z32)
