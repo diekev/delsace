@@ -126,6 +126,16 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
     matrice_subd := crée_xform_neutre_pour_objet(racine, nom_parent, ts_parent);
     subd := abc_output_subd_create(matrice_subd, nom_polymesh, ts_subd);
 
+    uvs_param := abc_input_polymesh_schema_get_uvs_param(schema);
+    si abc_input_v2f_geom_param_valid(uvs_param) {
+        metadata := abc_input_v2f_geom_param_get_metadata(uvs_param);
+        abc_source_name := abc_get_source_name(metadata);
+        diffère abc_new_string_destroy(*abc_source_name);
+
+        source_name := vers_kuri(abc_source_name);
+        abc_output_subd_set_uv_source_name(subd, vers_abc_string(source_name));
+    }
+
     pour num_samples {
         sample_time := abc_time_sampling_get_sample_time(time_sampling, it comme z64);
 
@@ -150,6 +160,23 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
 
         si velocities.values {
             abc_output_subd_sample_velocities_set(subd_sample, velocities);
+        }
+
+        si abc_input_v2f_geom_param_valid(uvs_param) {
+            input_uvs: Abc_Input_V2f_Geom_Param_Sample;
+
+            si abc_input_v2f_geom_param_is_indexed(uvs_param) {
+                abc_input_v2f_geom_param_get_indexed(uvs_param, *input_uvs, selector);
+            }
+            sinon {
+                abc_input_v2f_geom_param_get_expanded(uvs_param, *input_uvs, selector);
+            }
+
+            output_uvs: Abc_Output_V2f_Geom_Param_Sample;
+            output_uvs.values = input_uvs.values;
+            output_uvs.indices = input_uvs.indices;
+            output_uvs.scope = input_uvs.scope;
+            abc_output_subd_sample_uvs_set(subd_sample, output_uvs);
         }
 
         abc_output_subd_sample_set(subd, subd_sample);
