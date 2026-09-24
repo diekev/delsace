@@ -292,9 +292,6 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
     void abc_output_##lname##_schema_sample_##snake_name(                                         \
         struct Abc_Output_##uname##_Schema_Sample *lname##_sample, sample_type sample);
 
-#define DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                      \
-    struct Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname);
-
 /* ------------------------------------------------------------------------- */
 /** \nom MetaData
  * \{ */
@@ -1262,6 +1259,9 @@ union Abc_Generic_Output_Object {
     struct Abc_Output_Material *material;
 };
 
+struct Abc_MetaData *abc_generic_output_object_get_metadata(
+    union Abc_Generic_Output_Object object);
+
 struct Abc_Output_Visibility_Property;
 
 struct Abc_Output_Visibility_Property *abc_output_object_create_visibility_property(
@@ -1431,8 +1431,6 @@ struct Abc_Output_Xform *abc_output_xform_create(struct Abc_Output_Xform *parent
                                                  struct Abc_String nom,
                                                  struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Xform, xform)
-
 struct Abc_Output_Xform_Schema;
 
 DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Xform, xform)
@@ -1457,8 +1455,6 @@ struct Abc_Xform_Sample *abc_output_xform_schema_sample_create(
 struct Abc_Output_Points *abc_output_points_create(struct Abc_Output_Xform *parent,
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
-
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
 
 struct Abc_Output_Points_Schema;
 struct Abc_Output_Points_Schema_Sample;
@@ -1509,8 +1505,6 @@ struct Abc_Output_Curves *abc_output_curves_create(struct Abc_Output_Xform *pare
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
-
 struct Abc_Output_Curves_Schema;
 struct Abc_Output_Curves_Schema_Sample;
 
@@ -1548,8 +1542,6 @@ void abc_output_curves_schema_sample_set_basis(struct Abc_Output_Curves_Schema_S
 
 struct Abc_Output_FaceSet;
 
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
-
 struct Abc_Output_FaceSet_Schema;
 struct Abc_Output_FaceSet_Schema_Sample;
 
@@ -1580,8 +1572,6 @@ struct Abc_Output_PolyMesh *abc_output_polymesh_create(
     struct Abc_Output_Xform *parent,
     struct Abc_String nom,
     struct Abc_Time_Sample_Index time_sample_index);
-
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
 struct Abc_Output_PolyMesh_Schema;
 struct Abc_Output_PolyMesh_Schema_Sample;
@@ -1620,8 +1610,6 @@ struct Abc_Output_SubD;
 struct Abc_Output_SubD *abc_output_subd_create(struct Abc_Output_Xform *parent,
                                                struct Abc_String nom,
                                                struct Abc_Time_Sample_Index time_sample_index);
-
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
 struct Abc_Output_SubD_Schema;
 struct Abc_Output_SubD_Schema_Sample;
@@ -1677,8 +1665,6 @@ struct Abc_Output_Camera *abc_output_camera_create(struct Abc_Output_Xform *pare
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Camera, camera)
-
 struct Abc_Output_Camera_Schema;
 
 DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Camera, camera)
@@ -1700,8 +1686,6 @@ struct Abc_Output_NuPatch *abc_output_nupatch_create(
     struct Abc_Output_Xform *parent,
     struct Abc_String nom,
     struct Abc_Time_Sample_Index time_sample_index);
-
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
 
 struct Abc_Output_NuPatch_Schema;
 struct Abc_Output_NuPatch_Schema_Sample;
@@ -1752,8 +1736,6 @@ void abc_output_nupatch_schema_sample_set_trim_curve(
 struct Abc_Output_Light *abc_output_light_create(struct Abc_Output_Xform *parent,
                                                  struct Abc_String nom,
                                                  struct Abc_Time_Sample_Index time_sample_index);
-
-DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Light, light)
 
 struct Abc_Output_Light_Schema;
 

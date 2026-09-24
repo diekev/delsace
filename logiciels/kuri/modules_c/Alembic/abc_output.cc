@@ -295,17 +295,6 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
 
 #undef DECLARE_ABC_OUTPUT_GEOM_PARAMS
 
-#define DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                       \
-    Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname)             \
-    {                                                                                             \
-        if (!lname->metadata_initialized) {                                                       \
-            lname->metadata_.metadata = lname->get_object().getMetaData();                        \
-            lname->metadata_.ctx_kuri = lname->archive->ctx_kuri;                                 \
-            lname->metadata_initialized = true;                                                   \
-        }                                                                                         \
-        return &lname->metadata_;                                                                 \
-    }
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -325,6 +314,17 @@ struct Abc_Output_Object {
 
     virtual AbcGeom::OObject &get_object() = 0;
 };
+
+Abc_MetaData *abc_generic_output_object_get_metadata(Abc_Generic_Output_Object object)
+{
+    auto obj = object.object;
+    if (!obj->metadata_initialized) {
+        obj->metadata_.metadata = obj->get_object().getMetaData();
+        obj->metadata_.ctx_kuri = obj->archive->ctx_kuri;
+        obj->metadata_initialized = true;
+    }
+    return &obj->metadata_;
+}
 
 struct Abc_Output_Visibility_Property : public Abc_Output_Scalar_Property {};
 
@@ -618,8 +618,6 @@ Abc_Output_Xform *abc_output_archive_get_root_object(Abc_Output_Archive *archive
     return racine;
 }
 
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Xform, xform)
-
 Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
                                           Abc_String nom,
                                           Abc_Time_Sample_Index time_sample_index)
@@ -675,8 +673,6 @@ Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
-
 struct Abc_Output_Points_Schema_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OPointsSchema::Sample sample{};
 };
@@ -719,8 +715,6 @@ Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
-
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
 
 struct Abc_Output_Curves_Schema_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OCurvesSchema::Sample sample{};
@@ -775,8 +769,6 @@ struct Abc_Output_FaceSet : public Abc_Output_Object {
     }
 };
 
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
-
 struct Abc_Output_FaceSet_Schema_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OFaceSetSchema::Sample sample{};
 };
@@ -830,8 +822,6 @@ Abc_Output_PolyMesh *abc_output_polymesh_create(Abc_Output_Xform *parent,
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
-
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
 struct Abc_Output_PolyMesh_Schema_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OPolyMeshSchema::Sample sample{};
@@ -889,8 +879,6 @@ Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
-
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
 struct Abc_Output_SubD_Schema_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OSubDSchema::Sample sample{};
@@ -972,8 +960,6 @@ Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Camera, camera)
-
 DEFINE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Camera, camera)
 DEFINE_OUTPUT_SCHEMA_SET(Camera, camera, Camera)
 DEFINE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Camera, camera)
@@ -1025,8 +1011,6 @@ Abc_Output_NuPatch *abc_output_nupatch_create(Abc_Output_Xform *parent,
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
-
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
 
 struct Abc_Output_NuPatch_Schema_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::ONuPatchSchema::Sample sample{};
@@ -1105,8 +1089,6 @@ Abc_Output_Light *abc_output_light_create(Abc_Output_Xform *parent,
         parent->get_object(), vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
-
-DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Light, light)
 
 DEFINE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Light, light)
 DEFINE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Light, light)
