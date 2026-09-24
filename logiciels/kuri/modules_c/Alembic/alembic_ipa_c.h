@@ -548,7 +548,11 @@ struct Abc_Input_Geom_Param;
     void abc_input_##nom_court##_geom_param_get_expanded(                                         \
         struct Abc_Input_##type_geom##_Geom_Param *param,                                         \
         struct Abc_Input_##type_geom##_Geom_Param_Sample *sample,                                 \
-        struct Abc_Sample_Selector selector);
+        struct Abc_Sample_Selector selector);                                                     \
+    void abc_input_##nom_court##_geom_param_reset(                                                \
+        struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
+    bool abc_input_##nom_court##_geom_param_valid(                                                \
+        struct Abc_Input_##type_geom##_Geom_Param *param);
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_INPUT_GEOM_PARAM)
 

@@ -339,6 +339,16 @@ T *make_input_geom_param(Abc_Input_Archive *archive)
                 param->sample.getVals(), param->sample_data);                                     \
             sample->scope = static_cast<Abc_Geometry_Scope>(param->sample.getScope());            \
         }                                                                                         \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_reset(                                                \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        param->param.reset();                                                                     \
+    }                                                                                             \
+    bool abc_input_##nom_court##_geom_param_valid(                                                \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return param->param.valid();                                                              \
     }
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_INPUT_GEOM_PARAM)
