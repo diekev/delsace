@@ -112,11 +112,11 @@ donne_info_nom_type_abc :: fonc (type: chaine) -> Info_Nom_Type_Abc
 
 donne_extent :: fonc (desc: Abc_Attribute_Type_Descriptor) -> n32
 {
-    info := donne_info_nom_type_abc(vers_kuri(desc.type_geom));
+    info := donne_info_nom_type_abc(desc.type_geom);
 
     extent: n32;
 
-    si est_type_pod(vers_kuri(desc.type_geom)) {
+    si est_type_pod(desc.type_geom) {
         extent = 1;
     }
     sinon si info.préfixe == "Quat" {
@@ -142,7 +142,7 @@ donne_interpretation :: fonc (desc: Abc_Attribute_Type_Descriptor) -> chaine
 {
     résultat: chaine;
 
-    info := donne_info_nom_type_abc(vers_kuri(desc.type_geom));
+    info := donne_info_nom_type_abc(desc.type_geom);
 
     si info.préfixe == "V" {
         résultat = "vector";
@@ -188,7 +188,7 @@ imprime_infos_types_attributs_pour_python :: fonc ()
     pour desc {
         extent := donne_extent(it);
         interpretation := donne_interpretation(it);
-        imprimeln("    AbcAttributeTypeInfo('%', %, '%'),", vers_kuri(it.nom_court), extent, interpretation);
+        imprimeln("    AbcAttributeTypeInfo('%', %, '%'),", it.nom_court, extent, interpretation);
     }
     imprimeln("]");
     imprimeln("");
@@ -198,7 +198,8 @@ principale :: fonc ()
 {
     // imprime_infos_types_attributs_pour_python();
 
-    crée_points_vides();
+    // crée_points_vides();
+    crée_courbes_vides();
 
     // crée_test_mauvaise_géométrie_maillage();
 
@@ -218,7 +219,7 @@ principale :: fonc ()
     // crée_test_scope_rayons_courbes("/tmp/curves-width-vertex-scope.abc", Abc_Geometry_Scope.VERTEX);
     // crée_test_scope_rayons_courbes("/tmp/curves-width-uniform-scope.abc", Abc_Geometry_Scope.UNIFORM);
 
-    crée_test_attributs();
+    // crée_test_attributs();
 
     // crée_test_visibilité("/tmp/visibility-hidden.abc");
     // crée_test_visibilité("/tmp/visibility-parent-hidden-child-visible.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.VISIBLE);
@@ -248,76 +249,79 @@ crée_test_mauvaise_géométrie_maillage :: fonc ()
 crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, face_counts: []z32, face_indices: []z32, exporte_en_subd: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     si exporte_en_subd {
         matrice_objet_subd := crée_xform_neutre_pour_objet(racine, "SubD", ts_défaut);
 
         subd := abc_output_subd_create(matrice_objet_subd, "SubDShape", ts_défaut);
+        schema := get_schema(subd);
 
-        sample := abc_output_subd_sample_create(subd);
-        diffère abc_output_subd_sample_destroy(sample);
+        sample := sample_create(schema);
+        diffère destroy(sample);
 
-        abc_output_subd_sample_positions_set(sample, positions);
-        abc_output_subd_sample_face_indices_set(sample, face_indices);
-        abc_output_subd_sample_face_counts_set(sample, face_counts);
-        abc_output_subd_sample_set(subd, sample);
+        set_positions(sample, positions);
+        set_face_indices(sample, face_indices);
+        set_face_counts(sample, face_counts);
+        set(schema, sample);
     }
     sinon {
         matrice_objet_mesh := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
 
         mesh := abc_output_polymesh_create(matrice_objet_mesh, "PolyMeshShape", ts_défaut);
+        schema := get_schema(mesh);
 
-        sample := abc_output_polymesh_sample_create(mesh);
-        diffère abc_output_polymesh_sample_destroy(sample);
+        sample := sample_create(schema);
+        diffère destroy(sample);
 
-        abc_output_polymesh_sample_positions_set(sample, positions);
-        abc_output_polymesh_sample_face_indices_set(sample, face_indices);
-        abc_output_polymesh_sample_face_counts_set(sample, face_counts);
-        abc_output_polymesh_sample_set(mesh, sample);
+        set_positions(sample, positions);
+        set_face_indices(sample, face_indices);
+        set_face_counts(sample, face_counts);
+        set(schema, sample);
     }
 }
 
 crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_défaut);
-    point_sample := abc_output_points_sample_create(objet_point);
-    diffère abc_output_points_sample_destroy(point_sample);
+    schema := get_schema(objet_point);
+    point_sample := sample_create(schema);
+    diffère destroy(point_sample);
 
     position := Vec3(0.0, 0.0, 0.0);
-    abc_output_points_sample_positions_set(point_sample, [position]);
+    set_positions(point_sample, [position]);
 
     ids := n64.[0];
-    abc_output_points_sample_ids_set(point_sample, ids);
+    set_ids(point_sample, ids);
 
-    abc_output_points_sample_set(objet_point, point_sample);
+    set(schema, point_sample);
 
     user_props := si dans_user_props {
-        abc_output_points_user_properties_get(objet_point);
+        get_user_properties(schema);
     }
     sinon {
-        abc_output_points_arb_geom_params_get(objet_point);
+        get_arb_geom_params(schema);
     };
 
     si scalaire {
@@ -336,13 +340,13 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
     initialise_enchaineuse(*enchaineuse);
 
     pour descripteurs {
-        type_geom := vers_kuri(it.type_geom);
-        type_ipa := vers_kuri(it.type_ipa);
-        nom_court := vers_kuri(it.nom_court);
+        type_geom := it.type_geom;
+        type_ipa := it.type_ipa;
+        nom_court := it.nom_court;
 
         ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
 
-        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_property_create(parent, \"prop_%\");\n", nom_court, nom_court, nom_court);
         imprime_dans_enchaineuse(*enchaineuse, "abc_output_property_set_time_sample_index(prop_%, ts);\n", nom_court);
 
         nom_valeur := imprime_chaine("valeur_%", nom_court);
@@ -352,7 +356,7 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
             chaine_valeur := "";
             type_valeur := "";
             si type_geom == "String" {
-                chaine_valeur = "vers_abc_string(\"123\")";
+                chaine_valeur = "\"123\"";
                 type_valeur = "Abc_String";
             }
             sinon si type_geom == "Bool" {
@@ -480,7 +484,7 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
             }
         }
 
-        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_property_set(prop_%, *%);\n", nom_court, nom_court, nom_valeur);
+        imprime_dans_enchaineuse(*enchaineuse, "set(prop_%, *%);\n", nom_court, nom_valeur);
         ajoute_au_tampon(*enchaineuse, "\n");
     }
 
@@ -495,13 +499,13 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
     initialise_enchaineuse(*enchaineuse);
 
     pour descripteurs {
-        type_geom := vers_kuri(it.type_geom);
-        type_ipa := vers_kuri(it.type_ipa);
-        nom_court := vers_kuri(it.nom_court);
+        type_geom := it.type_geom;
+        type_ipa := it.type_ipa;
+        nom_court := it.nom_court;
 
         ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
 
-        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_array_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_array_property_create(parent, \"prop_%\");\n", nom_court, nom_court, nom_court);
         imprime_dans_enchaineuse(*enchaineuse, "abc_output_array_property_set_time_sample_index(prop_%, ts);\n", nom_court);
 
         nom_valeur := imprime_chaine("valeur_%", nom_court);
@@ -511,7 +515,7 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
             chaine_valeur := "";
             type_valeur := "";
             si type_geom == "String" {
-                chaine_valeur = "vers_abc_string(\"123\")";
+                chaine_valeur = "\"123\"";
                 type_valeur = "Abc_String";
             }
             sinon si type_geom == "Bool" {
@@ -642,7 +646,7 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
         imprime_dans_enchaineuse(*enchaineuse, "%_array_sample: Abc_%_Array_Sample;\n", nom_court, type_geom);
         imprime_dans_enchaineuse(*enchaineuse, "%_array_sample.values = *%;\n", nom_court, nom_valeur);
         imprime_dans_enchaineuse(*enchaineuse, "%_array_sample.num_values = 1;\n", nom_court);
-        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_array_property_set(prop_%, %_array_sample);\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "set(prop_%, %_array_sample);\n", nom_court, nom_court);
         ajoute_au_tampon(*enchaineuse, "\n");
     }
 
@@ -652,26 +656,27 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
 crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
 
     échantillons := [1.0 / metadata.fps];
     temps_par_cycle := 1.0 / metadata.fps;
-    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+    ts_animation := create_time_sampling(archive, échantillons, temps_par_cycle);
 
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
+    schema := get_schema(curves);
 
-    curves_sample := abc_output_curves_sample_create(curves);
-    diffère abc_output_curves_sample_destroy(curves_sample);
+    curves_sample := sample_create(schema);
+    diffère destroy(curves_sample);
 
     cx := 0.0;
     cy := 0.0;
@@ -686,101 +691,103 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
     phi := 0.0;
 
     pour segs {
-        abc_output_curves_sample_reset(curves_sample);
+        reset(curves_sample);
 
         ca0 := cx + cosinus(phi) * rx;
         sa0 := cy + sinus(phi) * ry;
 
         phi += phi_delta;
 
-        abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
+        set_type(curves_sample, Abc_Curve_Type.LINEAR);
 
-        abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+        set_basis(curves_sample, Abc_Basis_Type.NO_BASIS);
 
         positions := [Vec3(0.0, 0.0, 0.0), Vec3(ca0, 0.0, sa0)];
-        abc_output_curves_sample_positions_set(curves_sample, positions);
+        set_positions(curves_sample, positions);
 
         num_vertices := z32.[2];
-        abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+        set_curves_num_vertices(curves_sample, num_vertices);
 
         si export_rayon {
             width := 50 - abs((it + 1) - 50);
             widths := r32.[width comme r32 * 0.01, width comme r32 * 0.01];
-            abc_output_curves_sample_widths_set(curves_sample, widths, Abc_Geometry_Scope.VERTEX);
+            set_widths(curves_sample, widths, Abc_Geometry_Scope.VERTEX);
         }
 
-        abc_output_curves_sample_set(curves, curves_sample);
+        set(schema, curves_sample);
     }
 }
 
 crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Scope)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
 
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_défaut);
+    schema := get_schema(curves);
 
-    curves_sample := abc_output_curves_sample_create(curves);
-    diffère abc_output_curves_sample_destroy(curves_sample);
+    curves_sample := sample_create(schema);
+    diffère destroy(curves_sample);
 
-    abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
-    abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+    set_type(curves_sample, Abc_Curve_Type.LINEAR);
+    set_basis(curves_sample, Abc_Basis_Type.NO_BASIS);
 
     positions := [Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Vec3(1.0, 0.0, 0.0), Vec3(1.0, 1.0, 0.0)];
-    abc_output_curves_sample_positions_set(curves_sample, positions);
+    set_positions(curves_sample, positions);
 
     num_vertices := z32.[2, 2];
-    abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+    set_curves_num_vertices(curves_sample, num_vertices);
 
     si scope == Abc_Geometry_Scope.CONSTANT {
         widths := [0.2];
-        abc_output_curves_sample_widths_set(curves_sample, widths, scope);
+        set_widths(curves_sample, widths, scope);
     }
     sinon si scope == Abc_Geometry_Scope.UNIFORM {
         widths := [0.4, 0.6];
-        abc_output_curves_sample_widths_set(curves_sample, widths, scope);
+        set_widths(curves_sample, widths, scope);
     }
     sinon {
         assert(scope != Abc_Geometry_Scope.UNKNOWN);
         widths := [0.8, 1.0, 1.2, 1.4];
-        abc_output_curves_sample_widths_set(curves_sample, widths, scope);
+        set_widths(curves_sample, widths, scope);
     }
 
-    abc_output_curves_sample_set(curves, curves_sample);
+    set(schema, curves_sample);
 }
 
 crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     échantillons := [1.0 / metadata.fps];
     temps_par_cycle := 1.0 / metadata.fps;
-    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+    ts_animation := create_time_sampling(archive, échantillons, temps_par_cycle);
 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_animation);
-    point_sample := abc_output_points_sample_create(objet_point);
-    diffère abc_output_points_sample_destroy(point_sample);
+    schema := get_schema(objet_point);
+    point_sample := sample_create(schema);
+    diffère destroy(point_sample);
 
     cx := 0.0;
     cy := 0.0;
@@ -795,7 +802,7 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
     phi := 0.0;
 
     pour segs {
-        abc_output_points_sample_reset(point_sample);
+        reset(point_sample);
 
         ca0 := cx + cosinus(phi) * rx;
         sa0 := cy + sinus(phi) * ry;
@@ -803,141 +810,142 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
         phi += phi_delta;
 
         position := Vec3(ca0, 0.0, sa0);
-        abc_output_points_sample_positions_set(point_sample, [position]);
+        set_positions(point_sample, [position]);
 
         ids := n64.[0];
-        abc_output_points_sample_ids_set(point_sample, ids);
+        set_ids(point_sample, ids);
 
         si export_rayon {
             width := 50 - abs((it + 1) - 50);
             widths := r32.[width comme r32 * 0.01];
 
             geom_param: Abc_Output_Float_Geom_Param_Sample;
-            geom_param.values = *widths[0];
-            geom_param.num_values = 1;
+            geom_param.values.values = *widths[0];
+            geom_param.values.num_values = 1;
             geom_param.scope = Abc_Geometry_Scope.VERTEX;
 
-            abc_output_points_sample_widths_set(point_sample, geom_param);
+            set_widths(point_sample, geom_param);
         }
 
-        abc_output_points_sample_set(objet_point, point_sample);
+        set(schema, point_sample);
     }
 }
 
 crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scope)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_défaut);
-    point_sample := abc_output_points_sample_create(objet_point);
-    diffère abc_output_points_sample_destroy(point_sample);
+    schema := get_schema(objet_point);
+    point_sample := sample_create(schema);
+    diffère destroy(point_sample);
 
     positions := [Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0)];
-    abc_output_points_sample_positions_set(point_sample, positions);
+    set_positions(point_sample, positions);
 
     ids := n64.[0, 1];
-    abc_output_points_sample_ids_set(point_sample, ids);
+    set_ids(point_sample, ids);
 
     si scope == Abc_Geometry_Scope.CONSTANT {
     geom_param: Abc_Output_Float_Geom_Param_Sample;
         widths := [0.2];
-        geom_param.values = widths.données;
-        geom_param.num_values = 1;
+        geom_param.values.values = widths.données;
+        geom_param.values.num_values = 1;
         geom_param.scope = scope;
 
-        abc_output_points_sample_widths_set(point_sample, geom_param);
+        set_widths(point_sample, geom_param);
     }
     sinon {
         assert(scope != Abc_Geometry_Scope.UNKNOWN);
 
         widths := [0.4, 0.6];
         geom_param: Abc_Output_Float_Geom_Param_Sample;
-        geom_param.values = widths.données;
-        geom_param.num_values = 2;
+        geom_param.values.values = widths.données;
+        geom_param.values.num_values = 2;
         geom_param.scope = scope;
 
-        abc_output_points_sample_widths_set(point_sample, geom_param);
+        set_widths(point_sample, geom_param);
     }
 
-    abc_output_points_sample_set(objet_point, point_sample);
+    set(schema, point_sample);
 }
 
 crée_test_visibilité :: fonc (chemin: chaine)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     _ := crée_objet_points_simple(racine, "VISIBLE", ts_défaut);
 
     courbes := crée_objet_courbes_simple(racine, "HIDDEN", ts_défaut);
 
     visibility_prop := abc_output_object_create_visibility_property(courbes, ts_défaut);
-    abc_output_visibility_property_set(visibility_prop, Abc_Object_Visibility.HIDDEN);
+    set(visibility_prop, Abc_Object_Visibility.HIDDEN);
 }
 
 crée_test_visibilité :: fonc (chemin: chaine, visibilité_parent: Abc_Object_Visibility, visibilité_enfant: Abc_Object_Visibility)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     nom_parent := imprime_chaine("%", visibilité_parent);
     nom_enfant := imprime_chaine("%", visibilité_enfant);
 
     parent := crée_xform_neutre_pour_objet(racine, nom_parent, ts_défaut);
     visibility_prop := abc_output_object_create_visibility_property(parent, ts_défaut);
-    abc_output_visibility_property_set(visibility_prop, visibilité_parent);
+    set(visibility_prop, visibilité_parent);
 
     enfant := abc_output_points_create(parent, nom_enfant, ts_défaut);
     initialise_points_simple(enfant);
     visibility_prop = abc_output_object_create_visibility_property(enfant, ts_défaut);
-    abc_output_visibility_property_set(visibility_prop, visibilité_enfant);
+    set(visibility_prop, visibilité_enfant);
 }
 
 crée_test_visibilité_animée :: fonc (chemin: chaine)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     parent := crée_xform_neutre_pour_objet(racine, "ANIMATED", ts_défaut);
 
     échantillons := [1.0 / metadata.fps];
     temps_par_cycle := 1.0 / metadata.fps;
-    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+    ts_animation := create_time_sampling(archive, échantillons, temps_par_cycle);
 
     enfant := abc_output_points_create(parent, "ANIMATED-SHAPE", ts_défaut);
     initialise_points_simple(enfant);
@@ -963,11 +971,11 @@ crée_test_visibilité_animée :: fonc (chemin: chaine)
             visibilité_enfant = Abc_Object_Visibility.HIDDEN;
         }
 
-        abc_output_visibility_property_set(visibility_prop, visibilité_enfant);
+        set(visibility_prop, visibilité_enfant);
     }
 }
 
-crée_objet_points_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
+crée_objet_points_simple :: fonc (parent: Abc_Generic_Output_Object, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
 {
     matrice_objet_point := crée_xform_neutre_pour_objet(parent, nom, ts);
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloud", ts);
@@ -977,38 +985,41 @@ crée_objet_points_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: A
 
 initialise_points_simple :: fonc (points: *Abc_Output_Points)
 {
-    point_sample := abc_output_points_sample_create(points);
-    diffère abc_output_points_sample_destroy(point_sample);
+    schema := get_schema(points);
+
+    point_sample := sample_create(schema);
+    diffère destroy(point_sample);
 
     position := Vec3(0.0, 0.0, 0.0);
-    abc_output_points_sample_positions_set(point_sample, [position]);
+    set_positions(point_sample, [position]);
 
     ids := n64.[0];
-    abc_output_points_sample_ids_set(point_sample, ids);
+    set_ids(point_sample, ids);
 
-    abc_output_points_sample_set(points, point_sample);
+    set(schema, point_sample);
 }
 
-crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
+crée_objet_courbes_simple :: fonc (parent: Abc_Generic_Output_Object, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
 {
     matrice_curves := crée_xform_neutre_pour_objet(parent, nom, ts);
 
     curves := abc_output_curves_create(matrice_curves, "Curves", ts);
+    schema := get_schema(curves);
 
-    curves_sample := abc_output_curves_sample_create(curves);
-    diffère abc_output_curves_sample_destroy(curves_sample);
+    curves_sample := sample_create(schema);
+    diffère destroy(curves_sample);
 
-    abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
+    set_type(curves_sample, Abc_Curve_Type.LINEAR);
 
-    abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+    set_basis(curves_sample, Abc_Basis_Type.NO_BASIS);
 
     positions := [Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)];
-    abc_output_curves_sample_positions_set(curves_sample, positions);
+    set_positions(curves_sample, positions);
 
     num_vertices := z32.[2];
-    abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+    set_curves_num_vertices(curves_sample, num_vertices);
 
-    abc_output_curves_sample_set(curves, curves_sample);
+    set(schema, curves_sample);
 
     retourne curves;
 }
@@ -1018,29 +1029,30 @@ crée_points_vides :: fonc ()
     chemin := "/tmp/empty-points.abc";
 
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
     points := abc_output_points_create(matrice_objet_point, "PointCloudShape", ts_défaut);
+    schema := get_schema(points);
 
-    point_sample := abc_output_points_sample_create(points);
-    diffère abc_output_points_sample_destroy(point_sample);
+    point_sample := sample_create(schema);
+    diffère destroy(point_sample);
 
     positions: []Vec3;
-    abc_output_points_sample_positions_set(point_sample, positions);
+    set_positions(point_sample, positions);
 
     ids: []n64;
-    abc_output_points_sample_ids_set(point_sample, ids);
+    set_ids(point_sample, ids);
 
-    abc_output_points_sample_set(points, point_sample);
+    set(schema, point_sample);
 }
 
 crée_test_attributs :: fonc ()
@@ -1048,21 +1060,22 @@ crée_test_attributs :: fonc ()
     chemin := "/tmp/attributs-polymesh.abc";
 
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
-    diffère abc_output_archive_destroy(archive);
+    diffère destroy(archive);
 
-    ts_défaut := abc_output_archive_default_time_sampling(archive);
+    ts_défaut := default_time_sampling(archive);
 
-    racine := abc_output_archive_root_object_get(archive);
+    racine := get_top(archive);
 
     matrice_objet_mesh := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
     mesh := abc_output_polymesh_create(matrice_objet_mesh, "PolyMeshShape", ts_défaut);
+    schema := get_schema(mesh);
 
-    mesh_sample := abc_output_polymesh_sample_create(mesh);
-    diffère abc_output_polymesh_sample_destroy(mesh_sample);
+    mesh_sample := sample_create(schema);
+    diffère destroy(mesh_sample);
 
     positions := [
         Vec3(-1.0, 0.0, -1.0),
@@ -1071,25 +1084,25 @@ crée_test_attributs :: fonc ()
         Vec3(-1.0, 0.0,  1.0),
     ];
 
-    abc_output_polymesh_sample_positions_set(mesh_sample, positions);
+    set_positions(mesh_sample, positions);
 
     face_indices := [0, 1, 2, 3];
-    abc_output_polymesh_sample_face_indices_set(mesh_sample, face_indices);
+    set_face_indices(mesh_sample, face_indices);
 
     face_counts := [4];
-    abc_output_polymesh_sample_face_counts_set(mesh_sample, face_counts);
+    set_face_counts(mesh_sample, face_counts);
 
-    abc_output_polymesh_sample_set(mesh, mesh_sample);
+    set(schema, mesh_sample);
 
-    arb_geom_params := abc_output_polymesh_arb_geom_params_get(mesh);
+    arb_geom_params := get_arb_geom_params(schema);
 
-    geom_param := abc_output_float_geom_param_create(arb_geom_params, vers_abc_string("test"), faux, Abc_Geometry_Scope.UNIFORM, 1);
+    geom_param := abc_output_float_geom_param_create(arb_geom_params, "test", faux, Abc_Geometry_Scope.UNIFORM, 1);
 
     échantillons := [1.0 / metadata.fps];
     temps_par_cycle := 1.0 / metadata.fps;
-    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+    ts_animation := create_time_sampling(archive, échantillons, temps_par_cycle);
 
-    abc_output_float_geom_param_set_time_sampling(geom_param, ts_animation);
+    set_time_sampling(geom_param, ts_animation);
 
     values := r32.[4, 5, 6, 7];
 
@@ -1103,6 +1116,57 @@ crée_test_attributs :: fonc ()
             sample.values.num_values = 1;
         }
 
-        abc_output_float_geom_param_sample_set(geom_param, *sample);
+        sample_set(geom_param, *sample);
+    }
+}
+
+crée_courbes_vides :: fonc ()
+{
+    chemin := "/tmp/empty-curves.abc";
+
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = "Jorjala";
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère destroy(archive);
+
+    ts_défaut := default_time_sampling(archive);
+
+    échantillons := [1.0 / metadata.fps];
+    temps_par_cycle := 1.0 / metadata.fps;
+    ts_animation := create_time_sampling(archive, échantillons, temps_par_cycle);
+
+    racine := get_top(archive);
+
+    matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
+   
+    curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
+    schema := get_schema(curves);
+
+    curves_sample := sample_create(schema);
+    diffère destroy(curves_sample);
+
+    positions_pleines := [Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)];
+    num_vertices_pleins := z32.[2];
+
+    pour 10 {
+        reset(curves_sample);
+
+        set_type(curves_sample, Abc_Curve_Type.LINEAR);
+        set_basis(curves_sample, Abc_Basis_Type.NO_BASIS);
+
+        positions: []Vec3;
+        num_vertices: []z32;
+
+        si (it + 1) % 2 == 0 {
+            positions = positions_pleines;
+            num_vertices = num_vertices_pleins;
+        }
+
+        set_positions(curves_sample, positions);
+        set_curves_num_vertices(curves_sample, num_vertices);
+
+        set(schema, curves_sample);
     }
 }
