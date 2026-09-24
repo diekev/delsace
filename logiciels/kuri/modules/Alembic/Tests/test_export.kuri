@@ -670,6 +670,7 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
     ts_animation := create_time_sampling(archive, échantillons, temps_par_cycle);
 
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
+    schema := get_schema(curves);
 
     curves_sample := sample_create(curves);
     diffère destroy(curves_sample);
@@ -710,7 +711,7 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
             set_widths(curves_sample, widths, Abc_Geometry_Scope.VERTEX);
         }
 
-        sample_set(curves, curves_sample);
+        set(schema, curves_sample);
     }
 }
 
@@ -730,6 +731,7 @@ crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Sco
     matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
 
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_défaut);
+    schema := get_schema(curves);
 
     curves_sample := sample_create(curves);
     diffère destroy(curves_sample);
@@ -757,7 +759,7 @@ crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Sco
         set_widths(curves_sample, widths, scope);
     }
 
-    sample_set(curves, curves_sample);
+    set(schema, curves_sample);
 }
 
 crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
@@ -978,6 +980,8 @@ crée_objet_points_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: A
 
 initialise_points_simple :: fonc (points: *Abc_Output_Points)
 {
+    schema := get_schema(points);
+
     point_sample := sample_create(points);
     diffère destroy(point_sample);
 
@@ -987,7 +991,7 @@ initialise_points_simple :: fonc (points: *Abc_Output_Points)
     ids := n64.[0];
     set_ids(point_sample, ids);
 
-    sample_set(points, point_sample);
+    set(schema, point_sample);
 }
 
 crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
@@ -995,6 +999,7 @@ crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: 
     matrice_curves := crée_xform_neutre_pour_objet(parent, nom, ts);
 
     curves := abc_output_curves_create(matrice_curves, "Curves", ts);
+    schema := get_schema(curves);
 
     curves_sample := sample_create(curves);
     diffère destroy(curves_sample);
@@ -1009,7 +1014,7 @@ crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: 
     num_vertices := z32.[2];
     set_curves_num_vertices(curves_sample, num_vertices);
 
-    sample_set(curves, curves_sample);
+    set(schema, curves_sample);
 
     retourne curves;
 }
@@ -1031,6 +1036,7 @@ crée_points_vides :: fonc ()
 
     matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
     points := abc_output_points_create(matrice_objet_point, "PointCloudShape", ts_défaut);
+    schema := get_schema(points);
 
     point_sample := sample_create(points);
     diffère destroy(point_sample);
@@ -1041,7 +1047,7 @@ crée_points_vides :: fonc ()
     ids: []n64;
     set_ids(point_sample, ids);
 
-    sample_set(points, point_sample);
+    set(schema, point_sample);
 }
 
 crée_test_attributs :: fonc ()
@@ -1061,6 +1067,7 @@ crée_test_attributs :: fonc ()
 
     matrice_objet_mesh := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
     mesh := abc_output_polymesh_create(matrice_objet_mesh, "PolyMeshShape", ts_défaut);
+    schema := get_schema(mesh);
 
     mesh_sample := sample_create(mesh);
     diffère destroy(mesh_sample);
@@ -1080,7 +1087,7 @@ crée_test_attributs :: fonc ()
     face_counts := [4];
     set_face_counts(mesh_sample, face_counts);
 
-    sample_set(mesh, mesh_sample);
+    set(schema, mesh_sample);
 
     arb_geom_params := get_arb_geom_params(mesh);
 
@@ -1130,6 +1137,7 @@ crée_courbes_vides :: fonc ()
     matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
    
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
+    schema := get_schema(curves);
 
     curves_sample := sample_create(curves);
     diffère destroy(curves_sample);
@@ -1154,6 +1162,6 @@ crée_courbes_vides :: fonc ()
         set_positions(curves_sample, positions);
         set_curves_num_vertices(curves_sample, num_vertices);
 
-        sample_set(curves, curves_sample);
+        set(schema, curves_sample);
     }
 }

@@ -277,9 +277,6 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
     void abc_output_##lowercase_name##_sample_reset(                                              \
         struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
     void abc_output_##lowercase_name##_sample_destroy(                                            \
-        struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
-    void abc_output_##lowercase_name##_sample_set(                                                \
-        struct Abc_Output_##uppercase_name *lowercase_name,                                       \
         struct Abc_Output_##uppercase_name##_Sample *sample);
 
 #define DECLARE_OUTPUT_SAMPLE_SET_FUNCTION(uname, lname, snake_name, method, sample_type)         \
@@ -291,12 +288,7 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
         struct Abc_Output_##uname##_Sample *lname##_sample, sample_type sample);
 
 #define DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                      \
-    struct Abc_Output_Compound_Property *abc_output_##lname##_get_arb_geom_params(                \
-        struct Abc_Output_##uname *lname);                                                        \
-    struct Abc_Output_Compound_Property *abc_output_##lname##_get_user_properties(                \
-        struct Abc_Output_##uname *lname);                                                        \
-    struct Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname);     \
-    void abc_output_##lname##_sample_set_from_previous(struct Abc_Output_##uname *lname);
+    struct Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname);
 
 /* ------------------------------------------------------------------------- */
 /** \nom MetaData
@@ -1388,6 +1380,34 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Function declarations for output schemas.
+ * \{ */
+
+#define DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(upper_name, lower_name)                            \
+    struct Abc_Output_##upper_name##_Schema *abc_output_##lower_name##_get_schema(                \
+        struct Abc_Output_##upper_name *lower_name);                                              \
+    struct Abc_Output_Compound_Property *abc_output_##lower_name##_schema_get_arb_geom_params(    \
+        struct Abc_Output_##upper_name##_Schema *schema);                                         \
+    struct Abc_Output_Compound_Property *abc_output_##lower_name##_schema_get_user_properties(    \
+        struct Abc_Output_##upper_name##_Schema *schema);                                         \
+    void abc_output_##lower_name##_schema_set_time_sampling(                                      \
+        struct Abc_Output_##upper_name##_Schema *schema, struct Abc_Time_Sample_Index index);     \
+    uint64_t abc_output_##lower_name##_schema_get_num_samples(                                    \
+        struct Abc_Output_##upper_name##_Schema *schema);                                         \
+    void abc_output_##lower_name##_schema_reset(struct Abc_Output_##upper_name##_Schema *schema); \
+    bool abc_output_##lower_name##_schema_valid(struct Abc_Output_##upper_name##_Schema *schema);
+
+#define DECLARE_OUTPUT_SCHEMA_SET(upper_name, lower_name, sample_upper_name)                      \
+    void abc_output_##lower_name##_schema_set(struct Abc_Output_##upper_name##_Schema *schema,    \
+                                              struct Abc_##sample_upper_name##_Sample *sample);
+
+#define DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(upper_name, lower_name)                           \
+    void abc_output_##lower_name##_schema_set_from_previous(                                      \
+        struct Abc_Output_##upper_name##_Schema *schema);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Xform
  * \{ */
 
@@ -1408,8 +1428,13 @@ struct Abc_Output_Xform *abc_output_xform_create(struct Abc_Output_Xform *parent
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Xform, xform)
 
+struct Abc_Output_Xform_Schema;
+
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Xform, xform)
+DECLARE_OUTPUT_SCHEMA_SET(Xform, xform, Xform)
+DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Xform, xform)
+
 struct Abc_Xform_Sample *abc_output_xform_sample_create(struct Abc_Output_Xform *xform);
-void abc_output_xform_sample_set(struct Abc_Output_Xform *xform, struct Abc_Xform_Sample *sample);
 
 /** \} */
 
@@ -1429,6 +1454,13 @@ struct Abc_Output_Points *abc_output_points_create(struct Abc_Output_Xform *pare
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
 
+struct Abc_Output_Points_Schema;
+struct Abc_Output_Points_Sample;
+
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Points, points)
+DECLARE_OUTPUT_SCHEMA_SET(Points, points, Output_Points)
+DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Points, points)
+
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_POINTS_SAMPLE_INTERFACE(X)                                                      \
     X(Points, points, set_positions, setPositions, Abc_P3f_Array_Sample)                          \
@@ -1436,7 +1468,6 @@ DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
     X(Points, points, set_ids, setIds, Abc_UInt64_Array_Sample)                                   \
     X(Points, points, set_widths, setWidths, Abc_Output_Float_Geom_Param_Sample)
 
-struct Abc_Output_Points_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(Points, points)
 ENUMERATE_POINTS_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
@@ -1474,6 +1505,13 @@ struct Abc_Output_Curves *abc_output_curves_create(struct Abc_Output_Xform *pare
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
 
+struct Abc_Output_Curves_Schema;
+struct Abc_Output_Curves_Sample;
+
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Curves, curves)
+DECLARE_OUTPUT_SCHEMA_SET(Curves, curves, Output_Curves)
+DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Curves, curves)
+
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_CURVES_SAMPLE_INTERFACE(X)                                                      \
     X(Curves, curves, set_positions, setPositions, Abc_P3f_Array_Sample)                          \
@@ -1486,7 +1524,6 @@ DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
     X(Curves, curves, set_uvs, setUVs, Abc_Output_V2f_Geom_Param_Sample)                          \
     X(Curves, curves, set_normals, setNormals, Abc_Output_N3f_Geom_Param_Sample)
 
-struct Abc_Output_Curves_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
 ENUMERATE_CURVES_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
@@ -1507,21 +1544,23 @@ struct Abc_Output_FaceSet;
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
 
+struct Abc_Output_FaceSet_Schema;
+struct Abc_Output_FaceSet_Sample;
+
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(FaceSet, faceset)
+DECLARE_OUTPUT_SCHEMA_SET(FaceSet, faceset, Output_FaceSet)
+
+enum Abc_FaceSet_Exclusivity abc_output_faceset_schema_get_face_exclusivity(
+    struct Abc_Output_FaceSet_Schema *schema);
+void abc_output_faceset_schema_set_face_exclusivity(struct Abc_Output_FaceSet_Schema *schema,
+                                                    enum Abc_FaceSet_Exclusivity exclusivity);
+
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_FACESET_SAMPLE_INTERFACE(X)                                                     \
     X(FaceSet, faceset, set_faces, setFaces, Abc_Int32_Array_Sample)
 
-struct Abc_Output_FaceSet_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(FaceSet, faceset)
 ENUMERATE_FACESET_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
-
-void abc_output_faceset_schema_set_time_sampling(struct Abc_Output_FaceSet *faceset,
-                                                 struct Abc_Time_Sample_Index index);
-uint64_t abc_output_faceset_schema_get_num_samples(struct Abc_Output_FaceSet *faceset);
-enum Abc_FaceSet_Exclusivity abc_output_faceset_schema_get_face_exclusivity(
-    struct Abc_Output_FaceSet *faceset);
-void abc_output_faceset_schema_set_face_exclusivity(struct Abc_Output_FaceSet *faceset,
-                                                    enum Abc_FaceSet_Exclusivity exclusivity);
 
 void abc_output_faceset_schema_sample_set_self_bounds(struct Abc_Output_FaceSet_Sample *sample,
                                                       struct Abc_Box3d *bounds);
@@ -1541,11 +1580,18 @@ struct Abc_Output_PolyMesh *abc_output_polymesh_create(
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
-struct Abc_Output_FaceSet *abc_output_polymesh_create_faceset(struct Abc_Output_PolyMesh *mesh,
-                                                              struct Abc_String name);
+struct Abc_Output_PolyMesh_Schema;
+struct Abc_Output_PolyMesh_Sample;
 
-void abc_output_polymesh_set_uv_source_name(struct Abc_Output_PolyMesh *mesh,
-                                            struct Abc_String name);
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
+DECLARE_OUTPUT_SCHEMA_SET(PolyMesh, polymesh, Output_PolyMesh)
+DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(PolyMesh, polymesh)
+
+struct Abc_Output_FaceSet *abc_output_polymesh_schema_create_faceset(
+    struct Abc_Output_PolyMesh_Schema *schema, struct Abc_String name);
+
+void abc_output_polymesh_schema_set_uv_source_name(struct Abc_Output_PolyMesh_Schema *schema,
+                                                   struct Abc_String name);
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_POLYMESH_SAMPLE_INTERFACE(X)                                                    \
@@ -1555,8 +1601,6 @@ void abc_output_polymesh_set_uv_source_name(struct Abc_Output_PolyMesh *mesh,
     X(PolyMesh, polymesh, set_face_counts, setFaceCounts, Abc_Int32_Array_Sample)                 \
     X(PolyMesh, polymesh, set_uvs, setUVs, Abc_Output_V2f_Geom_Param_Sample)                      \
     X(PolyMesh, polymesh, set_normals, setNormals, Abc_Output_N3f_Geom_Param_Sample)
-
-struct Abc_Output_PolyMesh_Sample;
 
 DECLARE_COMMON_SAMPLE_FONCTIONS(PolyMesh, polymesh)
 
@@ -1576,10 +1620,18 @@ struct Abc_Output_SubD *abc_output_subd_create(struct Abc_Output_Xform *parent,
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
-struct Abc_Output_FaceSet *abc_output_subd_create_faceset(struct Abc_Output_SubD *subd,
-                                                          struct Abc_String name);
+struct Abc_Output_SubD_Schema;
+struct Abc_Output_SubD_Sample;
 
-void abc_output_subd_set_uv_source_name(struct Abc_Output_SubD *subd, struct Abc_String name);
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(SubD, subd)
+DECLARE_OUTPUT_SCHEMA_SET(SubD, subd, Output_SubD)
+DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(SubD, subd)
+
+struct Abc_Output_FaceSet *abc_output_subd_schema_create_faceset(
+    struct Abc_Output_SubD_Schema *schema, struct Abc_String name);
+
+void abc_output_subd_schema_set_uv_source_name(struct Abc_Output_SubD_Schema *schema,
+                                               struct Abc_String name);
 
 #define ENUMERATE_SUBD_SAMPLE_INTERFACE(X)                                                        \
     X(SubD, subd, set_positions, setPositions, Abc_P3f_Array_Sample)                              \
@@ -1593,8 +1645,6 @@ void abc_output_subd_set_uv_source_name(struct Abc_Output_SubD *subd, struct Abc
     X(SubD, subd, set_corner_indices, setCornerIndices, Abc_Int32_Array_Sample)                   \
     X(SubD, subd, set_corner_sharpnesses, setCornerSharpnesses, Abc_Float_Array_Sample)           \
     X(SubD, subd, set_holes, setHoles, Abc_Int32_Array_Sample)
-
-struct Abc_Output_SubD_Sample;
 
 DECLARE_COMMON_SAMPLE_FONCTIONS(SubD, subd)
 
@@ -1626,13 +1676,16 @@ struct Abc_Output_Camera *abc_output_camera_create(struct Abc_Output_Xform *pare
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Camera, camera)
 
+struct Abc_Output_Camera_Schema;
+
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Camera, camera)
+DECLARE_OUTPUT_SCHEMA_SET(Camera, camera, Camera)
+DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Camera, camera)
+
 struct Abc_Camera_Sample *abc_output_camera_create_sample(struct Abc_Output_Camera *camera);
 
 struct Abc_Camera_Sample *abc_output_camera_sample_create_window(
     struct Abc_Output_Archive *archive, double top, double bottom, double left, double right);
-
-void abc_output_camera_sample_set(struct Abc_Output_Camera *camera,
-                                  struct Abc_Camera_Sample *sample);
 
 /** \} */
 
@@ -1646,6 +1699,13 @@ struct Abc_Output_NuPatch *abc_output_nupatch_create(
     struct Abc_Time_Sample_Index time_sample_index);
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
+
+struct Abc_Output_NuPatch_Schema;
+struct Abc_Output_NuPatch_Sample;
+
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(NuPatch, nupatch)
+DECLARE_OUTPUT_SCHEMA_SET(NuPatch, nupatch, Output_NuPatch)
+DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(NuPatch, nupatch)
 
 #define ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(X)                                       \
     X(NuPatch, nupatch, set_nu, setNu, int32_t)                                                   \
@@ -1661,8 +1721,6 @@ DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
     X(NuPatch, nupatch, set_uvs, setUVs, Abc_Output_V2f_Geom_Param_Sample)                        \
     X(NuPatch, nupatch, set_normals, setNormals, Abc_Output_N3f_Geom_Param_Sample)                \
     X(NuPatch, nupatch, set_velocities, setVelocities, Abc_V3f_Array_Sample)
-
-struct Abc_Output_NuPatch_Sample;
 
 DECLARE_COMMON_SAMPLE_FONCTIONS(NuPatch, nupatch)
 
@@ -1693,8 +1751,13 @@ struct Abc_Output_Light *abc_output_light_create(struct Abc_Output_Xform *parent
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Light, light)
 
-void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
-                                        struct Abc_Camera_Sample *sample);
+struct Abc_Output_Light_Schema;
+
+DECLARE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Light, light)
+DECLARE_OUTPUT_SCHEMA_SET_FROM_PREVIOUS(Light, light)
+
+void abc_output_light_schema_set_camera_sample(struct Abc_Output_Light_Schema *schema,
+                                               struct Abc_Camera_Sample *sample);
 
 /** \} */
 
@@ -1707,42 +1770,46 @@ struct Abc_Output_Material *abc_output_material_create(struct Abc_Output_Xform *
 
 struct Abc_MetaData *abc_output_material_get_metadata(struct Abc_Output_Material *metarial);
 
-void abc_output_material_set_shader(struct Abc_Output_Material *material,
-                                    Abc_String target,
-                                    Abc_String shader_type,
-                                    Abc_String shader_name);
+struct Abc_Output_Material_Schema *abc_output_material_get_schema(
+    struct Abc_Output_Material *material);
 
-struct Abc_Output_Compound_Property *abc_output_material_get_shader_parameters(
-    struct Abc_Output_Material *material, Abc_String target, Abc_String shader_type);
+void abc_output_material_schema_set_shader(struct Abc_Output_Material_Schema *schema,
+                                           Abc_String target,
+                                           Abc_String shader_type,
+                                           Abc_String shader_name);
 
-void abc_output_material_add_network_node(struct Abc_Output_Material *material,
-                                          Abc_String node_name,
-                                          Abc_String target,
-                                          Abc_String node_type);
+struct Abc_Output_Compound_Property *abc_output_material_schema_get_shader_parameters(
+    struct Abc_Output_Material_Schema *schema, Abc_String target, Abc_String shader_type);
 
-void abc_output_material_set_network_node_connection(struct Abc_Output_Material *material,
+void abc_output_material_schema_add_network_node(struct Abc_Output_Material_Schema *schema,
+                                                 Abc_String node_name,
+                                                 Abc_String target,
+                                                 Abc_String node_type);
+
+void abc_output_material_schema_set_network_node_connection(
+    struct Abc_Output_Material_Schema *schema,
+    Abc_String node_name,
+    Abc_String input_name,
+    Abc_String connected_node_name,
+    Abc_String connected_output_name);
+
+struct Abc_Output_Compound_Property *abc_output_material_schema_get_network_node_parameters(
+    struct Abc_Output_Material_Schema *schema, Abc_String node_name);
+
+void abc_output_material_schema_set_network_terminal(struct Abc_Output_Material_Schema *schema,
+                                                     Abc_String target,
+                                                     Abc_String shader_type,
                                                      Abc_String node_name,
-                                                     Abc_String input_name,
-                                                     Abc_String connected_node_name,
-                                                     Abc_String connected_output_name);
+                                                     Abc_String output_name);
 
-struct Abc_Output_Compound_Property *abc_output_material_get_network_node_parameters(
-    struct Abc_Output_Material *material, Abc_String node_name);
-
-void abc_output_material_set_network_terminal(struct Abc_Output_Material *material,
-                                              Abc_String target,
-                                              Abc_String shader_type,
-                                              Abc_String node_name,
-                                              Abc_String output_name);
-
-void abc_output_material_set_network_interface_parameter_mapping(
-    struct Abc_Output_Material *material,
+void abc_output_material_schema_set_network_interface_parameter_mapping(
+    struct Abc_Output_Material_Schema *schema,
     Abc_String interface_param_name,
     Abc_String map_to_node_name,
     Abc_String map_to_param_name);
 
-struct Abc_Output_Compound_Property *abc_output_material_get_network_interface_parameters(
-    struct Abc_Output_Material *material);
+struct Abc_Output_Compound_Property *abc_output_material_schema_get_network_interface_parameters(
+    struct Abc_Output_Material_Schema *schema);
 
 /** \} */
 

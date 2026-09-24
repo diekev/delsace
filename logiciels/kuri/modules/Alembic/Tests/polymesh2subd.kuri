@@ -124,6 +124,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
     ts_subd := create_time_sampling(archive, time_sampling);
     matrice_subd := crée_xform_neutre_pour_objet(racine, nom_parent, ts_parent);
     subd := abc_output_subd_create(matrice_subd, nom_polymesh, ts_subd);
+    subd_schema := get_schema(subd);
 
     uvs_param := get_uvs_param(schema);
     si valid(uvs_param) {
@@ -132,7 +133,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
         diffère destroy(*abc_source_name);
 
         source_name := vers_kuri(abc_source_name);
-        set_uv_source_name(subd, source_name);
+        set_uv_source_name(subd_schema, source_name);
     }
 
     pour num_samples {
@@ -178,7 +179,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
             set_uvs(subd_sample, output_uvs);
         }
 
-        sample_set(subd, subd_sample);
+        set(subd_schema, subd_sample);
     }
 
     faceset_names := get_faceset_names(schema);
@@ -192,11 +193,12 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
 
         num_samples_faceset := get_num_samples(faceset_schema);
 
-        output_faceset := create_faceset(subd, it);
-        schema_set_time_sampling(output_faceset, ts_output_facest);
+        output_faceset := create_faceset(subd_schema, it);
+        output_schema := get_schema(output_faceset);
+        set_time_sampling(output_schema, ts_output_facest);
 
         exclusivity := get_face_exclusivity(faceset_schema);
-        schema_set_face_exclusivity(output_faceset, exclusivity);
+        set_face_exclusivity(output_schema, exclusivity);
 
         output_sample := sample_create(output_faceset);
         diffère destroy(output_sample);
@@ -216,7 +218,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
             self_bounds := get_self_bounds(faceset_sample);
             abc_output_faceset_schema_sample_set_self_bounds(output_sample, *self_bounds);
 
-            sample_set(output_faceset, output_sample);
+            set(output_schema, output_sample);
         }
     }
 }
