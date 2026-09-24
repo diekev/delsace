@@ -295,21 +295,6 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
 
 #undef DECLARE_ABC_OUTPUT_GEOM_PARAMS
 
-#define DEFINE_OUTPUT_SAMPLE_FUNCTIONS(uname, lname, snake_name, method, sample_type)             \
-    void abc_output_##lname##_sample_##snake_name(                                                \
-        struct Abc_Output_##uname##_Sample *lname##_sample, struct sample_type sample)            \
-    {                                                                                             \
-        auto typed_sample = make_typed_sample(sample, &lname##_sample->sample_data);              \
-        lname##_sample->sample.method(typed_sample);                                              \
-    }
-
-#define DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS(uname, lname, snake_name, method, sample_type)      \
-    void abc_output_##lname##_sample_##snake_name(                                                \
-        struct Abc_Output_##uname##_Sample *lname##_sample, sample_type sample)                   \
-    {                                                                                             \
-        lname##_sample->sample.method(sample);                                                    \
-    }
-
 #define DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                       \
     Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname)             \
     {                                                                                             \
@@ -542,6 +527,53 @@ struct Abc_Output_Schema {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Schema_Sample
+ * \{ */
+
+struct Abc_Output_Schema_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    Array_Sample_Data sample_data{};
+};
+
+#define DEFINE_OUTPUT_SAMPLE_FUNCTIONS(uname, lname, snake_name, method, sample_type)             \
+    void abc_output_##lname##_sample_##snake_name(                                                \
+        struct Abc_Output_##uname##_Sample *lname##_sample, struct sample_type sample)            \
+    {                                                                                             \
+        auto typed_sample = make_typed_sample(sample, &lname##_sample->sample_data);              \
+        lname##_sample->sample.method(typed_sample);                                              \
+    }
+
+#define DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS(uname, lname, snake_name, method, sample_type)      \
+    void abc_output_##lname##_sample_##snake_name(                                                \
+        struct Abc_Output_##uname##_Sample *lname##_sample, sample_type sample)                   \
+    {                                                                                             \
+        lname##_sample->sample.method(sample);                                                    \
+    }
+
+#define DEFINE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                            \
+    Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(            \
+        Abc_Output_##uppercase_name *lowercase_name)                                              \
+    {                                                                                             \
+        auto résultat = kuri_loge<Abc_Output_##uppercase_name##_Sample>(                          \
+            lowercase_name->archive->ctx_kuri);                                                   \
+        résultat->ctx_kuri = lowercase_name->archive->ctx_kuri;                                   \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_output_##lowercase_name##_sample_reset(Abc_Output_##uppercase_name##_Sample *sample) \
+    {                                                                                             \
+        sample->sample.reset();                                                                   \
+    }                                                                                             \
+    void abc_output_##lowercase_name##_sample_destroy(                                            \
+        Abc_Output_##uppercase_name##_Sample *sample)                                             \
+    {                                                                                             \
+        if (sample) {                                                                             \
+            kuri_deloge(sample->ctx_kuri, sample);                                                \
+        }                                                                                         \
+    }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Xform
  * \{ */
 
@@ -600,27 +632,6 @@ Abc_Xform_Sample *abc_output_xform_sample_create(Abc_Output_Xform *xform)
     return résultat;
 }
 
-#define DEFINE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                            \
-    Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(            \
-        Abc_Output_##uppercase_name *lowercase_name)                                              \
-    {                                                                                             \
-        auto résultat = kuri_loge<Abc_Output_##uppercase_name##_Sample>(                          \
-            lowercase_name->archive->ctx_kuri);                                                   \
-        résultat->ctx_kuri = lowercase_name->archive->ctx_kuri;                                   \
-        return résultat;                                                                          \
-    }                                                                                             \
-    void abc_output_##lowercase_name##_sample_reset(Abc_Output_##uppercase_name##_Sample *sample) \
-    {                                                                                             \
-        sample->sample.reset();                                                                   \
-    }                                                                                             \
-    void abc_output_##lowercase_name##_sample_destroy(                                            \
-        Abc_Output_##uppercase_name##_Sample *sample)                                             \
-    {                                                                                             \
-        if (sample) {                                                                             \
-            kuri_deloge(sample->ctx_kuri, sample);                                                \
-        }                                                                                         \
-    }
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -654,10 +665,8 @@ Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
 
-struct Abc_Output_Points_Sample {
-    ContexteKuri *ctx_kuri = nullptr;
+struct Abc_Output_Points_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OPointsSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Points, points)
@@ -701,10 +710,8 @@ Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
 
-struct Abc_Output_Curves_Sample {
-    ContexteKuri *ctx_kuri = nullptr;
+struct Abc_Output_Curves_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OCurvesSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(Curves, curves)
@@ -756,10 +763,8 @@ struct Abc_Output_FaceSet : public Abc_Output_Object {
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
 
-struct Abc_Output_FaceSet_Sample {
-    ContexteKuri *ctx_kuri = nullptr;
+struct Abc_Output_FaceSet_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OFaceSetSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(FaceSet, faceset)
@@ -821,10 +826,8 @@ Abc_Output_PolyMesh *abc_output_polymesh_create(Abc_Output_Xform *parent,
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
-struct Abc_Output_PolyMesh_Sample {
-    ContexteKuri *ctx_kuri = nullptr;
+struct Abc_Output_PolyMesh_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OPolyMeshSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(PolyMesh, polymesh)
@@ -882,10 +885,8 @@ Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
-struct Abc_Output_SubD_Sample {
-    ContexteKuri *ctx_kuri = nullptr;
+struct Abc_Output_SubD_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::OSubDSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(SubD, subd)
@@ -1020,10 +1021,8 @@ Abc_Output_NuPatch *abc_output_nupatch_create(Abc_Output_Xform *parent,
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
 
-struct Abc_Output_NuPatch_Sample {
-    ContexteKuri *ctx_kuri = nullptr;
+struct Abc_Output_NuPatch_Sample : public Abc_Output_Schema_Sample {
     AbcGeom::ONuPatchSchema::Sample sample{};
-    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_OUTPUT_SCHEMA_FUNCTIONS(NuPatch, nupatch)
