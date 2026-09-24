@@ -69,7 +69,7 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
         imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
         retourne;
     }
-    diffère abc_input_archive_destroy(iarchive);
+    diffère destroy(iarchive);
 
     iarchive_courante = iarchive;
 
@@ -117,7 +117,7 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
 
 pour_chaque_objet :: fonc (iarchive: *Abc_Input_Archive, filtre: Filtre_Objet, rappel: fonc (object: Abc_Generic_Input_Object))
 {
-    top := abc_input_archive_get_top(iarchive);
+    top := get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
         retourne;
@@ -145,22 +145,22 @@ imprime_infos_archive :: fonc (iarchive: *Abc_Input_Archive)
 {
     start_time: r64;
     end_time: r64;
-    abc_input_archive_get_start_and_end_time(iarchive, *start_time, *end_time);
+    get_start_and_end_time(iarchive, *start_time, *end_time);
 
     imprime_chemin_archive_courante();
     imprimeln("    Start Time: %", start_time);
     imprimeln("    End Time  : %", end_time);
 
-    metadata := abc_input_archive_get_metadata(iarchive);
-    diffère abc_metadata_destroy(metadata);
+    metadata := get_metadata(iarchive);
+    diffère destroy(metadata);
 
-    iterator := abc_metadata_get_iterator(metadata);
+    iterator := get_iterator(metadata);
 
     boucle {
         clé: Abc_String;
         valeur: Abc_String;
 
-        saufsi abc_metadata_iterator_next(iterator, *clé, *valeur) {
+        saufsi next(iterator, *clé, *valeur) {
             arrête;
         }
 
@@ -183,12 +183,12 @@ imprime_métadonnées_archives :: fonc (chemin: chaine)
             imprimeln("Impossible d'ouvrir l'archive '%'", it);
             continue;
         }
-        diffère abc_input_archive_destroy(iarchive);
+        diffère destroy(iarchive);
 
-        metadata := abc_input_archive_get_metadata(iarchive);
-        diffère abc_metadata_destroy(metadata);
+        metadata := get_metadata(iarchive);
+        diffère destroy(metadata);
 
-        iterator := abc_metadata_get_iterator(metadata);
+        iterator := get_iterator(metadata);
 
         application: chaine;
         description: chaine;
@@ -197,7 +197,7 @@ imprime_métadonnées_archives :: fonc (chemin: chaine)
             clé: Abc_String;
             valeur: Abc_String;
 
-            saufsi abc_metadata_iterator_next(iterator, *clé, *valeur) {
+            saufsi next(iterator, *clé, *valeur) {
                 arrête;
             }
 
@@ -230,14 +230,14 @@ imprime_métadonnées_archives :: fonc (chemin: chaine)
 
 imprime_hiérarchie_archive :: fonc (iarchive: *Abc_Input_Archive)
 {
-    top := abc_input_archive_get_top(iarchive);
+    top := get_top(iarchive);
     saufsi abc_input_object_valid(top) {
         imprimeln("L'object top n'est pas valide");
         retourne;
     }
 
-    metadata := abc_input_archive_get_metadata(iarchive);
-    diffère abc_metadata_destroy(metadata);
+    metadata := get_metadata(iarchive);
+    diffère destroy(metadata);
 
     imprime_metadata(metadata);
 
@@ -250,52 +250,52 @@ imprime_hiérarchie_archive :: fonc (iarchive: *Abc_Input_Archive)
 traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header)
 {
     nom: Abc_String;
-    abc_object_header_get_name(header, *nom);
+    get_name(header, *nom);
     next_object: Abc_Generic_Input_Object;
     
-    si abc_object_header_matches_camera(header) {
+    si matches_camera(header) {
         camera := abc_input_camera_get(parent, nom);
         next_object = camera;
     }
-    sinon si abc_object_header_matches_curves(header) {
+    sinon si matches_curves(header) {
         curves := abc_input_curves_get(parent, nom);
         next_object = curves;
     }
-    sinon si abc_object_header_matches_faceset(header) {
+    sinon si matches_faceset(header) {
         /* Les FaceSet sont gérés via les PolyMesh et SubD. */
     }
-    sinon si abc_object_header_matches_light(header) {
+    sinon si matches_light(header) {
         light := abc_input_light_get(parent, nom);
         next_object = light;
     }
-    sinon si abc_object_header_matches_material(header) {
+    sinon si matches_material(header) {
         material := abc_input_material_get(parent, nom);
         next_object = material;
     }
-    sinon si abc_object_header_matches_nupatch(header) {
+    sinon si matches_nupatch(header) {
         nupatch := abc_input_nupatch_get(parent, nom);
         next_object = nupatch;
     }
-    sinon si abc_object_header_matches_points(header) {
+    sinon si matches_points(header) {
         points := abc_input_points_get(parent, nom);
         next_object = points;
     }
-    sinon si abc_object_header_matches_polymesh(header) {
+    sinon si matches_polymesh(header) {
         polymesh := abc_input_polymesh_get(parent, nom);
         next_object = polymesh;
     }
-    sinon si abc_object_header_matches_subd(header) {
+    sinon si matches_subd(header) {
         subd := abc_input_subd_get(parent, nom);
         next_object = subd;
     }
-    sinon si abc_object_header_matches_xform(header) {
+    sinon si matches_xform(header) {
         xform := abc_input_xform_get(parent, nom);
         next_object = xform;
     }
     sinon {
         next_object = abc_input_object_get_child(parent, nom);
 
-        si abc_input_object_is_instance_root(next_object.object) {
+        si is_instance_root(next_object.object) {
             abc_input_object_get_full_name(next_object, *nom);
             imprimeln("%", vers_kuri(nom));
         }
@@ -305,13 +305,13 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
         abc_input_object_get_full_name(next_object, *nom);
         imprimeln("%", vers_kuri(nom));
 
-        metadata := abc_object_header_get_metadata(header);
-        diffère abc_metadata_destroy(metadata);
+        metadata := get_metadata(header);
+        diffère destroy(metadata);
         imprime_metadata(metadata);
 
         visibility_prop := abc_input_object_get_visibility_property(next_object);
         si abc_input_scalar_property_valid(visibility_prop) {
-            visibility := abc_input_visibility_property_get(visibility_prop, Abc_Sample_Selector());
+            visibility := get(visibility_prop, Abc_Sample_Selector());
             imprimeln("    visibility : %", visibility);
         }
 
@@ -349,10 +349,10 @@ Filtre_Objet :: énum_drapeau {
 rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header, résultat: *[..]Abc_Generic_Input_Object, filtre: Filtre_Objet)
 {
     nom: Abc_String;
-    abc_object_header_get_name(header, *nom);
+    get_name(header, *nom);
     next_object: Abc_Generic_Input_Object;
     
-    si abc_object_header_matches_camera(header) {
+    si matches_camera(header) {
         camera := abc_input_camera_get(parent, nom);
         next_object = camera;
 
@@ -360,7 +360,7 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             tableau_ajoute(résultat, next_object);
         }
     }
-    sinon si abc_object_header_matches_curves(header) {
+    sinon si matches_curves(header) {
         curves := abc_input_curves_get(parent, nom);
         next_object = curves;
 
@@ -368,10 +368,10 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             tableau_ajoute(résultat, next_object);
         }
     }
-    sinon si abc_object_header_matches_faceset(header) {
+    sinon si matches_faceset(header) {
         /* Les FaceSet sont gérés via les PolyMesh et SubD. */
     }
-    sinon si abc_object_header_matches_light(header) {
+    sinon si matches_light(header) {
         light := abc_input_light_get(parent, nom);
         next_object = light;
 
@@ -379,7 +379,7 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             tableau_ajoute(résultat, next_object);
         }
     }
-    sinon si abc_object_header_matches_material(header) {
+    sinon si matches_material(header) {
         material := abc_input_material_get(parent, nom);
         next_object = material;
 
@@ -387,7 +387,7 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             tableau_ajoute(résultat, next_object);
         }
     }
-    sinon si abc_object_header_matches_nupatch(header) {
+    sinon si matches_nupatch(header) {
         nupatch := abc_input_nupatch_get(parent, nom);
         next_object = nupatch;
 
@@ -395,7 +395,7 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             tableau_ajoute(résultat, next_object);
         }
     }
-    sinon si abc_object_header_matches_points(header) {
+    sinon si matches_points(header) {
         points := abc_input_points_get(parent, nom);
         next_object = points;
 
@@ -403,7 +403,7 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             tableau_ajoute(résultat, next_object);
         }
     }
-    sinon si abc_object_header_matches_polymesh(header) {
+    sinon si matches_polymesh(header) {
         polymesh := abc_input_polymesh_get(parent, nom);
         next_object = polymesh;
 
@@ -411,7 +411,7 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             tableau_ajoute(résultat, next_object);
         }
     }
-    sinon si abc_object_header_matches_subd(header) {
+    sinon si matches_subd(header) {
         subd := abc_input_subd_get(parent, nom);
         next_object = subd;
 
@@ -419,7 +419,7 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
             tableau_ajoute(résultat, next_object);
         }
     }
-    sinon si abc_object_header_matches_xform(header) {
+    sinon si matches_xform(header) {
         xform := abc_input_xform_get(parent, nom);
         next_object = xform;
 
@@ -430,7 +430,7 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
     sinon {
         next_object = abc_input_object_get_child(parent, nom);
 
-        si abc_input_object_is_instance_root(next_object.object) && filtre.INSTANCE_ROOT {
+        si is_instance_root(next_object.object) && filtre.INSTANCE_ROOT {
             tableau_ajoute(résultat, next_object);
         }
     }
@@ -445,12 +445,12 @@ rassemble_objets :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_
 
 imprime_metadata :: fonc (metadata: *Abc_MetaData)
 {
-    iterator := abc_metadata_get_iterator(metadata);
+    iterator := get_iterator(metadata);
     boucle {
         clé: Abc_String;
         valeur: Abc_String;
 
-        saufsi abc_metadata_iterator_next(iterator, *clé, *valeur) {
+        saufsi next(iterator, *clé, *valeur) {
             arrête;
         }
 
@@ -460,12 +460,12 @@ imprime_metadata :: fonc (metadata: *Abc_MetaData)
 
 imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
 {
-    saufsi abc_input_compound_property_valid(props) {
+    saufsi valid(props) {
        retourne;
     }
 
     imprimeln("    %", nom);
-    num := abc_input_compound_property_get_num_properties(props);
+    num := get_num_properties(props);
     si num == 0 {
         imprimeln("        No properties");
         retourne;
@@ -474,8 +474,8 @@ imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
     // imprime_chemin_archive_courante();
 
     pour prop_index dans num {
-        prop_header := abc_input_compound_property_get_property_header(props, prop_index);
-        prop_type := abc_property_header_get_property_type(prop_header);
+        prop_header := get_property_header(props, prop_index);
+        prop_type := get_property_type(prop_header);
 
         si prop_type == Abc_Property_Type.SCALAR {
             imprime_propriété_scalaire(props, prop_header);
@@ -484,8 +484,8 @@ imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
             imprime_propriété_array(props, prop_header);
         }
 
-        metadata := abc_property_header_get_metadata(prop_header);
-        diffère abc_metadata_destroy(metadata);
+        metadata := get_metadata(prop_header);
+        diffère destroy(metadata);
 
         imprime_metadata(metadata);
     }
@@ -494,12 +494,12 @@ imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
 imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_header: *Abc_Property_Header)
 {
     prop_name: Abc_String;
-    abc_property_header_get_name(prop_header, *prop_name);
+    get_name(prop_header, *prop_name);
 
-    prop_type := abc_property_header_get_property_type(prop_header);
+    prop_type := get_property_type(prop_header);
 
     data_type: Abc_Data_Type;
-    abc_property_header_get_data_type(prop_header, *data_type);
+    get_data_type(prop_header, *data_type);
 
     imprimeln("        % (%, %, %)", vers_kuri(prop_name), prop_type, data_type.pod_type, data_type.extent);
 
@@ -509,7 +509,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         BOOLEAN {
             prop := abc_input_bool_property(props, prop_name);
             valeurs: [16]bool;
-            abc_input_bool_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -519,7 +519,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         UINT8 {
             prop := abc_input_uchar_property(props, prop_name);
             valeurs: [16]n8;
-            abc_input_uchar_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -529,7 +529,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         INT8 {
             prop := abc_input_char_property(props, prop_name);
             valeurs: [16]z8;
-            abc_input_char_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -539,7 +539,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         UINT16 {
             prop := abc_input_uint16_property(props, prop_name);
             valeurs: [16]n16;
-            abc_input_uint16_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -549,7 +549,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         INT16 {
             prop := abc_input_int16_property(props, prop_name);
             valeurs: [16]z16;
-            abc_input_int16_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -559,7 +559,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         UINT32 {
             prop := abc_input_uint32_property(props, prop_name);
             valeurs: [16]n32;
-            abc_input_uint32_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -569,7 +569,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         INT32 {
             prop := abc_input_int32_property(props, prop_name);
             valeurs: [16]z32;
-            abc_input_int32_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -579,7 +579,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         UINT64 {
             prop := abc_input_uint64_property(props, prop_name);
             valeurs: [16]n64;
-            abc_input_uint64_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -589,7 +589,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         INT64 {
             prop := abc_input_int64_property(props, prop_name);
             valeurs: [16]z64;
-            abc_input_int64_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -599,7 +599,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         FLOAT16 {
             prop := abc_input_half_property(props, prop_name);
             valeurs: [16]Abc_Half;
-            abc_input_half_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", vers_r16(valeurs[it]));
@@ -609,7 +609,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         FLOAT32 {
             prop := abc_input_float_property(props, prop_name);
             valeurs: [16]r32;
-            abc_input_float_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -619,7 +619,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         FLOAT64 {
             prop := abc_input_double_property(props, prop_name);
             valeurs: [16]r64;
-            abc_input_double_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -629,7 +629,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
         STRING {
             prop := abc_input_string_property(props, prop_name);
             valeurs: [16]Abc_String;
-            abc_input_string_property_get(prop, *valeurs[0], Abc_Sample_Selector());
+            get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", vers_kuri(valeurs[it]));
@@ -644,12 +644,12 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
 imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property @inutilisée, prop_header: *Abc_Property_Header)
 {
     prop_name: Abc_String;
-    abc_property_header_get_name(prop_header, *prop_name);
+    get_name(prop_header, *prop_name);
 
-    prop_type := abc_property_header_get_property_type(prop_header);
+    prop_type := get_property_type(prop_header);
 
     data_type: Abc_Data_Type;
-    abc_property_header_get_data_type(prop_header, *data_type);
+    get_data_type(prop_header, *data_type);
 
     imprimeln("        % (%, %, %)", vers_kuri(prop_name), prop_type, data_type.pod_type, data_type.extent);
 
@@ -668,14 +668,14 @@ imprime_informations_subd :: fonc (object: Abc_Generic_Input_Object)
     selector: Abc_Sample_Selector;
     selector.requested_index = 0;
 
-    schema := abc_input_subd_get_schema(subd);
-    subd_sample := abc_input_subd_schema_get(schema, selector);
-    diffère abc_input_subd_schema_sample_destroy(subd_sample);
+    schema := get_schema(subd);
+    subd_sample := get(schema, selector);
+    diffère destroy(subd_sample);
 
-    face_varying_interpolate_boundary : = abc_input_subd_schema_sample_get_face_varying_interpolate_boundary(subd_sample);
-    face_varying_propagate_corners : = abc_input_subd_schema_sample_get_face_varying_propagate_corners(subd_sample);
-    interpolate_boundary : = abc_input_subd_schema_sample_get_interpolate_boundary(subd_sample);
-    subdivision_scheme : = abc_input_subd_schema_sample_get_subdivision_scheme(subd_sample);
+    face_varying_interpolate_boundary := get_face_varying_interpolate_boundary(subd_sample);
+    face_varying_propagate_corners := get_face_varying_propagate_corners(subd_sample);
+    interpolate_boundary := get_interpolate_boundary(subd_sample);
+    subdivision_scheme := get_subdivision_scheme(subd_sample);
 
     imprimeln("    face_varying_interpolate_boundary : %", face_varying_interpolate_boundary);
     imprimeln("    face_varying_propagate_corners    : %", face_varying_propagate_corners);
@@ -714,28 +714,28 @@ test_données_manquantes_blender :: fonc (object: Abc_Generic_Input_Object)
         retourne;
     }
 
-    saufsi abc_input_compound_property_valid(arb_geom_params) {
+    saufsi valid(arb_geom_params) {
         imprimeln("    .arbGeomParam invalide");
         retourne;
     }
 
-    num_properties := abc_input_compound_property_get_num_properties(arb_geom_params);
+    num_properties := get_num_properties(arb_geom_params);
     si num_properties == 0 {
         imprimeln("    aucune propriété sur .arbGeomParams");
         retourne;
     }
 
-    prop_header := abc_input_compound_property_get_property_header(arb_geom_params, 0);
+    prop_header := get_property_header(arb_geom_params, 0);
     saufsi abc_input_float_geom_param_matches(prop_header) {
         imprimeln("    le premier attribut n'est pas float");
         retourne;
     }
 
     prop_name: Abc_String;
-    abc_property_header_get_name(prop_header, *prop_name);
+    get_name(prop_header, *prop_name);
 
     geom_param := abc_input_float_geom_param_get(arb_geom_params, prop_name);
-    num_samples_geom_params := abc_input_float_geom_param_get_num_samples(geom_param);
+    num_samples_geom_params := get_num_samples(geom_param);
     imprimeln("    num_samples_geom_params : %", num_samples_geom_params);
 }
 
@@ -751,39 +751,39 @@ donne_arb_geom_params :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Co
     résultat: *Abc_Input_Compound_Property;
 
     header := abc_input_object_get_header(objet);
-    si abc_input_object_is_instance_root(objet.object) {
+    si is_instance_root(objet.object) {
         /* Pas de .arbGeomParams. */
     }
-    sinon si abc_object_header_matches_camera(header) {
-        schema := abc_input_camera_get_schema(objet.camera);
-        résultat = abc_input_camera_schema_get_arb_geom_params(schema);
+    sinon si matches_camera(header) {
+        schema := get_schema(objet.camera);
+        résultat = get_arb_geom_params(schema);
     }
-    sinon si abc_object_header_matches_curves(header) {
-        schema := abc_input_curves_get_schema(objet.curves);
-        résultat = abc_input_curves_schema_get_arb_geom_params(schema);
+    sinon si matches_curves(header) {
+        schema := get_schema(objet.curves);
+        résultat = get_arb_geom_params(schema);
     }
-    sinon si abc_object_header_matches_light(header) {
+    sinon si matches_light(header) {
         /* À FAIRE. */
     }
-    sinon si abc_object_header_matches_material(header) {
+    sinon si matches_material(header) {
         /* Pas de arbGeomParams. */
     }
-    sinon si abc_object_header_matches_nupatch(header) {
+    sinon si matches_nupatch(header) {
         /* À FAIRE. */
     }
-    sinon si abc_object_header_matches_points(header) {
-        schema := abc_input_points_get_schema(objet.points);
-        résultat = abc_input_points_schema_get_arb_geom_params(schema);
+    sinon si matches_points(header) {
+        schema := get_schema(objet.points);
+        résultat = get_arb_geom_params(schema);
     }
-    sinon si abc_object_header_matches_polymesh(header) {
-        schema := abc_input_polymesh_get_schema(objet.polymesh);
-        résultat = abc_input_polymesh_schema_get_arb_geom_params(schema);
+    sinon si matches_polymesh(header) {
+        schema := get_schema(objet.polymesh);
+        résultat = get_arb_geom_params(schema);
     }
-    sinon si abc_object_header_matches_subd(header) {
-        schema := abc_input_subd_get_schema(objet.subd);
-        résultat = abc_input_subd_schema_get_arb_geom_params(schema);
+    sinon si matches_subd(header) {
+        schema := get_schema(objet.subd);
+        résultat = get_arb_geom_params(schema);
     }
-    sinon si abc_object_header_matches_xform(header) {
+    sinon si matches_xform(header) {
         /* À FAIRE. */
     }
 
@@ -795,39 +795,39 @@ donne_user_properties :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Co
     résultat: *Abc_Input_Compound_Property;
 
     header := abc_input_object_get_header(objet);
-    si abc_input_object_is_instance_root(objet.object) {
-        /* Pas de .arbGeomParams. */
+    si is_instance_root(objet.object) {
+        /* Pas de .userProperties. */
     }
-    sinon si abc_object_header_matches_camera(header) {
-        schema := abc_input_camera_get_schema(objet.camera);
-        résultat = abc_input_camera_schema_get_user_properties(schema);
+    sinon si matches_camera(header) {
+        schema := get_schema(objet.camera);
+        résultat = get_user_properties(schema);
     }
-    sinon si abc_object_header_matches_curves(header) {
-        schema := abc_input_curves_get_schema(objet.curves);
-        résultat = abc_input_curves_schema_get_user_properties(schema);
+    sinon si matches_curves(header) {
+        schema := get_schema(objet.curves);
+        résultat = get_user_properties(schema);
     }
-    sinon si abc_object_header_matches_light(header) {
+    sinon si matches_light(header) {
         /* À FAIRE. */
     }
-    sinon si abc_object_header_matches_material(header) {
+    sinon si matches_material(header) {
         /* Pas de userProperties. */
     }
-    sinon si abc_object_header_matches_nupatch(header) {
+    sinon si matches_nupatch(header) {
         /* À FAIRE. */
     }
-    sinon si abc_object_header_matches_points(header) {
-        schema := abc_input_points_get_schema(objet.points);
-        résultat = abc_input_points_schema_get_user_properties(schema);
+    sinon si matches_points(header) {
+        schema := get_schema(objet.points);
+        résultat = get_user_properties(schema);
     }
-    sinon si abc_object_header_matches_polymesh(header) {
-        schema := abc_input_polymesh_get_schema(objet.polymesh);
-        résultat = abc_input_polymesh_schema_get_user_properties(schema);
+    sinon si matches_polymesh(header) {
+        schema := get_schema(objet.polymesh);
+        résultat = get_user_properties(schema);
     }
-    sinon si abc_object_header_matches_subd(header) {
-        schema := abc_input_subd_get_schema(objet.subd);
-        résultat = abc_input_subd_schema_get_user_properties(schema);
+    sinon si matches_subd(header) {
+        schema := get_schema(objet.subd);
+        résultat = get_user_properties(schema);
     }
-    sinon si abc_object_header_matches_xform(header) {
+    sinon si matches_xform(header) {
         /* À FAIRE. */
     }
 
@@ -839,17 +839,17 @@ donne_num_samples_schema :: fonc (objet: Abc_Generic_Input_Object) -> n64
     résultat: n64;
 
     header := abc_input_object_get_header(objet);
-    si abc_object_header_matches_points(header) {
-        schema := abc_input_points_get_schema(objet.points);
-        résultat = abc_input_points_schema_get_num_samples(schema);
+    si matches_points(header) {
+        schema := get_schema(objet.points);
+        résultat = get_num_samples(schema);
     }
-    sinon si abc_object_header_matches_polymesh(header) {
-        schema := abc_input_polymesh_get_schema(objet.polymesh);
-        résultat = abc_input_polymesh_schema_get_num_samples(schema);
+    sinon si matches_polymesh(header) {
+        schema := get_schema(objet.polymesh);
+        résultat = get_num_samples(schema);
     }
-    sinon si abc_object_header_matches_curves(header) {
-        schema := abc_input_curves_get_schema(objet.curves);
-        résultat = abc_input_curves_schema_get_num_samples(schema);
+    sinon si matches_curves(header) {
+        schema := get_schema(objet.curves);
+        résultat = get_num_samples(schema);
     }
 
     retourne résultat;
@@ -862,28 +862,28 @@ imprime_animation_attributs :: fonc (object: Abc_Generic_Input_Object)
         retourne;
     }
 
-    saufsi abc_input_compound_property_valid(arb_geom_params) {
+    saufsi valid(arb_geom_params) {
         retourne;
     }
 
-    num_properties := abc_input_compound_property_get_num_properties(arb_geom_params);
+    num_properties := get_num_properties(arb_geom_params);
     si num_properties == 0 {
         retourne;
     }
 
-    prop_header := abc_input_compound_property_get_property_header(arb_geom_params, 0);
+    prop_header := get_property_header(arb_geom_params, 0);
     saufsi abc_input_float_geom_param_matches(prop_header) {
         retourne;
     }
 
     prop_name: Abc_String;
-    abc_property_header_get_name(prop_header, *prop_name);
+    get_name(prop_header, *prop_name);
 
     geom_param := abc_input_float_geom_param_get(arb_geom_params, prop_name);
-    num_samples_geom_params := abc_input_float_geom_param_get_num_samples(geom_param);
+    num_samples_geom_params := get_num_samples(geom_param);
     imprimeln("num_samples_geom_params : %", num_samples_geom_params);
 
-    ts := abc_input_float_geom_param_get_time_sampling(geom_param);
+    ts := get_time_sampling(geom_param);
 
     start_frame, end_frame, ips := calcule_limites_animation_en_image(iarchive_courante, ts);
 
@@ -896,7 +896,7 @@ imprime_animation_attributs :: fonc (object: Abc_Generic_Input_Object)
         selector.requested_index = -1;
 
         geom_param_sample: Abc_Input_Float_Geom_Param_Sample;
-        abc_input_float_geom_param_get_expanded(geom_param, *geom_param_sample, selector);
+        get_expanded(geom_param, *geom_param_sample, selector);
 
         tranche: []r32;
         tranche.données = geom_param_sample.values.values;
@@ -912,14 +912,14 @@ imprime_animation_attributs :: fonc (object: Abc_Generic_Input_Object)
 
 calcule_limites_animation_en_image :: fonc (iarchive: *Abc_Input_Archive, ts: *Abc_Time_Sampling, ips_défaut: r64 = 24.0) -> (début: z64, fin: z64, ips: r64)
 {
-    num_stored_times := abc_time_sampling_get_num_stored_times(ts);
+    num_stored_times := get_num_stored_times(ts);
     imprimeln("num_stored_times : %", num_stored_times);
 
     stored_times: [..]r64;
     diffère déloge(*stored_times);
     tableau_redimensionne(*stored_times, num_stored_times comme z64);
 
-    abc_time_sampling_get_stored_times(ts, *stored_times.données, *stored_times.taille comme *n64);
+    get_stored_times(ts, *stored_times.données, *stored_times.taille comme *n64);
 
     pour stored_times {
         imprimeln("-- %", it);
@@ -927,7 +927,7 @@ calcule_limites_animation_en_image :: fonc (iarchive: *Abc_Input_Archive, ts: *A
 
     start_time: r64;
     end_time: r64;
-    abc_input_archive_get_start_and_end_time(iarchive, *start_time, *end_time);
+    get_start_and_end_time(iarchive, *start_time, *end_time);
 
     imprimeln("start %, end %", start_time, end_time);
 
@@ -968,11 +968,11 @@ imprime_infos_attributs :: fonc (object: Abc_Generic_Input_Object)
 
 imprime_infos_properties :: fonc (props: *Abc_Input_Compound_Property, nom_objet: chaine, message: chaine)
 {
-    saufsi abc_input_compound_property_valid(props) {
+    saufsi valid(props) {
        retourne;
     }
 
-    num := abc_input_compound_property_get_num_properties(props);
+    num := get_num_properties(props);
     si num == 0 {
         retourne;
     }
@@ -980,8 +980,8 @@ imprime_infos_properties :: fonc (props: *Abc_Input_Compound_Property, nom_objet
     première := vrai;
 
     pour prop_index dans num {
-        prop_header := abc_input_compound_property_get_property_header(props, prop_index);
-        prop_type := abc_property_header_get_property_type(prop_header);
+        prop_header := get_property_header(props, prop_index);
+        prop_type := get_property_type(prop_header);
 
         si prop_type == Abc_Property_Type.SCALAR {
             imprime_infos_objet(props, prop_header, nom_objet, message, première);
@@ -1002,7 +1002,7 @@ imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *
     }
 
     // prop_name: Abc_String;
-    // abc_property_header_get_name(prop_header, *prop_name);
+    // get_name(prop_header, *prop_name);
 
     // imprimeln("       %", vers_kuri(prop_name));
 
@@ -1017,8 +1017,8 @@ imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *
 
 imprime_xform_ops :: fonc (object: Abc_Generic_Input_Object)
 {
-    xform_schema := abc_input_xform_get_schema(object.xform);
-    num_ops := abc_input_xform_schema_get_num_ops(xform_schema);
+    xform_schema := get_schema(object.xform);
+    num_ops := get_num_ops(xform_schema);
     si num_ops <= 1 {
         retourne;
     }
@@ -1026,19 +1026,19 @@ imprime_xform_ops :: fonc (object: Abc_Generic_Input_Object)
     imprime_chemin_archive_courante();
     imprimeln("    % ops sur '%'", num_ops, donne_full_name(object));
 
-    sample := abc_input_xform_schema_get_value(xform_schema, Abc_Sample_Selector());
-    diffère abc_xform_sample_destroy(sample);
+    sample := get_value(xform_schema, Abc_Sample_Selector());
+    diffère destroy(sample);
 
     pour op_index dans num_ops {
         xform_op: Abc_Xform_Op = ---;
-        abc_xform_op_init(*xform_op);
+        init(*xform_op);
 
-        abc_xform_sample_get_op(sample, op_index, *xform_op);
+        get_op(sample, op_index, *xform_op);
 
-        op_type := abc_xform_op_get_type(*xform_op);
+        op_type := get_type(*xform_op);
         imprime("        [%] %", op_index, op_type);
 
-        hint := abc_xform_op_get_hint(*xform_op);
+        hint := get_hint(*xform_op);
         discr op_type {
             SCALE_OPERATION {
                 scale_hint := hint comme n32 comme Abc_Scale_Hint;
@@ -1064,29 +1064,29 @@ imprime_xform_ops :: fonc (object: Abc_Generic_Input_Object)
             }
         }
 
-        num_channels := abc_xform_op_get_num_channels(*xform_op);
+        num_channels := get_num_channels(*xform_op);
         si num_channels == 1 {
-            imprimeln("            %", abc_xform_op_get_channel_value(*xform_op, 0));
+            imprimeln("            %", get_channel_value(*xform_op, 0));
         }
         sinon si num_channels == 3 {
-            x := abc_xform_op_get_channel_value(*xform_op, 0);
-            y := abc_xform_op_get_channel_value(*xform_op, 1);
-            z := abc_xform_op_get_channel_value(*xform_op, 2);
+            x := get_channel_value(*xform_op, 0);
+            y := get_channel_value(*xform_op, 1);
+            z := get_channel_value(*xform_op, 2);
             imprimeln("            % % %", x, y, z);
         }
         sinon si num_channels == 4 {
-            x := abc_xform_op_get_channel_value(*xform_op, 0);
-            y := abc_xform_op_get_channel_value(*xform_op, 1);
-            z := abc_xform_op_get_channel_value(*xform_op, 2);
-            w := abc_xform_op_get_channel_value(*xform_op, 3);
+            x := get_channel_value(*xform_op, 0);
+            y := get_channel_value(*xform_op, 1);
+            z := get_channel_value(*xform_op, 2);
+            w := get_channel_value(*xform_op, 3);
             imprimeln("            % % % %", x, y, z, w);
         }
         sinon si num_channels == 16 {
             pour row dans 4 comme n64 {
-                x := abc_xform_op_get_channel_value(*xform_op, row * 4 + 0);
-                y := abc_xform_op_get_channel_value(*xform_op, row * 4 + 1);
-                z := abc_xform_op_get_channel_value(*xform_op, row * 4 + 2);
-                w := abc_xform_op_get_channel_value(*xform_op, row * 4 + 3);
+                x := get_channel_value(*xform_op, row * 4 + 0);
+                y := get_channel_value(*xform_op, row * 4 + 1);
+                z := get_channel_value(*xform_op, row * 4 + 2);
+                w := get_channel_value(*xform_op, row * 4 + 3);
                 imprimeln("            % % % %", x, y, z, w);
             }
         }
@@ -1104,9 +1104,9 @@ imprime_infos_maillage :: fonc (object: Abc_Generic_Input_Object)
     imprimeln("%", donne_full_name(object));
 
     polymesh := object.polymesh;
-    schema := abc_input_polymesh_get_schema(polymesh);
+    schema := get_schema(polymesh);
 
-    variance := abc_input_polymesh_schema_get_topology_variance(schema);
+    variance := get_topology_variance(schema);
     imprimeln("    %", variance);
 }
 
@@ -1121,25 +1121,25 @@ imprime_infos_caméra :: fonc (object: Abc_Generic_Input_Object)
     imprimeln("%", donne_full_name(object));
 
     camera := object.camera;
-    schema := abc_input_camera_get_schema(camera);
+    schema := get_schema(camera);
 
-    sample := abc_input_camera_schema_get_value(schema, Abc_Sample_Selector());
+    sample := get_value(schema, Abc_Sample_Selector());
     child_bounds: Abc_Box3d;
-    abc_camera_sample_get_child_bounds(sample, *child_bounds);
+    get_child_bounds(sample, *child_bounds);
     imprimeln("    child bounds : %", child_bounds);
 
-    num_ops := abc_camera_sample_get_num_ops(sample);
+    num_ops := get_num_ops(sample);
     imprimeln("    num_ops : %", num_ops);
 
     pour op_index dans num_ops {
         op: Abc_Film_Back_Xform_Op = ---;
-        abc_film_back_xform_op_init(*op);
+        init(*op);
 
-        abc_camera_sample_get_op(sample, op_index, *op);
+        get_op(sample, op_index, *op);
 
-        op_type := abc_film_back_xform_op_get_type(*op);
-        op_hint := abc_film_back_xform_op_get_hint(*op);
-        diffère abc_new_string_destroy(*op_hint);
+        op_type := get_type(*op);
+        op_hint := get_hint(*op);
+        diffère destroy(*op_hint);
 
         imprimeln("        [%] % (hint : %)", op_index, op_type, vers_kuri(op_hint));
     }
@@ -1155,35 +1155,35 @@ imprime_infos_facesets :: fonc (object: Abc_Generic_Input_Object)
 {
     header := abc_input_object_get_header(object);
 
-    si abc_object_header_matches_polymesh(header) {
+    si matches_polymesh(header) {
         polymesh := object.polymesh;
-        schema := abc_input_polymesh_get_schema(polymesh);
+        schema := get_schema(polymesh);
 
         names: []Abc_String;
-        abc_input_polymesh_schema_get_faceset_names(schema, *names.données, *names.taille comme *n64);
+        get_faceset_names(schema, *names.données, *names.taille comme *n64);
 
         si names {
             imprimeln("  %", donne_full_name(object));
         }
 
         pour abc_name dans names {
-            faceset := abc_input_polymesh_schema_get_faceset(schema, abc_name);
+            faceset := get_faceset(schema, abc_name);
             imprime_info_faceset(faceset);
         }
     }
-    sinon si abc_object_header_matches_subd(header) {
+    sinon si matches_subd(header) {
         subd := object.subd;
-        schema := abc_input_subd_get_schema(subd);
+        schema := get_schema(subd);
 
         names: []Abc_String;
-        abc_input_subd_schema_get_faceset_names(schema, *names.données, *names.taille comme *n64);
+        get_faceset_names(schema, *names.données, *names.taille comme *n64);
 
         si names {
             imprimeln("  %", donne_full_name(object));
         }
 
         pour abc_name dans names {
-            faceset := abc_input_subd_schema_get_faceset(schema, abc_name);
+            faceset := get_faceset(schema, abc_name);
             imprime_info_faceset(faceset);
         }
     }
@@ -1198,23 +1198,23 @@ imprime_info_faceset :: fonc (faceset: *Abc_Input_FaceSet)
     abc_input_object_get_name(faceset, *abc_name);
     name := vers_kuri(abc_name);
 
-    faceset_schema := abc_input_faceset_get_schema(faceset);
-    num_faceset_samples := abc_input_faceset_schema_get_num_samples(faceset_schema);
-    exclusivity := abc_input_faceset_schema_get_face_exclusivity(faceset_schema);
+    faceset_schema := get_schema(faceset);
+    num_faceset_samples := get_num_samples(faceset_schema);
+    exclusivity := get_face_exclusivity(faceset_schema);
     imprimeln("    % : % samples (%)", name, num_faceset_samples, exclusivity);
 
     // pour num_faceset_samples {
     //     selector := Abc_Sample_Selector();
     //     selector.requested_index = it comme z64;
 
-    //     sample := abc_input_faceset_schema_get(faceset_schema, selector);
-    //     diffère abc_input_faceset_schema_sample_destroy(sample);
+    //     sample := get(faceset_schema, selector);
+    //     diffère destroy(sample);
 
-    //     faces := abc_input_faceset_schema_sample_get_faces(sample);
+    //     faces := get_faces(sample);
     //     imprimeln("        num_faces %", faces.num_values);
 
     //     self_bounds: Abc_Box3d;
-    //     abc_input_faceset_schema_sample_get_self_bounds(sample, *self_bounds);
+    //     get_self_bounds(sample, *self_bounds);
     //     imprimeln("        min : (%, %, %), max (%, %, %)", self_bounds.min.x, self_bounds.min.y, self_bounds.min.z, self_bounds.max.x, self_bounds.max.y, self_bounds.max.z);
     // }
 }

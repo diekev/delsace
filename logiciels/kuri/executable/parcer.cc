@@ -3232,6 +3232,11 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
+    // À FAIRE : généralise ceci.
+    if (config.nom_bibliothèque == "alembic") {
+        config.supprime_préfixes_fonctions = true;
+    }
+
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entête = fichier_entête;
