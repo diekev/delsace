@@ -10,19 +10,9 @@ libabc :: #bibliothèque "Alembic";
 
 charge "interface_alembic";
 
-vers_abc_string :: fonc (chn: chaine) -> Abc_String
-{
-    retourne Abc_String(chn.caractères, chn.taille comme n64);
-}
-
-vers_kuri :: fonc (chn: Abc_String) -> chaine
+vers_kuri :: fonc (chn: Abc_New_String) -> chaine
 {
     retourne chaine(chn.characters, chn.size comme z64);
-}
-
-opérateur == :: (a: Abc_String, b: chaine) -> bool
-{
-    retourne vers_kuri(a) == b;
 }
 
 vers_abc_half :: fonc (v: r16) -> Abc_Half
@@ -58,8 +48,13 @@ ctx_kuri_pour_alembic := initialise_contexte_kuri();
 
 abc_input_archive_create :: fonc (chemin: chaine) -> *Abc_Input_Archive
 {
-    chemin_abc := vers_abc_string(chemin);
+    chemin_abc := chemin;
     retourne abc_input_archive_create(*ctx_kuri_pour_alembic, *chemin_abc, 1);
+}
+
+get_full_name :: fonc (object: Abc_Generic_Input_Object) -> chaine
+{
+    retourne abc_input_object_get_full_name(object);
 }
 
 /** \} */
@@ -77,134 +72,110 @@ abc_output_archive_create :: fonc (chemin: chaine) -> *Abc_Output_Archive
 abc_output_archive_create :: fonc (chemin: chaine, metadata: *Abc_Output_Archive_Metadata) -> *Abc_Output_Archive
 {
     ctx_kuri := *ctx_kuri_pour_alembic;
-    retourne abc_output_archive_create(ctx_kuri, vers_abc_string(chemin), metadata);
+    retourne abc_output_archive_create(ctx_kuri, chemin, metadata);
 }
 
-abc_output_archive_create_time_sampling :: fonc (archive: *Abc_Output_Archive, échantillons: []r64, temps_par_cycle: r64) -> Abc_Time_Sample_Index
+create_time_sampling :: fonc (archive: *Abc_Output_Archive, échantillons: []r64, temps_par_cycle: r64) -> Abc_Time_Sample_Index
 {
-    retourne abc_output_archive_create_time_sampling(archive, échantillons.données, échantillons.taille comme n64, temps_par_cycle);
+    retourne create_time_sampling(archive, échantillons.données, échantillons.taille comme n64, temps_par_cycle);
 }
 
-abc_output_xform_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
-{
-    retourne abc_output_xform_create(parent, vers_abc_string(nom), ts);
-}
-
-abc_output_points_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
-{
-    retourne abc_output_points_create(parent, vers_abc_string(nom), ts);
-}
-
-abc_output_points_sample_positions_set :: fonc (sample: *Abc_Output_Points_Sample, positions: []Vec3)
+set_positions :: fonc (sample: *Abc_Output_Points_Schema_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
     array_sample.values = positions.données comme *Abc_V3f;
     array_sample.num_values = positions.taille comme n64;
-    abc_output_points_sample_positions_set(sample, array_sample);
+    set_positions(sample, array_sample);
 }
 
-abc_output_points_sample_ids_set :: fonc (sample: *Abc_Output_Points_Sample, ids: []n64)
+set_ids :: fonc (sample: *Abc_Output_Points_Schema_Sample, ids: []n64)
 {
     array_sample: Abc_UInt64_Array_Sample = ---;
     array_sample.values = ids.données;
     array_sample.num_values = ids.taille comme n64;
-    abc_output_points_sample_ids_set(sample, array_sample);
+    set_ids(sample, array_sample);
 }
 
-abc_output_curves_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_sample_index: Abc_Time_Sample_Index) -> *Abc_Output_Curves
-{
-    retourne abc_output_curves_create(parent, vers_abc_string(nom), time_sample_index);
-}
-
-abc_output_curves_sample_positions_set :: fonc (sample: *Abc_Output_Curves_Sample, positions: []Vec3)
+set_positions :: fonc (sample: *Abc_Output_Curves_Schema_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
     array_sample.values = positions.données comme *Abc_V3f;
     array_sample.num_values = positions.taille comme n64;
-    abc_output_curves_sample_positions_set(sample, array_sample);
+    set_positions(sample, array_sample);
 }
 
-abc_output_curves_sample_curves_num_vertices_set :: fonc (sample: *Abc_Output_Curves_Sample, num_vertices: []z32)
+set_curves_num_vertices :: fonc (sample: *Abc_Output_Curves_Schema_Sample, num_vertices: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = num_vertices.données;
     array_sample.num_values = num_vertices.taille comme n64;
-    abc_output_curves_sample_curves_num_vertices_set(sample, array_sample);
+    set_curves_num_vertices(sample, array_sample);
 }
 
-abc_output_curves_sample_widths_set :: fonc (sample: *Abc_Output_Curves_Sample, values: []r32, scope: Abc_Geometry_Scope)
+set_widths :: fonc (sample: *Abc_Output_Curves_Schema_Sample, values: []r32, scope: Abc_Geometry_Scope)
 {
     geom_param: Abc_Output_Float_Geom_Param_Sample;
-    geom_param.values = values.données;
-    geom_param.num_values = values.taille comme n64;
+    geom_param.values.values = values.données;
+    geom_param.values.num_values = values.taille comme n64;
     geom_param.scope = scope;
-    abc_output_curves_sample_widths_set(sample, geom_param);
+    set_widths(sample, geom_param);
 }
 
-abc_output_subd_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_sample_index: Abc_Time_Sample_Index) -> *Abc_Output_SubD
-{
-    retourne abc_output_subd_create(parent, vers_abc_string(nom), time_sample_index);
-}
-
-abc_output_subd_sample_positions_set :: fonc (sample: *Abc_Output_SubD_Sample, positions: []Vec3)
+set_positions :: fonc (sample: *Abc_Output_SubD_Schema_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
     array_sample.values = positions.données comme *Abc_V3f;
     array_sample.num_values = positions.taille comme n64;
-    abc_output_subd_sample_positions_set(sample, array_sample);
+    set_positions(sample, array_sample);
 }
 
-abc_output_subd_sample_face_counts_set :: fonc (sample: *Abc_Output_SubD_Sample, values: []z32)
+set_face_counts :: fonc (sample: *Abc_Output_SubD_Schema_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = values.données;
     array_sample.num_values = values.taille comme n64;
-    abc_output_subd_sample_face_counts_set(sample, array_sample);
+    set_face_counts(sample, array_sample);
 }
 
-abc_output_subd_sample_face_indices_set :: fonc (sample: *Abc_Output_SubD_Sample, values: []z32)
+set_face_indices :: fonc (sample: *Abc_Output_SubD_Schema_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = values.données;
     array_sample.num_values = values.taille comme n64;
-    abc_output_subd_sample_face_indices_set(sample, array_sample);
+    set_face_indices(sample, array_sample);
 }
 
-abc_output_polymesh_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_sample_index: Abc_Time_Sample_Index) -> *Abc_Output_PolyMesh
-{
-    retourne abc_output_polymesh_create(parent, vers_abc_string(nom), time_sample_index);
-}
-
-abc_output_polymesh_sample_positions_set :: fonc (sample: *Abc_Output_PolyMesh_Sample, positions: []Vec3)
+set_positions :: fonc (sample: *Abc_Output_PolyMesh_Schema_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
     array_sample.values = positions.données comme *Abc_V3f;
     array_sample.num_values = positions.taille comme n64;
-    abc_output_polymesh_sample_positions_set(sample, array_sample);
+    set_positions(sample, array_sample);
 }
 
-abc_output_polymesh_sample_face_counts_set :: fonc (sample: *Abc_Output_PolyMesh_Sample, values: []z32)
+set_face_counts :: fonc (sample: *Abc_Output_PolyMesh_Schema_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = values.données;
     array_sample.num_values = values.taille comme n64;
-    abc_output_polymesh_sample_face_counts_set(sample, array_sample);
+    set_face_counts(sample, array_sample);
 }
 
-abc_output_polymesh_sample_face_indices_set :: fonc (sample: *Abc_Output_PolyMesh_Sample, values: []z32)
+set_face_indices :: fonc (sample: *Abc_Output_PolyMesh_Schema_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
     array_sample.values = values.données;
     array_sample.num_values = values.taille comme n64;
-    abc_output_polymesh_sample_face_indices_set(sample, array_sample);
+    set_face_indices(sample, array_sample);
 }
 
-crée_xform_neutre_pour_objet :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
+crée_xform_neutre_pour_objet :: fonc (parent: Abc_Generic_Output_Object, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
 {
     résultat := abc_output_xform_create(parent, nom, ts);
+    schema := get_schema(résultat);
 
-    matrix_sample := abc_output_xform_sample_create(résultat);
-    diffère abc_output_xform_sample_destroy(matrix_sample);
+    matrix_sample := sample_create(schema);
+    diffère destroy(matrix_sample);
 
     matrix: Abc_M44d;
     matrix.x[0][0] = 1.0;
@@ -212,9 +183,9 @@ crée_xform_neutre_pour_objet :: fonc (parent: *Abc_Output_Xform, nom: chaine, t
     matrix.x[2][2] = 1.0;
     matrix.x[3][3] = 1.0;
 
-    abc_output_xform_sample_set_matrix(matrix_sample, *matrix);
+    set_matrix(matrix_sample, *matrix);
 
-    abc_output_xform_sample_set(résultat, matrix_sample);
+    set(schema, matrix_sample);
 
     retourne résultat;
 }
