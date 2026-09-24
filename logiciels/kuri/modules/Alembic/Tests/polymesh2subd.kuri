@@ -71,7 +71,7 @@ polymesh2subd :: fonc (chemin: chaine)
 
     ts_défaut := default_time_sampling(oarchive);
 
-    racine := root_object_get(oarchive);
+    racine := get_root_object(oarchive);
 
     pour polymeshes {
         convertis_polymesh(oarchive, racine, it, ts_défaut);

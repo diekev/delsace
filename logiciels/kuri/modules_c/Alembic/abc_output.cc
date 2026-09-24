@@ -534,7 +534,7 @@ struct Abc_Output_Xform : public Abc_Output_Object {
     }
 };
 
-Abc_Output_Xform *abc_output_archive_root_object_get(Abc_Output_Archive *archive)
+Abc_Output_Xform *abc_output_archive_get_root_object(Abc_Output_Archive *archive)
 {
     if (archive->racine) {
         return archive->racine;
