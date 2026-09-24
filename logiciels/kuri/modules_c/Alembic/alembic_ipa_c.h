@@ -291,11 +291,11 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
         struct Abc_Output_##uname##_Sample *lname##_sample, sample_type sample);
 
 #define DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                      \
-    struct Abc_Output_Compound_Property *abc_output_##lname##_arb_geom_params_get(                \
+    struct Abc_Output_Compound_Property *abc_output_##lname##_get_arb_geom_params(                \
         struct Abc_Output_##uname *lname);                                                        \
-    struct Abc_Output_Compound_Property *abc_output_##lname##_user_properties_get(                \
+    struct Abc_Output_Compound_Property *abc_output_##lname##_get_user_properties(                \
         struct Abc_Output_##uname *lname);                                                        \
-    struct Abc_MetaData *abc_output_##lname##_metadata_get(struct Abc_Output_##uname *lname);     \
+    struct Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname);     \
     void abc_output_##lname##_sample_set_from_previous(struct Abc_Output_##uname *lname);
 
 /* ------------------------------------------------------------------------- */
@@ -1705,7 +1705,7 @@ void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
 struct Abc_Output_Material *abc_output_material_create(struct Abc_Output_Xform *parent,
                                                        struct Abc_String nom);
 
-struct Abc_MetaData *abc_output_material_metadata_get(struct Abc_Output_Material *metarial);
+struct Abc_MetaData *abc_output_material_get_metadata(struct Abc_Output_Material *metarial);
 
 void abc_output_material_set_shader(struct Abc_Output_Material *material,
                                     Abc_String target,

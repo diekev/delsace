@@ -311,7 +311,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     }
 
 #define DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                       \
-    Abc_Output_Compound_Property *abc_output_##lname##_arb_geom_params_get(                       \
+    Abc_Output_Compound_Property *abc_output_##lname##_get_arb_geom_params(                       \
         struct Abc_Output_##uname *lname)                                                         \
     {                                                                                             \
         if (!lname->arb_geom_params_initialized) {                                                \
@@ -321,7 +321,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
         }                                                                                         \
         return &lname->arb_geom_params;                                                           \
     }                                                                                             \
-    Abc_Output_Compound_Property *abc_output_##lname##_user_properties_get(                       \
+    Abc_Output_Compound_Property *abc_output_##lname##_get_user_properties(                       \
         struct Abc_Output_##uname *lname)                                                         \
     {                                                                                             \
         if (!lname->user_properties_initialized) {                                                \
@@ -331,7 +331,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
         }                                                                                         \
         return &lname->user_properties;                                                           \
     }                                                                                             \
-    Abc_MetaData *abc_output_##lname##_metadata_get(struct Abc_Output_##uname *lname)             \
+    Abc_MetaData *abc_output_##lname##_get_metadata(struct Abc_Output_##uname *lname)             \
     {                                                                                             \
         if (!lname->metadata_initialized) {                                                       \
             lname->get_metadata(&lname->metadata_);                                               \
@@ -1256,7 +1256,7 @@ Abc_Output_Material *abc_output_material_create(Abc_Output_Xform *parent, Abc_St
     return résultat;
 }
 
-Abc_MetaData *abc_output_material_metadata_get(struct Abc_Output_Material *metarial)
+Abc_MetaData *abc_output_material_get_metadata(struct Abc_Output_Material *metarial)
 {
     if (!metarial->metadata_initialized) {
         metarial->get_metadata(&metarial->metadata_);
