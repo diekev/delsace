@@ -164,7 +164,7 @@ imprime_infos_archive :: fonc (iarchive: *Abc_Input_Archive)
             arrête;
         }
 
-        imprimeln("    %: %", vers_kuri(clé), vers_kuri(valeur));
+        imprimeln("    %: %", clé, valeur);
     }
 }
 
@@ -201,11 +201,11 @@ imprime_métadonnées_archives :: fonc (chemin: chaine)
                 arrête;
             }
 
-            si vers_kuri(clé) == "_ai_Application" {
-                application = copie_chaine(vers_kuri(valeur));
+            si clé == "_ai_Application" {
+                application = copie_chaine(valeur);
             }
-            sinon si vers_kuri(clé) == "_ai_Description" {
-                description = copie_chaine(vers_kuri(valeur));
+            sinon si clé == "_ai_Description" {
+                description = copie_chaine(valeur);
             }
         }
 
@@ -297,13 +297,13 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
 
         si is_instance_root(next_object.object) {
             abc_input_object_get_full_name(next_object, *nom);
-            imprimeln("%", vers_kuri(nom));
+            imprimeln("%", nom);
         }
     }
 
     si abc_input_object_valid(next_object) {
         abc_input_object_get_full_name(next_object, *nom);
-        imprimeln("%", vers_kuri(nom));
+        imprimeln("%", nom);
 
         metadata := get_metadata(header);
         diffère destroy(metadata);
@@ -454,7 +454,7 @@ imprime_metadata :: fonc (metadata: *Abc_MetaData)
             arrête;
         }
 
-        imprimeln("    % : %", vers_kuri(clé), vers_kuri(valeur));
+        imprimeln("    % : %", clé, valeur);
     }
 }
 
@@ -501,7 +501,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
     data_type: Abc_Data_Type;
     get_data_type(prop_header, *data_type);
 
-    imprimeln("        % (%, %, %)", vers_kuri(prop_name), prop_type, data_type.pod_type, data_type.extent);
+    imprimeln("        % (%, %, %)", prop_name, prop_type, data_type.pod_type, data_type.extent);
 
     assert(data_type.extent <= 16);
 
@@ -632,7 +632,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
-                imprime(" %", vers_kuri(valeurs[it]));
+                imprime(" %", valeurs[it]);
             }
             imprime("\n");
         }
@@ -651,7 +651,7 @@ imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property @inutilis
     data_type: Abc_Data_Type;
     get_data_type(prop_header, *data_type);
 
-    imprimeln("        % (%, %, %)", vers_kuri(prop_name), prop_type, data_type.pod_type, data_type.extent);
+    imprimeln("        % (%, %, %)", prop_name, prop_type, data_type.pod_type, data_type.extent);
 
     assert(data_type.extent <= 16);
 }
@@ -680,7 +680,7 @@ imprime_informations_subd :: fonc (object: Abc_Generic_Input_Object)
     imprimeln("    face_varying_interpolate_boundary : %", face_varying_interpolate_boundary);
     imprimeln("    face_varying_propagate_corners    : %", face_varying_propagate_corners);
     imprimeln("    interpolate_boundary              : %", interpolate_boundary);
-    imprimeln("    subdivision_scheme                : %", vers_kuri(subdivision_scheme));
+    imprimeln("    subdivision_scheme                : %", subdivision_scheme);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -743,7 +743,7 @@ donne_full_name :: fonc (objet: Abc_Generic_Input_Object) -> chaine
 {
     nom: Abc_String;
     abc_input_object_get_full_name(objet, *nom);
-    retourne vers_kuri(nom);
+    retourne nom;
 }
 
 donne_arb_geom_params :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Compound_Property
@@ -902,7 +902,7 @@ imprime_animation_attributs :: fonc (object: Abc_Generic_Input_Object)
         tranche.données = geom_param_sample.values.values;
         tranche.taille = geom_param_sample.values.num_values comme z64;
 
-        imprimeln("% (% valeur(s))", vers_kuri(prop_name), tranche.taille);
+        imprimeln("% (% valeur(s))", prop_name, tranche.taille);
 
         pour value dans tranche {
             imprimeln("--  %", value);
@@ -1004,7 +1004,7 @@ imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *
     // prop_name: Abc_String;
     // get_name(prop_header, *prop_name);
 
-    // imprimeln("       %", vers_kuri(prop_name));
+    // imprimeln("       %", prop_name);
 
     imprime_propriété_scalaire(props, prop_header);
 }
@@ -1196,7 +1196,7 @@ imprime_info_faceset :: fonc (faceset: *Abc_Input_FaceSet)
 {
     abc_name: Abc_String;
     abc_input_object_get_name(faceset, *abc_name);
-    name := vers_kuri(abc_name);
+    name := abc_name;
 
     faceset_schema := get_schema(faceset);
     num_faceset_samples := get_num_samples(faceset_schema);

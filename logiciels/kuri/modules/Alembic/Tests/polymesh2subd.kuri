@@ -63,7 +63,7 @@ polymesh2subd :: fonc (chemin: chaine)
     imprimeln("Écriture de %...", chemin_sortie);
 
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     oarchive := abc_output_archive_create(chemin_sortie, *metadata);
@@ -114,7 +114,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
 
     num_samples := get_num_samples(schema);
 
-    chaine_chemin_polymesh := vers_kuri(nom);
+    chaine_chemin_polymesh := nom;
     chemin_polymesh := CheminFichier(chaine_chemin_polymesh);
 
     chemin_parent_polymesh := chemin_parent(chemin_polymesh);
@@ -133,7 +133,7 @@ convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xf
         diffère destroy(*abc_source_name);
 
         source_name := vers_kuri(abc_source_name);
-        set_uv_source_name(subd, vers_abc_string(source_name));
+        set_uv_source_name(subd, source_name);
     }
 
     pour num_samples {

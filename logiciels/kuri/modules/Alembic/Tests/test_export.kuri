@@ -112,11 +112,11 @@ donne_info_nom_type_abc :: fonc (type: chaine) -> Info_Nom_Type_Abc
 
 donne_extent :: fonc (desc: Abc_Attribute_Type_Descriptor) -> n32
 {
-    info := donne_info_nom_type_abc(vers_kuri(desc.type_geom));
+    info := donne_info_nom_type_abc(desc.type_geom);
 
     extent: n32;
 
-    si est_type_pod(vers_kuri(desc.type_geom)) {
+    si est_type_pod(desc.type_geom) {
         extent = 1;
     }
     sinon si info.préfixe == "Quat" {
@@ -142,7 +142,7 @@ donne_interpretation :: fonc (desc: Abc_Attribute_Type_Descriptor) -> chaine
 {
     résultat: chaine;
 
-    info := donne_info_nom_type_abc(vers_kuri(desc.type_geom));
+    info := donne_info_nom_type_abc(desc.type_geom);
 
     si info.préfixe == "V" {
         résultat = "vector";
@@ -188,7 +188,7 @@ imprime_infos_types_attributs_pour_python :: fonc ()
     pour desc {
         extent := donne_extent(it);
         interpretation := donne_interpretation(it);
-        imprimeln("    AbcAttributeTypeInfo('%', %, '%'),", vers_kuri(it.nom_court), extent, interpretation);
+        imprimeln("    AbcAttributeTypeInfo('%', %, '%'),", it.nom_court, extent, interpretation);
     }
     imprimeln("]");
     imprimeln("");
@@ -249,7 +249,7 @@ crée_test_mauvaise_géométrie_maillage :: fonc ()
 crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, face_counts: []z32, face_indices: []z32, exporte_en_subd: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -290,7 +290,7 @@ crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, f
 crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -337,13 +337,13 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
     initialise_enchaineuse(*enchaineuse);
 
     pour descripteurs {
-        type_geom := vers_kuri(it.type_geom);
-        type_ipa := vers_kuri(it.type_ipa);
-        nom_court := vers_kuri(it.nom_court);
+        type_geom := it.type_geom;
+        type_ipa := it.type_ipa;
+        nom_court := it.nom_court;
 
         ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
 
-        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_property_create(parent, \"prop_%\");\n", nom_court, nom_court, nom_court);
         imprime_dans_enchaineuse(*enchaineuse, "abc_output_property_set_time_sample_index(prop_%, ts);\n", nom_court);
 
         nom_valeur := imprime_chaine("valeur_%", nom_court);
@@ -353,7 +353,7 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
             chaine_valeur := "";
             type_valeur := "";
             si type_geom == "String" {
-                chaine_valeur = "vers_abc_string(\"123\")";
+                chaine_valeur = "\"123\"";
                 type_valeur = "Abc_String";
             }
             sinon si type_geom == "Bool" {
@@ -496,13 +496,13 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
     initialise_enchaineuse(*enchaineuse);
 
     pour descripteurs {
-        type_geom := vers_kuri(it.type_geom);
-        type_ipa := vers_kuri(it.type_ipa);
-        nom_court := vers_kuri(it.nom_court);
+        type_geom := it.type_geom;
+        type_ipa := it.type_ipa;
+        nom_court := it.nom_court;
 
         ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
 
-        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_array_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_array_property_create(parent, \"prop_%\");\n", nom_court, nom_court, nom_court);
         imprime_dans_enchaineuse(*enchaineuse, "abc_output_array_property_set_time_sample_index(prop_%, ts);\n", nom_court);
 
         nom_valeur := imprime_chaine("valeur_%", nom_court);
@@ -512,7 +512,7 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
             chaine_valeur := "";
             type_valeur := "";
             si type_geom == "String" {
-                chaine_valeur = "vers_abc_string(\"123\")";
+                chaine_valeur = "\"123\"";
                 type_valeur = "Abc_String";
             }
             sinon si type_geom == "Bool" {
@@ -653,7 +653,7 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
 crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -717,7 +717,7 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
 crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Scope)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -763,7 +763,7 @@ crée_test_scope_rayons_courbes :: fonc (chemin: chaine, scope: Abc_Geometry_Sco
 crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -828,7 +828,7 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
 crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scope)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -877,7 +877,7 @@ crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scop
 crée_test_visibilité :: fonc (chemin: chaine)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -898,7 +898,7 @@ crée_test_visibilité :: fonc (chemin: chaine)
 crée_test_visibilité :: fonc (chemin: chaine, visibilité_parent: Abc_Object_Visibility, visibilité_enfant: Abc_Object_Visibility)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -924,7 +924,7 @@ crée_test_visibilité :: fonc (chemin: chaine, visibilité_parent: Abc_Object_V
 crée_test_visibilité_animée :: fonc (chemin: chaine)
 {
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -1019,7 +1019,7 @@ crée_points_vides :: fonc ()
     chemin := "/tmp/empty-points.abc";
 
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -1049,7 +1049,7 @@ crée_test_attributs :: fonc ()
     chemin := "/tmp/attributs-polymesh.abc";
 
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
@@ -1084,7 +1084,7 @@ crée_test_attributs :: fonc ()
 
     arb_geom_params := get_arb_geom_params(mesh);
 
-    geom_param := abc_output_float_geom_param_create(arb_geom_params, vers_abc_string("test"), faux, Abc_Geometry_Scope.UNIFORM, 1);
+    geom_param := abc_output_float_geom_param_create(arb_geom_params, "test", faux, Abc_Geometry_Scope.UNIFORM, 1);
 
     échantillons := [1.0 / metadata.fps];
     temps_par_cycle := 1.0 / metadata.fps;
@@ -1113,7 +1113,7 @@ crée_courbes_vides :: fonc ()
     chemin := "/tmp/empty-curves.abc";
 
     metadata: Abc_Output_Archive_Metadata;
-    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.application_name = "Jorjala";
     metadata.fps = 24.0;
 
     archive := abc_output_archive_create(chemin, *metadata);
