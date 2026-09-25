@@ -199,7 +199,9 @@ principale :: fonc ()
     // imprime_infos_types_attributs_pour_python();
 
     // crée_points_vides();
-    crée_courbes_vides();
+    // crée_courbes_vides();
+
+    crée_test_fichier_large();
 
     // crée_test_mauvaise_géométrie_maillage();
 
@@ -1170,3 +1172,75 @@ crée_courbes_vides :: fonc ()
         set(schema, curves_sample);
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fichier large
+ * \{ */
+
+crée_test_fichier_large :: fonc ()
+{
+    chemin := "/tmp/large-file.abc";
+
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = "Jorjala";
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère destroy(archive);
+
+    ts_défaut := default_time_sampling(archive);
+
+    racine := get_top(archive);
+
+    nombre_x := 100;
+    nombre_y := 100;
+    nombre_z := 10;
+
+    pour z dans nombre_z {
+        pour y dans nombre_y {
+            pour x dans nombre_x {
+                nom_matrice := imprime_chaine("PointCloud-%-%-%", x, y, z);
+                diffère déloge(*nom_matrice);
+
+                nom_objet := imprime_chaine("PointCloudShape-%-%-%", x, y, z);
+                diffère déloge(*nom_objet);
+
+                matrice_objet_point := abc_output_xform_create(racine, nom_matrice, ts_défaut);
+                schema_matrix := get_schema(matrice_objet_point);
+
+                matrix_sample := sample_create(schema_matrix);
+                diffère destroy(matrix_sample);
+
+                matrix: Abc_M44d;
+                matrix.x[0][0] = 1.0;
+                matrix.x[1][1] = 1.0;
+                matrix.x[2][2] = 1.0;
+                matrix.x[3][3] = 1.0;
+
+                matrix.x[3][0] = x comme r32;
+                matrix.x[3][1] = y comme r32;
+                matrix.x[3][2] = z comme r32;
+
+                set_matrix(matrix_sample, *matrix);
+
+                set(schema_matrix, matrix_sample);
+
+                points := abc_output_points_create(matrice_objet_point, nom_objet, ts_défaut);
+                schema := get_schema(points);
+
+                point_sample := sample_create(schema);
+                diffère destroy(point_sample);
+
+                positions := [Vec3(0.0, 0.0, 0.0)];
+                set_positions(point_sample, positions);
+
+                ids := n64.[0];
+                set_ids(point_sample, ids);
+
+                set(schema, point_sample);
+            }
+        }
+    }
+}
+
+/** \} */
