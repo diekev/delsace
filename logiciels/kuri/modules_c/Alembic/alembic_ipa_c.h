@@ -482,9 +482,10 @@ union Abc_Generic_Input_Scalar_Property {
 #undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
 };
 
-uint64_t abc_input_scalar_property_get_num_samples(union Abc_Generic_Input_Scalar_Property prop);
-bool abc_input_scalar_property_is_constant(union Abc_Generic_Input_Scalar_Property prop);
-bool abc_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property prop);
+uint64_t abc_generic_input_scalar_property_get_num_samples(
+    union Abc_Generic_Input_Scalar_Property prop);
+bool abc_generic_input_scalar_property_is_constant(union Abc_Generic_Input_Scalar_Property prop);
+bool abc_generic_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property prop);
 
 /** \} */
 
