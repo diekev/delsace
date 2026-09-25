@@ -1272,6 +1272,9 @@ struct Abc_Output_Archive *abc_generic_output_object_get_archive(
     union Abc_Generic_Output_Object object);
 union Abc_Generic_Output_Object abc_generic_output_object_get_parent(
     union Abc_Generic_Output_Object object);
+bool abc_generic_output_object_add_child_instance(union Abc_Generic_Output_Object object,
+                                                  union Abc_Generic_Output_Object target,
+                                                  struct Abc_String name);
 
 struct Abc_Output_Visibility_Property;
 
