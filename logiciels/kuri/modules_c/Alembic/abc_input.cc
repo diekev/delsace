@@ -465,6 +465,21 @@ bool abc_input_object_is_instance_root(struct Abc_Input_Object *object)
     return object->untyped_object.isInstanceRoot();
 }
 
+bool abc_input_object_is_instance_descendant(struct Abc_Input_Object *object)
+{
+    return object->untyped_object.isInstanceDescendant();
+}
+
+struct Abc_New_String abc_input_object_instance_source_path(struct Abc_Input_Object *object)
+{
+    return make_new_string(object->untyped_object.instanceSourcePath());
+}
+
+/*
+ //! If this object is an instance (isInstanceRoot), returns the source path
+ //! that the instance points at.  Otherwise and empty string is returned.
+ std::string instanceSourcePath() const;
+*/
 struct Abc_Input_Visibility_Property : public Abc_Input_Scalar_Property {};
 
 Abc_Input_Visibility_Property *abc_input_object_get_visibility_property(

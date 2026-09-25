@@ -627,6 +627,8 @@ void abc_input_object_get_full_name(union Abc_Generic_Input_Object object,
                                     struct Abc_String *r_name);
 
 bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
+bool abc_input_object_is_instance_descendant(struct Abc_Input_Object *object);
+struct Abc_New_String abc_input_object_instance_source_path(struct Abc_Input_Object *object);
 
 struct Abc_Object_Header *abc_input_object_get_header(union Abc_Generic_Input_Object object);
 
