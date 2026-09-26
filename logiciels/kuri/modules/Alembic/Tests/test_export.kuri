@@ -1,3 +1,4 @@
+importe Aléa;
 importe Alembic;
 importe Chaine;
 importe Fondation;
@@ -201,7 +202,7 @@ principale :: fonc ()
     // crée_points_vides();
     // crée_courbes_vides();
 
-    crée_test_fichier_large();
+    crée_test_fichier_large(faux, faux);
 
     // crée_test_mauvaise_géométrie_maillage();
 
@@ -860,7 +861,7 @@ crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scop
     set_ids(point_sample, ids);
 
     si scope == Abc_Geometry_Scope.CONSTANT {
-    geom_param: Abc_Output_Float_Geom_Param_Sample;
+        geom_param: Abc_Output_Float_Geom_Param_Sample;
         widths := [0.2];
         geom_param.values.values = widths.données;
         geom_param.values.num_values = 1;
@@ -1177,7 +1178,7 @@ crée_courbes_vides :: fonc ()
 /** \nom Fichier large
  * \{ */
 
-crée_test_fichier_large :: fonc ()
+crée_test_fichier_large :: fonc (aléafères_noms: bool, utilise_instances: bool)
 {
     chemin := "/tmp/large-file.abc";
 
@@ -1196,14 +1197,39 @@ crée_test_fichier_large :: fonc ()
     nombre_y := 100;
     nombre_z := 10;
 
+    noms_matrices: [..]chaine;
+    diffère déloge_tableau_et_ses_éléments(*noms_matrices);
+    noms_objets: [..]chaine;
+    diffère déloge_tableau_et_ses_éléments(*noms_objets);
+
     pour z dans nombre_z {
         pour y dans nombre_y {
             pour x dans nombre_x {
                 nom_matrice := imprime_chaine("PointCloud-%-%-%", x, y, z);
-                diffère déloge(*nom_matrice);
-
                 nom_objet := imprime_chaine("PointCloudShape-%-%-%", x, y, z);
-                diffère déloge(*nom_objet);
+
+                tableau_ajoute(*noms_matrices, nom_matrice);
+                tableau_ajoute(*noms_objets, nom_objet);
+            }
+        }
+    }
+
+    si aléafères_noms {
+        entropie := graine_aléatoire(123);
+        aléafère_tableau(*entropie, noms_matrices);
+        aléafère_tableau(*entropie, noms_objets);
+    }
+
+    indice_objet := 0;
+
+    premier_objet: Abc_Generic_Output_Object;
+
+    pour z dans nombre_z {
+        pour y dans nombre_y {
+            pour x dans nombre_x {
+                nom_matrice := noms_matrices[indice_objet];
+                nom_objet := noms_objets[indice_objet];
+                indice_objet += 1;
 
                 matrice_objet_point := abc_output_xform_create(racine, nom_matrice, ts_défaut);
                 schema_matrix := get_schema(matrice_objet_point);
@@ -1225,19 +1251,37 @@ crée_test_fichier_large :: fonc ()
 
                 set(schema_matrix, matrix_sample);
 
-                points := abc_output_points_create(matrice_objet_point, nom_objet, ts_défaut);
-                schema := get_schema(points);
+                si utilise_instances && premier_objet.object {
+                    saufsi add_child_instance(matrice_objet_point, premier_objet, nom_objet) {
+                        imprimeln("Impossible d'ajouter une instance !");
+                        retourne;
+                    }
+                }
+                sinon {
+                    points := abc_output_points_create(matrice_objet_point, nom_objet, ts_défaut);
+                    schema := get_schema(points);
 
-                point_sample := sample_create(schema);
-                diffère destroy(point_sample);
+                    point_sample := sample_create(schema);
+                    diffère destroy(point_sample);
 
-                positions := [Vec3(0.0, 0.0, 0.0)];
-                set_positions(point_sample, positions);
+                    positions := [Vec3(0.0, 0.0, 0.0)];
+                    set_positions(point_sample, positions);
 
-                ids := n64.[0];
-                set_ids(point_sample, ids);
+                    ids := n64.[0];
+                    set_ids(point_sample, ids);
 
-                set(schema, point_sample);
+                    // geom_param: Abc_Output_Float_Geom_Param_Sample;
+                    // widths := [0.5];
+                    // geom_param.values.values = widths.données;
+                    // geom_param.values.num_values = 1;
+                    // geom_param.scope = Abc_Geometry_Scope.VERTEX;
+
+                    // set_widths(point_sample, geom_param);
+
+                    set(schema, point_sample);
+
+                    premier_objet = points;
+                }
             }
         }
     }
