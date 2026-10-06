@@ -640,7 +640,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
      * afin de pouvoir tester la variable d'environnement et le replis
      * séparément. */
     xdg_data_home := système_chemin_pour_variable_environnement("XDG_DATA_HOME");
-    si xdg_data_home.possède_valeur() {
+    si possède_valeur(xdg_data_home) {
         chemin_données := xdg_data_home.Quelque;
         diffère détruit_chemin(*chemin_données);
 
@@ -740,7 +740,7 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
     }
 
     chemin_corbeille_opt := système_chemin_pour_corbeille();
-    saufsi chemin_corbeille_opt.possède_valeur() {
+    saufsi possède_valeur(chemin_corbeille_opt) {
         retourne ErreurFichier.FichierInexistant;
     }
 
@@ -749,7 +749,7 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
     chemin_destination := système_chemin_destination_pour_suppression(chemin_corbeille, chemin);
     diffère détruit_chemin(*chemin_destination);
 
-    nom_fichier_info := imprime_chaine("%.trashinfo", chemin_destination.nom_fichier_avec_extension());
+    nom_fichier_info := imprime_chaine("%.trashinfo", nom_fichier_avec_extension(chemin_destination));
     chemin_fichier_info := chemin_corbeille / "info" / nom_fichier_info;
     diffère détruit_chemin(*chemin_fichier_info);
     déloge(*nom_fichier_info);
@@ -782,10 +782,10 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
 /* Génère le chemin de destination, dans la corbeille, pour le chemin_à_supprimer. */
 système_chemin_destination_pour_suppression :: fonc (chemin_corbeille: CheminFichier, chemin_à_supprimer: CheminFichier) -> CheminFichier
 {
-    nom_fichier := chemin_à_supprimer.nom_fichier();
-    extension := chemin_à_supprimer.extension();
+    nom_fichier := nom_fichier(chemin_à_supprimer);
+    extension := extension(chemin_à_supprimer);
 
-    chemin_destination := chemin_corbeille / "files" / chemin_à_supprimer.nom_fichier_avec_extension();
+    chemin_destination := chemin_corbeille / "files" / nom_fichier_avec_extension(chemin_à_supprimer);
 
     /* Garantis un nom unique : d'autres fichiers d'autres dossiers peuvent avoir le même nom. */
     indice := 1;
@@ -814,7 +814,8 @@ système_écris_fichier_info_corbeille :: fonc (chemin_fichier_info: CheminFichi
     // À FAIRE : encode les caractères unicode au format %HexHex
     ajoute_au_tampon(*enchaineuse, "Path=", chemin_à_supprimer, "\n");
     ajoute_au_tampon(*enchaineuse, "DeletionDate=");
-    formatte(hui_système(), *enchaineuse, "%A-%M-%JT%h:%m:%s");
+    date := hui_système();
+    formatte(*date, *enchaineuse, "%A-%M-%JT%h:%m:%s");
     ajoute_au_tampon(*enchaineuse, "\n");
 
     discr copie_enchaineuse_fichier(*enchaineuse, chemin_fichier_info) {

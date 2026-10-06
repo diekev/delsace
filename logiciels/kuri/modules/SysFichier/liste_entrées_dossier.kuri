@@ -100,7 +100,7 @@ chemin_symbolique :: fonc (entrée: DonnéesNumérotageCheminFichier) -> CheminF
 
     /* Garantissons que nous modifier le nom du fichier.
      * « chn » peut être le chemin entier. */
-    nom_fichier := résultat.nom_fichier();
+    nom_fichier := nom_fichier(résultat);
     pour entrée.taille_numéro {
         nom_fichier[entrée.préfixe.taille + it] = '#';
     }
@@ -150,7 +150,7 @@ ajoute_entrée_dossier :: fonc (entrées_dossier: *[..]EntréeDossier, nom: Donn
     entrée_dossier.chemin_effectif = copie_chemin(nom.chemin);
 
     si entrée_dossier.nombre_éléments > 1 {
-        entrée_dossier.chemin = nom.chemin_symbolique();
+        entrée_dossier.chemin = chemin_symbolique(nom);
     }
     sinon {
         entrée_dossier.chemin = entrée_dossier.chemin_effectif;
@@ -202,7 +202,7 @@ parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérot
 {
     chemin = copie_chemin(chemin);
 
-    nom_fichier := chemin.nom_fichier();
+    nom_fichier := nom_fichier(chemin);
 
     /* Trouve la position du premier chiffre en partant de la fin du chemin
      * afin de ne considérer que la dernière séquence de chiffre. */
@@ -239,19 +239,19 @@ parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérot
 
     résultat: DonnéesNumérotageCheminFichier;
     résultat.chemin = chemin;
-    résultat.extension = chemin.extension();
+    résultat.extension = extension(chemin);
     résultat.numéro = numéro;
     résultat.taille_numéro = taille_numéro;
 
     si indice_début_nombre != -1 {
-        résultat.préfixe = nom_fichier.sous_chaine(0, indice_début_nombre);
+        résultat.préfixe = sous_chaine(nom_fichier, 0, indice_début_nombre);
     }
     sinon {
         résultat.préfixe = nom_fichier;
     }
 
     si indice_fin_nombre != -1 && indice_fin_nombre + 1 < nom_fichier.taille - 1 {
-        résultat.suffixe = nom_fichier.sous_chaine(indice_fin_nombre + 1, nom_fichier.taille);
+        résultat.suffixe = sous_chaine(nom_fichier, indice_fin_nombre + 1, nom_fichier.taille);
     }
 
     retourne résultat;
