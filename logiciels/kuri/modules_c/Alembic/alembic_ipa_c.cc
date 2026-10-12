@@ -3,8 +3,6 @@
 
 #include "abc_common.hh"
 
-#include <string_view>
-
 #include "alembic_ipa_c.h"
 
 #include "../InterfaceCKuri/contexte_kuri.hh"

@@ -623,6 +623,17 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
         sample->sample.reset();                                                                   \
     }
 
+#define DEFINE_INPUT_SCHEMA_PARAM_GET(uname, lname, type_sample, param_uname, param_lname)        \
+    struct Abc_Input_##type_sample##_Geom_Param                                                   \
+        *abc_input_##lname##_schema_get_##param_lname##_param(                                    \
+            struct Abc_Input_##uname##_Schema *schema)                                            \
+    {                                                                                             \
+        Abc_Input_##type_sample##_Geom_Param *result =                                            \
+            make_input_geom_param<Abc_Input_##type_sample##_Geom_Param>(schema->archive);         \
+        result->param = schema->impl->get##param_uname##Param();                                  \
+        return result;                                                                            \
+    }
+
 /* ------------------------------------------------------------------------- */
 /** \nom Face sets extraction.
  * \{ */
@@ -721,21 +732,8 @@ Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
     return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
 }
 
-Abc_Input_V2f_Geom_Param *abc_input_polymesh_schema_get_uvs_param(
-    struct Abc_Input_PolyMesh_Schema *schema)
-{
-    auto résultat = make_input_geom_param<Abc_Input_V2f_Geom_Param>(schema->archive);
-    résultat->param = schema->impl->getUVsParam();
-    return résultat;
-}
-
-Abc_Input_N3f_Geom_Param *abc_input_polymesh_schema_get_normals_param(
-    struct Abc_Input_PolyMesh_Schema *schema)
-{
-    auto résultat = make_input_geom_param<Abc_Input_N3f_Geom_Param>(schema->archive);
-    résultat->param = schema->impl->getNormalsParam();
-    return résultat;
-}
+DEFINE_INPUT_SCHEMA_PARAM_GET(PolyMesh, polymesh, V2f, UVs, uvs)
+DEFINE_INPUT_SCHEMA_PARAM_GET(PolyMesh, polymesh, N3f, Normals, normals)
 
 /** \} */
 
@@ -804,12 +802,7 @@ Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
     return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
 }
 
-Abc_Input_V2f_Geom_Param *abc_input_subd_schema_get_uvs_param(struct Abc_Input_SubD_Schema *schema)
-{
-    auto résultat = make_input_geom_param<Abc_Input_V2f_Geom_Param>(schema->archive);
-    résultat->param = schema->impl->getUVsParam();
-    return résultat;
-}
+DEFINE_INPUT_SCHEMA_PARAM_GET(SubD, subd, V2f, UVs, uvs)
 
 /** \} */
 
@@ -843,7 +836,6 @@ enum Abc_FaceSet_Exclusivity abc_input_faceset_schema_get_face_exclusivity(
  *    Abc::IP3fArrayProperty getPositionsProperty() const
  *    Abc::IV3fArrayProperty getVelocitiesProperty() const
  *    Abc::IUInt64ArrayProperty getIdsProperty() const
- *    IFloatGeomParam getWidthsParam() const
  * \{ */
 
 struct Abc_Input_Points_Schema_Sample : public Abc_Input_Schema_Sample {
@@ -854,6 +846,8 @@ DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Points, points)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
 
 DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+DEFINE_INPUT_SCHEMA_PARAM_GET(Points, points, Float, Widths, widths)
 
 /** \} */
 
@@ -868,6 +862,10 @@ struct Abc_Input_Curves_Schema_Sample : public Abc_Input_Schema_Sample {
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
+
+DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, V2f, UVs, uvs)
+DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, N3f, Normals, normals)
+DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, Float, Widths, widths)
 
 /** \} */
 

@@ -709,6 +709,11 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
         struct Abc_Input_##uname##_Schema_Sample *sample);                                        \
     void abc_input_##lname##_schema_sample_reset(struct Abc_Input_##uname##_Schema_Sample *sample);
 
+#define DECLARE_INPUT_SCHEMA_PARAM_GET(uname, lname, type_sample, param_uname, param_lname)       \
+    struct Abc_Input_##type_sample##_Geom_Param                                                   \
+        *abc_input_##lname##_schema_get_##param_lname##_param(                                    \
+            struct Abc_Input_##uname##_Schema *schema);
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
@@ -743,11 +748,8 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 enum Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
     struct Abc_Input_PolyMesh_Schema *schema);
 
-struct Abc_Input_V2f_Geom_Param *abc_input_polymesh_schema_get_uvs_param(
-    struct Abc_Input_PolyMesh_Schema *schema);
-
-struct Abc_Input_N3f_Geom_Param *abc_input_polymesh_schema_get_normals_param(
-    struct Abc_Input_PolyMesh_Schema *schema);
+DECLARE_INPUT_SCHEMA_PARAM_GET(PolyMesh, polymesh, V2f, UVs, uvs)
+DECLARE_INPUT_SCHEMA_PARAM_GET(PolyMesh, polymesh, N3f, Normals, normals)
 
 /** \} */
 
@@ -798,8 +800,7 @@ Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
 enum Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
     struct Abc_Input_SubD_Schema *schema);
 
-struct Abc_Input_V2f_Geom_Param *abc_input_subd_schema_get_uvs_param(
-    struct Abc_Input_SubD_Schema *schema);
+DECLARE_INPUT_SCHEMA_PARAM_GET(SubD, subd, V2f, UVs, uvs)
 
 /** \} */
 
@@ -839,6 +840,8 @@ DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
 
 DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
+DECLARE_INPUT_SCHEMA_PARAM_GET(Points, points, Float, Widths, widths)
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -847,6 +850,10 @@ DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION
 
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
+
+DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, V2f, UVs, uvs)
+DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, N3f, Normals, normals)
+DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, Float, Widths, widths)
 
 /** \} */
 
