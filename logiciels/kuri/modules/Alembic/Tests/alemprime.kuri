@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "facesets";
+    nom_test := "curves";
 
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -87,6 +87,9 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
     }
     sinon si nom_test == "points" {
         pour_chaque_objet(iarchive, Filtre_Objet.POINTS, imprime_informations_points);
+    }
+    sinon si nom_test == "curves" {
+        pour_chaque_objet(iarchive, Filtre_Objet.CURVES, imprime_informations_curves);
     }
     sinon si nom_test == "données-manquantes-blender" {
         pour_chaque_objet(iarchive, Filtre_Objet.CURVES | Filtre_Objet.POLYMESH | Filtre_Objet.POINTS, test_données_manquantes_blender);
@@ -688,6 +691,55 @@ imprime_informations_points :: fonc (object: Abc_Generic_Input_Object)
     imprime_chemin_archive_courante(vrai);
     full_name := get_full_name(object);
     imprimeln("    %", full_name);
+
+    points := object.points;
+    schema := get_schema(points);
+
+    widths_params := get_widths_param(schema);
+    scope := get_scope(widths_params);
+
+    imprimeln("        widths scope %", scope);
+
+    num_samples := get_num_samples(widths_params);
+    pour num_samples {
+        sample: Abc_Input_Float_Geom_Param_Sample;
+        selector: Abc_Sample_Selector;
+        selector.requested_index = it comme z64;
+        get_expanded(widths_params, *sample, selector);
+
+        imprimeln("        -- scope : %", sample.scope);
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Curves
+ * \{ */
+
+imprime_informations_curves :: fonc (object: Abc_Generic_Input_Object)
+{
+    imprime_chemin_archive_courante(vrai);
+    full_name := get_full_name(object);
+    imprimeln("    %", full_name);
+
+    curves := object.curves;
+    schema := get_schema(curves);
+
+    widths_params := get_widths_param(schema);
+    scope := get_scope(widths_params);
+
+    imprimeln("        widths scope %", scope);
+
+    num_samples := get_num_samples(widths_params);
+    pour num_samples {
+        sample: Abc_Input_Float_Geom_Param_Sample;
+        selector: Abc_Sample_Selector;
+        selector.requested_index = it comme z64;
+        get_expanded(widths_params, *sample, selector);
+
+        imprimeln("        -- scope : %", sample.scope);
+    }
 }
 
 /** \} */
