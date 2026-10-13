@@ -853,7 +853,13 @@ DEFINE_INPUT_SCHEMA_PARAM_GET(Points, points, Float, Widths, widths)
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Curves_Schema_Sample
- *  À FAIRE: complète
+ *  À FAIRE:
+ *    Abc::IV3fArrayProperty getVelocitiesProperty() const
+ *    Abc::IP3fArrayProperty getPositionsProperty() const
+ *    Abc::IInt32ArrayProperty getNumVerticesProperty() const
+ *    Abc::IFloatArrayProperty getPositionWeightsProperty() const
+ *    Abc::IUcharArrayProperty getOrdersProperty() const
+ *    Abc::IFloatArrayProperty getKnotsProperty() const
  * \{ */
 
 struct Abc_Input_Curves_Schema_Sample : public Abc_Input_Schema_Sample {
@@ -863,9 +869,41 @@ struct Abc_Input_Curves_Schema_Sample : public Abc_Input_Schema_Sample {
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
 
+ENUMERATE_CURVES_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+uint64_t abc_input_curves_schema_sample_get_num_curves(
+    struct Abc_Input_Curves_Schema_Sample *sample)
+{
+    return sample->sample.getNumCurves();
+}
+
+Abc_Curve_Type abc_input_curves_schema_sample_get_type(
+    struct Abc_Input_Curves_Schema_Sample *sample)
+{
+    return static_cast<Abc_Curve_Type>(sample->sample.getType());
+}
+
+Abc_Curve_Periodicity abc_input_curves_schema_sample_get_wrap(
+    struct Abc_Input_Curves_Schema_Sample *sample)
+{
+    return static_cast<Abc_Curve_Periodicity>(sample->sample.getWrap());
+}
+
+Abc_Basis_Type abc_input_curves_schema_sample_get_basis(
+    struct Abc_Input_Curves_Schema_Sample *sample)
+{
+    return static_cast<Abc_Basis_Type>(sample->sample.getBasis());
+}
+
 DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, V2f, UVs, uvs)
 DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, N3f, Normals, normals)
 DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, Float, Widths, widths)
+
+Abc_Mesh_Topology_Variance abc_input_curves_schema_get_topology_variance(
+    Abc_Input_Curves_Schema *schema)
+{
+    return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
+}
 
 /** \} */
 

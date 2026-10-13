@@ -848,12 +848,57 @@ DECLARE_INPUT_SCHEMA_PARAM_GET(Points, points, Float, Widths, widths)
 /** \nom Abc_Input_Curves_Sample
  * \{ */
 
+enum Abc_Curve_Periodicity {
+    ABC_CURVE_PERIODICITY_NON_PERIODIC = 0,
+    ABC_CURVE_PERIODICITY_PERIODIC = 1,
+};
+
+enum Abc_Curve_Type {
+    ABC_CURVE_TYPE_CUBIC = 0,
+    ABC_CURVE_TYPE_LINEAR = 1,
+    ABC_CURVE_TYPE_VARIABLE_ORDER = 2,
+};
+
+enum Abc_Basis_Type {
+    ABC_BASIS_TYPE_NO_BASIS = 0,
+    ABC_BASIS_TYPE_BEZIER_BASIS = 1,
+    ABC_BASIS_TYPE_B_SPLINE_BASIS = 2,
+    ABC_BASIS_TYPE_CATMULLROM_BASIS = 3,
+    ABC_BASIS_TYPE_HERMITE_BASIS = 4,
+    ABC_BASIS_TYPE_POWER_BASIS = 5,
+};
+
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
+
+uint64_t abc_input_curves_schema_sample_get_num_curves(
+    struct Abc_Input_Curves_Schema_Sample *sample);
+
+enum Abc_Curve_Type abc_input_curves_schema_sample_get_type(
+    struct Abc_Input_Curves_Schema_Sample *sample);
+
+enum Abc_Curve_Periodicity abc_input_curves_schema_sample_get_wrap(
+    struct Abc_Input_Curves_Schema_Sample *sample);
+
+enum Abc_Basis_Type abc_input_curves_schema_sample_get_basis(
+    struct Abc_Input_Curves_Schema_Sample *sample);
+
+#define ENUMERATE_CURVES_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                            \
+    X(Curves, curves, get_positions, getPositions, Abc_P3f_Array_Sample)                          \
+    X(Curves, curves, get_curves_num_vertices, getCurvesNumVertices, Abc_Int32_Array_Sample)      \
+    X(Curves, curves, get_orders, getOrders, Abc_Uchar_Array_Sample)                              \
+    X(Curves, curves, get_knots, getKnots, Abc_Float_Array_Sample)                                \
+    X(Curves, curves, get_position_weights, getPositionWeights, Abc_Float_Array_Sample)           \
+    X(Curves, curves, get_velocities, getVelocities, Abc_V3f_Array_Sample)
+
+ENUMERATE_CURVES_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
 DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, V2f, UVs, uvs)
 DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, N3f, Normals, normals)
 DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, Float, Widths, widths)
+
+enum Abc_Mesh_Topology_Variance abc_input_curves_schema_get_topology_variance(
+    struct Abc_Input_Curves_Schema *schema);
 
 /** \} */
 
@@ -1501,26 +1546,6 @@ ENUMERATE_POINTS_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Curves
  * \{ */
-
-enum Abc_Curve_Periodicity {
-    ABC_CURVE_PERIODICITY_NON_PERIODIC = 0,
-    ABC_CURVE_PERIODICITY_PERIODIC = 1,
-};
-
-enum Abc_Curve_Type {
-    ABC_CURVE_TYPE_CUBIC = 0,
-    ABC_CURVE_TYPE_LINEAR = 1,
-    ABC_CURVE_TYPE_VARIABLE_ORDER = 2,
-};
-
-enum Abc_Basis_Type {
-    ABC_BASIS_TYPE_NO_BASIS = 0,
-    ABC_BASIS_TYPE_BEZIER_BASIS = 1,
-    ABC_BASIS_TYPE_B_SPLINE_BASIS = 2,
-    ABC_BASIS_TYPE_CATMULLROM_BASIS = 3,
-    ABC_BASIS_TYPE_HERMITE_BASIS = 4,
-    ABC_BASIS_TYPE_POWER_BASIS = 5,
-};
 
 struct Abc_Output_Curves;
 
