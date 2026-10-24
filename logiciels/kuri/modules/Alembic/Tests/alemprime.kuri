@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "curves";
+    nom_test := "facesets";
 
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -1237,6 +1237,11 @@ imprime_info_faceset :: fonc (faceset: *Abc_Input_FaceSet)
     num_faceset_samples := get_num_samples(faceset_schema);
     exclusivity := get_face_exclusivity(faceset_schema);
     imprimeln("    % : % samples (%)", name, num_faceset_samples, exclusivity);
+
+    header := abc_input_object_get_header(faceset);
+
+    metadata := get_metadata(header);
+    imprime_metadata(metadata);
 
     // pour num_faceset_samples {
     //     selector := Abc_Sample_Selector();
