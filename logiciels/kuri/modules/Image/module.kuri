@@ -494,12 +494,12 @@ calcule_empreinte_différentielle :: fonc (image: NouvelleImage) -> n64
     diffère détruit_données_image(*gris);
 
     si gris.desc.format == FormatPixel.Gris_32 {
-        tampon_gris := gris.donne_tampon_gris();
+        tampon_gris := donne_tampon_gris(gris);
         retourne calcule_empreinte_différentielle(tampon_gris);
     }
 
     si gris.desc.format == FormatPixel.Gris_8 {
-        tampon_gris := gris.donne_tampon_gris_8bit();
+        tampon_gris := donne_tampon_gris_8bit(gris);
         retourne calcule_empreinte_différentielle(tampon_gris);
     }
 
