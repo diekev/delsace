@@ -223,16 +223,6 @@ struct AdaptriceImage {
                             int nombre_valeur);
 };
 
-struct ImageIO_RappelsProgression {
-    bool (*rappel_progression)(struct ImageIO_RappelsProgression *, float);
-};
-
-enum ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
-                                                      int64_t taille_chemin,
-                                                      struct AdaptriceImage *image,
-                                                      struct ImageIO_RappelsProgression *rappels,
-                                                      enum ImageIO_Options_Lecture options);
-
 void IMG_donne_erreur(struct ImageIO_Chaine *résultat);
 
 // ----------------------------------------------------------------------------

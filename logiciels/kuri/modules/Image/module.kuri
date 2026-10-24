@@ -286,6 +286,201 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     retourne vrai, résultat;
 }
 
+#portée_fichier
+
+Nom_Canal :: struct {
+    nom_calque: chaine;
+    nom_canal: chaine;
+}
+
+parse_nom_canal :: fonc (nom: chaine) -> Nom_Canal
+{
+    pos_point := trouve_caractère_depuis_le_début(nom, '.');
+
+    si pos_point == -1 {
+        retourne Nom_Canal("", nom);
+    }
+
+    résultat: Nom_Canal;
+    résultat.nom_calque = sous_chaine(nom, 0, pos_point);
+    résultat.nom_canal = sous_chaine(nom, pos_point + 1, nom.taille);
+    retourne résultat;
+}
+
+Description_Canal :: struct {
+    nom: chaine;
+    indice: z32;
+}
+
+Description_Calque :: struct {
+    nom: chaine;
+    canaux: [..]Description_Canal;
+}
+
+Parseuse_Données_Image :: struct {
+    calques: [..]Description_Calque;
+}
+
+détruit_données :: fonc (parseuse: *Parseuse_Données_Image)
+{
+    pour parseuse.calques {
+        déloge(*it.canaux);
+    }
+    déloge(*parseuse.calques);
+}
+
+parse_canaux :: fonc (parseuse: *Parseuse_Données_Image, spec: *OIIO_ImageSpec)
+{
+    canaux := OIIO_ImageSpec_donne_nchannels(spec);
+    canal_z := OIIO_ImageSpec_donne_z_channel(spec);
+    pour canaux {
+        nom_canal: ImageIO_Chaine;
+        OIIO_ImageSpec_donne_channel_name(spec, it, *nom_canal);
+        nom_canal_kuri: chaine;
+        nom_canal_kuri.caractères = nom_canal.caractères;
+        nom_canal_kuri.taille = nom_canal.taille comme z64;
+        ajoute_canal(parseuse, nom_canal_kuri, it, canal_z);
+    }
+}
+
+ajoute_canal :: fonc (parseuse: *Parseuse_Données_Image, nom: chaine, indice: z32, canal_z: z32)
+{
+    nom_calque_canal := parse_nom_canal(nom);
+    nom_calque := nom_calque_canal.nom_calque;
+
+    si nom_calque == "" {
+        nom_calque = "rgba";
+    }
+
+    si indice == canal_z {
+        nom_calque = "depth";
+    }
+
+    calque := trouve_ou_ajoute_calque(parseuse, nom_calque);
+    canal := tableau_ajoute_élément(*calque.canaux);
+    canal.nom = nom_calque_canal.nom_canal;
+    canal.indice = indice;
+}
+
+trouve_ou_ajoute_calque :: fonc (parseuse: *Parseuse_Données_Image, nom: chaine) -> *Description_Calque
+{
+    pour * parseuse.calques {
+        si it.nom == nom {
+            retourne it;
+        }
+    }
+
+    résultat := tableau_ajoute_élément(*parseuse.calques);
+    résultat.nom = nom;
+    retourne résultat;
+}
+
+rappel_progression_oiio :: fonc (opaque_data: *rien, portion_done: r32) -> bool
+{
+    rappels := opaque_data comme *ImageIO_RappelsProgression;
+    retourne rappels.rappel_progression(rappels, portion_done);
+}
+
+#portée_export
+
+ouvre_image_avec_adaptrice :: fonc (chemin: chaine, image: *AdaptriceImage, rappels: *ImageIO_RappelsProgression, options: ImageIO_Options_Lecture) -> ResultatOperation
+{
+    input := OIIO_ImageInput_open(chemin);
+    saufsi input {
+        retourne ResultatOperation.TYPE_IMAGE_NON_SUPPORTE;
+    }
+    diffère {
+        _ := OIIO_ImageInput_close(input);
+        OIIO_ImageInput_delete(input);
+    }
+
+    spec := OIIO_ImageInput_spec(input);
+
+    si (options & ImageIO_Options_Lecture.LIS_ATTRIBUTS) != 0 comme ImageIO_Options_Lecture && image.ajoute_attribut {
+        pour * param dans donne_extra_attribs(spec) {
+            param_type := OIIO_ParamValue_type(param);
+
+            type_données := param_type.basetype comme n32 comme OIIO_TYPEDESC_BASETYPE;
+            type_aggregat := param_type.aggregate comme n32 comme OIIO_TYPEDESC_AGGREGATE;
+
+            nom := donne_nom(param);
+            nvalues := OIIO_ParamValue_nvalues(param);
+            data := OIIO_ParamValue_data(param);
+            data_str: ImageIO_Chaine;
+
+            si type_données == OIIO_TYPEDESC_BASETYPE.STRING {
+                value := OIIO_ParamValue_data(param) comme *OIIO_ustring;
+                data_str.caractères = OIIO_ustring_c_str(value);
+                data_str.taille = OIIO_ustring_size(value);
+                data = *data_str;
+            }
+
+            nom_oiio: ImageIO_Chaine;
+            nom_oiio.caractères = nom.caractères;
+            nom_oiio.taille = nom.taille comme n64;
+            image.ajoute_attribut(image, *nom_oiio, type_données, type_aggregat, data, nvalues);
+        }
+    }
+
+    si (options & ImageIO_Options_Lecture.LIS_PIXELS) == 0 comme ImageIO_Options_Lecture {
+        retourne ResultatOperation.OK;
+    }
+
+    parseuse: Parseuse_Données_Image;
+    diffère détruit_données(*parseuse);
+    parse_canaux(*parseuse, spec);
+
+    format: OIIO_TypeDesc;
+    format.basetype = OIIO_TYPEDESC_BASETYPE.FLOAT comme n32 comme n8;
+    format.aggregate = OIIO_TYPEDESC_AGGREGATE.SCALAR comme n32 comme n8;
+
+    desc_image: DescriptionImage;
+    desc_image.hauteur = OIIO_ImageSpec_donne_height(spec);
+    desc_image.largeur = OIIO_ImageSpec_donne_width(spec);
+    image.initialise_image(image, *desc_image);
+
+    progress_callback := rappel_progression_oiio;
+    si rappels == nul || rappels.rappel_progression == nul {
+        rappels = nul;
+        progress_callback = nul;
+    }
+
+    pour * desc_calque dans parseuse.calques {
+        calque := image.cree_calque(image, desc_calque.nom.caractères, desc_calque.nom.taille);
+        saufsi calque {
+            retourne ResultatOperation.AJOUT_CALQUE_IMPOSSIBLE;
+        }
+
+        pour * desc_canal dans desc_calque.canaux {
+            canal := image.ajoute_canal(image, calque, desc_canal.nom.caractères, desc_canal.nom.taille);
+            saufsi !canal {
+                retourne ResultatOperation.AJOUT_CANAL_IMPOSSIBLE;
+            }
+
+            donnees_canal := image.donnees_canal_pour_ecriture(image, canal);
+            index_canal := desc_canal.indice;
+
+            succes := oiio_read_image(input,
+                                      0,
+                                      0,
+                                      index_canal,
+                                      index_canal + 1,
+                                      format,
+                                      donnees_canal,
+                                      OIIO_AutoStride(),
+                                      OIIO_AutoStride(),
+                                      OIIO_AutoStride(),
+                                      progress_callback,
+                                      rappels);
+            saufsi succes {
+                retourne ResultatOperation.LECTURE_DONNEES_IMPOSSIBLE;
+            }
+        }
+    }
+
+    retourne ResultatOperation.OK;
+}
+
 échantillonne_prochain :: fonc (image: *NouvelleImage, pos: *Vec2) -> CouleurRVBA
 {
     largeur := image.desc.largeur comme z32;
