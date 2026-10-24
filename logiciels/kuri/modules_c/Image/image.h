@@ -508,9 +508,15 @@ int OIIO_ImageSpec_donne_nchannels(struct OIIO_ImageSpec *spec);
 
 void OIIO_ImageSpec_definis_nchannels(struct OIIO_ImageSpec *spec, int nchannels);
 
+int OIIO_ImageSpec_donne_z_channel(struct OIIO_ImageSpec *spec);
+
 struct OIIO_TypeDesc OIIO_ImageSpec_donne_format(struct OIIO_ImageSpec *spec);
 
 void OIIO_ImageSpec_definis_format(struct OIIO_ImageSpec *spec, struct OIIO_TypeDesc format);
+
+void OIIO_ImageSpec_donne_channel_name(struct OIIO_ImageSpec *spec,
+                                       int channel_index,
+                                       struct ImageIO_Chaine *résultat);
 
 struct OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(struct OIIO_ImageSpec *spec);
 

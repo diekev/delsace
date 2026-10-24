@@ -507,10 +507,26 @@ void OIIO_ImageSpec_definis_nchannels(struct OIIO_ImageSpec *spec, int nchannels
     oiio_spec->nchannels = nchannels;
 }
 
+int OIIO_ImageSpec_donne_z_channel(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->z_channel;
+}
+
 struct OIIO_TypeDesc OIIO_ImageSpec_donne_format(struct OIIO_ImageSpec *spec)
 {
     auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
     return *reinterpret_cast<OIIO_TypeDesc *>(&oiio_spec->format);
+}
+
+void OIIO_ImageSpec_donne_channel_name(struct OIIO_ImageSpec *spec,
+                                       int channel_index,
+                                       struct ImageIO_Chaine *résultat)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    auto channel_name = oiio_spec->channel_name(channel_index);
+    résultat->caractères = channel_name.data();
+    résultat->taille = channel_name.size();
 }
 
 OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(OIIO_ImageSpec *spec)
