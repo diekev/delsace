@@ -65,8 +65,6 @@ enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
                                                     uint64_t taille,
                                                     struct ImageIO *resultat);
 
-void IMG_detruit_image(struct ImageIO *image);
-
 /** Structure pour décrire la résolution d'une image.
  */
 typedef struct DescriptionImage {

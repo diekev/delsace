@@ -124,21 +124,6 @@ static bool rappel_progression(void *opaque_data, float portion_done)
     return rappels->rappel_progression(rappels, portion_done);
 }
 
-static OIIO::TypeDesc donne_typedesc_depuis_data_type(ImageIO_DataType format)
-{
-#define CAS_RUBRIQUE_ENUM(nom_ipa, nom_oiio)                                                      \
-    case nom_ipa:                                                                                 \
-    {                                                                                             \
-        return nom_oiio;                                                                          \
-        break;                                                                                    \
-    }
-    switch (format) {
-        ENUM_IMAGEIO_DATATYPE(CAS_RUBRIQUE_ENUM)
-    }
-    return OIIO::TypeDesc::FLOAT;
-#undef CAS_RUBRIQUE_ENUM
-}
-
 static ImageIO_DataType convertis_data_type(OIIO::TypeDesc::BASETYPE type)
 {
     switch (type) {
@@ -282,16 +267,6 @@ void IMG_donne_erreur(ImageIO_Chaine *résultat)
         résultat->caractères = nullptr;
         résultat->taille = 0;
     }
-}
-
-void IMG_detruit_image(ImageIO *image)
-{
-    delete[] image->donnees;
-    image->donnees = nullptr;
-    image->taille_donnees = 0;
-    image->largeur = 0;
-    image->hauteur = 0;
-    image->nombre_composants = 0;
 }
 }
 
