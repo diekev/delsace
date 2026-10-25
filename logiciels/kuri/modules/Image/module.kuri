@@ -383,6 +383,10 @@ rappel_progression_oiio :: fonc (opaque_data: *rien, portion_done: r32) -> bool
 
 #portée_export
 
+ImageIO_RappelsProgression :: struct {
+    rappel_progression: fonc (rappels: *ImageIO_RappelsProgression, portion_done: r32) -> bool;
+}
+
 ouvre_image_avec_adaptrice :: fonc (chemin: chaine, image: *AdaptriceImage, rappels: *ImageIO_RappelsProgression, options: ImageIO_Options_Lecture) -> ResultatOperation
 {
     input := OIIO_ImageInput_open(chemin);
