@@ -506,7 +506,7 @@ void OIIO_ImageSpec_definis_format(struct OIIO_ImageSpec *spec, struct OIIO_Type
 
 void OIIO_ImageSpec_donne_channel_name(struct OIIO_ImageSpec *spec,
                                        int channel_index,
-                                       struct ImageIO_Chaine *résultat);
+                                       struct OIIO_StringView *résultat);
 
 struct OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(struct OIIO_ImageSpec *spec);
 

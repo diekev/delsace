@@ -334,11 +334,11 @@ parse_canaux :: fonc (parseuse: *Parseuse_Données_Image, spec: *OIIO_ImageSpec)
     canaux := OIIO_ImageSpec_donne_nchannels(spec);
     canal_z := OIIO_ImageSpec_donne_z_channel(spec);
     pour canaux {
-        nom_canal: ImageIO_Chaine;
+        nom_canal: OIIO_StringView;
         OIIO_ImageSpec_donne_channel_name(spec, it, *nom_canal);
         nom_canal_kuri: chaine;
-        nom_canal_kuri.caractères = nom_canal.caractères;
-        nom_canal_kuri.taille = nom_canal.taille comme z64;
+        nom_canal_kuri.caractères = nom_canal.characters;
+        nom_canal_kuri.taille = nom_canal.size comme z64;
         ajoute_canal(parseuse, nom_canal_kuri, it, canal_z);
     }
 }
