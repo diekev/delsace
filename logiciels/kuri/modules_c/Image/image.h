@@ -113,11 +113,6 @@ struct ImageIO {
     enum ImageIO_DataType format;
 };
 
-enum ResultatOperation IMG_ouvre_gif_depuis_fichier(const char *chemin, struct ImageIO *resultat);
-enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
-                                                    uint64_t taille,
-                                                    struct ImageIO *resultat);
-
 /** Structure pour décrire la résolution d'une image.
  */
 typedef struct DescriptionImage {
