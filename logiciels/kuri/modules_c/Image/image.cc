@@ -29,34 +29,6 @@
         return;                                                                                   \
     }
 
-extern "C" {
-
-void IMG_detruit_chaine(struct ImageIO_Chaine *chn)
-{
-    if (!chn) {
-        return;
-    }
-
-    delete[] chn->caractères;
-    chn->caractères = nullptr;
-    chn->taille = 0;
-}
-
-void IMG_donne_erreur(ImageIO_Chaine *résultat)
-{
-    auto erreur = OIIO::geterror();
-    if (erreur.size()) {
-        résultat->caractères = new char[erreur.size()];
-        résultat->taille = erreur.size();
-        memcpy(const_cast<char *>(résultat->caractères), erreur.c_str(), erreur.size());
-    }
-    else {
-        résultat->caractères = nullptr;
-        résultat->taille = 0;
-    }
-}
-}
-
 #define PASSE_APPEL(fonction, type_params)                                                        \
     void IMG_##fonction(const type_params *params,                                                \
                         const struct AdaptriceImage *image_entree,                                \
@@ -191,6 +163,41 @@ void SVG_image_detruit(SVGImage *image)
 int64_t OIIO_AutoStride()
 {
     return OIIO::AutoStride;
+}
+
+static void make_new_string(std::string_view source, OIIO_NewString *résultat)
+{
+    if (source.size()) {
+        résultat->characters = new char[source.size()];
+        résultat->size = source.size();
+        memcpy(const_cast<char *>(résultat->characters), source.data(), source.size());
+    }
+    else {
+        résultat->characters = nullptr;
+        résultat->size = 0;
+    }
+}
+
+void OIIO_NewString_delete(struct OIIO_NewString *new_string)
+{
+    if (!new_string) {
+        return;
+    }
+
+    delete[] new_string->characters;
+    new_string->characters = nullptr;
+    new_string->size = 0;
+}
+
+bool OIIO_has_error()
+{
+    return OIIO::has_error();
+}
+
+void OIIO_geterror(bool clear, OIIO_NewString *résultat)
+{
+    auto erreur = OIIO::geterror(clear);
+    make_new_string(erreur, résultat);
 }
 
 int OIIO_get_int_attribute(struct OIIO_StringView name, int default_value)
@@ -556,6 +563,19 @@ bool OIIO_ImageInput_read_image(OIIO_ImageInput *image,
                                   progress_callback_data);
 }
 
+bool OIIO_ImageInput_has_error(struct OIIO_ImageInput *image)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    return oiio_image->has_error();
+}
+
+void OIIO_ImageInput_geterror(struct OIIO_ImageInput *image, bool clear, OIIO_NewString *résultat)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    auto erreur = oiio_image->geterror(clear);
+    make_new_string(erreur, résultat);
+}
+
 OIIO_ImageOutput *OIIO_ImageOutput_create(OIIO_StringView filename,
                                           OIIO_Filesystem_IOProxy *ioproxy,
                                           OIIO_StringView plugin_searchpath)
@@ -659,4 +679,19 @@ bool OIIO_ImageOutput_write_scanlines(int ybegin,
     const OIIO::span<std::byte> data(reinterpret_cast<std::byte *>(bytes), num_bytes);
     const OIIO::image_span<std::byte> image_data(data.data(), spec.nchannels, spec.width, 1, 1);
     return oiio_output->write_scanlines(ybegin, yend, oiio_format, image_data);
+}
+
+bool OIIO_ImageOutput_has_error(struct OIIO_ImageOutput *output)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    return oiio_output->has_error();
+}
+
+void OIIO_ImageOutput_geterror(struct OIIO_ImageOutput *output,
+                               bool clear,
+                               OIIO_NewString *résultat)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto erreur = oiio_output->geterror(clear);
+    make_new_string(erreur, résultat);
 }

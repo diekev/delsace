@@ -140,8 +140,6 @@ struct ImageIO_Chaine {
     uint64_t taille;
 };
 
-void IMG_detruit_chaine(struct ImageIO_Chaine *chn);
-
 enum ImageIO_Options_Lecture {
     /* Lis les pixels de l'image. */
     IMAGEIO_OPTIONS_LECTURE_LIS_PIXELS = 1,
@@ -222,8 +220,6 @@ struct AdaptriceImage {
                             const void *donnees,
                             int nombre_valeur);
 };
-
-void IMG_donne_erreur(struct ImageIO_Chaine *résultat);
 
 // ----------------------------------------------------------------------------
 // Simumlation de grain sur image
@@ -408,6 +404,17 @@ void SVG_image_detruit(struct SVGImage *image);
 // OIIO.
 
 int64_t OIIO_AutoStride();
+
+struct OIIO_NewString {
+    const char *characters;
+    uint64_t size;
+};
+
+void OIIO_NewString_delete(struct OIIO_NewString *new_string);
+
+bool OIIO_has_error(void);
+
+void OIIO_geterror(bool clear, struct OIIO_NewString *résultat);
 
 struct OIIO_StringView {
     const char *characters;
@@ -607,6 +614,12 @@ bool OIIO_ImageInput_read_image(struct OIIO_ImageInput *image,
                                 OIIO_ProgressCallback progress_callback,
                                 void *progress_callback_data);
 
+bool OIIO_ImageInput_has_error(struct OIIO_ImageInput *image);
+
+void OIIO_ImageInput_geterror(struct OIIO_ImageInput *image,
+                              bool clear,
+                              struct OIIO_NewString *résultat);
+
 struct OIIO_ImageOutput;
 
 struct OIIO_ImageOutput *OIIO_ImageOutput_create(struct OIIO_StringView filename,
@@ -658,6 +671,12 @@ bool OIIO_ImageOutput_write_scanlines(int ybegin,
                                       struct OIIO_TypeDesc format,
                                       uint8_t *bytes,
                                       uint64_t num_bytes);
+
+bool OIIO_ImageOutput_has_error(struct OIIO_ImageOutput *output);
+
+void OIIO_ImageOutput_geterror(struct OIIO_ImageOutput *output,
+                               bool clear,
+                               struct OIIO_NewString *résultat);
 
 #ifdef __cplusplus
 }
