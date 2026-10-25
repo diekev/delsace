@@ -5,14 +5,11 @@
 
 #include "oiio.h"
 
-#include "biblinternes/outils/garde_portee.h"
-
 #include <cassert>
 #include <cmath>
 #include <math.h>
 #include <string.h>
 #include <string>
-#include <vector>
 
 #include "champs_de_distance.hh"
 #include "filtrage.hh"
