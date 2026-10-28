@@ -629,6 +629,8 @@ memcpy :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc;
 
 memmove :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc;
 
+memcmp :: fonc (ptr: *rien, src: *rien, taille: n64) -> z32 #externe libc;
+
 strerror :: fonc (args: z32) -> ChaineC #externe libc;
 
 strlen :: fonc (str: *z8) -> n64 #externe libc;
