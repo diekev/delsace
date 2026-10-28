@@ -945,6 +945,16 @@ donne_tampon_rvb_8bit :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVBN8
     retourne résultat;
 }
 
+donne_tampon_rvb_32bit :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVB_32)
+{
+    assert(image.desc.format == FormatPixel.RVB_32);
+    résultat: TamponImage(CouleurRVBN8) = ---;
+    résultat.données = image.données comme *CouleurRVB_32;
+    résultat.largeur = image.desc.largeur comme z32;
+    résultat.hauteur = image.desc.hauteur comme z32;
+    retourne résultat;
+}
+
 donne_tampon_rvba :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVBA)
 {
     assert(image.desc.format == FormatPixel.RVBA_32);
