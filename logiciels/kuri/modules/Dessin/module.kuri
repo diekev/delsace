@@ -654,13 +654,12 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
 {
     discr image.desc.format {
         Gris_8 {
-            tampon: TamponImageGrise8Bit;
-            tampon.données = image.données comme *n8;
-            tampon.largeur = image.desc.largeur comme z32;
-            tampon.hauteur = image.desc.hauteur comme z32;
+            tampon := donne_tampon_gris_8bit(mémoire(image));
             dessine_image(tampon_de_rendu, tampon, rect);
         }
         Gris_32 {
+            // tampon := donne_tampon_gris(mémoire(image));
+            // dessine_image(tampon_de_rendu, image_io, rect);
             imprime("[%] format non supporté : %\n", #nom_de_cette_fonction, image.desc.format);
         }
         RVB_8 {
@@ -668,28 +667,17 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
         }
         RVB_32 {
             // À FAIRE
-            // image_io: ImageIO
-            // image_io.donnees = image.données comme *r32
-            // image_io.largeur = image.desc.largeur comme z32
-            // image_io.hauteur = image.desc.hauteur comme z32
-            // image_io.nombre_composants = 3
-            // dessine_image(tampon_de_rendu, image_io, rect)
+            // tampon := donne_tampon_rvb(mémoire(image));
+            // dessine_image(tampon_de_rendu, image_io, rect);
         }
         RVBA_8 {
-            tampon: TamponImageRVBA8Bit;
-            tampon.données = image.données comme *CouleurRVBAN8;
-            tampon.largeur = image.desc.largeur comme z32;
-            tampon.hauteur = image.desc.hauteur comme z32;
+            tampon := donne_tampon_rvba_8bit(mémoire(image));
             dessine_image(tampon_de_rendu, tampon, rect);
         }
         RVBA_32 {
             // À FAIRE
-            // image_io: ImageIO
-            // image_io.donnees = image.données comme *r32
-            // image_io.largeur = image.desc.largeur comme z32
-            // image_io.hauteur = image.desc.hauteur comme z32
-            // image_io.nombre_composants = 4
-            // dessine_image(tampon_de_rendu, image_io, rect)
+            // tampon := donne_tampon_rvba(mémoire(image));
+            // dessine_image(tampon_de_rendu, tampon, rect);
         }
     }
 }
