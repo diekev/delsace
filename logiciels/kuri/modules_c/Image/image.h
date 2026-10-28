@@ -125,13 +125,6 @@ struct ImageIO_Chaine {
     uint64_t taille;
 };
 
-enum ImageIO_Options_Lecture {
-    /* Lis les pixels de l'image. */
-    IMAGEIO_OPTIONS_LECTURE_LIS_PIXELS = 1,
-    /* Lis les attributs de l'image. */
-    IMAGEIO_OPTIONS_LECTURE_LIS_ATTRIBUTS = 2,
-};
-
 /** Structure de rappel pour créer des calques et des canaux dans une image, ou pour accéder à
  * ceux-ci.
  * Les applications clientes doivent dériver cette structure afin de placer leurs données

@@ -383,11 +383,18 @@ rappel_progression_oiio :: fonc (opaque_data: *rien, portion_done: r32) -> bool
 
 #portée_export
 
+Options_Lecture_Image :: énum_drapeau {
+    /* Lis les pixels de l'image. */
+    LIS_PIXELS :: 1;
+    /* Lis les attributs de l'image. */
+    LIS_ATTRIBUTS :: 2;
+}
+
 ImageIO_RappelsProgression :: struct {
     rappel_progression: fonc (rappels: *ImageIO_RappelsProgression, portion_done: r32) -> bool;
 }
 
-ouvre_image_avec_adaptrice :: fonc (chemin: chaine, image: *AdaptriceImage, rappels: *ImageIO_RappelsProgression, options: ImageIO_Options_Lecture) -> ResultatOperation
+ouvre_image_avec_adaptrice :: fonc (chemin: chaine, image: *AdaptriceImage, rappels: *ImageIO_RappelsProgression, options: Options_Lecture_Image) -> ResultatOperation
 {
     input := OIIO_ImageInput_open(chemin);
     saufsi input {
@@ -400,7 +407,7 @@ ouvre_image_avec_adaptrice :: fonc (chemin: chaine, image: *AdaptriceImage, rapp
 
     spec := OIIO_ImageInput_spec(input);
 
-    si (options & ImageIO_Options_Lecture.LIS_ATTRIBUTS) != 0 comme ImageIO_Options_Lecture && image.ajoute_attribut {
+    si (options & Options_Lecture_Image.LIS_ATTRIBUTS) != 0 comme Options_Lecture_Image && image.ajoute_attribut {
         pour * param dans donne_extra_attribs(spec) {
             param_type := OIIO_ParamValue_type(param);
 
@@ -426,7 +433,7 @@ ouvre_image_avec_adaptrice :: fonc (chemin: chaine, image: *AdaptriceImage, rapp
         }
     }
 
-    si (options & ImageIO_Options_Lecture.LIS_PIXELS) == 0 comme ImageIO_Options_Lecture {
+    si (options & Options_Lecture_Image.LIS_PIXELS) == 0 comme Options_Lecture_Image {
         retourne ResultatOperation.OK;
     }
 
