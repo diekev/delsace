@@ -103,16 +103,6 @@ enum OIIO_TYPEDESC_AGGREGATE {
     OIIO_TYPEDESC_AGGREGATE_MATRIX44 = 16  ///< 16 values representing a 4x4 matrix.
 };
 
-struct ImageIO {
-    uint8_t *donnees;
-    int64_t taille_donnees;
-
-    int largeur;
-    int hauteur;
-    int nombre_composants;
-    enum ImageIO_DataType format;
-};
-
 /** Structure pour décrire la résolution d'une image.
  */
 typedef struct DescriptionImage {
