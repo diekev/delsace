@@ -642,7 +642,6 @@ strlen :: fonc (str: *z8) -> n64 #externe libc;
 // <sys/ipc.h>
 // <sys/mman.h>
 // <sys/msg.h>
-// <sys/resource.h>
 
 /* ------------------------------------------------------------------------- */
 /** \nom sys/resource.h
@@ -687,6 +686,95 @@ RUSAGE_THREAD :: __rusage_who.RUSAGE_THREAD;
 RUSAGE_LWP :: __rusage_who.RUSAGE_THREAD;
 
 getrusage :: fonc (who: __rusage_who, usage: *rusage) -> z32 #externe libc;
+
+rlim_t :: n64;
+
+rlimit :: struct {
+    rlim_cur: rlim_t;  /* Soft limit */
+    rlim_max: rlim_t;  /* Hard limit (ceiling for rlim_cur) */
+}
+
+/* Kinds of resource limit.  */
+__rlimit_resource :: énum z32 {
+  /* Per-process CPU limit, in seconds.  */
+  RLIMIT_CPU :: 0;
+  /* Largest file that can be created, in bytes.  */
+  RLIMIT_FSIZE :: 1;
+
+  /* Maximum size of data segment, in bytes.  */
+  RLIMIT_DATA :: 2;
+
+  /* Maximum size of stack segment, in bytes.  */
+  RLIMIT_STACK :: 3;
+
+  /* Largest core file that can be created, in bytes.  */
+  RLIMIT_CORE :: 4;
+
+  /* Largest resident set size, in bytes.
+     This affects swapping; processes that are exceeding their
+     resident set size will be more likely to have physical memory
+     taken from them.  */
+  RLIMIT_RSS :: 5;
+
+  /* Number of open files.  */
+  RLIMIT_NOFILE :: 7;
+  RLIMIT_OFILE :: RLIMIT_NOFILE; /* BSD name for same.  */
+
+  /* Address space limit.  */
+  RLIMIT_AS :: 9;
+
+  /* Number of processes.  */
+  RLIMIT_NPROC :: 6;
+
+  /* Locked-in-memory address space.  */
+  RLIMIT_MEMLOCK :: 8;
+
+  /* Maximum number of file locks.  */
+  RLIMIT_LOCKS :: 10;
+
+  /* Maximum number of pending signals.  */
+  RLIMIT_SIGPENDING :: 11;
+
+  /* Maximum bytes in POSIX message queues.  */
+  RLIMIT_MSGQUEUE :: 12;
+
+  /* Maximum nice priority allowed to raise to.
+     Nice levels 19 .. -20 correspond to 0 .. 39
+     values of this resource limit.  */
+  RLIMIT_NICE :: 13;
+
+  /* Maximum realtime priority allowed for non-priviledged
+     processes.  */
+  RLIMIT_RTPRIO :: 14;
+
+  /* Maximum CPU time in microseconds that a process scheduled under a real-time
+     scheduling policy may consume without making a blocking system
+     call before being forcibly descheduled.  */
+  RLIMIT_RTTIME :: 15;
+}
+
+RLIMIT_CPU :: __rlimit_resource.RLIMIT_CPU;
+RLIMIT_FSIZE :: __rlimit_resource.RLIMIT_FSIZE;
+RLIMIT_DATA :: __rlimit_resource.RLIMIT_DATA;
+RLIMIT_STACK :: __rlimit_resource.RLIMIT_STACK;
+RLIMIT_CORE :: __rlimit_resource.RLIMIT_CORE;
+RLIMIT_RSS :: __rlimit_resource.RLIMIT_RSS;
+RLIMIT_NOFILE :: __rlimit_resource.RLIMIT_NOFILE;
+RLIMIT_OFILE :: __rlimit_resource.RLIMIT_OFILE;
+RLIMIT_AS :: __rlimit_resource.RLIMIT_AS;
+RLIMIT_NPROC :: __rlimit_resource.RLIMIT_NPROC;
+RLIMIT_MEMLOCK :: __rlimit_resource.RLIMIT_MEMLOCK;
+RLIMIT_LOCKS :: __rlimit_resource.RLIMIT_LOCKS;
+RLIMIT_SIGPENDING :: __rlimit_resource.RLIMIT_SIGPENDING;
+RLIMIT_MSGQUEUE :: __rlimit_resource.RLIMIT_MSGQUEUE;
+RLIMIT_NICE :: __rlimit_resource.RLIMIT_NICE;
+RLIMIT_RTPRIO :: __rlimit_resource.RLIMIT_RTPRIO;
+RLIMIT_RTTIME :: __rlimit_resource.RLIMIT_RTTIME;
+
+getrlimit :: fonc (resource: __rlimit_resource, rlim: *rlimit) -> z32 #externe libc;
+setrlimit :: fonc (resource: __rlimit_resource, rlim: *rlimit) -> z32 #externe libc;
+
+prlimit :: fonc (pid: pid_t, resource: __rlimit_resource, new_limit: *rlimit, old_limit: *rlimit) -> z32 #externe libc;
 
 /** \} */
 
