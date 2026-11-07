@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "facesets";
+    nom_test := "xform";
 
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -99,6 +99,9 @@ fais_test_archive :: fonc (chemin: chaine, nom_test: chaine)
     }
     sinon si nom_test == "infos-attributs" {
         pour_chaque_objet(iarchive, Filtre_Objet.ALL, imprime_infos_attributs);
+    }
+    sinon si nom_test == "xform" {
+        pour_chaque_objet(iarchive, Filtre_Objet.XFORM, imprime_xform_infos);
     }
     sinon si nom_test == "xform-ops" {
         pour_chaque_objet(iarchive, Filtre_Objet.XFORM, imprime_xform_ops);
@@ -949,10 +952,15 @@ imprime_animation_attributs :: fonc (object: Abc_Generic_Input_Object)
     }
 }
 
+est_environ_zéro :: fonc (v: r64) -> bool
+{
+    retourne (v - 0.0) <= 0.00001;
+}
+
 calcule_limites_animation_en_image :: fonc (iarchive: *Abc_Input_Archive, ts: *Abc_Time_Sampling, ips_défaut: r64 = 24.0) -> (début: z64, fin: z64, ips: r64)
 {
     num_stored_times := get_num_stored_times(ts);
-    imprimeln("num_stored_times : %", num_stored_times);
+    // imprimeln("num_stored_times : %", num_stored_times);
 
     stored_times: [..]r64;
     diffère déloge(*stored_times);
@@ -960,29 +968,29 @@ calcule_limites_animation_en_image :: fonc (iarchive: *Abc_Input_Archive, ts: *A
 
     get_stored_times(ts, *stored_times.données, *stored_times.taille comme *n64);
 
-    pour stored_times {
-        imprimeln("-- %", it);
-    }
+    // pour stored_times {
+    //     imprimeln("-- %", it);
+    // }
 
     start_time: r64;
     end_time: r64;
     get_start_and_end_time(iarchive, *start_time, *end_time);
 
-    imprimeln("start %, end %", start_time, end_time);
+    // imprimeln("start %, end %", start_time, end_time);
 
-    si num_stored_times == 1 && stored_times[0] != 0.0 {
+    si num_stored_times == 1 && !est_environ_zéro(stored_times[0]) {
         ips = 1.0 / stored_times[0];
     }
     sinon {
         ips = ips_défaut;
     }
 
-    imprimeln("ps : %", ips);
+    // imprimeln("ips : %", ips);
 
     début = (start_time * ips) comme z64;
     fin = (end_time * ips) comme z64;
 
-    imprimeln("image début : %, fin : %", début, fin);
+    // imprimeln("image début : %, fin : %", début, fin);
 
     retourne début, fin, ips;
 }
@@ -1044,6 +1052,23 @@ imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *
     // imprimeln("       %", prop_name);
 
     imprime_propriété_scalaire(props, prop_header);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Xform Infos
+ * \{ */
+
+imprime_xform_infos :: fonc (object: Abc_Generic_Input_Object)
+{
+    xform_schema := get_schema(object.xform);
+    num_samples := get_num_samples(xform_schema);
+    imprimeln("    num_samples : %", num_samples);
+
+    ts := get_time_sampling(xform_schema);
+    start_frame, end_frame, ips := calcule_limites_animation_en_image(iarchive_courante, ts);
+    imprimeln("    - start %, end %, ips %", start_frame, end_frame, ips);
 }
 
 /** \} */
