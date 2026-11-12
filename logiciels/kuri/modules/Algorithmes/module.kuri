@@ -452,7 +452,7 @@ log_base_2 :: fonc (n: z64) -> z64
     imprime_tableau(v);
  
     // Note: changement de la fonction de comparaison
-    est_plus_grand :: fonc (a: z32, b: z32) -> bool;
+    est_plus_grand :: fonc (a: z32, b: z32) -> bool
     {
         retourne a > b;
     }

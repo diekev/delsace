@@ -968,9 +968,9 @@ static void aplatis_arbre(NoeudExpression *racine,
             inst->indice_après = arbre_aplatis.taille() - 1;
             break;
         }
-        case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+        case GenreNoeud::INSTRUCTION_EMPLOIE_CONTEXTE:
         {
-            auto expr = racine->comme_pousse_contexte();
+            auto expr = racine->comme_emploie_contexte();
 
             aplatis_arbre(expr->expression, arbre_aplatis, PositionCodeNoeud::DROITE_ASSIGNATION);
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);

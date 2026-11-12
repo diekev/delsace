@@ -20,7 +20,7 @@ principale :: fonc ()
     nouveau_contexte := contexte();
     nouveau_contexte.stockage_temporaire = nul;
 
-    pousse_contexte nouveau_contexte {
+    emploie_contexte nouveau_contexte {
         empreinte3 := empreinte_contexte();
         diffère déloge(*empreinte3);
         assert(empreinte1 != empreinte3);

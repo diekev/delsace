@@ -165,7 +165,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_discr();
     NoeudExpression *analyse_instruction_pour();
     void analyse_specifiants_instruction_pour(NoeudPour *noeud);
-    NoeudExpression *analyse_instruction_pousse_contexte();
+    NoeudExpression *analyse_instruction_emploie_contexte();
     NoeudExpression *analyse_instruction_répète();
     NoeudExpression *analyse_instruction_si(GenreNoeud genre_noeud);
     NoeudExpression *analyse_instruction_si_statique(Lexème *lexème);
