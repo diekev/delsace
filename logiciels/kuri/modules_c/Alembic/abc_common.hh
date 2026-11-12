@@ -145,6 +145,16 @@ inline void make_abc_data_type(const AbcGeom::DataType &abc_data_type,
     }
 }
 
+inline Abc_New_String make_new_string(std::string_view str)
+{
+    auto characters = new char[str.size()];
+    memcpy(characters, str.data(), str.size());
+    Abc_New_String résultat;
+    résultat.characters = characters;
+    résultat.size = str.size();
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

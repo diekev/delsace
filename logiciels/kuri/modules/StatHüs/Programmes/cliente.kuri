@@ -13,7 +13,7 @@ principale :: fonc ()
     diffère détruit_allocatrice(*allocatrice);
     installe_allocatrice(*ctx, *allocatrice);
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         tableau: [..]z32;
                 
         pour 100 {

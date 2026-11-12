@@ -1164,10 +1164,10 @@ struct NoeudDiscrUnion : NoeudDiscr {
     @genre_valeur INVALIDE
 }
 
-struct NoeudPousseContexte : NoeudExpression {
-    @genre INSTRUCTION_POUSSE_CONTEXTE
-    @comme pousse_contexte
-    @code  NoeudCodePousseContexte
+struct NoeudEmploieContexte : NoeudExpression {
+    @genre INSTRUCTION_EMPLOIE_CONTEXTE
+    @comme emploie_contexte
+    @code  NoeudCodeEmploieContexte
     @genre_valeur INVALIDE
 
     NoeudExpression *expression [code enfant construction]

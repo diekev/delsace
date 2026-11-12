@@ -169,6 +169,30 @@ set_face_indices :: fonc (sample: *Abc_Output_PolyMesh_Schema_Sample, values: []
     set_face_indices(sample, array_sample);
 }
 
+set_positions :: fonc (sample: *Abc_Output_NuPatch_Schema_Sample, positions: []Vec3)
+{
+    array_sample: Abc_P3f_Array_Sample = ---;
+    array_sample.values = positions.données comme *Abc_V3f;
+    array_sample.num_values = positions.taille comme n64;
+    set_positions(sample, array_sample);
+}
+
+set_u_knot :: fonc (sample: *Abc_Output_NuPatch_Schema_Sample, values: []r32)
+{
+    array_sample: Abc_Float_Array_Sample = ---;
+    array_sample.values = values.données;
+    array_sample.num_values = values.taille comme n64;
+    set_u_knot(sample, array_sample);
+}
+
+set_v_knot :: fonc (sample: *Abc_Output_NuPatch_Schema_Sample, values: []r32)
+{
+    array_sample: Abc_Float_Array_Sample = ---;
+    array_sample.values = values.données;
+    array_sample.num_values = values.taille comme n64;
+    set_v_knot(sample, array_sample);
+}
+
 crée_xform_neutre_pour_objet :: fonc (parent: Abc_Generic_Output_Object, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
 {
     résultat := abc_output_xform_create(parent, nom, ts);

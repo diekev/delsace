@@ -304,7 +304,7 @@ donne_texte_pour_sortie :: fonc (chemin: CheminFichier) -> chaine
 
     ctx := contexte();
     ctx.format_réel.précision = 2;
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         résultat = donne_chaine_impression_arbre(arbre);
     }
 

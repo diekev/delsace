@@ -1314,7 +1314,7 @@ donne_tabuleuse_dynamic :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabule
             sinon {
                 ctx := contexte();
                 ctx.format_entier.base = 16;
-                pousse_contexte ctx {
+                emploie_contexte ctx {
                     valeur_entrée = imprime_chaine_temp("0x%", it.d_un.d_ptr);
                 }
             }
