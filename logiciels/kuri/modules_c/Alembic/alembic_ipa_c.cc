@@ -3,8 +3,6 @@
 
 #include "abc_common.hh"
 
-#include <string_view>
-
 #include "alembic_ipa_c.h"
 
 #include "../InterfaceCKuri/contexte_kuri.hh"
@@ -94,16 +92,6 @@ Abc_String::operator std::string()
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_String
  * \{ */
-
-static Abc_New_String make_new_string(std::string_view str)
-{
-    auto characters = new char[str.size()];
-    memcpy(characters, str.data(), str.size());
-    Abc_New_String résultat;
-    résultat.characters = characters;
-    résultat.size = str.size();
-    return résultat;
-}
 
 void abc_new_string_destroy(struct Abc_New_String *new_string)
 {

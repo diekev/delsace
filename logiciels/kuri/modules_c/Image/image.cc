@@ -5,14 +5,11 @@
 
 #include "oiio.h"
 
-#include "biblinternes/outils/garde_portee.h"
-
 #include <cassert>
 #include <cmath>
 #include <math.h>
 #include <string.h>
 #include <string>
-#include <vector>
 
 #include "champs_de_distance.hh"
 #include "filtrage.hh"
@@ -31,269 +28,6 @@
     if (!(x)) {                                                                                   \
         return;                                                                                   \
     }
-
-extern "C" {
-
-void IMG_detruit_chaine(struct ImageIO_Chaine *chn)
-{
-    if (!chn) {
-        return;
-    }
-
-    delete[] chn->caractères;
-    chn->caractères = nullptr;
-    chn->taille = 0;
-}
-
-struct NomCanal {
-    std::string nom_calque{};
-    std::string nom_canal{};
-};
-
-static NomCanal parse_nom_canal(std::string const &nom)
-{
-    auto const pos_point = nom.find('.');
-
-    if (pos_point == std::string::npos) {
-        return {"", nom};
-    }
-
-    auto resultat = NomCanal{};
-    resultat.nom_calque = nom.substr(0, pos_point);
-    resultat.nom_canal = nom.substr(pos_point + 1);
-    return resultat;
-}
-
-struct DescriptionCanal {
-    std::string nom{};
-    int index{};
-};
-
-struct DescriptionCalque {
-    std::string nom{};
-
-    std::vector<DescriptionCanal> canaux{};
-};
-
-struct ParseuseDonneesImage {
-    std::vector<DescriptionCalque> calques{};
-
-    void parse_canaux(std::vector<std::string> const &canaux, int canal_z)
-    {
-        auto index = 0;
-        for (auto const &name : canaux) {
-            ajoute_canal(name, index++, canal_z);
-        }
-    }
-
-    void ajoute_canal(std::string const &nom, int index, int canal_z)
-    {
-        auto nom_calque_canal = parse_nom_canal(nom);
-
-        auto nom_calque = nom_calque_canal.nom_calque;
-
-        if (nom_calque == "") {
-            nom_calque = "rgba";
-        }
-
-        if (index == canal_z) {
-            nom_calque = "depth";
-        }
-
-        auto &calque = trouve_ou_ajoute_calque(nom_calque);
-        calque.canaux.push_back({nom_calque_canal.nom_canal, index});
-    }
-
-    DescriptionCalque &trouve_ou_ajoute_calque(std::string const &nom)
-    {
-        for (auto &calque : calques) {
-            if (calque.nom == nom) {
-                return calque;
-            }
-        }
-
-        calques.emplace_back();
-        calques.back().nom = nom;
-        return calques.back();
-    }
-};
-
-static bool rappel_progression(void *opaque_data, float portion_done)
-{
-    auto rappels = static_cast<ImageIO_RappelsProgression *>(opaque_data);
-    return rappels->rappel_progression(rappels, portion_done);
-}
-
-static OIIO::TypeDesc donne_typedesc_depuis_data_type(ImageIO_DataType format)
-{
-#define CAS_RUBRIQUE_ENUM(nom_ipa, nom_oiio)                                                      \
-    case nom_ipa:                                                                                 \
-    {                                                                                             \
-        return nom_oiio;                                                                          \
-        break;                                                                                    \
-    }
-    switch (format) {
-        ENUM_IMAGEIO_DATATYPE(CAS_RUBRIQUE_ENUM)
-    }
-    return OIIO::TypeDesc::FLOAT;
-#undef CAS_RUBRIQUE_ENUM
-}
-
-static ImageIO_DataType convertis_data_type(OIIO::TypeDesc::BASETYPE type)
-{
-    switch (type) {
-        ENUM_IMAGEIO_DATATYPE(ENUMERE_TRANSLATION_ENUM_NATIF_VERS_IPA)
-        case OIIO::TypeDesc::LASTBASE:
-        {
-            return IMAGEIO_DATATYPE_UNKNOWN;
-        }
-    }
-    return IMAGEIO_DATATYPE_UNKNOWN;
-}
-
-static ImageIO_AggregateType convertis_aggregate_type(OIIO::TypeDesc::AGGREGATE type)
-{
-    switch (type) {
-        ENUM_IMAGEIO_AGGREGATETYPE(ENUMERE_TRANSLATION_ENUM_NATIF_VERS_IPA)
-    }
-    return IMAGEIO_AGGREGATETYPE_SCALAR;
-}
-
-ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
-                                                 int64_t taille_chemin,
-                                                 AdaptriceImage *image,
-                                                 ImageIO_RappelsProgression *rappels,
-                                                 ImageIO_Options_Lecture options)
-{
-    OIIO::ProgressCallback progress_callback = rappel_progression;
-
-    if (!rappels || !rappels->rappel_progression) {
-        rappels = nullptr;
-        progress_callback = nullptr;
-    }
-
-    const auto chemin_ = std::string(chemin, size_t(taille_chemin));
-
-    auto input = OIIO::ImageInput::open(chemin_);
-
-    if (input == nullptr) {
-        return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
-    }
-
-    DIFFERE {
-        input->close();
-    };
-
-    const auto &spec = input->spec();
-
-    DescriptionImage desc_image{};
-    desc_image.hauteur = spec.height;
-    desc_image.largeur = spec.width;
-
-    if ((options & IMAGEIO_OPTIONS_LECTURE_LIS_ATTRIBUTS) != 0 && image->ajoute_attribut) {
-        for (auto const &param : spec.extra_attribs) {
-            auto const &param_type = param.type();
-
-            auto type_données = convertis_data_type(OIIO::TypeDesc::BASETYPE(param_type.basetype));
-            auto type_aggregat = convertis_aggregate_type(
-                OIIO::TypeDesc::AGGREGATE(param_type.aggregate));
-
-            ImageIO_Chaine nom;
-            nom.caractères = param.name().c_str();
-            nom.taille = param.name().size();
-
-            if (param.type() == OIIO::TypeDesc::STRING) {
-                auto value = static_cast<const OIIO::ustring *>(param.data());
-
-                ImageIO_Chaine chaine;
-                chaine.caractères = value->c_str();
-                chaine.taille = value->size();
-
-                image->ajoute_attribut(
-                    image, &nom, type_données, type_aggregat, &chaine, param.nvalues());
-            }
-            else {
-                image->ajoute_attribut(
-                    image, &nom, type_données, type_aggregat, param.data(), param.nvalues());
-            }
-        }
-    }
-
-    if ((options & IMAGEIO_OPTIONS_LECTURE_LIS_PIXELS) == 0) {
-        return ResultatOperation::OK;
-    }
-
-    auto parseuse = ParseuseDonneesImage();
-    parseuse.parse_canaux(spec.channelnames, spec.z_channel);
-
-    auto format = OIIO::TypeDesc::FLOAT;
-
-    image->initialise_image(image, &desc_image);
-
-    for (auto const &desc_calque : parseuse.calques) {
-        void *calque = image->cree_calque(
-            image, desc_calque.nom.c_str(), int64_t(desc_calque.nom.size()));
-
-        if (!calque) {
-            return ResultatOperation::AJOUT_CALQUE_IMPOSSIBLE;
-        }
-
-        for (auto const &desc_canal : desc_calque.canaux) {
-            void *canal = image->ajoute_canal(
-                image, calque, desc_canal.nom.c_str(), int64_t(desc_canal.nom.size()));
-
-            if (!canal) {
-                return ResultatOperation::AJOUT_CANAL_IMPOSSIBLE;
-            }
-
-            float *donnees_canal = image->donnees_canal_pour_ecriture(image, canal);
-
-            auto const index_canal = desc_canal.index;
-
-            auto const succes = input->read_image(0,
-                                                  0,
-                                                  index_canal,
-                                                  index_canal + 1,
-                                                  format,
-                                                  donnees_canal,
-                                                  OIIO::AutoStride,
-                                                  OIIO::AutoStride,
-                                                  OIIO::AutoStride,
-                                                  progress_callback,
-                                                  rappels);
-            if (!succes) {
-                return ResultatOperation::LECTURE_DONNEES_IMPOSSIBLE;
-            }
-        }
-    }
-
-    return ResultatOperation::OK;
-}
-
-void IMG_donne_erreur(ImageIO_Chaine *résultat)
-{
-    auto erreur = OIIO::geterror();
-    if (erreur.size()) {
-        résultat->caractères = new char[erreur.size()];
-        résultat->taille = erreur.size();
-        memcpy(const_cast<char *>(résultat->caractères), erreur.c_str(), erreur.size());
-    }
-    else {
-        résultat->caractères = nullptr;
-        résultat->taille = 0;
-    }
-}
-
-void IMG_detruit_image(ImageIO *image)
-{
-    delete[] image->donnees;
-    image->donnees = nullptr;
-    image->taille_donnees = 0;
-    image->largeur = 0;
-    image->hauteur = 0;
-    image->nombre_composants = 0;
-}
-}
 
 #define PASSE_APPEL(fonction, type_params)                                                        \
     void IMG_##fonction(const type_params *params,                                                \
@@ -431,6 +165,41 @@ int64_t OIIO_AutoStride()
     return OIIO::AutoStride;
 }
 
+static void make_new_string(std::string_view source, OIIO_NewString *résultat)
+{
+    if (source.size()) {
+        résultat->characters = new char[source.size()];
+        résultat->size = source.size();
+        memcpy(const_cast<char *>(résultat->characters), source.data(), source.size());
+    }
+    else {
+        résultat->characters = nullptr;
+        résultat->size = 0;
+    }
+}
+
+void OIIO_NewString_delete(struct OIIO_NewString *new_string)
+{
+    if (!new_string) {
+        return;
+    }
+
+    delete[] new_string->characters;
+    new_string->characters = nullptr;
+    new_string->size = 0;
+}
+
+bool OIIO_has_error()
+{
+    return OIIO::has_error();
+}
+
+void OIIO_geterror(bool clear, OIIO_NewString *résultat)
+{
+    auto erreur = OIIO::geterror(clear);
+    make_new_string(erreur, résultat);
+}
+
 int OIIO_get_int_attribute(struct OIIO_StringView name, int default_value)
 {
     return OIIO::get_int_attribute(std::string_view(name.characters, name.size), default_value);
@@ -551,10 +320,26 @@ void OIIO_ImageSpec_definis_nchannels(struct OIIO_ImageSpec *spec, int nchannels
     oiio_spec->nchannels = nchannels;
 }
 
+int OIIO_ImageSpec_donne_z_channel(struct OIIO_ImageSpec *spec)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    return oiio_spec->z_channel;
+}
+
 struct OIIO_TypeDesc OIIO_ImageSpec_donne_format(struct OIIO_ImageSpec *spec)
 {
     auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
     return *reinterpret_cast<OIIO_TypeDesc *>(&oiio_spec->format);
+}
+
+void OIIO_ImageSpec_donne_channel_name(struct OIIO_ImageSpec *spec,
+                                       int channel_index,
+                                       struct OIIO_StringView *résultat)
+{
+    auto oiio_spec = reinterpret_cast<OIIO::ImageSpec *>(spec);
+    auto channel_name = oiio_spec->channel_name(channel_index);
+    résultat->characters = channel_name.data();
+    résultat->size = channel_name.size();
 }
 
 OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(OIIO_ImageSpec *spec)
@@ -778,6 +563,19 @@ bool OIIO_ImageInput_read_image(OIIO_ImageInput *image,
                                   progress_callback_data);
 }
 
+bool OIIO_ImageInput_has_error(struct OIIO_ImageInput *image)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    return oiio_image->has_error();
+}
+
+void OIIO_ImageInput_geterror(struct OIIO_ImageInput *image, bool clear, OIIO_NewString *résultat)
+{
+    auto oiio_image = reinterpret_cast<OIIO::ImageInput *>(image);
+    auto erreur = oiio_image->geterror(clear);
+    make_new_string(erreur, résultat);
+}
+
 OIIO_ImageOutput *OIIO_ImageOutput_create(OIIO_StringView filename,
                                           OIIO_Filesystem_IOProxy *ioproxy,
                                           OIIO_StringView plugin_searchpath)
@@ -881,4 +679,19 @@ bool OIIO_ImageOutput_write_scanlines(int ybegin,
     const OIIO::span<std::byte> data(reinterpret_cast<std::byte *>(bytes), num_bytes);
     const OIIO::image_span<std::byte> image_data(data.data(), spec.nchannels, spec.width, 1, 1);
     return oiio_output->write_scanlines(ybegin, yend, oiio_format, image_data);
+}
+
+bool OIIO_ImageOutput_has_error(struct OIIO_ImageOutput *output)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    return oiio_output->has_error();
+}
+
+void OIIO_ImageOutput_geterror(struct OIIO_ImageOutput *output,
+                               bool clear,
+                               OIIO_NewString *résultat)
+{
+    auto oiio_output = reinterpret_cast<OIIO::ImageOutput *>(output);
+    auto erreur = oiio_output->geterror(clear);
+    make_new_string(erreur, résultat);
 }
