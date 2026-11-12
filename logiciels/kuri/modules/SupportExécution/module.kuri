@@ -234,7 +234,7 @@ ajoute_mémoire_débordante :: fonc (alloc: *StockageTemporaire, adresse: *rien,
     ctx := contexte()
     ctx.allocatrice = allocatrice_défaut
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         tableau_ajoute(*alloc.mémoire_débordante, StockageTemporaire.MémoireDébordante(adresse, taille, alloc.occupé))
     }
 }
@@ -520,7 +520,7 @@ logement_temp :: fonc (taille: z64) -> *octet
 
     ptr: *octet
 
-    pousse_contexte nouveau_contexte {
+    emploie_contexte nouveau_contexte {
         tmp := loge_tableau(octet, taille)
         ptr = tmp.pointeur
     }
@@ -637,7 +637,7 @@ arguments_ligne_commande :: fonc () -> [..]chaine
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    pousse_contexte nouveau_contexte {
+    emploie_contexte nouveau_contexte {
         tabl_args = loge_tableau(chaine, __arguments_ligne_commande.taille)
 
         pour __arguments_ligne_commande {
