@@ -1,3 +1,4 @@
+importe Aléa;
 importe Alembic;
 importe Chaine;
 importe Fondation;
@@ -199,7 +200,9 @@ principale :: fonc ()
     // imprime_infos_types_attributs_pour_python();
 
     // crée_points_vides();
-    crée_courbes_vides();
+    // crée_courbes_vides();
+
+    // crée_test_fichier_large(faux, faux);
 
     // crée_test_mauvaise_géométrie_maillage();
 
@@ -227,6 +230,8 @@ principale :: fonc ()
     // crée_test_visibilité("/tmp/visibility-parent-visible-child-deferred.abc", Abc_Object_Visibility.VISIBLE, Abc_Object_Visibility.DEFERRED);
 
     // crée_test_visibilité_animée("/tmp/visibility-animated.abc");
+
+    crée_test_empty_samples("/tmp/empty-samples.abc");
 }
 
 crée_test_mauvaise_géométrie_maillage :: fonc ()
@@ -858,7 +863,7 @@ crée_test_scope_rayons_points :: fonc (chemin: chaine, scope: Abc_Geometry_Scop
     set_ids(point_sample, ids);
 
     si scope == Abc_Geometry_Scope.CONSTANT {
-    geom_param: Abc_Output_Float_Geom_Param_Sample;
+        geom_param: Abc_Output_Float_Geom_Param_Sample;
         widths := [0.2];
         geom_param.values.values = widths.données;
         geom_param.values.num_values = 1;
@@ -1170,3 +1175,268 @@ crée_courbes_vides :: fonc ()
         set(schema, curves_sample);
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fichier large
+ * \{ */
+
+crée_test_fichier_large :: fonc (aléafères_noms: bool, utilise_instances: bool)
+{
+    chemin := "/tmp/large-file.abc";
+
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = "Jorjala";
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère destroy(archive);
+
+    ts_défaut := default_time_sampling(archive);
+
+    racine := get_top(archive);
+
+    nombre_x := 100;
+    nombre_y := 100;
+    nombre_z := 10;
+
+    noms_matrices: [..]chaine;
+    diffère déloge_tableau_et_ses_éléments(*noms_matrices);
+    noms_objets: [..]chaine;
+    diffère déloge_tableau_et_ses_éléments(*noms_objets);
+
+    pour z dans nombre_z {
+        pour y dans nombre_y {
+            pour x dans nombre_x {
+                nom_matrice := imprime_chaine("PointCloud-%-%-%", x, y, z);
+                nom_objet := imprime_chaine("PointCloudShape-%-%-%", x, y, z);
+
+                tableau_ajoute(*noms_matrices, nom_matrice);
+                tableau_ajoute(*noms_objets, nom_objet);
+            }
+        }
+    }
+
+    si aléafères_noms {
+        entropie := graine_aléatoire(123);
+        aléafère_tableau(*entropie, noms_matrices);
+        aléafère_tableau(*entropie, noms_objets);
+    }
+
+    indice_objet := 0;
+
+    premier_objet: Abc_Generic_Output_Object;
+
+    pour z dans nombre_z {
+        pour y dans nombre_y {
+            pour x dans nombre_x {
+                nom_matrice := noms_matrices[indice_objet];
+                nom_objet := noms_objets[indice_objet];
+                indice_objet += 1;
+
+                matrice_objet_point := abc_output_xform_create(racine, nom_matrice, ts_défaut);
+                schema_matrix := get_schema(matrice_objet_point);
+
+                matrix_sample := sample_create(schema_matrix);
+                diffère destroy(matrix_sample);
+
+                matrix: Abc_M44d;
+                matrix.x[0][0] = 1.0;
+                matrix.x[1][1] = 1.0;
+                matrix.x[2][2] = 1.0;
+                matrix.x[3][3] = 1.0;
+
+                matrix.x[3][0] = x comme r32;
+                matrix.x[3][1] = y comme r32;
+                matrix.x[3][2] = z comme r32;
+
+                set_matrix(matrix_sample, *matrix);
+
+                set(schema_matrix, matrix_sample);
+
+                si utilise_instances && premier_objet.object {
+                    saufsi add_child_instance(matrice_objet_point, premier_objet, nom_objet) {
+                        imprimeln("Impossible d'ajouter une instance !");
+                        retourne;
+                    }
+                }
+                sinon {
+                    points := abc_output_points_create(matrice_objet_point, nom_objet, ts_défaut);
+                    schema := get_schema(points);
+
+                    point_sample := sample_create(schema);
+                    diffère destroy(point_sample);
+
+                    positions := [Vec3(0.0, 0.0, 0.0)];
+                    set_positions(point_sample, positions);
+
+                    ids := n64.[0];
+                    set_ids(point_sample, ids);
+
+                    // geom_param: Abc_Output_Float_Geom_Param_Sample;
+                    // widths := [0.5];
+                    // geom_param.values.values = widths.données;
+                    // geom_param.values.num_values = 1;
+                    // geom_param.scope = Abc_Geometry_Scope.VERTEX;
+
+                    // set_widths(point_sample, geom_param);
+
+                    set(schema, point_sample);
+
+                    premier_objet = points;
+                }
+            }
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Empty Samples
+ * \{ */
+
+donne_tableau_pour_échantillon_vide :: fonc ($T: type_de_données) -> []T
+{
+    adresse: T #parséante;
+    résultat: []T;
+    résultat.données = *adresse;
+    résultat.taille = 0;
+    retourne résultat;
+}
+
+crée_test_empty_samples :: fonc (chemin: chaine)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = "Jorjala";
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère destroy(archive);
+
+    ts_défaut := default_time_sampling(archive);
+
+    racine := get_top(archive);
+
+    // Abc_Output_Points;
+    {
+        matrice := crée_xform_neutre_pour_objet(racine, "Point", ts_défaut);
+
+        points := abc_output_points_create(matrice, "PointShape", ts_défaut);
+        schema := get_schema(points);
+
+        sample := sample_create(schema);
+        diffère destroy(sample);
+
+        positions := donne_tableau_pour_échantillon_vide(Vec3);
+        set_positions(sample, positions);
+
+        ids := donne_tableau_pour_échantillon_vide(n64);
+        set_ids(sample, ids);
+
+        set(schema, sample);
+    }
+
+    // curves: *Abc_Output_Curves;
+    {
+        matrice := crée_xform_neutre_pour_objet(racine, "Curve", ts_défaut);
+
+        curves := abc_output_curves_create(matrice, "CurveShape", ts_défaut);
+        schema := get_schema(curves);
+
+        sample := sample_create(schema);
+        diffère destroy(sample);
+
+        positions := donne_tableau_pour_échantillon_vide(Vec3);
+        set_positions(sample, positions);
+
+        num_vertices := donne_tableau_pour_échantillon_vide(z32);
+        set_curves_num_vertices(sample, num_vertices);
+
+        set(schema, sample);
+    }
+
+    // polymesh: *Abc_Output_PolyMesh;
+    {
+        matrice := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
+
+        mesh := abc_output_polymesh_create(matrice, "PolyMeshShape", ts_défaut);
+        schema := get_schema(mesh);
+
+        sample := sample_create(schema);
+        diffère destroy(sample);
+
+        positions := donne_tableau_pour_échantillon_vide(Vec3);
+        set_positions(sample, positions);
+
+        face_indices := donne_tableau_pour_échantillon_vide(z32);
+        set_face_indices(sample, face_indices);
+
+        face_counts := donne_tableau_pour_échantillon_vide(z32);
+        set_face_counts(sample, face_counts);
+
+        set(schema, sample);
+    }
+
+    // subd: *Abc_Output_SubD;
+    {
+        matrice := crée_xform_neutre_pour_objet(racine, "SubD", ts_défaut);
+
+        subd := abc_output_subd_create(matrice, "SubDShape", ts_défaut);
+        schema := get_schema(subd);
+
+        sample := sample_create(schema);
+        diffère destroy(sample);
+
+        positions := donne_tableau_pour_échantillon_vide(Vec3);
+        set_positions(sample, positions);
+
+        face_indices := donne_tableau_pour_échantillon_vide(z32);
+        set_face_indices(sample, face_indices);
+
+        face_counts := donne_tableau_pour_échantillon_vide(z32);
+        set_face_counts(sample, face_counts);
+
+        set(schema, sample);
+    }
+
+    // camera: *Abc_Output_Camera;
+    {
+        matrice := crée_xform_neutre_pour_objet(racine, "Camera", ts_défaut);
+
+        camera := abc_output_camera_create(matrice, "CameraShape", ts_défaut);
+        schema := get_schema(camera);
+
+        sample := create_sample(camera);
+
+        set(schema, sample);
+    }
+
+    // nupatch: *Abc_Output_NuPatch;
+    {
+        matrice := crée_xform_neutre_pour_objet(racine, "NuPatch", ts_défaut);
+
+        nupatch := abc_output_nupatch_create(matrice, "NuPatchShape", ts_défaut);
+        schema := get_schema(nupatch);
+
+        sample := sample_create(schema);
+        diffère destroy(sample);
+
+        positions := donne_tableau_pour_échantillon_vide(Vec3);
+        set_positions(sample, positions);
+
+        set_nu(sample, 0);
+        set_nv(sample, 0);
+        set_u_order(sample, 0);
+        set_v_order(sample, 0);
+
+        u_knot := donne_tableau_pour_échantillon_vide(r32);
+        set_u_knot(sample, u_knot);
+
+        v_knot := donne_tableau_pour_échantillon_vide(r32);
+        set_v_knot(sample, v_knot);
+
+        set(schema, sample);
+    }
+}
+
+/** \} */
