@@ -102,7 +102,7 @@ allocatrice_liste_libre :: fonc (params: *ParamètresAllocation, données: *Base
  *  ctx := contexte()
  *  installe_allocatrice(*ctx, *allocatrice)
  *
- *  pousse_contexte ctx {
+ *  emploie_contexte ctx {
  *      ...
  *  }
  *

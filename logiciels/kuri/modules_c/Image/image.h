@@ -50,22 +50,58 @@ enum ResultatOperation {
 
 enum ImageIO_DataType { ENUM_IMAGEIO_DATATYPE(ENUMERE_DECLARATION_ENUM_IPA) };
 
-struct ImageIO {
-    uint8_t *donnees;
-    int64_t taille_donnees;
-
-    int largeur;
-    int hauteur;
-    int nombre_composants;
-    enum ImageIO_DataType format;
+/// BASETYPE is a simple enum describing the base data types that
+/// correspond (mostly) to the C/C++ built-in types.
+enum OIIO_TYPEDESC_BASETYPE {
+    OIIO_TYPEDESC_BASETYPE_UNKNOWN,  ///< unknown type
+    OIIO_TYPEDESC_BASETYPE_NONE,     ///< void/no type
+    OIIO_TYPEDESC_BASETYPE_UINT8,    ///< 8-bit unsigned int values ranging from 0..255,
+                                     ///<   (C/C++ `unsigned char`).
+    OIIO_TYPEDESC_BASETYPE_UCHAR = OIIO_TYPEDESC_BASETYPE_UINT8,
+    OIIO_TYPEDESC_BASETYPE_INT8,  ///< 8-bit int values ranging from -128..127,
+                                  ///<   (C/C++ `char`).
+    OIIO_TYPEDESC_BASETYPE_CHAR = OIIO_TYPEDESC_BASETYPE_INT8,
+    OIIO_TYPEDESC_BASETYPE_UINT16,  ///< 16-bit int values ranging from 0..65535,
+                                    ///<   (C/C++ `unsigned short`).
+    OIIO_TYPEDESC_BASETYPE_USHORT = OIIO_TYPEDESC_BASETYPE_UINT16,
+    OIIO_TYPEDESC_BASETYPE_INT16,  ///< 16-bit int values ranging from -32768..32767,
+                                   ///<   (C/C++ `short`).
+    OIIO_TYPEDESC_BASETYPE_SHORT = OIIO_TYPEDESC_BASETYPE_INT16,
+    OIIO_TYPEDESC_BASETYPE_UINT32,  ///< 32-bit unsigned int values (C/C++ `unsigned int`).
+    OIIO_TYPEDESC_BASETYPE_UINT = OIIO_TYPEDESC_BASETYPE_UINT32,
+    OIIO_TYPEDESC_BASETYPE_INT32,  ///< signed 32-bit int values (C/C++ `int`).
+    OIIO_TYPEDESC_BASETYPE_INT = OIIO_TYPEDESC_BASETYPE_INT32,
+    OIIO_TYPEDESC_BASETYPE_UINT64,  ///< 64-bit unsigned int values (C/C++
+                                    ///<   `unsigned long long` on most architectures).
+    OIIO_TYPEDESC_BASETYPE_ULONGLONG = OIIO_TYPEDESC_BASETYPE_UINT64,
+    OIIO_TYPEDESC_BASETYPE_INT64,  ///< signed 64-bit int values (C/C++ `long long`
+                                   ///<   on most architectures).
+    OIIO_TYPEDESC_BASETYPE_LONGLONG = OIIO_TYPEDESC_BASETYPE_INT64,
+    OIIO_TYPEDESC_BASETYPE_HALF,         ///< 16-bit IEEE floating point values (OpenEXR `half`).
+    OIIO_TYPEDESC_BASETYPE_FLOAT,        ///< 32-bit IEEE floating point values, (C/C++ `float`).
+    OIIO_TYPEDESC_BASETYPE_DOUBLE,       ///< 64-bit IEEE floating point values, (C/C++ `double`).
+    OIIO_TYPEDESC_BASETYPE_STRING,       ///< Character string.
+    OIIO_TYPEDESC_BASETYPE_PTR,          ///< A pointer value.
+    OIIO_TYPEDESC_BASETYPE_USTRINGHASH,  ///< A uint64 that is the hash of a ustring.
+    OIIO_TYPEDESC_BASETYPE_LASTBASE
 };
 
-enum ResultatOperation IMG_ouvre_gif_depuis_fichier(const char *chemin, struct ImageIO *resultat);
-enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
-                                                    uint64_t taille,
-                                                    struct ImageIO *resultat);
-
-void IMG_detruit_image(struct ImageIO *image);
+/// AGGREGATE describes whether our TypeDesc is a simple scalar of one
+/// of the BASETYPE's, or one of several simple aggregates.
+///
+/// Note that aggregates and arrays are different. A `TypeDesc(FLOAT,3)`
+/// is an array of three floats, a `TypeDesc(FLOAT,VEC3)` is a single
+/// 3-component vector comprised of floats, and `TypeDesc(FLOAT,3,VEC3)`
+/// is an array of 3 vectors, each of which is comprised of 3 floats.
+enum OIIO_TYPEDESC_AGGREGATE {
+    OIIO_TYPEDESC_AGGREGATE_SCALAR = 1,    ///< A single scalar value (such as a raw `int` or
+                                           ///<   `float` in C).  This is the default.
+    OIIO_TYPEDESC_AGGREGATE_VEC2 = 2,      ///< 2 values representing a 2D vector.
+    OIIO_TYPEDESC_AGGREGATE_VEC3 = 3,      ///< 3 values representing a 3D vector.
+    OIIO_TYPEDESC_AGGREGATE_VEC4 = 4,      ///< 4 values representing a 4D vector.
+    OIIO_TYPEDESC_AGGREGATE_MATRIX33 = 9,  ///< 9 values representing a 3x3 matrix.
+    OIIO_TYPEDESC_AGGREGATE_MATRIX44 = 16  ///< 16 values representing a 4x4 matrix.
+};
 
 /** Structure pour décrire la résolution d'une image.
  */
@@ -84,28 +120,9 @@ typedef struct IMG_Fenetre {
     int max_y;
 } IMG_Fenetre;
 
-#define ENUM_IMAGEIO_AGGREGATETYPE(O)                                                             \
-    O(IMAGEIO_AGGREGATETYPE_SCALAR, OIIO::TypeDesc::SCALAR)                                       \
-    O(IMAGEIO_AGGREGATETYPE_VEC2, OIIO::TypeDesc::VEC2)                                           \
-    O(IMAGEIO_AGGREGATETYPE_VEC3, OIIO::TypeDesc::VEC3)                                           \
-    O(IMAGEIO_AGGREGATETYPE_VEC4, OIIO::TypeDesc::VEC4)                                           \
-    O(IMAGEIO_AGGREGATETYPE_MATRIX33, OIIO::TypeDesc::MATRIX33)                                   \
-    O(IMAGEIO_AGGREGATETYPE_MATRIX44, OIIO::TypeDesc::MATRIX44)
-
-enum ImageIO_AggregateType { ENUM_IMAGEIO_AGGREGATETYPE(ENUMERE_DECLARATION_ENUM_IPA) };
-
 struct ImageIO_Chaine {
     const char *caractères;
     uint64_t taille;
-};
-
-void IMG_detruit_chaine(struct ImageIO_Chaine *chn);
-
-enum ImageIO_Options_Lecture {
-    /* Lis les pixels de l'image. */
-    IMAGEIO_OPTIONS_LECTURE_LIS_PIXELS = 1,
-    /* Lis les attributs de l'image. */
-    IMAGEIO_OPTIONS_LECTURE_LIS_ATTRIBUTS = 2,
 };
 
 /** Structure de rappel pour créer des calques et des canaux dans une image, ou pour accéder à
@@ -176,23 +193,11 @@ struct AdaptriceImage {
 
     void (*ajoute_attribut)(const struct AdaptriceImage *,
                             struct ImageIO_Chaine *nom,
-                            enum ImageIO_DataType type,
-                            enum ImageIO_AggregateType aggregate,
+                            enum OIIO_TYPEDESC_BASETYPE type,
+                            enum OIIO_TYPEDESC_AGGREGATE aggregate,
                             const void *donnees,
                             int nombre_valeur);
 };
-
-struct ImageIO_RappelsProgression {
-    bool (*rappel_progression)(struct ImageIO_RappelsProgression *, float);
-};
-
-enum ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
-                                                      int64_t taille_chemin,
-                                                      struct AdaptriceImage *image,
-                                                      struct ImageIO_RappelsProgression *rappels,
-                                                      enum ImageIO_Options_Lecture options);
-
-void IMG_donne_erreur(struct ImageIO_Chaine *résultat);
 
 // ----------------------------------------------------------------------------
 // Simumlation de grain sur image
@@ -378,6 +383,17 @@ void SVG_image_detruit(struct SVGImage *image);
 
 int64_t OIIO_AutoStride();
 
+struct OIIO_NewString {
+    const char *characters;
+    uint64_t size;
+};
+
+void OIIO_NewString_delete(struct OIIO_NewString *new_string);
+
+bool OIIO_has_error(void);
+
+void OIIO_geterror(bool clear, struct OIIO_NewString *résultat);
+
 struct OIIO_StringView {
     const char *characters;
     uint64_t size;
@@ -407,59 +423,6 @@ struct OIIO_TypeDesc {
     unsigned char vecsemantics;  ///< Hint: What does the aggregate represent?
     unsigned char reserved;      ///< Reserved for future expansion
     int arraylen;                ///< Array length, 0 = not array, -1 = unsized
-};
-
-/// BASETYPE is a simple enum describing the base data types that
-/// correspond (mostly) to the C/C++ built-in types.
-enum OIIO_TYPEDESC_BASETYPE {
-    OIIO_TYPEDESC_BASETYPE_UNKNOWN,  ///< unknown type
-    OIIO_TYPEDESC_BASETYPE_NONE,     ///< void/no type
-    OIIO_TYPEDESC_BASETYPE_UINT8,    ///< 8-bit unsigned int values ranging from 0..255,
-                                     ///<   (C/C++ `unsigned char`).
-    OIIO_TYPEDESC_BASETYPE_UCHAR = OIIO_TYPEDESC_BASETYPE_UINT8,
-    OIIO_TYPEDESC_BASETYPE_INT8,  ///< 8-bit int values ranging from -128..127,
-                                  ///<   (C/C++ `char`).
-    OIIO_TYPEDESC_BASETYPE_CHAR = OIIO_TYPEDESC_BASETYPE_INT8,
-    OIIO_TYPEDESC_BASETYPE_UINT16,  ///< 16-bit int values ranging from 0..65535,
-                                    ///<   (C/C++ `unsigned short`).
-    OIIO_TYPEDESC_BASETYPE_USHORT = OIIO_TYPEDESC_BASETYPE_UINT16,
-    OIIO_TYPEDESC_BASETYPE_INT16,  ///< 16-bit int values ranging from -32768..32767,
-                                   ///<   (C/C++ `short`).
-    OIIO_TYPEDESC_BASETYPE_SHORT = OIIO_TYPEDESC_BASETYPE_INT16,
-    OIIO_TYPEDESC_BASETYPE_UINT32,  ///< 32-bit unsigned int values (C/C++ `unsigned int`).
-    OIIO_TYPEDESC_BASETYPE_UINT = OIIO_TYPEDESC_BASETYPE_UINT32,
-    OIIO_TYPEDESC_BASETYPE_INT32,  ///< signed 32-bit int values (C/C++ `int`).
-    OIIO_TYPEDESC_BASETYPE_INT = OIIO_TYPEDESC_BASETYPE_INT32,
-    OIIO_TYPEDESC_BASETYPE_UINT64,  ///< 64-bit unsigned int values (C/C++
-                                    ///<   `unsigned long long` on most architectures).
-    OIIO_TYPEDESC_BASETYPE_ULONGLONG = OIIO_TYPEDESC_BASETYPE_UINT64,
-    OIIO_TYPEDESC_BASETYPE_INT64,  ///< signed 64-bit int values (C/C++ `long long`
-                                   ///<   on most architectures).
-    OIIO_TYPEDESC_BASETYPE_LONGLONG = OIIO_TYPEDESC_BASETYPE_INT64,
-    OIIO_TYPEDESC_BASETYPE_HALF,         ///< 16-bit IEEE floating point values (OpenEXR `half`).
-    OIIO_TYPEDESC_BASETYPE_FLOAT,        ///< 32-bit IEEE floating point values, (C/C++ `float`).
-    OIIO_TYPEDESC_BASETYPE_DOUBLE,       ///< 64-bit IEEE floating point values, (C/C++ `double`).
-    OIIO_TYPEDESC_BASETYPE_STRING,       ///< Character string.
-    OIIO_TYPEDESC_BASETYPE_PTR,          ///< A pointer value.
-    OIIO_TYPEDESC_BASETYPE_USTRINGHASH,  ///< A uint64 that is the hash of a ustring.
-    OIIO_TYPEDESC_BASETYPE_LASTBASE
-};
-
-/// AGGREGATE describes whether our TypeDesc is a simple scalar of one
-/// of the BASETYPE's, or one of several simple aggregates.
-///
-/// Note that aggregates and arrays are different. A `TypeDesc(FLOAT,3)`
-/// is an array of three floats, a `TypeDesc(FLOAT,VEC3)` is a single
-/// 3-component vector comprised of floats, and `TypeDesc(FLOAT,3,VEC3)`
-/// is an array of 3 vectors, each of which is comprised of 3 floats.
-enum OIIO_TYPEDESC_AGGREGATE {
-    OIIO_TYPEDESC_AGGREGATE_SCALAR = 1,    ///< A single scalar value (such as a raw `int` or
-                                           ///<   `float` in C).  This is the default.
-    OIIO_TYPEDESC_AGGREGATE_VEC2 = 2,      ///< 2 values representing a 2D vector.
-    OIIO_TYPEDESC_AGGREGATE_VEC3 = 3,      ///< 3 values representing a 3D vector.
-    OIIO_TYPEDESC_AGGREGATE_VEC4 = 4,      ///< 4 values representing a 4D vector.
-    OIIO_TYPEDESC_AGGREGATE_MATRIX33 = 9,  ///< 9 values representing a 3x3 matrix.
-    OIIO_TYPEDESC_AGGREGATE_MATRIX44 = 16  ///< 16 values representing a 4x4 matrix.
 };
 
 /// VECSEMANTICS gives hints about what the data represent (for example,
@@ -520,9 +483,15 @@ int OIIO_ImageSpec_donne_nchannels(struct OIIO_ImageSpec *spec);
 
 void OIIO_ImageSpec_definis_nchannels(struct OIIO_ImageSpec *spec, int nchannels);
 
+int OIIO_ImageSpec_donne_z_channel(struct OIIO_ImageSpec *spec);
+
 struct OIIO_TypeDesc OIIO_ImageSpec_donne_format(struct OIIO_ImageSpec *spec);
 
 void OIIO_ImageSpec_definis_format(struct OIIO_ImageSpec *spec, struct OIIO_TypeDesc format);
+
+void OIIO_ImageSpec_donne_channel_name(struct OIIO_ImageSpec *spec,
+                                       int channel_index,
+                                       struct OIIO_StringView *résultat);
 
 struct OIIO_ParamValue *OIIO_ImageSpec_donne_extra_attribs(struct OIIO_ImageSpec *spec);
 
@@ -623,6 +592,12 @@ bool OIIO_ImageInput_read_image(struct OIIO_ImageInput *image,
                                 OIIO_ProgressCallback progress_callback,
                                 void *progress_callback_data);
 
+bool OIIO_ImageInput_has_error(struct OIIO_ImageInput *image);
+
+void OIIO_ImageInput_geterror(struct OIIO_ImageInput *image,
+                              bool clear,
+                              struct OIIO_NewString *résultat);
+
 struct OIIO_ImageOutput;
 
 struct OIIO_ImageOutput *OIIO_ImageOutput_create(struct OIIO_StringView filename,
@@ -674,6 +649,12 @@ bool OIIO_ImageOutput_write_scanlines(int ybegin,
                                       struct OIIO_TypeDesc format,
                                       uint8_t *bytes,
                                       uint64_t num_bytes);
+
+bool OIIO_ImageOutput_has_error(struct OIIO_ImageOutput *output);
+
+void OIIO_ImageOutput_geterror(struct OIIO_ImageOutput *output,
+                               bool clear,
+                               struct OIIO_NewString *résultat);
 
 #ifdef __cplusplus
 }

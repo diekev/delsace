@@ -138,7 +138,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 }
                 /* Certaines expressions n'ont pas de substitution (par exemple les expressions
                  * finales des blocs des expressions-si). Nous devons les préserver. */
-                else if (!it->est_pousse_contexte() && !it->est_tente()) {
+                else if (!it->est_emploie_contexte() && !it->est_tente()) {
                     ajoute_expression(it);
                 }
             }
@@ -813,26 +813,26 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             }
             return déclaration;
         }
-        case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+        case GenreNoeud::INSTRUCTION_EMPLOIE_CONTEXTE:
         {
-            auto pousse_contexte = noeud->comme_pousse_contexte();
-            simplifie(pousse_contexte->bloc);
+            auto emploie_contexte = noeud->comme_emploie_contexte();
+            simplifie(emploie_contexte->bloc);
 
             auto contexte_courant = espace->globale_contexte_programme;
-            auto ref_contexte_courant = assem->crée_référence_déclaration(pousse_contexte->lexème,
+            auto ref_contexte_courant = assem->crée_référence_déclaration(emploie_contexte->lexème,
                                                                           contexte_courant);
 
             // sauvegarde_contexte := __contexte_fil_principal
             auto sauvegarde_contexte = crée_déclaration_variable(
-                pousse_contexte->lexème, contexte_courant->type, ref_contexte_courant);
+                emploie_contexte->lexème, contexte_courant->type, ref_contexte_courant);
             sauvegarde_contexte->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
             auto ref_sauvegarde_contexte = assem->crée_référence_déclaration(
-                pousse_contexte->lexème, sauvegarde_contexte);
+                emploie_contexte->lexème, sauvegarde_contexte);
             ajoute_expression(sauvegarde_contexte);
 
             // __contexte_fil_principal = expr
             auto permute_contexte = assem->crée_assignation_variable(
-                pousse_contexte->lexème, ref_contexte_courant, pousse_contexte->expression);
+                emploie_contexte->lexème, ref_contexte_courant, emploie_contexte->expression);
             ajoute_expression(permute_contexte);
 
             /* Il est possible qu'une instruction de retour se trouve dans le bloc, donc nous
@@ -841,11 +841,11 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
              * diffère __contexte_fil_principal = sauvegarde_contexte
              */
             auto expression_différée = assem->crée_assignation_variable(
-                pousse_contexte->lexème, ref_contexte_courant, ref_sauvegarde_contexte);
-            auto inst_diffère = assem->crée_diffère(pousse_contexte->lexème, expression_différée);
-            pousse_contexte->bloc->expressions->ajoute_au_début(inst_diffère);
+                emploie_contexte->lexème, ref_contexte_courant, ref_sauvegarde_contexte);
+            auto inst_diffère = assem->crée_diffère(emploie_contexte->lexème, expression_différée);
+            emploie_contexte->bloc->expressions->ajoute_au_début(inst_diffère);
 
-            ajoute_expression(pousse_contexte->bloc);
+            ajoute_expression(emploie_contexte->bloc);
 
             return nullptr;
         }
