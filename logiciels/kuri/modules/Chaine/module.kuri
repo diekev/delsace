@@ -665,6 +665,8 @@ trouve_caractère_depuis_la_fin :: fonc (chn: chaine, c: z8) -> z64
 }
 
 /* Tests pour la recherche de caractères. */
+importe Compilatrice;
+
 #test {
     /* Avec accents. */
     compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kévin", 'n'), 5);

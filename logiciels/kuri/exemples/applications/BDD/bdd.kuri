@@ -77,7 +77,7 @@ prépare_instruction :: fonc (commande: chaine, inst: *Instruction) -> PrépareR
 
     mots: [..]chaine;
 
-    pousse_contexte nouveau_contexte {
+    emploie_contexte nouveau_contexte {
         mots = divise(commande, ' ');
     }
 
@@ -224,7 +224,7 @@ principale :: fonc ()
         imprime_prompt();
 
         entrée: chaine;
-        pousse_contexte nouveau_contexte {
+        emploie_contexte nouveau_contexte {
             entrée = entrée_standarde().lis_ligne();
         }
 

@@ -1176,7 +1176,7 @@ crée_chaine_utf16_unique :: fonc (table: *TableChainesUTF16Unique, chn: *Chaine
     ctx.allocatrice = allocatrice_défaut;
     ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques;
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         si table.chaines.taille == 0 {
             pour 128 {
                 chn_ascii: ChaineUTF16;
@@ -1217,7 +1217,7 @@ détruit_table_chaines_utf16_uniques :: fonc ()
     ctx.allocatrice = allocatrice_défaut;
     ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques;
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         pour * __table_chaines_utf16_uniques.chaines {
             détruit_chaine(it);
         }
