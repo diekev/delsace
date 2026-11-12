@@ -535,7 +535,7 @@ poste_tâche :: fonc (file: *FileParallèle, tâche: QT_DonnéesTâche)
 {
     ctx := contexte();
     ctx.allocatrice = allocatrice_défaut;
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         message := loge(QT_MessageTâcheParallèle);
         message.destinataire = file.filtre_évènement;
         message.tâche = tâche;
@@ -604,7 +604,7 @@ __filtre_tâches_finies_sur_évènement :: fonc (base: *QT_Rappels_Object @inuti
 
         ctx := contexte();
         ctx.allocatrice = allocatrice_défaut;
-        pousse_contexte ctx {
+        emploie_contexte ctx {
             déloge(*message);
         }
 
