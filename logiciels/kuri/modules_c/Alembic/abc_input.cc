@@ -188,17 +188,18 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_SCALAR_PROPERTY)
 
 #undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
 
-uint64_t abc_input_scalar_property_get_num_samples(union Abc_Generic_Input_Scalar_Property prop)
+uint64_t abc_generic_input_scalar_property_get_num_samples(
+    union Abc_Generic_Input_Scalar_Property prop)
 {
     return prop.prop->prop.getNumSamples();
 }
 
-bool abc_input_scalar_property_is_constant(union Abc_Generic_Input_Scalar_Property prop)
+bool abc_generic_input_scalar_property_is_constant(union Abc_Generic_Input_Scalar_Property prop)
 {
     return prop.prop->prop.isConstant();
 }
 
-bool abc_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property prop)
+bool abc_generic_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property prop)
 {
     return prop.prop->prop.valid();
 }
@@ -464,6 +465,21 @@ bool abc_input_object_is_instance_root(struct Abc_Input_Object *object)
     return object->untyped_object.isInstanceRoot();
 }
 
+bool abc_input_object_is_instance_descendant(struct Abc_Input_Object *object)
+{
+    return object->untyped_object.isInstanceDescendant();
+}
+
+struct Abc_New_String abc_input_object_instance_source_path(struct Abc_Input_Object *object)
+{
+    return make_new_string(object->untyped_object.instanceSourcePath());
+}
+
+/*
+ //! If this object is an instance (isInstanceRoot), returns the source path
+ //! that the instance points at.  Otherwise and empty string is returned.
+ std::string instanceSourcePath() const;
+*/
 struct Abc_Input_Visibility_Property : public Abc_Input_Scalar_Property {};
 
 Abc_Input_Visibility_Property *abc_input_object_get_visibility_property(
@@ -607,6 +623,17 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
         sample->sample.reset();                                                                   \
     }
 
+#define DEFINE_INPUT_SCHEMA_PARAM_GET(uname, lname, type_sample, param_uname, param_lname)        \
+    struct Abc_Input_##type_sample##_Geom_Param                                                   \
+        *abc_input_##lname##_schema_get_##param_lname##_param(                                    \
+            struct Abc_Input_##uname##_Schema *schema)                                            \
+    {                                                                                             \
+        Abc_Input_##type_sample##_Geom_Param *result =                                            \
+            make_input_geom_param<Abc_Input_##type_sample##_Geom_Param>(schema->archive);         \
+        result->param = schema->impl->get##param_uname##Param();                                  \
+        return result;                                                                            \
+    }
+
 /* ------------------------------------------------------------------------- */
 /** \nom Face sets extraction.
  * \{ */
@@ -705,21 +732,8 @@ Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
     return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
 }
 
-Abc_Input_V2f_Geom_Param *abc_input_polymesh_schema_get_uvs_param(
-    struct Abc_Input_PolyMesh_Schema *schema)
-{
-    auto résultat = make_input_geom_param<Abc_Input_V2f_Geom_Param>(schema->archive);
-    résultat->param = schema->impl->getUVsParam();
-    return résultat;
-}
-
-Abc_Input_N3f_Geom_Param *abc_input_polymesh_schema_get_normals_param(
-    struct Abc_Input_PolyMesh_Schema *schema)
-{
-    auto résultat = make_input_geom_param<Abc_Input_N3f_Geom_Param>(schema->archive);
-    résultat->param = schema->impl->getNormalsParam();
-    return résultat;
-}
+DEFINE_INPUT_SCHEMA_PARAM_GET(PolyMesh, polymesh, V2f, UVs, uvs)
+DEFINE_INPUT_SCHEMA_PARAM_GET(PolyMesh, polymesh, N3f, Normals, normals)
 
 /** \} */
 
@@ -788,12 +802,7 @@ Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
     return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
 }
 
-Abc_Input_V2f_Geom_Param *abc_input_subd_schema_get_uvs_param(struct Abc_Input_SubD_Schema *schema)
-{
-    auto résultat = make_input_geom_param<Abc_Input_V2f_Geom_Param>(schema->archive);
-    résultat->param = schema->impl->getUVsParam();
-    return résultat;
-}
+DEFINE_INPUT_SCHEMA_PARAM_GET(SubD, subd, V2f, UVs, uvs)
 
 /** \} */
 
@@ -827,7 +836,6 @@ enum Abc_FaceSet_Exclusivity abc_input_faceset_schema_get_face_exclusivity(
  *    Abc::IP3fArrayProperty getPositionsProperty() const
  *    Abc::IV3fArrayProperty getVelocitiesProperty() const
  *    Abc::IUInt64ArrayProperty getIdsProperty() const
- *    IFloatGeomParam getWidthsParam() const
  * \{ */
 
 struct Abc_Input_Points_Schema_Sample : public Abc_Input_Schema_Sample {
@@ -839,11 +847,19 @@ DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
 
 DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
+DEFINE_INPUT_SCHEMA_PARAM_GET(Points, points, Float, Widths, widths)
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Curves_Schema_Sample
- *  À FAIRE: complète
+ *  À FAIRE:
+ *    Abc::IV3fArrayProperty getVelocitiesProperty() const
+ *    Abc::IP3fArrayProperty getPositionsProperty() const
+ *    Abc::IInt32ArrayProperty getNumVerticesProperty() const
+ *    Abc::IFloatArrayProperty getPositionWeightsProperty() const
+ *    Abc::IUcharArrayProperty getOrdersProperty() const
+ *    Abc::IFloatArrayProperty getKnotsProperty() const
  * \{ */
 
 struct Abc_Input_Curves_Schema_Sample : public Abc_Input_Schema_Sample {
@@ -852,6 +868,42 @@ struct Abc_Input_Curves_Schema_Sample : public Abc_Input_Schema_Sample {
 
 DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
+
+ENUMERATE_CURVES_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+uint64_t abc_input_curves_schema_sample_get_num_curves(
+    struct Abc_Input_Curves_Schema_Sample *sample)
+{
+    return sample->sample.getNumCurves();
+}
+
+Abc_Curve_Type abc_input_curves_schema_sample_get_type(
+    struct Abc_Input_Curves_Schema_Sample *sample)
+{
+    return static_cast<Abc_Curve_Type>(sample->sample.getType());
+}
+
+Abc_Curve_Periodicity abc_input_curves_schema_sample_get_wrap(
+    struct Abc_Input_Curves_Schema_Sample *sample)
+{
+    return static_cast<Abc_Curve_Periodicity>(sample->sample.getWrap());
+}
+
+Abc_Basis_Type abc_input_curves_schema_sample_get_basis(
+    struct Abc_Input_Curves_Schema_Sample *sample)
+{
+    return static_cast<Abc_Basis_Type>(sample->sample.getBasis());
+}
+
+DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, V2f, UVs, uvs)
+DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, N3f, Normals, normals)
+DEFINE_INPUT_SCHEMA_PARAM_GET(Curves, curves, Float, Widths, widths)
+
+Abc_Mesh_Topology_Variance abc_input_curves_schema_get_topology_variance(
+    Abc_Input_Curves_Schema *schema)
+{
+    return static_cast<Abc_Mesh_Topology_Variance>(schema->impl->getTopologyVariance());
+}
 
 /** \} */
 

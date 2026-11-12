@@ -83,7 +83,7 @@ génère_réponse_pour_message :: fonc (message: chaine) -> chaine
 
     mots: [..]chaine;
 
-    pousse_contexte nouveau_contexte {
+    emploie_contexte nouveau_contexte {
         mots = divise(message, ' ');
 
         pour mot, idx dans mots {
