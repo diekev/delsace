@@ -56,7 +56,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
         polygone: [4]z32;
         taille_polygone: z32;
 
-        pousse_contexte nouveau_contexte {
+        emploie_contexte nouveau_contexte {
             mots := divise(tmp, ' ');
 
             est_quad = mots.taille == 4;
@@ -92,7 +92,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
         x: r32;
         y: r32;
         z: r32;
-        pousse_contexte nouveau_contexte {
+        emploie_contexte nouveau_contexte {
             mots := divise(tmp, ' ');
 
             x = extrait_nombre_réel(mots[0]) comme r32;

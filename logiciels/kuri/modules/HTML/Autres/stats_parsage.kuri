@@ -102,7 +102,7 @@ principale :: fonc ()
     //nouveau_contexte.allocatrice = allocation_gardée
     //nouveau_contexte.données_allocatrice = *allocatrice_gardée
 
-    pousse_contexte nouveau_contexte {
+    emploie_contexte nouveau_contexte {
         diffère détruit_chaines_internées();
 
         chm := CheminFichier(chemin);

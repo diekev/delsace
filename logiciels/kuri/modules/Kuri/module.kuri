@@ -126,7 +126,7 @@ TraceAppel :: struct #interface {
  *     format.séparation = 4
  *     ctx := contexte()
  *     ctx.format_entier = format
- *     pousse_contexte ctx {
+ *     emploie_contexte ctx {
  *         imprime("%\n", 123456)
  *     }
  * \{ */

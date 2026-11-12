@@ -75,7 +75,7 @@ principale :: fonc ()
         // "union",
         // "charge",
         // "opérateur",
-        "pousse_contexte",
+        "emploie_contexte",
         "tente",
         "piège",
         "nonatteignable",
