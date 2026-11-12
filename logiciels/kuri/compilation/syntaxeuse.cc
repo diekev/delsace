@@ -247,7 +247,7 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::IMPORTE:
             case GenreLexème::NONSÛR:
             case GenreLexème::POUR:
-            case GenreLexème::POUSSE_CONTEXTE:
+            case GenreLexème::EMPLOIE_CONTEXTE:
             case GenreLexème::RÉPÈTE:
             case GenreLexème::REPRENDS:
             case GenreLexème::RETOURNE:
@@ -2066,9 +2066,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         {
             return analyse_instruction_pour();
         }
-        case GenreLexème::POUSSE_CONTEXTE:
+        case GenreLexème::EMPLOIE_CONTEXTE:
         {
-            return analyse_instruction_pousse_contexte();
+            return analyse_instruction_emploie_contexte();
         }
         case GenreLexème::RÉPÈTE:
         {
@@ -2404,13 +2404,13 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
     return noeud;
 }
 
-NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
+NoeudExpression *Syntaxeuse::analyse_instruction_emploie_contexte()
 {
     auto lexème = lexème_courant();
     consomme();
 
     auto expression = parse_expression_ellipse();
-    auto noeud = m_contexte->assembleuse->crée_pousse_contexte(lexème, expression);
+    auto noeud = m_contexte->assembleuse->crée_emploie_contexte(lexème, expression);
     noeud->bloc = analyse_bloc(TypeBloc::IMPÉRATIF, true);
     return noeud;
 }
@@ -2956,7 +2956,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
                 break;
             }
 
-            if (lexème_spéculatif->genre == GenreLexème::POUSSE_CONTEXTE) {
+            if (lexème_spéculatif->genre == GenreLexème::EMPLOIE_CONTEXTE) {
                 lexème_suivant_défini_fonction = true;
                 break;
             }
@@ -3062,13 +3062,13 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         auto noeud_corps = noeud->corps;
         fonctions_courantes.empile(noeud);
 
-        if (apparie(GenreLexème::POUSSE_CONTEXTE)) {
+        if (apparie(GenreLexème::EMPLOIE_CONTEXTE)) {
             empile_état("dans l'analyse du bloc", lexème_courant());
-            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::BLOC_CORPS_EST_POUSSE_CONTEXTE;
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::BLOC_CORPS_EST_EMPLOIE_CONTEXTE;
             noeud_corps->bloc = m_contexte->assembleuse->empile_bloc(
                 lexème_courant(), noeud, TypeBloc::IMPÉRATIF);
-            auto pousse_contexte = analyse_instruction_pousse_contexte();
-            noeud_corps->bloc->ajoute_expression(pousse_contexte);
+            auto emploie_contexte = analyse_instruction_emploie_contexte();
+            noeud_corps->bloc->ajoute_expression(emploie_contexte);
             m_contexte->assembleuse->dépile_bloc();
             dépile_état();
         }
