@@ -147,7 +147,7 @@ principale :: fonc ()
     ctx := contexte();
     ctx.format_entier.base = 16;
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         pour données.symboles {
             imprime_dans_enchaineuse(*enchaineuse, "%[0x%,0x%]", virgule, it.points_de_code[0], it.points_de_code[1]);
             virgule = ",";
