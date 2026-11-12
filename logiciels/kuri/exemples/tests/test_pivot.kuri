@@ -9,7 +9,7 @@ principale :: fonc ()
 
         ctx := contexte();
         ctx.format_entier.base = 2;
-        pousse_contexte ctx {
+        emploie_contexte ctx {
             imprimeln("a := %", a);
             imprimeln("b := %", b);
             imprimeln("c := %", c);
@@ -25,7 +25,7 @@ principale :: fonc ()
 
         ctx := contexte();
         ctx.format_entier.base = 2;
-        pousse_contexte ctx {
+        emploie_contexte ctx {
             imprimeln("a := %", a);
             imprimeln("b := %", b);
             imprimeln("c := %", c);

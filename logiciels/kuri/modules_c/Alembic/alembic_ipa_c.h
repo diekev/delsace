@@ -482,9 +482,10 @@ union Abc_Generic_Input_Scalar_Property {
 #undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
 };
 
-uint64_t abc_input_scalar_property_get_num_samples(union Abc_Generic_Input_Scalar_Property prop);
-bool abc_input_scalar_property_is_constant(union Abc_Generic_Input_Scalar_Property prop);
-bool abc_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property prop);
+uint64_t abc_generic_input_scalar_property_get_num_samples(
+    union Abc_Generic_Input_Scalar_Property prop);
+bool abc_generic_input_scalar_property_is_constant(union Abc_Generic_Input_Scalar_Property prop);
+bool abc_generic_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property prop);
 
 /** \} */
 
@@ -626,6 +627,8 @@ void abc_input_object_get_full_name(union Abc_Generic_Input_Object object,
                                     struct Abc_String *r_name);
 
 bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
+bool abc_input_object_is_instance_descendant(struct Abc_Input_Object *object);
+struct Abc_New_String abc_input_object_instance_source_path(struct Abc_Input_Object *object);
 
 struct Abc_Object_Header *abc_input_object_get_header(union Abc_Generic_Input_Object object);
 
@@ -706,6 +709,11 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
         struct Abc_Input_##uname##_Schema_Sample *sample);                                        \
     void abc_input_##lname##_schema_sample_reset(struct Abc_Input_##uname##_Schema_Sample *sample);
 
+#define DECLARE_INPUT_SCHEMA_PARAM_GET(uname, lname, type_sample, param_uname, param_lname)       \
+    struct Abc_Input_##type_sample##_Geom_Param                                                   \
+        *abc_input_##lname##_schema_get_##param_lname##_param(                                    \
+            struct Abc_Input_##uname##_Schema *schema);
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
@@ -740,11 +748,8 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 enum Abc_Mesh_Topology_Variance abc_input_polymesh_schema_get_topology_variance(
     struct Abc_Input_PolyMesh_Schema *schema);
 
-struct Abc_Input_V2f_Geom_Param *abc_input_polymesh_schema_get_uvs_param(
-    struct Abc_Input_PolyMesh_Schema *schema);
-
-struct Abc_Input_N3f_Geom_Param *abc_input_polymesh_schema_get_normals_param(
-    struct Abc_Input_PolyMesh_Schema *schema);
+DECLARE_INPUT_SCHEMA_PARAM_GET(PolyMesh, polymesh, V2f, UVs, uvs)
+DECLARE_INPUT_SCHEMA_PARAM_GET(PolyMesh, polymesh, N3f, Normals, normals)
 
 /** \} */
 
@@ -795,8 +800,7 @@ Abc_String abc_input_subd_schema_sample_get_subdivision_scheme(
 enum Abc_Mesh_Topology_Variance abc_input_subd_schema_get_topology_variance(
     struct Abc_Input_SubD_Schema *schema);
 
-struct Abc_Input_V2f_Geom_Param *abc_input_subd_schema_get_uvs_param(
-    struct Abc_Input_SubD_Schema *schema);
+DECLARE_INPUT_SCHEMA_PARAM_GET(SubD, subd, V2f, UVs, uvs)
 
 /** \} */
 
@@ -836,14 +840,65 @@ DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
 
 DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
+DECLARE_INPUT_SCHEMA_PARAM_GET(Points, points, Float, Widths, widths)
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Curves_Sample
  * \{ */
 
+enum Abc_Curve_Periodicity {
+    ABC_CURVE_PERIODICITY_NON_PERIODIC = 0,
+    ABC_CURVE_PERIODICITY_PERIODIC = 1,
+};
+
+enum Abc_Curve_Type {
+    ABC_CURVE_TYPE_CUBIC = 0,
+    ABC_CURVE_TYPE_LINEAR = 1,
+    ABC_CURVE_TYPE_VARIABLE_ORDER = 2,
+};
+
+enum Abc_Basis_Type {
+    ABC_BASIS_TYPE_NO_BASIS = 0,
+    ABC_BASIS_TYPE_BEZIER_BASIS = 1,
+    ABC_BASIS_TYPE_B_SPLINE_BASIS = 2,
+    ABC_BASIS_TYPE_CATMULLROM_BASIS = 3,
+    ABC_BASIS_TYPE_HERMITE_BASIS = 4,
+    ABC_BASIS_TYPE_POWER_BASIS = 5,
+};
+
 DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Curves, curves)
 DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Curves, curves)
+
+uint64_t abc_input_curves_schema_sample_get_num_curves(
+    struct Abc_Input_Curves_Schema_Sample *sample);
+
+enum Abc_Curve_Type abc_input_curves_schema_sample_get_type(
+    struct Abc_Input_Curves_Schema_Sample *sample);
+
+enum Abc_Curve_Periodicity abc_input_curves_schema_sample_get_wrap(
+    struct Abc_Input_Curves_Schema_Sample *sample);
+
+enum Abc_Basis_Type abc_input_curves_schema_sample_get_basis(
+    struct Abc_Input_Curves_Schema_Sample *sample);
+
+#define ENUMERATE_CURVES_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                            \
+    X(Curves, curves, get_positions, getPositions, Abc_P3f_Array_Sample)                          \
+    X(Curves, curves, get_curves_num_vertices, getCurvesNumVertices, Abc_Int32_Array_Sample)      \
+    X(Curves, curves, get_orders, getOrders, Abc_Uchar_Array_Sample)                              \
+    X(Curves, curves, get_knots, getKnots, Abc_Float_Array_Sample)                                \
+    X(Curves, curves, get_position_weights, getPositionWeights, Abc_Float_Array_Sample)           \
+    X(Curves, curves, get_velocities, getVelocities, Abc_V3f_Array_Sample)
+
+ENUMERATE_CURVES_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, V2f, UVs, uvs)
+DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, N3f, Normals, normals)
+DECLARE_INPUT_SCHEMA_PARAM_GET(Curves, curves, Float, Widths, widths)
+
+enum Abc_Mesh_Topology_Variance abc_input_curves_schema_get_topology_variance(
+    struct Abc_Input_Curves_Schema *schema);
 
 /** \} */
 
@@ -1271,6 +1326,9 @@ struct Abc_Output_Archive *abc_generic_output_object_get_archive(
     union Abc_Generic_Output_Object object);
 union Abc_Generic_Output_Object abc_generic_output_object_get_parent(
     union Abc_Generic_Output_Object object);
+bool abc_generic_output_object_add_child_instance(union Abc_Generic_Output_Object object,
+                                                  union Abc_Generic_Output_Object target,
+                                                  struct Abc_String name);
 
 struct Abc_Output_Visibility_Property;
 
@@ -1488,26 +1546,6 @@ ENUMERATE_POINTS_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Curves
  * \{ */
-
-enum Abc_Curve_Periodicity {
-    ABC_CURVE_PERIODICITY_NON_PERIODIC = 0,
-    ABC_CURVE_PERIODICITY_PERIODIC = 1,
-};
-
-enum Abc_Curve_Type {
-    ABC_CURVE_TYPE_CUBIC = 0,
-    ABC_CURVE_TYPE_LINEAR = 1,
-    ABC_CURVE_TYPE_VARIABLE_ORDER = 2,
-};
-
-enum Abc_Basis_Type {
-    ABC_BASIS_TYPE_NO_BASIS = 0,
-    ABC_BASIS_TYPE_BEZIER_BASIS = 1,
-    ABC_BASIS_TYPE_B_SPLINE_BASIS = 2,
-    ABC_BASIS_TYPE_CATMULLROM_BASIS = 3,
-    ABC_BASIS_TYPE_HERMITE_BASIS = 4,
-    ABC_BASIS_TYPE_POWER_BASIS = 5,
-};
 
 struct Abc_Output_Curves;
 

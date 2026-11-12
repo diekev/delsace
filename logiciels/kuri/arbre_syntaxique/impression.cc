@@ -230,7 +230,7 @@ bool expression_eu_bloc(NoeudExpression const *noeud)
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         case GenreNoeud::DÉCLARATION_ÉNUM:
-        case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+        case GenreNoeud::INSTRUCTION_EMPLOIE_CONTEXTE:
         case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:
         {
             return true;
@@ -853,7 +853,7 @@ NoeudFormattage *Formatteuse::formatte_noeud(ÉtatImpression état, NoeudExpress
             enchaineuse << "\n";
 
             état.imprime_nouvelle_ligne_après_bloc = false;
-            if (entête->possède_drapeau(DrapeauxNoeudFonction::BLOC_CORPS_EST_POUSSE_CONTEXTE)) {
+            if (entête->possède_drapeau(DrapeauxNoeudFonction::BLOC_CORPS_EST_EMPLOIE_CONTEXTE)) {
                 auto const bloc_corps = entête->corps->bloc;
                 auto const expression = bloc_corps->expressions->a(0);
                 imprime_arbre(enchaineuse, état, expression);
@@ -1339,9 +1339,9 @@ NoeudFormattage *Formatteuse::formatte_noeud(ÉtatImpression état, NoeudExpress
             }
             break;
         }
-        case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+        case GenreNoeud::INSTRUCTION_EMPLOIE_CONTEXTE:
         {
-            auto inst = noeud->comme_pousse_contexte();
+            auto inst = noeud->comme_emploie_contexte();
             imprime_lexème_mot_clé(enchaineuse, inst, true);
             imprime_arbre(enchaineuse, état, inst->expression);
             enchaineuse << " ";

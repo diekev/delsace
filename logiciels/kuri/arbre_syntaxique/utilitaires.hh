@@ -201,7 +201,7 @@ std::ostream &operator<<(std::ostream &os, TypeBloc const type);
 
 enum class DrapeauxNoeudFonction : uint32_t {
     AUCUN = 0,
-    BLOC_CORPS_EST_POUSSE_CONTEXTE = (1 << 0),
+    BLOC_CORPS_EST_EMPLOIE_CONTEXTE = (1 << 0),
 
     FORCE_ENLIGNE = (1 << 1),
     FORCE_HORSLIGNE = (1 << 2),

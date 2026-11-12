@@ -217,7 +217,7 @@ active_gl_debug :: fonc (synchrone := faux)
     }
 
     sur_gl_debug_message :: fonc (source: GLenum, type: GLenum, id: GLuint, severity: GLenum, length: GLsizei, message: *GLchar, userParam: *rien);
-    pousse_contexte __contexte_fil_principal {
+    emploie_contexte __contexte_fil_principal {
         imprimeln("[GL][%][%][%] %", donne_chaine_debug_severity(severity), donne_chaine_debug_source(source), donne_chaine_debug_type(type), chaine(message, length));
     }
 
