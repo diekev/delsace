@@ -350,8 +350,8 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b, bool accepte_appels)
         return derniere_instruction(bloc_à_fusionner, accepte_appels);
     }
 
-    if (di->est_pousse_contexte()) {
-        auto inst = di->comme_pousse_contexte();
+    if (di->est_emploie_contexte()) {
+        auto inst = di->comme_emploie_contexte();
         return derniere_instruction(inst->bloc, accepte_appels);
     }
 

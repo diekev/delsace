@@ -130,6 +130,16 @@ divise_espace :: fonc (espace: EspaceDisponible, direction: Direction, facteur: 
     retourne résultat1, résultat2;
 }
 
+divise_horizontalement :: fonc (espace: EspaceDisponible, facteur: r32) -> (EspaceDisponible, EspaceDisponible)
+{
+    retourne divise_espace(espace, Direction.HORIZONTALE, facteur);
+}
+
+divise_verticalement :: fonc (espace: EspaceDisponible, facteur: r32) -> (EspaceDisponible, EspaceDisponible)
+{
+    retourne divise_espace(espace, Direction.VERTICALE, facteur);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

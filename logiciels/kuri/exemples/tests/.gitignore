@@ -11,6 +11,7 @@ test_couleur_terminal
 test_dessin_texte
 test_eini
 test_emploi
+test_emploie_contexte
 test_énum
 test_énum_drapeau
 test_erreur
@@ -28,7 +29,6 @@ test_opérateurs_surchargés
 test_pivot
 test_plage_boucle
 test_polymorphisme
-test_pousse_contexte
 test_ppm
 test_retours_multiple
 test_si_statique

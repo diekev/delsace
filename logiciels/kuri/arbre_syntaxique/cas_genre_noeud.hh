@@ -74,7 +74,7 @@
     case GenreNoeud::INSTRUCTION_IMPORTE:                                                         \
     case GenreNoeud::INSTRUCTION_NON_INITIALISATION:                                              \
     case GenreNoeud::INSTRUCTION_POUR:                                                            \
-    case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:                                                 \
+    case GenreNoeud::INSTRUCTION_EMPLOIE_CONTEXTE:                                                 \
     case GenreNoeud::INSTRUCTION_RÉPÈTE:                                                          \
     case GenreNoeud::INSTRUCTION_REPRENDS:                                                        \
     case GenreNoeud::INSTRUCTION_RETOUR:                                                          \
