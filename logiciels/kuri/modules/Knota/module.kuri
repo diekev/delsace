@@ -857,7 +857,7 @@ ajoute_information :: fonc (noeud: *Noeud, type: Type_Information_Noeud, format:
     ctx := contexte();
     ctx.format_entier.séparation = 3;
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         info.texte = imprime_chaine(format, ...args);
     }
 } @Imprimeuse
@@ -1650,7 +1650,7 @@ crée_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> *
     ctx.allocatrice = allocatrice_défaut;
     ctx.données_allocatrice = *alloc_catégorisations_noeuds;
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         résultat := tableau_ajoute_élément(*catérorisations_noeuds);
         résultat.type_graphe = type_graphe;
         retourne résultat;
@@ -1673,7 +1673,7 @@ ajoute_catégorie :: fonc (catégorisation: *Catégorisation_Noeuds, nom: chaine
     ctx.allocatrice = allocatrice_défaut;
     ctx.données_allocatrice = *alloc_catégorisations_noeuds;
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         catégorie: Catégorie_Noeud;
         catégorie.nom = nom;
         retourne ensemble_ajoute_retourne_adresse(*catégorisation.catégories, catégorie);
@@ -1686,7 +1686,7 @@ ajoute_noeud :: fonc (catégorie: *Catégorie_Noeud, identifiant: chaine)
     ctx.allocatrice = allocatrice_défaut;
     ctx.données_allocatrice = *alloc_catégorisations_noeuds;
 
-    pousse_contexte ctx {
+    emploie_contexte ctx {
         ensemble_ajoute(*catégorie.noeuds, identifiant);
     }
 }

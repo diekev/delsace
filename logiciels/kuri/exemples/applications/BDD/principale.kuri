@@ -24,7 +24,7 @@ lance_boucle_exécution :: fonc ()
         imprime_prompt();
 
         entrée: chaine;
-        pousse_contexte nouveau_contexte {
+        emploie_contexte nouveau_contexte {
             entrée = lis_ligne(entrée_standarde());
         }
 
@@ -74,7 +74,7 @@ principale :: fonc ()
     nouveau_contexte.données_allocatrice = *allocatrice_gardée;
     nouveau_contexte.logueur = mon_log;
 
-    pousse_contexte nouveau_contexte {
+    emploie_contexte nouveau_contexte {
         lance_boucle_exécution();
     }
 }

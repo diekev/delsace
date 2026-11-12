@@ -1295,9 +1295,9 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto inst = noeud->comme_discr();
             return valide_discrimination(inst);
         }
-        case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+        case GenreNoeud::INSTRUCTION_EMPLOIE_CONTEXTE:
         {
-            auto inst = noeud->comme_pousse_contexte();
+            auto inst = noeud->comme_emploie_contexte();
             auto variable = inst->expression;
 
             assert(m_espace->typeuse.type_contexte);
