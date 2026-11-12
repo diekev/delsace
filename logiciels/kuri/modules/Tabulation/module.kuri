@@ -91,7 +91,7 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
  *
  * ctx := contexte()
  * ctx.format_entier.séparation = 3
- * pousse_contexte ctx {
+ * emploie_contexte ctx {
  *     ajoute_ligne(*tabuleuse, ...)
  * }
  *

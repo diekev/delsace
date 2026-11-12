@@ -140,7 +140,7 @@ allocatrice_stathüs :: fonc (params: *ParamètresAllocation, données: *BaseAll
  *   allocatrice := crée_allocatrice_stathüs()
  *   installe_allocatrice(*ctx, *allocatrice)
  *
- *   pousse_contexte ctx {
+ *   emploie_contexte ctx {
  *       ...
  *   }
  *

@@ -174,6 +174,9 @@ chemin_normalisé :: fonc (tampon_chemin: *TamponChemin, pile: *Pile(chaine), ch
 
 chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 {
+    saufsi chemin.chn {
+        retourne chemin;
+    }
     tampon: TamponChemin;
     _ := ajoute(*tampon, chemin);
     normalise_chemin(*tampon);
@@ -183,6 +186,9 @@ chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 normalise_chemin :: fonc (tampon: *TamponChemin)
 {
     chemin := donne_chemin_statique(tampon);
+    saufsi chemin.chn {
+        retourne;
+    }
     pile := divise_et_empile_chemin(chemin);
     diffère détruit(*pile);
 
@@ -190,6 +196,23 @@ normalise_chemin :: fonc (tampon: *TamponChemin)
 
     réinitialise(tampon);
     chemin_normalisé(tampon, *pile, absolu);
+}
+
+#test {
+    test_chemin_normalisé :: fonc (chemin: chaine, résultat_attendu: chaine)
+    {
+        résultat := chemin_normalisé(CheminFichier(chemin));
+        diffère détruit_chemin(*résultat);
+        saufsi résultat.chn == résultat_attendu {
+            panique("attendu : '%', reçu : '%'", résultat_attendu, résultat.chn);
+        }
+    }
+
+    test_chemin_normalisé("", "");
+    test_chemin_normalisé("/.", "/");
+    test_chemin_normalisé("/./user", "/user");
+    test_chemin_normalisé("/home/user/../user", "/home/user");
+    test_chemin_normalisé("/home/user/..", "/home");
 }
 
 /* Retourne le chemin relatif de chemin_cible par rapport à chemin_racine.
@@ -202,6 +225,10 @@ normalise_chemin :: fonc (tampon: *TamponChemin)
  */
 chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
+    si chemin_cible.chn == "" || chemin_racine.chn == "" {
+        retourne CheminFichier();
+    }
+
     saufsi est_un_dossier(chemin_racine) {
         retourne ErreurFichier.NEstPasUnDossier;
     }
@@ -275,6 +302,29 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
 
     résultat := chaine_depuis_enchaineuse(*enchaineuse);
     retourne CheminFichier(résultat);
+}
+
+#test {
+    test_chemin_relatif :: fonc (cible: chaine, racine: chaine, résultat_attendu: chaine)
+    {
+        discr chemin_relatif_à(CheminFichier(cible), CheminFichier(racine)) {
+            Ok(résultat) {
+                saufsi résultat == résultat_attendu {
+                    panique("attendu : '%', reçu : '%'", résultat_attendu, résultat.chn);
+                }
+                détruit_chemin(*résultat);
+            }
+            Erreur(e) {
+                panique("%", e);
+            }
+            sinon {
+                panique("attendu : '%', mais rien ne fut calculé", résultat_attendu);
+            }
+        }
+    }
+
+    test_chemin_relatif("", "", "");
+    test_chemin_relatif("/home/kevin/Vidéos", "/home/kevin/Images", "../Vidéos/");
 }
 
 /* Retourne vrai si le \a chemin_cible est relatif au \a chemin_racine. */
@@ -361,6 +411,10 @@ crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> Che
         retourne copie_chemin(feuille);
     }
 
+    saufsi est_absolu(base) {
+        retourne CheminFichier();
+    }
+
     // divise selon le séparateur du système
     pile: Pile(chaine);
     diffère détruit(*pile);
@@ -372,6 +426,24 @@ crée_chemin_absolu :: fonc (pile: *Pile(chaine), base: CheminFichier, feuille: 
     divise_et_empile_chemin(pile, base);
     divise_et_empile_chemin(pile, feuille);
     retourne chemin_normalisé(pile, commence_par(base.chn, séparateur_chemin()));
+}
+
+#test {
+    test_chemin_absolu :: fonc (base: chaine, feuille: chaine, résultat_attendu: chaine)
+    {
+        résultat := crée_chemin_absolu(CheminFichier(base), CheminFichier(feuille));
+        diffère détruit_chemin(*résultat);
+        saufsi résultat.chn == résultat_attendu {
+            panique("attendu : '%', reçu : '%'", résultat_attendu, résultat.chn);
+        }
+    }
+
+    test_chemin_absolu("", "", "");
+    test_chemin_absolu("/", ".", "/");
+    test_chemin_absolu("/home", "./user", "/home/user");
+    test_chemin_absolu("/home", "../dev", "/dev");
+    test_chemin_absolu("../home", "../dev", "");
+    test_chemin_absolu("/home/user1", "/home/user2", "/home/user2");
 }
 
 est_absolu :: fonc (chm: CheminFichier) -> bool
@@ -747,36 +819,3 @@ restore_position :: fonc (tampon: *TamponChemin)
 }
 
 /** \} */
-
-/*
-    À FAIRE : tests
-
-    /. -> /
-
-    /home/../dev -> /dev
-    /home/./kevin -> /home/kevin
-
-    chm := crée_chemin_absolu(CheminFichier("/"), CheminFichier("."))
-
-    si chm != "/" {
-        imprime("Erreur !\n")
-    }
-
-    imprime("%\n", chm.chn)
-    chm = crée_chemin_absolu(CheminFichier("/home"), CheminFichier("./kevin"))
-
-    si chm != "/home/kevin" {
-        imprime("Erreur !\n")
-    }
-    imprime("%\n", chm.chn)
-    chm = crée_chemin_absolu(CheminFichier("/home"), CheminFichier("../dev"))
-    si chm != "/dev" {
-        imprime("Erreur !\n")
-    }
-    imprime("%\n", chm.chn)
-
-    si chemins_sont_équivalents(CheminFichier("/home/kevin"), CheminFichier("/home/kevin/../kevin")) {
-        imprime("Les chemins sont équivalents !\n")
-    }
-
- */

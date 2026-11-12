@@ -360,6 +360,14 @@ Abc_Generic_Output_Object abc_generic_output_object_get_parent(Abc_Generic_Outpu
     return object.object->parent;
 }
 
+bool abc_generic_output_object_add_child_instance(Abc_Generic_Output_Object object,
+                                                  Abc_Generic_Output_Object target,
+                                                  Abc_String name)
+{
+    return object.object->untyped_object.addChildInstance(target.object->untyped_object,
+                                                          vers_std_string(name));
+}
+
 struct Abc_Output_Visibility_Property : public Abc_Output_Scalar_Property {};
 
 Abc_Output_Visibility_Property *abc_output_object_create_visibility_property(
