@@ -96,7 +96,7 @@ lance_tâche :: fonc (tâche_: *rien) -> *rien
     contexte := __contexte_fil_principal;
     // contexte().id_tâche = tâche.id
 
-    pousse_contexte contexte {
+    emploie_contexte contexte {
         tâche.rappel(tâche.données_rappel);
     }
 
