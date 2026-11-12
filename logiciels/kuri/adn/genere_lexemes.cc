@@ -83,6 +83,7 @@ static void construis_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("discr");
     lexèmes.ajoute_mot_clé("eini", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("empl");
+    lexèmes.ajoute_mot_clé("emploie_contexte");
     lexèmes.ajoute_mot_clé("erreur");
     lexèmes.ajoute_mot_clé("faux");
     lexèmes.ajoute_mot_clé("fonc");
@@ -101,7 +102,6 @@ static void construis_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("opérateur");
     lexèmes.ajoute_mot_clé("piège");
     lexèmes.ajoute_mot_clé("pour");
-    lexèmes.ajoute_mot_clé("pousse_contexte");
     lexèmes.ajoute_mot_clé("r16", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("r32", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("r64", EST_IDENTIFIANT_TYPE);
