@@ -1333,3 +1333,13 @@ struct NoeudDirectiveFonction : NoeudExpression {
      * différents pour chaque cas. */
     Lexème * [] opérandes
 }
+
+struct NoeudDirectiveAjouteContexte : NoeudExpression {
+    @genre DIRECTIVE_AJOUTE_CONTEXTE
+    @comme ajoute_contexte
+    @code NoeudCodeDirectiveAjouteContexte
+    @genre_valeur INVALIDE
+
+    UnitéCompilation * unité
+    NoeudDéclarationVariable *déclaration [code enfant construction]
+}
