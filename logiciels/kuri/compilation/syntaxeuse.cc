@@ -728,7 +728,8 @@ void Syntaxeuse::analyse_une_chose()
                 requiers_typage(noeud);
             }
         }
-        else if (noeud->est_ajoute_fini() || noeud->est_ajoute_init()) {
+        else if (noeud->est_ajoute_fini() || noeud->est_ajoute_init() ||
+                 noeud->est_ajoute_contexte()) {
             requiers_typage(noeud);
             consomme(GenreLexème::POINT_VIRGULE);
         }
@@ -1340,6 +1341,19 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire()
             else if (directive == ID::ajoute_fini) {
                 auto expression = analyse_expression({});
                 auto noeud = m_contexte->assembleuse->crée_ajoute_fini(lexème, expression);
+                noeud->ident = directive;
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_FINI;
+                return noeud;
+            }
+            else if (directive == ID::ajoute_contexte) {
+                auto expression = analyse_expression({});
+                if (!expression || !expression->est_déclaration_variable()) {
+                    rapporte_erreur("attendu une expression après #ajoute_contexte", lexème);
+                    return nullptr;
+                }
+                auto déclaration = expression->comme_déclaration_variable();
+                auto noeud = m_contexte->assembleuse->crée_ajoute_contexte(lexème,
+                                                                                     déclaration);
                 noeud->ident = directive;
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_FINI;
                 return noeud;
