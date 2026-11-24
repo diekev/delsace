@@ -1,0 +1,21 @@
+importe Fondation;
+
+/*
+
+#ajoute_contexte peut être utilisé pour ajouter une rubrique au contexte global.
+
+*/
+
+#ajoute_contexte x: z32 = 456;
+
+principale :: fonc ()
+{
+    imprimeln("taille_de(ContexteProgramme) : %", taille_de(ContexteProgramme));
+    
+    ctx := contexte();
+    // À FAIRE : il faut invalider la fonction d'initialisation
+    // assert(ctx.x == 456);
+
+    ctx.x = 123;
+    assert(ctx.x == 123);
+}
