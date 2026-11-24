@@ -1879,6 +1879,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_TYPE_FONCTION:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         case GenreNoeud::DIRECTIVE_FONCTION:
+        case GenreNoeud::DIRECTIVE_AJOUTE_CONTEXTE:
         {
             break;
         }
