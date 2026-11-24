@@ -799,6 +799,13 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             enchaineuse << ")";
             break;
         }
+        case GenreNoeud::DIRECTIVE_AJOUTE_CONTEXTE:
+        {
+            auto directive = noeud->comme_ajoute_contexte();
+            enchaineuse << "#ajoute_contexte ";
+            imprime_arbre(enchaineuse, état, directive->déclaration);
+            break;
+        }
         case GenreNoeud::DIRECTIVE_FONCTION:
         {
             auto directive = noeud->comme_directive_fonction();
