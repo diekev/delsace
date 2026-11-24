@@ -214,6 +214,10 @@ RésultatValidation Sémanticienne::valide(UnitéCompilation *unité)
         return valide_arbre_aplatis(racine_validation());
     }
 
+    if (racine_validation()->est_ajoute_contexte()) {
+        return valide_arbre_aplatis(racine_validation());
+    }
+
     m_unité->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
@@ -1628,6 +1632,51 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             else {
                 référence->type = op->déclaration->type;
             }
+
+            return CodeRetourValidation::OK;
+        }
+        case GenreNoeud::DIRECTIVE_AJOUTE_CONTEXTE:
+        {
+            /* À FAIRE(ajoute_contexte) : invalide la fonction d'initialisation du contexte. */
+            /* À FAIRE(ajoute_contexte) : invalide les infos-types */
+
+            auto ajoute_contexte = noeud->comme_ajoute_contexte();
+            auto espace = m_contexte->espace;
+            auto type_contexte = espace->typeuse.type_contexte->comme_type_structure();
+
+            if (!type_contexte) {
+                espace->rapporte_erreur(
+                    ajoute_contexte,
+                    "#ajoute_contexte invoqué alors que le type du contexte est inconnu");
+                return CodeRetourValidation::Erreur;
+            }
+
+            auto déclaration_rubrique = ajoute_contexte->déclaration;
+
+            POUR (type_contexte->rubriques) {
+                if (it.nom == déclaration_rubrique->ident) {
+                    espace
+                        ->rapporte_erreur(déclaration_rubrique,
+                                          "Impossible d'ajouter la déclaration au contexte car le "
+                                          "contexte a déjà une déclaration du même nom")
+                        .ajoute_site(it.decl);
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+
+            auto rubrique = RubriqueTypeComposé();
+            rubrique.type = déclaration_rubrique->type;
+            rubrique.decl = déclaration_rubrique;
+            rubrique.nom = déclaration_rubrique->ident;
+            rubrique.expression_valeur_défaut = déclaration_rubrique->expression;
+
+            type_contexte->rubriques.ajoute(rubrique);
+            type_contexte->nombre_de_rubriques_réelles += 1;
+
+            calcule_taille_type_composé(
+                type_contexte, type_contexte->est_compacte, type_contexte->alignement_desire);
+
+            ajoute_contexte->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
             return CodeRetourValidation::OK;
         }

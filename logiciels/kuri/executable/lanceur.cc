@@ -80,25 +80,6 @@ static void valide_blocs_modules(Compilatrice &compilatrice)
 }
 #endif
 
-/**
- * Imprime les fichiers utilisés dans le fichier spécifié via la ligne de commande.
- */
-static void imprime_fichiers_utilises(Compilatrice &compilatrice)
-{
-    auto chemin = vers_std_path(compilatrice.arguments.chemin_fichier_utilises);
-    if (chemin.empty()) {
-        return;
-    }
-
-    std::ofstream fichier_sortie(chemin);
-
-    POUR_NOMME (espace, *compilatrice.espaces_de_travail.verrou_lecture()) {
-        POUR_TABLEAU_PAGE (espace->sys_module->fichiers) {
-            fichier_sortie << it.chemin() << "\n";
-        }
-    }
-}
-
 static void rassemble_statistiques(Compilatrice &compilatrice,
                                    Statistiques &stats,
                                    kuri::tableau<Tacheronne *> const &tacheronnes)
@@ -185,9 +166,6 @@ struct DescriptionArgumentCompilation {
 static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*/,
                                                 ArgumentsCompilatrice & /*résultat*/);
 
-static ActionParsageArgument gère_argument_emets_fichiers_utilises(
-    ParseuseArguments &parseuse, ArgumentsCompilatrice &résultat);
-
 static ActionParsageArgument gère_argument_tests(ParseuseArguments & /*parseuse*/,
                                                  ArgumentsCompilatrice &résultat);
 
@@ -250,12 +228,6 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "--tests, -t",
      "Active la compilation et l'exécution des directives #test",
      gère_argument_tests},
-    {"--emets_fichiers_utilises",
-     "",
-     "--emets_fichiers_utilises [FICHIER]",
-     "Imprime, à la fin de la compilation, la liste des fichiers utilisés dans le fichier "
-     "spécifié",
-     gère_argument_emets_fichiers_utilises},
     {"--profile_exécution",
      "",
      "",
@@ -410,18 +382,6 @@ static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*
     info() << sortie.chaine();
 
     return ActionParsageArgument::ARRÊTE_POUR_AIDE;
-}
-
-static ActionParsageArgument gère_argument_emets_fichiers_utilises(ParseuseArguments &parseuse,
-                                                                   ArgumentsCompilatrice &résultat)
-{
-    auto arg = parseuse.donne_argument_suivant();
-    if (!arg.has_value()) {
-        dbg() << "Argument manquant après --emets_fichiers_utilises.";
-        return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
-    }
-    résultat.chemin_fichier_utilises = arg.value();
-    return ActionParsageArgument::CONTINUE;
 }
 
 static ActionParsageArgument gère_argument_tests(ParseuseArguments & /*parseuse*/,
@@ -776,8 +736,6 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     if (compilatrice.possède_erreur()) {
         return false;
     }
-
-    imprime_fichiers_utilises(compilatrice);
 
     if (compilatrice.arguments.avec_stats) {
         auto stats = Statistiques();

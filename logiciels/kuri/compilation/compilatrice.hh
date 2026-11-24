@@ -84,9 +84,6 @@ struct ArgumentsCompilatrice {
 
     CompilationPour compilation_pour = CompilationPour::PRODUCTION;
 
-    /* Fichier où inscrire les fichiers utilisés si --emets_fichiers_utilises fut renseigné. */
-    kuri::chemin_systeme chemin_fichier_utilises{};
-
     /* La liste des arguments en ligne de commande passés après "--". */
     kuri::tableau<kuri::chaine_statique> arguments_pour_métaprogrammes{};
 };
