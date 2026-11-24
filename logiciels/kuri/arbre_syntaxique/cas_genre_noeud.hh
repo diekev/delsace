@@ -13,6 +13,7 @@
     case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:                                                  \
     case GenreNoeud::DÉCLARATION_VARIABLE:                                                        \
     case GenreNoeud::DÉCLARATION_VARIABLE_MULTIPLE:                                               \
+    case GenreNoeud::DIRECTIVE_AJOUTE_CONTEXTE:                                                   \
     case GenreNoeud::DIRECTIVE_AJOUTE_FINI:                                                       \
     case GenreNoeud::DIRECTIVE_AJOUTE_INIT:                                                       \
     case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:                                                      \
@@ -74,7 +75,7 @@
     case GenreNoeud::INSTRUCTION_IMPORTE:                                                         \
     case GenreNoeud::INSTRUCTION_NON_INITIALISATION:                                              \
     case GenreNoeud::INSTRUCTION_POUR:                                                            \
-    case GenreNoeud::INSTRUCTION_EMPLOIE_CONTEXTE:                                                 \
+    case GenreNoeud::INSTRUCTION_EMPLOIE_CONTEXTE:                                                \
     case GenreNoeud::INSTRUCTION_RÉPÈTE:                                                          \
     case GenreNoeud::INSTRUCTION_REPRENDS:                                                        \
     case GenreNoeud::INSTRUCTION_RETOUR:                                                          \

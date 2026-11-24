@@ -339,8 +339,6 @@ ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du
 // ----------------------------------------------------------------------------
 // Contexte Implicite
 
-permettre aux utilisateurs du langage d'y ajouter des variables
-
 option de compilation pour définir la taille du stockage temporaire
 
 // ----------------------------------------------------------------------------

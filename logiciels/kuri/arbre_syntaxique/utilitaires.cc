@@ -1079,6 +1079,13 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(référence);
             break;
         }
+        case GenreNoeud::DIRECTIVE_AJOUTE_CONTEXTE:
+        {
+            auto ajoute_contexte = racine->comme_ajoute_contexte();
+            aplatis_arbre(ajoute_contexte->déclaration, arbre_aplatis, position);
+            arbre_aplatis.ajoute(ajoute_contexte);
+            break;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false,
@@ -1190,6 +1197,14 @@ void aplatis_arbre(NoeudExpression *déclaration, ArbreAplatis *arbre_aplatis)
     if (déclaration->est_bloc()) {
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(déclaration, arbre_aplatis->noeuds, {});
+        }
+        return;
+    }
+
+    if (déclaration->est_ajoute_contexte()) {
+        auto ajoute_contexte = déclaration->comme_ajoute_contexte();
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(ajoute_contexte, arbre_aplatis->noeuds, {});
         }
         return;
     }
@@ -3061,6 +3076,9 @@ UnitéCompilation **donne_adresse_unité(NoeudExpression *noeud)
     }
     if (noeud->est_si_statique()) {
         return &noeud->comme_si_statique()->unité;
+    }
+    if (noeud->est_ajoute_contexte()) {
+        return &noeud->comme_ajoute_contexte()->unité;
     }
 
     assert_rappel(false, [&]() {
