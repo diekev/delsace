@@ -1352,8 +1352,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire()
                     return nullptr;
                 }
                 auto déclaration = expression->comme_déclaration_variable();
-                auto noeud = m_contexte->assembleuse->crée_ajoute_contexte(lexème,
-                                                                                     déclaration);
+                auto noeud = m_contexte->assembleuse->crée_ajoute_contexte(lexème, déclaration);
                 noeud->ident = directive;
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_FINI;
                 return noeud;
