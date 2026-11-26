@@ -1762,6 +1762,10 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
         auto type_composé = type->comme_type_composé();
         auto info_rubrique = donne_rubrique_pour_nom(type_composé, expression_rubrique->ident);
         if (!info_rubrique.has_value()) {
+            if (type_composé == m_contexte->espace->typeuse.type_contexte) {
+                return Attente::sur_ajoute_contexte(m_unité, expression_rubrique);
+            }
+
             rapporte_erreur_rubrique_inconnue(
                 expression_rubrique, expression_rubrique, type_composé);
             return CodeRetourValidation::Erreur;
