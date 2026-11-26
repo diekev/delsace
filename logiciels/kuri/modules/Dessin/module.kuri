@@ -645,14 +645,14 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
         }
         Gris_32 {
             tampon := donne_tampon_gris(mémoire(image));
-            dessine_image(tampon_de_rendu, image, rect);
+            dessine_image(tampon_de_rendu, tampon, rect);
         }
         RVB_8 {
             dessine_image_rvb_8(tampon_de_rendu, image, rect);
         }
         RVB_32 {
             tampon := donne_tampon_rvb_32bit(mémoire(image));
-            dessine_image(tampon_de_rendu, image, rect);
+            dessine_image(tampon_de_rendu, tampon, rect);
         }
         RVBA_8 {
             tampon := donne_tampon_rvba_8bit(mémoire(image));
