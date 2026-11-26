@@ -1643,6 +1643,10 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto espace = m_contexte->espace;
             auto type_contexte = espace->typeuse.type_contexte->comme_type_structure();
 
+            if (!type_contexte->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_type(type_contexte);
+            }
+
             if (!type_contexte) {
                 espace->rapporte_erreur(
                     ajoute_contexte,
