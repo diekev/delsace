@@ -1352,6 +1352,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire()
                     return nullptr;
                 }
                 auto déclaration = expression->comme_déclaration_variable();
+                déclaration->drapeaux |= DrapeauxNoeud::EST_AJOUTÉE_AU_CONTEXTE;
                 auto noeud = m_contexte->assembleuse->crée_ajoute_contexte(lexème, déclaration);
                 noeud->ident = directive;
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_FINI;

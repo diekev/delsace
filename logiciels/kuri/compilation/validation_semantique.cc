@@ -4603,7 +4603,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
             decl->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
             /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
              * syntaxeuse. */
-            if (!decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            if (!decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+                                       DrapeauxNoeud::EST_AJOUTÉE_AU_CONTEXTE)) {
                 auto bloc_parent = decl->bloc_parent;
                 bloc_parent->ajoute_rubrique(m_unité->espace, decl);
             }
@@ -4865,7 +4866,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
                 decl->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
                 /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
                  * syntaxeuse. */
-                if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+                if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+                                               DrapeauxNoeud::EST_AJOUTÉE_AU_CONTEXTE)) {
                     auto bloc_parent = decl_var->bloc_parent;
                     bloc_parent->ajoute_rubrique(m_unité->espace, decl_var);
                 }
