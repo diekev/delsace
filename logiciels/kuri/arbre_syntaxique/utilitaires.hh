@@ -71,7 +71,7 @@ enum class DrapeauxNoeud : uint32_t {
     ACCES_EST_ENUM_DRAPEAU = (1 << 16),              // accès rubrique
     EST_UTILISEE = (1 << 17),                        // decl var
     EST_MARQUÉE_INUTILISÉE = (1 << 18),              // decl var
-    /* DISPONIBLE = (1 << 19), */
+    EST_AJOUTÉE_AU_CONTEXTE = (1 << 19),             // decl var
     NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 20),
     DÉPENDANCES_FURENT_RÉSOLUES = (1 << 21),
     IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 22),

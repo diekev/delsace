@@ -64,6 +64,8 @@ enum class FonctionnalitéLangage : uint16_t {
     CUISINE = (1 << 8),
     /* Le fichier contient des directives #insère. */
     INSÈRE = (1 << 9),
+    /* Le fichier contient des directives #ajoute_contexte. */
+    AJOUTE_CONTEXTE = (1 << 10),
 };
 DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 
