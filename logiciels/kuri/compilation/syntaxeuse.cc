@@ -1352,10 +1352,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire()
                     return nullptr;
                 }
                 auto déclaration = expression->comme_déclaration_variable();
-                auto noeud = m_contexte->assembleuse->crée_ajoute_contexte(lexème,
-                                                                                     déclaration);
+                déclaration->drapeaux |= DrapeauxNoeud::EST_AJOUTÉE_AU_CONTEXTE;
+                auto noeud = m_contexte->assembleuse->crée_ajoute_contexte(lexème, déclaration);
                 noeud->ident = directive;
-                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_FINI;
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_CONTEXTE;
                 return noeud;
             }
             else if (directive == ID::nom_de_cette_fonction ||
