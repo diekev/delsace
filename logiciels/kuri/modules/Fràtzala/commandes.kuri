@@ -89,7 +89,7 @@ Commande :: struct {
     exécute_modal: fonc (ctx: *ContexteExécutionCommande);
     termine_modal: fonc (ctx: *ContexteExécutionCommande);
     sur_donne_nom: fonc (données_utilisateur: eini) -> chaine;
-    sur_est_exécutable: fonc (ctx: *ContexteExécutionCommande) -> bool;
+    sur_est_exécutable: fonc () -> bool;
 }
 
 est_commande_clavier :: fonc (commande: *Commande) -> bool
@@ -124,11 +124,11 @@ donne_nom :: fonc (commande: *Commande, données_utilisateur: eini) -> chaine
     retourne commande.identifiant;
 }
 
-est_exécutable :: fonc (commande: *Commande, ctx: *ContexteExécutionCommande) -> bool
+est_exécutable :: fonc (commande: *Commande) -> bool
 {
     résultat := vrai;
     si commande.sur_est_exécutable {
-        résultat = commande.sur_est_exécutable(ctx);
+        résultat = commande.sur_est_exécutable();
     }
     retourne résultat;
 }
@@ -264,7 +264,7 @@ trouve_commande_pour_identifiant :: fonc (gestionnaire: *GestionnaireCommande, i
     retourne nul;
 }
 
-appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, identifiant: chaine, métadonnée := "")
+appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, identifiant: chaine, métadonnée := "")
 {
     commande := trouve_commande_pour_identifiant(gestionnaire, identifiant);
     saufsi commande {
@@ -275,26 +275,27 @@ appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *Context
         retourne;
     }
 
-    ctx.métadonnée = métadonnée;
-
-    saufsi est_exécutable(commande, ctx) {
+    saufsi est_exécutable(commande) {
         retourne;
     }
 
-    résultat := commande.exécute(ctx);
+    ctx: ContexteExécutionCommande;
+    ctx.métadonnée = métadonnée;
+
+    résultat := commande.exécute(*ctx);
 
     discr résultat {
         TERMINÉ { /* OK. */ }
         ANNULÉ { /* OK. */ }
         PASSE_EN_MODAL {
-            sauvegarde_commande_modale(gestionnaire, commande, ctx);
+            sauvegarde_commande_modale(gestionnaire, commande, *ctx);
         }
     }
 
     retourne;
 }
 
-appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, souris: Clic_Souris) -> bool
+appele_commande :: fonc (gestionnaire: *GestionnaireCommande, type_éditrice: z32, souris: Clic_Souris) -> bool
 {
     commande := trouve_commande_pour_clic(gestionnaire, type_éditrice, souris);
     saufsi commande {
@@ -305,26 +306,27 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
         retourne faux;
     }
 
-    saufsi est_exécutable(commande, ctx) {
+    saufsi est_exécutable(commande) {
         retourne faux;
     }
 
+    ctx: ContexteExécutionCommande;
     ctx.souris = souris;
     ctx.souris_originelle = souris;
-    résultat := commande.exécute(ctx);
+    résultat := commande.exécute(*ctx);
 
     discr résultat {
         TERMINÉ { /* OK. */ }
         ANNULÉ { /* OK. */ }
         PASSE_EN_MODAL {
-            sauvegarde_commande_modale(gestionnaire, commande, ctx);
+            sauvegarde_commande_modale(gestionnaire, commande, *ctx);
         }
     }
 
     retourne vrai;
 }
 
-appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, raccourci: Raccourci_Clavier, souris: État_Souris) -> bool
+appele_commande :: fonc (gestionnaire: *GestionnaireCommande, type_éditrice: z32, raccourci: Raccourci_Clavier, souris: État_Souris) -> bool
 {
     commande := trouve_commande_pour_raccourci(gestionnaire, type_éditrice, raccourci);
     saufsi commande {
@@ -335,25 +337,26 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
         retourne faux;
     }
 
-    saufsi est_exécutable(commande, ctx) {
+    saufsi est_exécutable(commande) {
         retourne faux;
     }
 
+    ctx: ContexteExécutionCommande;
     ctx.souris.état = souris;
-    résultat := commande.exécute(ctx);
+    résultat := commande.exécute(*ctx);
 
     discr résultat {
         TERMINÉ { /* OK. */ }
         ANNULÉ { /* OK. */ }
         PASSE_EN_MODAL {
-            sauvegarde_commande_modale(gestionnaire, commande, ctx);
+            sauvegarde_commande_modale(gestionnaire, commande, *ctx);
         }
     }
 
     retourne vrai;
 }
 
-ajourne_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: Clic_Souris, souris_prétransformée: Clic_Souris) -> bool
+ajourne_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, souris: Clic_Souris, souris_prétransformée: Clic_Souris) -> bool
 {
     commande := gestionnaire.commande_modale;
     saufsi commande {
@@ -364,25 +367,27 @@ ajourne_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *Cont
         retourne faux;
     }
 
+    ctx: ContexteExécutionCommande;
     ctx.souris = souris;
     ctx.souris_prétransformée = souris_prétransformée;
     ctx.souris_précédente = gestionnaire.ctx_modal.souris;
     ctx.souris_originelle = gestionnaire.ctx_modal.souris_originelle;
 
-    commande.exécute_modal(ctx);
+    commande.exécute_modal(*ctx);
 
     gestionnaire.ctx_modal.souris = souris;
     retourne vrai;
 }
 
-achève_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: Clic_Souris) -> bool
+achève_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, souris: Clic_Souris) -> bool
 {
     commande := gestionnaire.commande_modale;
 
     si commande && commande.termine_modal {
+        ctx: ContexteExécutionCommande;
         ctx.souris = souris;
         ctx.souris_précédente = gestionnaire.ctx_modal.souris;
-        commande.termine_modal(ctx);
+        commande.termine_modal(*ctx);
     }
 
     gestionnaire.commande_modale = nul;
