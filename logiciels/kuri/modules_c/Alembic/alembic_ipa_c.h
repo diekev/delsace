@@ -490,13 +490,63 @@ bool abc_generic_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Prop
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Dimensions
+ * \{ */
+
+#define SIZEOF_ABC_DIMENSIONS 24
+#define ALIGNOF_ABC_DIMENSIONS 8
+
+struct Abc_Dimensions {
+    unsigned char data[SIZEOF_ABC_DIMENSIONS];
+} __attribute__((aligned(ALIGNOF_ABC_DIMENSIONS)));
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Array_Property
  * \{ */
 
 struct Abc_Input_Array_Property;
 
+union Abc_Generic_Input_Array_Property {
+    struct Abc_Input_Array_Property *prop;
+
 #define DECLARE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
-    struct Abc_Input_##type_geom##_Array_Property;
+    struct Abc_Input_##type_geom##_Array_Property *prop_##nom_court;
+
+    ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_PROPERTY)
+
+#undef DECLARE_ABC_TYPED_ARRAY_PROPERTY
+};
+
+uint64_t abc_generic_input_array_property_get_num_samples(
+    union Abc_Generic_Input_Array_Property prop);
+
+bool abc_generic_input_array_property_is_constant(union Abc_Generic_Input_Array_Property prop);
+
+bool abc_generic_input_array_property_is_scalar_like(union Abc_Generic_Input_Array_Property prop);
+
+struct Abc_Time_Sampling *abc_generic_input_array_property_get_time_sampling(
+    union Abc_Generic_Input_Array_Property prop);
+
+void abc_generic_input_array_property_get_dimensions(union Abc_Generic_Input_Array_Property prop,
+                                                     struct Abc_Dimensions *dimensions,
+                                                     struct Abc_Sample_Selector selector);
+
+struct Abc_Input_Compound_Property *abc_generic_input_array_property_get_parent(
+    union Abc_Generic_Input_Array_Property prop);
+
+#define DECLARE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
+    struct Abc_Input_##type_geom##_Array_Property;                                                \
+    struct Abc_Input_##type_geom##_Array_Property *abc_input_##nom_court##_array_property(        \
+        struct Abc_Input_Compound_Property *parent, Abc_String name);                             \
+    void abc_input_##nom_court##_array_property_get(                                              \
+        struct Abc_Input_##type_geom##_Array_Property *prop,                                      \
+        struct Abc_##type_geom##_Array_Sample *val,                                               \
+        struct Abc_Sample_Selector selector);                                                     \
+    struct Abc_##type_geom##_Array_Sample abc_input_##nom_court##_array_property_get_value(       \
+        struct Abc_Input_##type_geom##_Array_Property *prop,                                      \
+        struct Abc_Sample_Selector selector);
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_PROPERTY)
 
