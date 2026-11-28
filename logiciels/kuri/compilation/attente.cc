@@ -4,6 +4,7 @@
 #include "arbre_syntaxique/noeud_code.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "log.hh"
 #include "parsage/identifiant.hh"
 
 #include "representation_intermediaire/instructions.hh"
@@ -944,6 +945,56 @@ InfoTypeAttente info_type_attente_sur_info_type = {NOM_RAPPEL_POUR_UNITÉ(info_t
                                                    NOM_RAPPEL_POUR_COMMENTAIRE(info_type),
                                                    NOM_RAPPEL_POUR_EST_RÉSOLUE(info_type),
                                                    NOM_RAPPEL_POUR_ERREUR(info_type)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurAjouteContexte
+ * \{ */
+
+RAPPEL_POUR_UNITÉ(ajoute_contexte)
+{
+    // auto info_attente = attente.rubrique_ajoute_contexte();
+    // return info_attente.unité;
+    return nullptr;
+}
+
+RAPPEL_POUR_COMMENTAIRE(ajoute_contexte)
+{
+    auto info_attente = attente.rubrique_ajoute_contexte();
+    return enchaine("ajoute_contexte de ", info_attente.rubrique->ident->nom);
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(ajoute_contexte)
+{
+    auto info_attente = attente.rubrique_ajoute_contexte();
+    auto type_contexte = espace->typeuse.type_contexte->comme_type_structure();
+    auto info_rubrique = donne_rubrique_pour_nom(type_contexte, info_attente.rubrique->ident);
+    auto est_résolue = info_rubrique.has_value();
+    return est_résolue;
+}
+
+RAPPEL_POUR_ERREUR(ajoute_contexte)
+{
+    auto info_attente = attente.rubrique_ajoute_contexte();
+    auto message = enchaine("Je ne pas continuer la compilation car une unité attend "
+                            "indéfiniement sur #ajoute_contexte pour une rubrique appelée « ",
+                            info_attente.rubrique->ident->nom,
+                            " ».");
+
+    auto espace = unité->espace;
+    espace->rapporte_erreur(unité->noeud, message)
+        .ajoute_message("\nNote : l'unité est dans l'état : ")
+        .ajoute_message(unité->chaine_attentes_récursives())
+        .ajoute_message("\n");
+}
+
+InfoTypeAttente info_type_attente_sur_ajoute_contexte = {
+    NOM_RAPPEL_POUR_UNITÉ(ajoute_contexte),
+    condition_blocage_défaut,
+    NOM_RAPPEL_POUR_COMMENTAIRE(ajoute_contexte),
+    NOM_RAPPEL_POUR_EST_RÉSOLUE(ajoute_contexte),
+    NOM_RAPPEL_POUR_ERREUR(ajoute_contexte)};
 
 /** \} */
 
