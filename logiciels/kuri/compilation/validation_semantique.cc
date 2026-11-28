@@ -1638,6 +1638,10 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto espace = m_contexte->espace;
             auto type_contexte = espace->typeuse.type_contexte->comme_type_structure();
 
+            if (!type_contexte->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_type(type_contexte);
+            }
+
             if (!type_contexte) {
                 espace->rapporte_erreur(
                     ajoute_contexte,
@@ -1753,6 +1757,10 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
         auto type_composé = type->comme_type_composé();
         auto info_rubrique = donne_rubrique_pour_nom(type_composé, expression_rubrique->ident);
         if (!info_rubrique.has_value()) {
+            if (type_composé == m_contexte->espace->typeuse.type_contexte) {
+                return Attente::sur_ajoute_contexte(m_unité, expression_rubrique);
+            }
+
             rapporte_erreur_rubrique_inconnue(
                 expression_rubrique, expression_rubrique, type_composé);
             return CodeRetourValidation::Erreur;
@@ -4598,7 +4606,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
             decl->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
             /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
              * syntaxeuse. */
-            if (!decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            if (!decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+                                       DrapeauxNoeud::EST_AJOUTÉE_AU_CONTEXTE)) {
                 auto bloc_parent = decl->bloc_parent;
                 bloc_parent->ajoute_rubrique(m_unité->espace, decl);
             }
@@ -4860,7 +4869,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
                 decl->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
                 /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
                  * syntaxeuse. */
-                if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+                if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+                                               DrapeauxNoeud::EST_AJOUTÉE_AU_CONTEXTE)) {
                     auto bloc_parent = decl_var->bloc_parent;
                     bloc_parent->ajoute_rubrique(m_unité->espace, decl_var);
                 }
