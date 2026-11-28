@@ -116,6 +116,11 @@ struct TypeDéclaration {
     NoeudDéclaration *déclaration = nullptr;
 };
 
+struct Info_Attente_Ajoute_Contexte {
+    UnitéCompilation *unité = nullptr;
+    NoeudExpressionRubrique const *rubrique = nullptr;
+};
+
 using AttenteSurType = AttenteSur<Type const *>;
 using AttenteSurMétaProgramme = AttenteSur<MétaProgramme *>;
 using AttenteSurDéclaration = AttenteSur<NoeudDéclaration *>;
@@ -132,6 +137,7 @@ using AttenteSurOpérateurPour = AttenteSur<OpérateurPour>;
 using AttenteSurInitialisationType = AttenteSur<InitialisationType>;
 using AttenteSurInfoType = AttenteSur<InfoDeType>;
 using AttenteSurSynthétisationOpérateur = AttenteSur<OpérateurBinaire const *>;
+using AttenteSurAjouteContexte = AttenteSur<Info_Attente_Ajoute_Contexte>;
 
 /** \} */
 
@@ -165,6 +171,7 @@ DÉCLARE_INFO_TYPE_ATTENTE(opérateur_pour, AttenteSurOpérateurPour);
 DÉCLARE_INFO_TYPE_ATTENTE(initialisation_type, AttenteSurInitialisationType);
 DÉCLARE_INFO_TYPE_ATTENTE(info_type, AttenteSurInfoType);
 DÉCLARE_INFO_TYPE_ATTENTE(synthétisation_opérateur, AttenteSurSynthétisationOpérateur);
+DÉCLARE_INFO_TYPE_ATTENTE(ajoute_contexte, AttenteSurAjouteContexte);
 
 #undef DÉCLARE_INFO_TYPE_ATTENTE
 
@@ -193,7 +200,8 @@ struct Attente {
                                      AttenteSurOpérateurPour,
                                      AttenteSurInitialisationType,
                                      AttenteSurInfoType,
-                                     AttenteSurSynthétisationOpérateur>;
+                                     AttenteSurSynthétisationOpérateur,
+                                     AttenteSurAjouteContexte>;
 
     TypeAttente attente{};
 
@@ -308,6 +316,13 @@ struct Attente {
         return AttenteSurSynthétisationOpérateur{opérateur_binaire};
     }
 
+    static Attente sur_ajoute_contexte(UnitéCompilation *unité,
+                                       NoeudExpressionRubrique const *rubrique)
+    {
+        assert(type);
+        return AttenteSurAjouteContexte{Info_Attente_Ajoute_Contexte{unité, rubrique}};
+    }
+
     /* Discrimination. */
 
     /* Retourne vrai si l'attente est valide, c'est-à-dire qu'elle contient quelque chose sur quoi
@@ -419,6 +434,12 @@ struct Attente {
     {
         assert(est<AttenteSurSynthétisationOpérateur>());
         return std::get<AttenteSurSynthétisationOpérateur>(attente).valeur;
+    }
+
+    Info_Attente_Ajoute_Contexte rubrique_ajoute_contexte() const
+    {
+        assert(est<AttenteSurAjouteContexte>());
+        return std::get<AttenteSurAjouteContexte>(attente).valeur;
     }
 
     kuri::chaine donne_commentaire(UnitéCompilation const *unité) const;
