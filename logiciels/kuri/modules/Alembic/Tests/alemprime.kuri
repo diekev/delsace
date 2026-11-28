@@ -24,7 +24,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    nom_test := "xform";
+    nom_test := "infos-attributs";
 
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
@@ -644,7 +644,7 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
     }
 }
 
-imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property @inutilisée, prop_header: *Abc_Property_Header)
+imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property, prop_header: *Abc_Property_Header)
 {
     prop_name := get_name(prop_header);
 
@@ -656,6 +656,23 @@ imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property @inutilis
     imprimeln("        % (%, %, %)", prop_name, prop_type, data_type.pod_type, data_type.extent);
 
     assert(data_type.extent <= 16);
+
+    si data_type.pod_type == Abc_Plain_Old_Data_Type.FLOAT64 {
+        typed_prop := abc_input_double_array_property(props, prop_name);
+
+        num_samples := get_num_samples(typed_prop);
+        imprimeln("          % samples", num_samples);
+
+        pour num_samples {
+            selector: Abc_Sample_Selector;
+            selector.requested_index = it comme z64;
+            sample: Abc_Double_Array_Sample;
+            get(typed_prop, *sample, selector);
+            si sample.num_values >= 1 {
+                imprimeln("            values[0] @ % = %", it, sample.values[0]);
+            }
+        }
+    }
 }
 
 imprime_informations_subd :: fonc (object: Abc_Generic_Input_Object)
@@ -827,7 +844,8 @@ donne_arb_geom_params :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Co
         résultat = get_arb_geom_params(schema);
     }
     sinon si matches_xform(header) {
-        /* À FAIRE. */
+        schema := get_schema(objet.xform);
+        résultat = get_arb_geom_params(schema);
     }
 
     retourne résultat;
@@ -871,7 +889,8 @@ donne_user_properties :: fonc (objet: Abc_Generic_Input_Object) -> *Abc_Input_Co
         résultat = get_user_properties(schema);
     }
     sinon si matches_xform(header) {
-        /* À FAIRE. */
+        schema := get_schema(objet.xform);
+        résultat = get_user_properties(schema);
     }
 
     retourne résultat;
@@ -1016,7 +1035,7 @@ imprime_infos_attributs :: fonc (object: Abc_Generic_Input_Object)
 imprime_infos_properties :: fonc (props: *Abc_Input_Compound_Property, nom_objet: chaine, message: chaine)
 {
     saufsi valid(props) {
-       retourne;
+        retourne;
     }
 
     num := get_num_properties(props);
@@ -1034,10 +1053,10 @@ imprime_infos_properties :: fonc (props: *Abc_Input_Compound_Property, nom_objet
             imprime_infos_objet(props, prop_header, nom_objet, message, première);
             première = faux;
         }
-        // sinon si prop_type == Abc_Property_Type.ARRAY {
-        //     imprime_infos_objet(props, prop_header, nom_objet, message, première);
-        //     première = faux;
-        // }
+        sinon si prop_type == Abc_Property_Type.ARRAY {
+            imprime_infos_propriété_array(props, prop_header, nom_objet, message, première);
+            première = faux;
+        }
     }
 }
 
@@ -1052,6 +1071,15 @@ imprime_infos_objet :: fonc (props: *Abc_Input_Compound_Property, prop_header: *
     // imprimeln("       %", prop_name);
 
     imprime_propriété_scalaire(props, prop_header);
+}
+
+imprime_infos_propriété_array :: fonc (props: *Abc_Input_Compound_Property, prop_header: *Abc_Property_Header, nom_objet: chaine, message: chaine, première: bool)
+{
+    imprime_chemin_archive_courante();
+    si première {
+        imprimeln("   % on '%'", message, nom_objet);
+    }
+    imprime_propriété_array(props, prop_header);
 }
 
 /** \} */
