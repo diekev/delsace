@@ -207,6 +207,15 @@ bool abc_generic_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Prop
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Dimensions
+ * \{ */
+
+static_assert(sizeof(Alembic::Util::Dimensions) == SIZEOF_ABC_DIMENSIONS);
+static_assert(alignof(Alembic::Util::Dimensions) == ALIGNOF_ABC_DIMENSIONS);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Array_Property
  * \{ */
 
@@ -219,6 +228,47 @@ struct Abc_Input_Array_Property {
     virtual ~Abc_Input_Array_Property() = default;
 };
 
+uint64_t abc_generic_input_array_property_get_num_samples(
+    union Abc_Generic_Input_Array_Property prop)
+{
+    return prop.prop->prop.getNumSamples();
+}
+
+bool abc_generic_input_array_property_is_constant(union Abc_Generic_Input_Array_Property prop)
+{
+    return prop.prop->prop.isConstant();
+}
+
+bool abc_generic_input_array_property_is_scalar_like(union Abc_Generic_Input_Array_Property prop)
+{
+    return prop.prop->prop.isScalarLike();
+}
+
+Abc_Time_Sampling *abc_generic_input_array_property_get_time_sampling(
+    union Abc_Generic_Input_Array_Property prop)
+{
+    return make_time_sampling(prop.prop->parent->archive, prop.prop->prop.getTimeSampling());
+}
+
+// get
+// getAs
+// getKey
+
+void abc_generic_input_array_property_get_dimensions(union Abc_Generic_Input_Array_Property prop,
+                                                     struct Abc_Dimensions_UInt64 *dimensions,
+                                                     struct Abc_Sample_Selector selector)
+{
+    auto résultat = Util::Dimensions();
+    prop.prop->prop.getDimensions(résultat, get_sample_selector(selector));
+    *reinterpret_cast<Util::Dimensions *>(dimensions) = résultat;
+}
+
+Abc_Input_Compound_Property *abc_generic_input_array_property_get_parent(
+    union Abc_Generic_Input_Array_Property prop)
+{
+    return prop.prop->parent;
+}
+
 template <typename T>
 T *make_input_array_prop(Abc_Input_Archive *archive)
 {
@@ -230,7 +280,32 @@ T *make_input_array_prop(Abc_Input_Archive *archive)
 #define DEFINE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)             \
     struct Abc_Input_##type_geom##_Array_Property : public Abc_Input_Array_Property {             \
         Abc::I##type_geom##ArrayProperty typed_prop{};                                            \
-    };
+        Abc::type_geom##ArraySamplePtr current_sample{};                                          \
+    };                                                                                            \
+    Abc_Input_##type_geom##_Array_Property *abc_input_##nom_court##_array_property(               \
+        struct Abc_Input_Compound_Property *parent, Abc_String name)                              \
+    {                                                                                             \
+        auto *résultat = make_input_array_prop<Abc_Input_##type_geom##_Array_Property>(           \
+            parent->archive);                                                                     \
+        résultat->typed_prop = Abc::I##type_geom##ArrayProperty(parent->prop, name);              \
+        résultat->prop = résultat->typed_prop;                                                    \
+        résultat->parent = parent;                                                                \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_input_##nom_court##_array_property_get(                                              \
+        struct Abc_Input_##type_geom##_Array_Property *prop,                                      \
+        struct Abc_##type_geom##_Array_Sample *val,                                               \
+        struct Abc_Sample_Selector selector)                                                      \
+    {                                                                                             \
+        *val = abc_input_##nom_court##_array_property_get_value(prop, selector);                  \
+    }                                                                                             \
+    struct Abc_##type_geom##_Array_Sample abc_input_##nom_court##_array_property_get_value(       \
+        struct Abc_Input_##type_geom##_Array_Property *prop, struct Abc_Sample_Selector selector) \
+    {                                                                                             \
+        prop->current_sample = prop->typed_prop.getValue(get_sample_selector(selector));          \
+        return make_input_array_sample<Abc_##type_geom##_Array_Sample>(prop->current_sample,      \
+                                                                       prop->sample_data);        \
+    }
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
 
